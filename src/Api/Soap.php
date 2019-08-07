@@ -59,9 +59,9 @@ abstract class Soap {
         return $this->soap_auth;
     }
 
-    public function get_access_token( $client_id, $client_secret ) {
-        return $this->get_auth_api()->get_access_token( $client_id, $client_secret );
-    }
+    abstract public function get_access_token();
+
+    abstract public function test_connection();
 
     // Unset/remove any items that are empty strings or 0
     protected function walk_recursive_remove( array $array ) {
