@@ -6,6 +6,7 @@
  */
 namespace Vendidero\Germanized\DHL\Api;
 
+use \Vendidero\Germanized\DHL\Package;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -75,16 +76,12 @@ class Paket {
         return $this->parcel_api;
     }
 
-    public function get_holidays() {
-        return array();
-    }
-
     public function get_country_code() {
         return $this->country_code;
     }
 
-    public function test_connection( $client_id, $client_secret ) {
-        return $this->get_label_api()->test_connection( $client_id, $client_secret );
+    public function test_connection() {
+        return $this->get_label_api()->test_connection();
     }
 
     public function get_parcel_location( $args ) {
@@ -101,10 +98,6 @@ class Paket {
 
     public function delete_label( $label_url ) {
         return $this->get_label_api()->delete_label( $label_url );
-    }
-
-    public function validate_field( $key, $value ) {
-        return $this->get_label_api()->validate_field( $key, $value );
     }
 
     public function reset_connection( ) {
@@ -182,11 +175,11 @@ class Paket {
         $today_de_timestamp = $today->getTimestamp();
         $week_day           = $today->format('D' );
         $week_date          = $today->format('Y-m-d' );
-        $week_time          = $today->format('H:i');
+        $week_time          = $today->format('H:i' );
 
         // Compare week day with key since key includes capital letter in beginning and will work for English AND German!
         // Check if today is a working day...
-        if ( ( ! array_key_exists( $week_day, $exclude_working_days ) ) && ( ! in_array( $week_date, $this->get_holidays() ) ) ) {
+        if ( ( ! array_key_exists( $week_day, $exclude_working_days ) ) && ( ! in_array( $week_date, Package::get_holidays( 'DE' ) ) ) ) {
 
             // ... and check if after cutoff time if today is a transfer day
             if( $today_de_timestamp >= strtotime( $cutoff_time ) ) {
@@ -201,7 +194,7 @@ class Paket {
         }
 
         // Make sure the next transfer days are working days
-        while ( array_key_exists( $week_day, $exclude_working_days ) || in_array( $week_date, $this->get_holidays() ) ) {
+        while ( array_key_exists( $week_day, $exclude_working_days ) || in_array( $week_date, Package::get_holidays( 'DE' ) ) ) {
 
             $today->add( new DateInterval( 'P1D' ) ); // Add 1 day
             $week_day  = $today->format( 'D' );
@@ -232,6 +225,7 @@ class Paket {
     }
 
     protected function get_preferred_day( $preferred_services ) {
+
         $day_of_week_arr = array(
             '1' => __( 'Mon', 'pr-shipping-dhl' ),
             '2' => __( 'Tue', 'pr-shipping-dhl' ),

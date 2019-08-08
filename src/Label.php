@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL;
+use DateTimeZone;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Data;
 use WC_Data_Store;
@@ -57,6 +58,16 @@ class Label extends WC_Data {
         'export_path'           => '',
         'dhl_product'           => '',
         'preferred_day'         => '',
+        'preferred_time'        => '',
+        'preferred_location'    => '',
+        'preferred_neighbor'    => '',
+        'ident_date_of_birth'   => '',
+        'ident_min_age'         => '',
+        'visual_min_age'        => '',
+        'email_notification'    => 'no',
+        'return'                => 'no',
+        'codeable_address_only' => 'no',
+        'return_address'        => array(),
         'services'              => array(),
     );
 
@@ -148,6 +159,147 @@ class Label extends WC_Data {
         return $this->get_prop( 'preferred_day', $context );
     }
 
+	public function get_preferred_time( $context = 'view' ) {
+		return $this->get_prop( 'preferred_time', $context );
+	}
+
+	public function get_preferred_location( $context = 'view' ) {
+		return $this->get_prop( 'preferred_location', $context );
+	}
+
+	public function get_preferred_neighbor( $context = 'view' ) {
+		return $this->get_prop( 'preferred_neighbor', $context );
+	}
+
+	public function get_ident_date_of_birth( $context = 'view' ) {
+		return $this->get_prop( 'ident_date_of_birth', $context );
+	}
+
+	public function get_ident_min_age( $context = 'view' ) {
+		return $this->get_prop( 'ident_min_age', $context );
+	}
+
+	public function get_visual_min_age( $context = 'view' ) {
+		return $this->get_prop( 'visual_min_age', $context );
+	}
+
+	public function get_email_notification( $context = 'view' ) {
+		return $this->get_prop( 'email_notification', $context );
+	}
+
+	public function has_email_notification() {
+    	return ( true === $this->get_email_notification() );
+	}
+
+	public function get_return( $context = 'view' ) {
+		return $this->get_prop( 'return', $context );
+	}
+
+	public function has_return() {
+    	$products = wc_gzd_dhl_get_return_products();
+
+		return ( true === $this->get_return() && in_array( $this->get_dhl_product(), $products ) );
+	}
+
+	public function get_codeable_address_only( $context = 'view' ) {
+		return $this->get_prop( 'codeable_address_only', $context );
+	}
+
+	public function codeable_address_only() {
+		return ( true === $this->get_codeable_address_only() );
+	}
+
+	/**
+	 * Gets a prop for a getter method.
+	 *
+	 * @since  3.0.0
+	 * @param  string $prop Name of prop to get.
+	 * @param  string $address billing or shipping.
+	 * @param  string $context What the value is for. Valid values are view and edit.
+	 * @return mixed
+	 */
+	protected function get_address_prop( $prop, $address = 'return_address', $context = 'view' ) {
+		$value = null;
+
+		if ( isset( $this->changes[ $address ][ $prop ] ) || isset( $this->data[ $address ][ $prop ] ) ) {
+			$value = isset( $this->changes[ $address ][ $prop ] ) ? $this->changes[ $address ][ $prop ] : $this->data[ $address ][ $prop ];
+
+			if ( 'view' === $context ) {
+				$value = apply_filters( $this->get_hook_prefix() . $address . '_' . $prop, $value, $this );
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Gets a prop for a getter method.
+	 *
+	 * @since  3.0.0
+	 * @param  string $prop Name of prop to get.
+	 * @param  string $address billing or shipping.
+	 * @param  string $context What the value is for. Valid values are view and edit.
+	 * @return mixed
+	 */
+	protected function get_return_address_prop( $prop, $context = 'view' ) {
+		$value = $this->get_address_prop( $prop, 'return_address', $context );
+
+		// Load from settings
+		if ( is_null( $value ) ) {
+			$value = Package::get_setting( 'return_' . $prop );
+		}
+
+		return $value;
+	}
+
+	public function get_return_street( $context = 'view' ) {
+		return $this->get_return_address_prop( 'street', $context );
+	}
+
+	public function get_return_street_number( $context = 'view' ) {
+		return $this->get_return_address_prop( 'street_number', $context );
+	}
+
+	public function get_return_company( $context = 'view' ) {
+		return $this->get_return_address_prop( 'company', $context );
+	}
+
+	public function get_return_first_name( $context = 'view' ) {
+		return $this->get_return_address_prop( 'first_name', $context );
+	}
+
+	public function get_return_last_name( $context = 'view' ) {
+		return $this->get_return_address_prop( 'last_name', $context );
+	}
+
+	public function get_return_formatted_full_name() {
+		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-dhl' ), $this->get_return_first_name(), $this->get_return_last_name() );
+	}
+
+	public function get_return_postcode( $context = 'view' ) {
+		return $this->get_return_address_prop( 'postcode', $context );
+	}
+
+	public function get_return_city( $context = 'view' ) {
+		return $this->get_return_address_prop( 'city', $context );
+	}
+
+	public function get_return_state( $context = 'view' ) {
+		return $this->get_return_address_prop( 'state', $context );
+	}
+
+	public function get_return_country( $context = 'view' ) {
+		return $this->get_return_address_prop( 'country', $context );
+	}
+
+	public function get_return_phone( $context = 'view' ) {
+		return $this->get_return_address_prop( 'phone', $context );
+	}
+
+	public function get_return_email( $context = 'view' ) {
+		return $this->get_return_address_prop( 'email', $context );
+	}
+
     public function get_services( $context = 'view' ) {
         return $this->get_prop( 'services', $context );
     }
@@ -200,6 +352,59 @@ class Label extends WC_Data {
         $this->set_prop( 'services', (array) $services );
     }
 
+	public function set_preferred_day( $day ) {
+		$this->set_date_prop( 'preferred_day', $day );
+	}
+
+	public function set_preferred_time( $time ) {
+		$this->set_time_prop( 'preferred_time', $time );
+	}
+
+	public function set_email_notification( $value ) {
+    	$this->set_prop( 'email_notification', wc_string_to_bool( $value ) );
+	}
+
+	public function set_return( $value ) {
+		$this->set_prop( 'return', wc_string_to_bool( $value ) );
+	}
+
+	public function set_return_address( $value ) {
+    	$this->set_prop( 'return_address', (array) $value );
+	}
+
+	public function set_codeable_address_only( $value ) {
+		$this->set_prop( 'codeable_address_only', wc_string_to_bool( $value ) );
+	}
+
+	protected function set_time_prop( $prop, $value ) {
+		try {
+
+			if ( empty( $value ) ) {
+				$this->set_prop( $prop, null );
+				return;
+			}
+
+			if ( is_a( $value, 'WC_DateTime' ) ) {
+				$datetime = $value;
+			} elseif ( is_numeric( $value ) ) {
+				$datetime = new WC_DateTime( "@{$value}" );
+			} else {
+				$timestamp = wc_string_to_timestamp( $value );
+				$datetime  = new WC_DateTime( "@{$timestamp}" );
+			}
+
+			$this->set_prop( $prop, $datetime );
+		} catch ( Exception $e ) {} // @codingStandardsIgnoreLine.
+	}
+
+	public function set_ident_date_of_birth( $date ) {
+		$this->set_date_prop( 'ident_date_of_birth', $date );
+	}
+
+	public function set_ident_min_age( $age ) {
+    	$this->set_prop( 'ident_min_age', absint( $age ) );
+	}
+
     public function add_service( $service ) {
         $services = (array) $this->get_services();
 
@@ -211,10 +416,6 @@ class Label extends WC_Data {
         }
 
         return false;
-    }
-
-    public function set_preferred_day( $day ) {
-        $this->set_date_prop( 'preferred_day', $day );
     }
 
     public function get_file() {

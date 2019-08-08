@@ -64,8 +64,27 @@ function wc_gzd_dhl_get_services() {
     );
 }
 
+function wc_gzd_dhl_get_return_products() {
+	return array(
+		'V01PAK',
+		'V01PRIO',
+		'V86PARCEL',
+		'V55PAK'
+	);
+}
+
 function wc_gzd_dhl_get_pickup_types() {
-    return array();
+    return array(
+    	'packstation' => __( 'Packstation', 'woocommerce-germanized-dhl' ),
+	    'postoffice'  => __( 'Postfiliale', 'woocommerce-germanized-dhl' ),
+	    'parcelshop'  => __( 'Postfiliale', 'woocommerce-germanized-dhl' )
+    );
+}
+
+function wc_gzd_dhl_get_pickup_type( $type ) {
+	$types = wc_gzd_dhl_get_pickup_types();
+
+	return array_key_exists( $type, $types ) ? $types[ $type ] : false;
 }
 
 /**

@@ -61,7 +61,6 @@ class AuthRest {
      * @return string
      */
     public function get_access_token( $client_id, $client_secret ) {
-
         if ( empty( $this->access_token ) ) {
             try {
                 $this->request_access_token( $client_id, $client_secret );
@@ -110,9 +109,9 @@ class AuthRest {
 
         Package::log( 'Authorization URL: ' . $wp_request_url );
 
-        $wp_auth_response = wp_remote_get( $wp_request_url, array( 'headers' => $wp_request_headers ) );
-        $response_code    = wp_remote_retrieve_response_code( $wp_auth_response );
-        $response_body    = json_decode( wp_remote_retrieve_body( $wp_auth_response ) );
+        $wp_auth_response   = wp_remote_get( $wp_request_url, array( 'headers' => $wp_request_headers ) );
+        $response_code      = wp_remote_retrieve_response_code( $wp_auth_response );
+        $response_body      = json_decode( wp_remote_retrieve_body( $wp_auth_response ) );
 
         Package::log( 'Authorization Response: ' . $response_code );
 

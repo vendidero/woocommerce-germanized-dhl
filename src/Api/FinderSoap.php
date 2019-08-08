@@ -1,93 +1,88 @@
 <?php
 
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-} // Exit if accessed directly
+namespace Vendidero\Germanized\DHL\Api;
 
+use Exception;
+use Vendidero\Germanized\DHL\Package;
 
-class PR_DHL_API_SOAP_Finder extends PR_DHL_API_SOAP {
+defined( 'ABSPATH' ) || exit;
 
-    /**
-     * WSDL definitions
-     */
-    const PR_DHL_FINDER_WSDL_LINK = 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-production.wsdl';
-    const PR_DHL_FINDER_WSDL_LINK_QA = 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-sandbox.wsdl';
-
+class FinderSoap extends Soap {
 
     public function __construct( ) {
         try {
-
-            parent::__construct( self::PR_DHL_FINDER_WSDL_LINK );
-
-        } catch (Exception $e) {
+            parent::__construct( Package::get_parcel_finder_soap_url() );
+        } catch ( Exception $e ) {
             throw $e;
         }
     }
 
+	public function get_access_token() {
+		return $this->get_auth_api()->get_access_token( Package::get_cig_user(), Package::get_cig_password() );
+	}
 
+    public function test_connection() {
+    	try {
+		    $soap_client  = $this->get_access_token();
+		    $soap_request = $this->get_request( array(
+		    	'country'  => 'DE',
+			    'postcode' => '12207'
+		    ) );
 
-    public function get_parcel_location( $args ) {
-        $this->set_arguments( $args );
-        $soap_request = $this->set_message();
+		    $response_body = $soap_client->getParcellocationByAddress( $soap_request );
+
+		    return true;
+	    } catch( Exception $e ) {
+		    return false;
+	    }
+    }
+
+	public function get_parcel_location( $args ) {
+        $soap_request = $this->get_request( $args );
 
         try {
-            $soap_client = $this->get_access_token( $args['dhl_settings']['api_user'], $args['dhl_settings']['api_pwd'] );
-            PR_DHL()->log_msg( '"getParcellocationByAddress" called with: ' . print_r( $soap_request, true ) );
+            $soap_client = $this->get_access_token();
+            Package::log( '"getParcellocationByAddress" called with: ' . print_r( $soap_request, true ) );
 
-            $response_body = $soap_client->getParcellocationByAddress($soap_request);
+            $response_body = $soap_client->getParcellocationByAddress( $soap_request );
 
-            PR_DHL()->log_msg( 'Response: Successful');
+            Package::log( 'Response: Successful' );
 
             return $response_body;
-        } catch (Exception $e) {
-            PR_DHL()->log_msg( 'Response Error: ' . $e->getMessage() );
+        } catch ( Exception $e ) {
+            Package::log( 'Response Error: ' . $e->getMessage(), 'error' );
             throw $e;
         }
     }
 
-    protected function set_arguments( $args ) {
-        // Validate set args
+    protected function get_request( $args ) {
+    	$args = wp_parse_args( $args, array(
+    		'city'     => '',
+		    'postcode' => '',
+		    'country'  => '',
+	    ) );
 
-        if ( empty( $args['dhl_settings']['api_user'] ) ) {
-            throw new Exception( __('Please, provide the username in the DHL shipping settings', 'pr-shipping-dhl' ) );
-        }
+	    if ( empty( $args['city'] ) && empty( $args['postcode'] ) ) {
+		    throw new Exception( __( 'At least shipping city or postcode is required.', 'woocommerce-germanized-dhl' ) );
+	    }
 
-        if ( empty( $args['dhl_settings']['api_pwd'] )) {
-            throw new Exception( __('Please, provide the password for the username in the DHL shipping settings', 'pr-shipping-dhl') );
-        }
+	    if ( empty( $args['country'] ) ) {
+		    throw new Exception( __( 'Shipping country is required.', 'woocommerce-germanized-dhl' ) );
+	    }
 
-        if ( empty( $args['shipping_address']['city'] ) && empty( $args['shipping_address']['postcode'] ) ) {
-            throw new Exception( __('Shipping "City" and "Postcode" are empty!', 'pr-shipping-dhl') );
-        }
+        $shipping_address = implode(' ', $args );
+        $dhl_label_body   = array(
+                'Version' => array(
+                    'majorRelease' => '2',
+                    'minorRelease' => '2'
+                ),
+                'address'     => $shipping_address,
+                'countrycode' => $args['country']
+            );
 
-        if ( empty( $args['shipping_address']['country'] )) {
-            throw new Exception( __('Shipping "Country" is empty!', 'pr-shipping-dhl') );
-        }
+        // Unset/remove any items that are empty strings or 0, even if required!
+        $request = $this->walk_recursive_remove( $dhl_label_body );
 
-        $this->args = $args;
-    }
-
-    protected function set_message() {
-        if( ! empty( $this->args ) ) {
-
-            $shipping_address = implode(' ', $this->args['shipping_address']);
-
-            $dhl_label_body =
-                array(
-                    'Version' =>
-                        array(
-                            'majorRelease' => '2',
-                            'minorRelease' => '2'
-                        ),
-                    'address' => $shipping_address,
-                    'countrycode' => $this->args['shipping_address']['country']
-                );
-
-            // Unset/remove any items that are empty strings or 0, even if required!
-            $this->body_request = $this->walk_recursive_remove( $dhl_label_body );
-
-            return $this->body_request;
-        }
-
+        return $request;
     }
 }

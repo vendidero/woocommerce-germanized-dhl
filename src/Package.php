@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\DHL;
 
+use Vendidero\Germanized\DHL\Api\Paket;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -18,6 +20,13 @@ class Package {
 
     protected static $upload_dir_suffix = '';
 
+	// These are all considered domestic by DHL
+	protected static $us_territories = array( 'US', 'GU', 'AS', 'PR', 'UM', 'VI' );
+
+	protected static $holidays = array();
+
+	protected static $api = null;
+
     /**
      * Init the package - load the REST API Server class.
      */
@@ -27,6 +36,20 @@ class Package {
         self::init_hooks();
         self::includes();
     }
+
+	public static function get_holidays( $country = 'DE' ) {
+		if ( empty( self::$holidays ) ) {
+			self::$holidays = include self::get_path() . '/i18n/holidays.php';
+		}
+
+		$holidays = self::$holidays;
+
+		if ( ! empty( $country ) ) {
+			$holidays = array_key_exists( $country, self::$holidays ) ? self::$holidays[ $country ] : array();
+		}
+
+		return apply_filters( 'woocommerce_gzd_dhl_holidays', $holidays, $country );
+	}
 
     /**
      * Register custom tables within $wpdb object.
@@ -64,7 +87,7 @@ class Package {
         add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 
         // add_action( 'init', array( '\Vendidero\Germanized\DHL\Install', 'install' ), 15 );
-        // add_action( 'init', array( __CLASS__, 'test' ), 120 );
+	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
 
         add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
         add_action( 'woocommerce_shipping_init', array( __CLASS__, 'shipping_includes' ) );
@@ -77,8 +100,24 @@ class Package {
         return $stores;
     }
 
-    public static function test() {
+    public static function get_api() {
+		if ( is_null( self::$api ) ) {
+			self::$api = new Paket( self::get_base_country() );
+		}
 
+		return self::$api;
+    }
+
+    public static function test() {
+		$api    = self::get_api();
+		$result = $api->get_parcel_api()->get_services( array(
+			'postcode'    => '53225',
+			'start_date'  => '2019-08-20',
+			'account_num' => '0',
+		) );
+
+		var_dump($result);
+		exit();
     }
 
     public static function shipping_includes() {
@@ -144,11 +183,15 @@ class Package {
     }
 
     public static function get_cig_user() {
-        return self::is_debug_mode() ? 'shadmin' : self::get_app_id();
+    	$debug_user = defined( 'WC_GZD_DHL_SANDBOX_USER' ) ? WC_GZD_DHL_SANDBOX_USER : '';
+
+        return self::is_debug_mode() ? $debug_user : self::get_app_id();
     }
 
     public static function get_cig_password() {
-        return self::is_debug_mode() ? 'm6jvtj{U)zH;\']' : self::get_app_token();
+	    $debug_pwd = defined( 'WC_GZD_DHL_SANDBOX_PASSWORD' ) ? WC_GZD_DHL_SANDBOX_PASSWORD : '';
+
+        return self::is_debug_mode() ? $debug_pwd : self::get_app_token();
     }
 
     public static function get_cig_url() {
@@ -158,6 +201,14 @@ class Package {
     public static function get_rest_url() {
         return self::is_debug_mode() ? 'https://cig.dhl.de/services/sandbox/soap' : 'https://cig.dhl.de/services/production/soap';
     }
+
+    public static function get_business_shipping_soap_url() {
+	    return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.0/geschaeftskundenversand-api-3.0.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.0/geschaeftskundenversand-api-3.0.wsdl';
+    }
+
+	public static function get_parcel_finder_soap_url() {
+		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-sandbox.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-production.wsdl';
+	}
 
     public static function get_business_portal_url() {
         return 'https://www.dhl-geschaeftskundenportal.de';
@@ -242,6 +293,10 @@ class Package {
         return $args;
     }
 
+    public static function get_setting( $name ) {
+    	return '';
+    }
+
     public static function log( $message, $type = 'info' ) {
         $logger = wc_get_logger();
 
@@ -255,4 +310,54 @@ class Package {
 
         $logger->{$type}( $message, array( 'source' => 'woocommerce-germanized-dhl' ) );
     }
+
+    protected static function get_base_country() {
+	    $base_location = wc_get_base_location();
+
+	    return $base_location['country'];
+    }
+
+    public static function get_us_territories() {
+    	return self::$us_territories;
+    }
+
+	/**
+	 * Function return whether the sender and receiver country is the same territory
+	 */
+	public static function is_shipping_domestic( $country_receiver ) {
+		// If base is US territory
+		if ( in_array( self::get_base_country(), self::get_us_territories() ) ) {
+			// ...and destination is US territory, then it is "domestic"
+			if( in_array( $country_receiver, self::get_us_territories() ) ) {
+				return true;
+			} else {
+				return false;
+			}
+		} elseif( $country_receiver == self::get_base_country() ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Function return whether the sender and receiver country is "crossborder" i.e. needs CUSTOMS declarations (outside EU)
+	 */
+	public static function is_crossborder_shipment( $country_receiver ) {
+		if ( self::is_shipping_domestic( $country_receiver ) ) {
+			return false;
+		}
+
+		// Is sender country in EU...
+		if ( in_array( self::get_base_country(), WC()->countries->get_european_union_countries() ) ) {
+			// ... and receiver country is in EU means NOT crossborder!
+			if ( in_array( $country_receiver, WC()->countries->get_european_union_countries() ) ) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
 }

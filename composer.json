@@ -15,10 +15,12 @@
   },
   "scripts": {
     "post-install-cmd": [
-      "composer dump-autoload"
+      "composer dump-autoload",
+      "python ./bin/update-holidays.py"
     ],
     "post-update-cmd": [
-      "composer dump-autoload"
+      "composer dump-autoload",
+      "python ./bin/update-holidays.py"
     ]
   },
   "autoload": {

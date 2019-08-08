@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Exception;
+use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -10,15 +11,13 @@ class ParcelRest extends Rest {
 
     protected $account_num = '';
 
-    public function __construct() {
-
-    }
+    public function __construct() {}
 
     public function get_services( $args ) {
 
         $args = wp_parse_args( $args, array(
             'postcode'    => '',
-            'account_num' => '',
+            'account_num' => Package::get_setting( 'account_num' ),
             'start_date'  => '',
         ) );
 
@@ -26,7 +25,7 @@ class ParcelRest extends Rest {
             throw new Exception( __( 'Please provide the receiver postnumber.', 'woocommerce-germanized-dhl' ) );
         }
 
-        if ( empty( $args['account_num'] ) ) {
+        if ( empty( $args['account_num'] ) && ! Package::is_debug_mode() ) {
             throw new Exception( __( 'Please set an account in the DHL shipping settings.', 'woocommerce-germanized-dhl' ) );
         }
 
@@ -41,8 +40,12 @@ class ParcelRest extends Rest {
     }
 
     protected function set_header( $authorization = '' ) {
-        parent::set_header( $authorization );
+        parent::set_header();
 
-        $this->remote_header['X-EKP']  = $this->account_num;
+        if ( ! empty( $authorization ) ) {
+        	$this->remote_header['Authorization'] = $authorization;
+        }
+
+        $this->remote_header['X-EKP'] = $this->account_num;
     }
 }

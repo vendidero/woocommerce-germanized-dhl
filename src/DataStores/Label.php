@@ -40,6 +40,16 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
      */
     protected $internal_meta_keys = array(
         '_preferred_day',
+        '_preferred_time',
+        '_preferred_location',
+	    '_preferred_neighbor',
+	    '_ident_date_of_birth',
+	    '_ident_min_age',
+	    '_visual_min_age',
+	    '_email_notification',
+	    '_codeable_address_only',
+	    '_return_address',
+        '_return',
         '_services'
     );
 
@@ -262,6 +272,14 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
                 case "preferred_day":
                     $value = $value ? strtotime( date("Y-m-d", $value->getOffsetTimestamp() ) ) : '';
                     break;
+	            case "preferred_time":
+		            $value = $value ? strtotime( date("H:i:s", $value->getOffsetTimestamp() ) ) : '';
+		            break;
+	            case "email_notification":
+	            case "return":
+	            case "codeable_address_only":
+		            $value = wc_bool_to_string( $value );
+		            break;
             }
 
             $updated = $this->update_or_delete_meta( $label, $meta_key, $value );

@@ -72,6 +72,7 @@ abstract class Rest {
 
     public function get_access_token( $client_id, $client_secret ) {
         $this->token_bearer = $this->rest_auth->get_access_token( $client_id, $client_secret );
+
         return $this->token_bearer;
     }
 
@@ -88,17 +89,23 @@ abstract class Rest {
         $wp_request_url     = add_query_arg( $query_args, $api_url . $endpoint );
         $wp_request_headers = $this->get_header();
 
+        var_dump($wp_request_url);
+
         Package::log( 'GET URL: ' . $wp_request_url );
 
         $wp_dhl_rest_response = wp_remote_get(
             $wp_request_url,
-            array( 'headers' => $wp_request_headers,
+            array(
+            	'headers' => $wp_request_headers,
                 'timeout' => 30
             )
         );
 
         $response_code = wp_remote_retrieve_response_code( $wp_dhl_rest_response );
         $response_body = json_decode( wp_remote_retrieve_body( $wp_dhl_rest_response ) );
+
+        var_dump($wp_dhl_rest_response);
+        var_dump($response_code);
 
         Package::log( 'GET Response Code: ' . $response_code );
         Package::log( 'GET Response Body: ' . print_r( $response_body, true ) );
@@ -146,6 +153,7 @@ abstract class Rest {
     protected function set_header( $authorization = '' ) {
         $wp_version                  = get_bloginfo('version');
         $wc_version                  = defined( 'WC_Version' ) ? WC_Version : '';
+
         $dhl_header['Content-Type']  = 'application/json';
         $dhl_header['Accept']        = 'application/json';
         $dhl_header['Authorization'] = 'Bearer ' . $authorization;

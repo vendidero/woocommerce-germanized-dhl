@@ -10,22 +10,13 @@ defined( 'ABSPATH' ) || exit;
 
 class LabelSoap extends Soap {
 
-    /**
-     * WSDL definitions
-     */
-    const PR_DHL_WSDL_LINK = 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.0/geschaeftskundenversand-api-3.0.wsdl';
-
     const DHL_MAX_ITEMS = '6';
 
     const DHL_RETURN_PRODUCT = '07';
 
-    private $pos_ps = false;
-    private $pos_rs = false;
-    private $pos_po = false;
-
     public function __construct( ) {
         try {
-            parent::__construct( self::PR_DHL_WSDL_LINK );
+            parent::__construct( Package::get_business_shipping_soap_url() );
         } catch ( Exception $e ) {
             throw $e;
         }
@@ -36,7 +27,14 @@ class LabelSoap extends Soap {
     }
 
     public function test_connection() {
-        return $this->get_access_token();
+        try {
+        	$soap_client = $this->get_access_token();
+        	$version = $soap_client->getVersion();
+
+        	return true;
+        } catch( Exception $e ) {
+        	return false;
+        }
     }
 
     protected function validate_field( $key, $value ) {
@@ -84,10 +82,8 @@ class LabelSoap extends Soap {
             throw new Exception( sprintf( __( 'Could not create label - %s', 'woocommerce-germanized-dhl' ), $response_body->Status->statusMessage ) );
         } else {
             // Give the server 1 second to create the PDF before downloading it
-            sleep(1 );
-
+            // sleep( 1 );
             try {
-                $label->set_shipment_id( $response_body->CreationState->sequenceNumber );
 
                 if ( isset( $response_body->CreationState->LabelData->shipmentNumber ) ) {
                     $label->set_number( $response_body->CreationState->LabelData->shipmentNumber );
@@ -124,11 +120,11 @@ class LabelSoap extends Soap {
      */
     protected function delete_label_call( $label ) {
         $soap_request =	array(
-            'Version' => array(
+            'Version'          => array(
                 'majorRelease' => '3',
                 'minorRelease' => '0'
             ),
-            'shipmentNumber' => $label->get_number()
+            'shipmentNumber'   => $label->get_number()
         );
 
         try {
@@ -396,7 +392,7 @@ class LabelSoap extends Soap {
                     $services[ $service ]['type'] = $label->get_preferred_time();
                     break;
                 case 'VisualCheckOfAge':
-                    $services[ $service ]['type'] = $label->get_visual_age();
+                    $services[ $service ]['type'] = $label->get_visual_min_age();
                     break;
                 case 'PreferredLocation':
                     $services[ $service ]['details'] = $label->get_preferred_location();
@@ -423,7 +419,7 @@ class LabelSoap extends Soap {
                             'weightInKG' => wc_get_weight( $label->get_shipment()->get_weight(), 'kg' )
                         ),
                         'Service'        => $services,
-                        'Notification'   => $label->has_email_notification() ? array( 'recipientEmailAddress' => '' ) : array(),
+                        'Notification'   => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
                         'BankData'       => array(),
                     ),
                     'Shipper'       => array(
@@ -447,11 +443,11 @@ class LabelSoap extends Soap {
                         )
                     ),
                     'Receiver'             => array(
-                        'name1'            => $shipment->get_company() ? $shipment->get_company() : $shipment->get_full_name(),
+                        'name1'            => $shipment->get_company() ? $shipment->get_company() : $shipment->get_formatted_full_name(),
                         'Address'          => array(
-                            'name2'        => $shipment->get_company() ? $shipment->get_full_name() : '',
-                            'streetName'   => $shipment->get_address_1(),
-                            'streetNumber' => $shipment->get_street_number(),
+                            'name2'        => $shipment->get_company() ? $shipment->get_formatted_full_name() : '',
+                            'streetName'   => $shipment->get_address_street(),
+                            'streetNumber' => $shipment->get_address_street_number(),
                             'zip'          => $shipment->get_postcode(),
                             'city'         => $shipment->get_city(),
                             'Origin'       => array(
@@ -469,7 +465,7 @@ class LabelSoap extends Soap {
             )
         );
 
-        if ( $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_types() ) ) {
+        if ( $shipment->send_to_external_pickup( array_values( wc_gzd_dhl_get_pickup_types() ) ) ) {
 
             // Address is NOT needed if using a parcel shop
             unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Address'] );
@@ -485,14 +481,14 @@ class LabelSoap extends Soap {
 
             $address_number = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
 
-            if ( $shipment->send_to_external_pickup( Package::get_packstation_identifier() ) ) {
+            if ( $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'packstation' ) ) ) {
                 $parcel_shop['postNumber']        = $shipment->get_meta( 'dhl_postnum' );
                 $parcel_shop['packstationNumber'] = $address_number;
 
                 $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Packstation'] = $parcel_shop;
             }
 
-            if ( $shipment->send_to_external_pickup( Package::get_parcel_shop_identifier() ) || $shipment->send_to_external_pickup( Package::get_post_office_identifier() ) ) {
+            if ( $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'postoffice' ) ) || $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'parcelshop' ) ) ) {
 
                 if ( $post_number = $shipment->get_meta( 'dhl_postnum' ) ) {
                     $parcel_shop['postNumber'] = $post_number;
@@ -505,17 +501,16 @@ class LabelSoap extends Soap {
             }
         }
 
-        if ( $label->has_return_address() ) {
-
+        if ( $label->has_return() ) {
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = Package::get_setting( 'account_num' ) . self::DHL_RETURN_PRODUCT . Package::get_setting( 'participation_return' );
 
             $dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'] = array(
                 'Name' => array(
-                    'name1' => $label->get_return_company() ? $label->get_return_company() : $label->get_return_full_name(),
-                    'name2' => $label->get_return_company() ? $label->get_return_full_name() : ''
+                    'name1' => $label->get_return_company() ? $label->get_return_company() : $label->get_return_formatted_full_name(),
+                    'name2' => $label->get_return_company() ? $label->get_return_formatted_full_name() : ''
                 ),
                 'Address' => array(
-                    'streetName'   => $label->get_return_address(),
+                    'streetName'   => $label->get_return_street(),
                     'streetNumber' => $label->get_return_street_number(),
                     'zip'          => $label->get_return_postcode(),
                     'city'         => $label->get_return_city(),
@@ -531,7 +526,7 @@ class LabelSoap extends Soap {
             );
         }
 
-        if ( $label->force_address_codeable() ) {
+        if ( $label->codeable_address_only() ) {
             $dhl_label_body['ShipmentOrder']['PrintOnlyIfCodeable'] = array( 'active' => 1 );
         }
 
@@ -587,7 +582,6 @@ class LabelSoap extends Soap {
             if ( ! isset( $this->body_request['ShipmentOrder']['Shipment']['ShipmentDetails']['Service']['IdentCheck']['Ident']['minimumAge'] ) ) {
                 $this->body_request['ShipmentOrder']['Shipment']['ShipmentDetails']['Service']['IdentCheck']['Ident']['minimumAge'] = '';
             }
-
             if ( ! isset( $this->body_request['ShipmentOrder']['Shipment']['ShipmentDetails']['Service']['IdentCheck']['Ident']['dateOfBirth'] ) ) {
                 $this->body_request['ShipmentOrder']['Shipment']['ShipmentDetails']['Service']['IdentCheck']['Ident']['dateOfBirth'] = '';
             }
