@@ -104,61 +104,10 @@ class Paket {
         return;
     }
 
-    public function get_international_products() {
-        $germany_int  = array(
-            'V55PAK'    => __( 'DHL Paket Connect', 'woocommerce-germanized-dhl' ),
-            'V54EPAK'   => __( 'DHL Europaket (B2B)', 'woocommerce-germanized-dhl' ),
-            'V53WPAK'   => __( 'DHL Paket International', 'woocommerce-germanized-dhl' ),
-        );
-        $austria_int  = array(
-            'V87PARCEL' => __( 'DHL Paket Connect', 'woocommerce-germanized-dhl' ),
-            'V82PARCEL' => __( 'DHL Paket International', 'woocommerce-germanized-dhl' )
-        );
-
-        $dhl_prod_int = array();
-
-        switch ( $this->get_country_code() ) {
-            case 'DE':
-                $dhl_prod_int = $germany_int;
-                break;
-            case 'AT':
-                $dhl_prod_int = $austria_int;
-                break;
-            default:
-                break;
-        }
-
-        return $dhl_prod_int;
-    }
-
-    public function get_domestic_products() {
-        $germany_dom = array(
-            'V01PAK'  => __( 'DHL Paket', 'woocommerce-germanized-dhl' ),
-            'V01PRIO' => __( 'DHL Paket PRIO', 'woocommerce-germanized-dhl' ),
-            'V06PAK'  => __( 'DHL Paket Taggleich', 'woocommerce-germanized-dhl' ),
-        );
-
-        $austria_dom = array(
-            'V86PARCEL' => __( 'DHL Paket Austria', 'woocommerce-germanized-dhl' )
-        );
-
-        $dhl_prod_dom = array();
-
-        switch ( $this->get_country_code() ) {
-            case 'DE':
-                $dhl_prod_dom = $germany_dom;
-                break;
-            case 'AT':
-                $dhl_prod_dom = $austria_dom;
-                break;
-            default:
-                break;
-        }
-
-        return $dhl_prod_dom;
-    }
-
-    public function get_preferred_day_time( $postcode, $account_num, $cutoff_time = '12:00', $exclude_working_days = array() ) {
+    public function get_preferred_day_time( $postcode, $cutoff_time = '' ) {
+	    $exclude_working_days  = wc_gzd_dhl_get_excluded_working_days();
+	    $cutoff_time           = empty( $cutoff_time ) ? Package::get_setting( 'cutoff_time' ) : $cutoff_time;
+	    $account_num           = Package::get_setting( 'account_num' );
 
         // Always exclude Sunday
         $exclude_working_days  = array_merge( $exclude_working_days, array( 'Sun' => __( 'sun', 'woocommerce-germanized-dhl' ) ) );
@@ -213,7 +162,7 @@ class Paket {
             $preferred_day_time['preferred_day']  = $this->get_preferred_day( $preferred_services );
             $preferred_day_time['preferred_time'] = $this->get_preferred_time( $preferred_services );
         } catch( Exception $e ) {
-
+        	throw $e;
         }
 
         // Reset time locael
@@ -239,7 +188,8 @@ class Paket {
         $preferred_days = array();
 
         if ( isset( $preferred_services->preferredDay->available ) && $preferred_services->preferredDay->available && isset( $preferred_services->preferredDay->validDays ) ) {
-            foreach ( $preferred_services->preferredDay->validDays as $days_key => $days_value ) {
+
+        	foreach ( $preferred_services->preferredDay->validDays as $days_key => $days_value ) {
                 $temp_day_time = strtotime( $days_value->start );
                 $day_of_week   = date('N', $temp_day_time );
                 $week_date     = date('Y-m-d', $temp_day_time );
@@ -248,7 +198,7 @@ class Paket {
             }
 
             // Add none option
-            array_unshift( $preferred_days, __( 'none', 'woocommerce-germanized-dhl' ) );
+            array_unshift( $preferred_days, _x( 'none', 'day context', 'woocommerce-germanized-dhl' ) );
         }
 
         return $preferred_days;
@@ -260,40 +210,18 @@ class Paket {
         if ( isset( $preferred_services->preferredTime->available ) && $preferred_services->preferredTime->available && isset( $preferred_services->preferredTime->timeframes ) ) {
 
             // Add none option
-            $preferred_times[0] = _x( 'none', 'time context', 'woocommerce-germanized-dhl' );
+            $preferred_times[0] = _x( 'None', 'time context', 'woocommerce-germanized-dhl' );
 
             foreach ( $preferred_services->preferredTime->timeframes as $time_key => $time_value ) {
                 $temp_day_time      = str_replace( ':00', '', $time_value->start );
                 $temp_day_time     .= '-';
                 $temp_day_time     .= str_replace( ':00', '', $time_value->end );
-                $temp_day_time_key  = str_replace( ':', '', $time_value->start );
-                $temp_day_time_key .= str_replace( ':', '', $time_value->end );
+                $temp_day_time_key  = $time_value->start . '-' . $time_value->end;
 
                 $preferred_times[ $temp_day_time_key ] = $temp_day_time;
             }
         }
 
         return $preferred_times;
-    }
-
-    public function get_duties() {
-        $duties = array(
-            'DDU' => __( 'Delivery Duty Unpaid', 'woocommerce-germanized-dhl' ),
-            'DDP' => __( 'Delivery Duty Paid', 'woocommerce-germanized-dhl' ),
-            'DXV' => __( 'Delivery Duty Paid (excl. VAT )', 'woocommerce-germanized-dhl' ),
-            'DDX' => __( 'Delivery Duty Paid (excl. Duties, taxes and VAT)', 'woocommerce-germanized-dhl' )
-        );
-
-        return $duties;
-    }
-
-    public function get_visual_age() {
-        $visual_age = array(
-            '0'   => _x( 'none', 'age context', 'woocommerce-germanized-dhl' ),
-            'A16' => __( 'Minimum age of 16', 'woocommerce-germanized-dhl' ),
-            'A18' => __( 'Minimum age of 18', 'woocommerce-germanized-dhl' )
-        );
-
-        return $visual_age;
     }
 }

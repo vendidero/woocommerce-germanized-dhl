@@ -11,14 +11,14 @@ class FinderSoap extends Soap {
 
     public function __construct( ) {
         try {
-            parent::__construct( Package::get_parcel_finder_soap_url() );
+            parent::__construct( Package::get_parcel_finder_api_url() );
         } catch ( Exception $e ) {
             throw $e;
         }
     }
 
 	public function get_access_token() {
-		return $this->get_auth_api()->get_access_token( Package::get_cig_user(), Package::get_cig_password() );
+		return $this->get_auth_api()->get_access_token();
 	}
 
     public function test_connection() {

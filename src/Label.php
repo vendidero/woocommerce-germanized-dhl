@@ -51,24 +51,26 @@ class Label extends WC_Data {
      * @var array
      */
     protected $data = array(
-        'date_created'          => null,
-        'shipment_id'           => 0,
-        'number'                => '',
-        'path'                  => '',
-        'export_path'           => '',
-        'dhl_product'           => '',
-        'preferred_day'         => '',
-        'preferred_time'        => '',
-        'preferred_location'    => '',
-        'preferred_neighbor'    => '',
-        'ident_date_of_birth'   => '',
-        'ident_min_age'         => '',
-        'visual_min_age'        => '',
-        'email_notification'    => 'no',
-        'return'                => 'no',
-        'codeable_address_only' => 'no',
-        'return_address'        => array(),
-        'services'              => array(),
+        'date_created'               => null,
+        'shipment_id'                => 0,
+        'number'                     => '',
+        'path'                       => '',
+        'export_path'                => '',
+        'dhl_product'                => '',
+        'preferred_day'              => '',
+        'preferred_time_start'       => '',
+        'preferred_time_end'         => '',
+        'preferred_location'         => '',
+        'preferred_neighbor'         => '',
+        'preferred_neighbor_address' => '',
+        'ident_date_of_birth'        => '',
+        'ident_min_age'              => '',
+        'visual_min_age'             => '',
+        'email_notification'         => 'no',
+        'has_return'                 => 'no',
+        'codeable_address_only'      => 'no',
+        'return_address'             => array(),
+        'services'                   => array(),
     );
 
     public function __construct( $data = 0 ) {
@@ -159,8 +161,34 @@ class Label extends WC_Data {
         return $this->get_prop( 'preferred_day', $context );
     }
 
-	public function get_preferred_time( $context = 'view' ) {
-		return $this->get_prop( 'preferred_time', $context );
+    public function get_preferred_time() {
+	    $start = $this->get_preferred_time_start();
+	    $end   = $this->get_preferred_time_end();
+
+	    if ( $start && $end ) {
+		    return $start->date( 'H:i' ) . '-' . $end->date( 'H:i' );
+	    }
+
+	    return null;
+    }
+
+	public function get_preferred_time_start( $context = 'view' ) {
+		return $this->get_prop( 'preferred_time_start', $context );
+	}
+
+	public function get_preferred_time_end( $context = 'view' ) {
+		return $this->get_prop( 'preferred_time_end', $context );
+	}
+
+	public function get_preferred_formatted_time() {
+		$start = $this->get_preferred_time_start();
+		$end   = $this->get_preferred_time_end();
+
+		if ( $start && $end ) {
+			return sprintf( _x( '%s-%s', 'time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
+		}
+
+		return null;
 	}
 
 	public function get_preferred_location( $context = 'view' ) {
@@ -169,6 +197,10 @@ class Label extends WC_Data {
 
 	public function get_preferred_neighbor( $context = 'view' ) {
 		return $this->get_prop( 'preferred_neighbor', $context );
+	}
+
+	public function get_preferred_neighbor_address( $context = 'view' ) {
+		return $this->get_prop( 'preferred_neighbor_address', $context );
 	}
 
 	public function get_ident_date_of_birth( $context = 'view' ) {
@@ -191,14 +223,14 @@ class Label extends WC_Data {
     	return ( true === $this->get_email_notification() );
 	}
 
-	public function get_return( $context = 'view' ) {
-		return $this->get_prop( 'return', $context );
+	public function get_has_return( $context = 'view' ) {
+		return $this->get_prop( 'has_return', $context );
 	}
 
 	public function has_return() {
     	$products = wc_gzd_dhl_get_return_products();
 
-		return ( true === $this->get_return() && in_array( $this->get_dhl_product(), $products ) );
+		return ( true === $this->get_has_return() && in_array( $this->get_dhl_product(), $products ) );
 	}
 
 	public function get_codeable_address_only( $context = 'view' ) {
@@ -356,16 +388,28 @@ class Label extends WC_Data {
 		$this->set_date_prop( 'preferred_day', $day );
 	}
 
-	public function set_preferred_time( $time ) {
-		$this->set_time_prop( 'preferred_time', $time );
+	public function set_preferred_time_start( $time ) {
+		$this->set_time_prop( 'preferred_time_start', $time );
+	}
+
+	public function set_preferred_time_end( $time ) {
+		$this->set_time_prop( 'preferred_time_end', $time );
+	}
+
+	public function set_preferred_neighbor( $neighbor ) {
+		$this->set_time_prop( 'preferred_neighbor', $neighbor );
+	}
+
+	public function set_preferred_neighbor_address( $address ) {
+		$this->set_time_prop( 'preferred_neighbor_address', $address );
 	}
 
 	public function set_email_notification( $value ) {
     	$this->set_prop( 'email_notification', wc_string_to_bool( $value ) );
 	}
 
-	public function set_return( $value ) {
-		$this->set_prop( 'return', wc_string_to_bool( $value ) );
+	public function set_has_return( $value ) {
+		$this->set_prop( 'has_return', wc_string_to_bool( $value ) );
 	}
 
 	public function set_return_address( $value ) {

@@ -81,6 +81,12 @@ class Package {
 
     private static function includes() {
         include_once self::get_path() . '/includes/wc-gzd-dhl-core-functions.php';
+
+	    if ( is_admin() ) {
+		    Admin\Admin::init();
+	    }
+
+	    Ajax::init();
     }
 
     public static function init_hooks() {
@@ -94,7 +100,29 @@ class Package {
         add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'add_shipping_method' ) );
     }
 
-    public static function register_data_stores( $stores ) {
+	public static function test() {
+		$api    = self::get_api();
+		$times = $api->get_preferred_day_time( '12207' );
+		var_dump($times);
+
+		var_dump(wc_gzd_dhl_get_preferred_times_select_options( $times['preferred_time'] ));
+
+		exit();
+
+		/*$result = $api->get_parcel_api()->get_services( array(
+			'postcode'    => '53225',
+			'start_date'  => '2019-08-20',
+			'account_num' => '0',
+		) );
+		*/
+
+		$result_two = $api->get_label_api()->test_connection();
+
+		var_dump($result_two);
+		exit();
+	}
+
+	public static function register_data_stores( $stores ) {
         $stores['dhl-label'] = 'Vendidero\Germanized\DHL\DataStores\Label';
 
         return $stores;
@@ -106,18 +134,6 @@ class Package {
 		}
 
 		return self::$api;
-    }
-
-    public static function test() {
-		$api    = self::get_api();
-		$result = $api->get_parcel_api()->get_services( array(
-			'postcode'    => '53225',
-			'start_date'  => '2019-08-20',
-			'account_num' => '0',
-		) );
-
-		var_dump($result);
-		exit();
     }
 
     public static function shipping_includes() {
@@ -164,6 +180,10 @@ class Package {
         return plugins_url( '', __DIR__ );
     }
 
+	public static function get_assets_url() {
+		return self::get_url() . '/assets';
+	}
+
     public static function is_debug_mode() {
         return defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG;
     }
@@ -194,19 +214,27 @@ class Package {
         return self::is_debug_mode() ? $debug_pwd : self::get_app_token();
     }
 
+    public static function get_gk_api_user() {
+	    return self::is_debug_mode() ? '2222222222_01' : self::get_setting( 'gk_api_user' );
+    }
+
+	public static function get_gk_api_signature() {
+		return self::is_debug_mode() ? 'pass' : self::get_setting( 'gk_api_signature' );
+	}
+
     public static function get_cig_url() {
         return self::is_debug_mode() ? 'https://cig.dhl.de/services/sandbox/soap' : 'https://cig.dhl.de/services/production/soap';
     }
 
     public static function get_rest_url() {
-        return self::is_debug_mode() ? 'https://cig.dhl.de/services/sandbox/soap' : 'https://cig.dhl.de/services/production/soap';
+        return self::is_debug_mode() ? 'https://cig.dhl.de/services/sandbox/rest' : 'https://cig.dhl.de/services/production/rest';
     }
 
-    public static function get_business_shipping_soap_url() {
+    public static function get_gk_api_url() {
 	    return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.0/geschaeftskundenversand-api-3.0.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.0/geschaeftskundenversand-api-3.0.wsdl';
     }
 
-	public static function get_parcel_finder_soap_url() {
+	public static function get_parcel_finder_api_url() {
 		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-sandbox.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-production.wsdl';
 	}
 
@@ -294,6 +322,13 @@ class Package {
     }
 
     public static function get_setting( $name ) {
+
+    	if ( self::is_debug_mode() && 'account_num' === $name ) {
+    		return '2222222222';
+	    } elseif( 'cutoff_time' === $name ) {
+    		return '12:00';
+	    }
+
     	return '';
     }
 
@@ -311,7 +346,7 @@ class Package {
         $logger->{$type}( $message, array( 'source' => 'woocommerce-germanized-dhl' ) );
     }
 
-    protected static function get_base_country() {
+    public static function get_base_country() {
 	    $base_location = wc_get_base_location();
 
 	    return $base_location['country'];

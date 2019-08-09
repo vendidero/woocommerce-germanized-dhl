@@ -11,8 +11,13 @@
 use Vendidero\Germanized\DHL\Label;
 use Vendidero\Germanized\DHL\LabelQuery;
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
+
+function wc_gzd_dhl_aformat_preferred_api_time( $time ) {
+	return str_replace( array( ':', '-' ), '', $time );
+}
 
 function wc_gzd_dhl_validate_api_field( $value, $type = 'int', $min_len = 0, $max_len = 0 ) {
     switch ( $type ) {
@@ -31,6 +36,61 @@ function wc_gzd_dhl_validate_api_field( $value, $type = 'int', $min_len = 0, $ma
             }
             break;
     }
+}
+
+function wc_gzd_dhl_get_preferred_times_select_options( $times ) {
+	$preferred_times = array( 0 => _x( 'None', 'time context', 'woocommerce-germanized-dhl' ) );
+
+	if ( ! empty( $times ) ) {
+		$preferred_times = $times;
+	}
+
+	return $times;
+}
+
+function wc_gzd_dhl_get_preferred_days_select_options( $days ) {
+	$preferred_days = array( 0 => _x( 'None', 'day context', 'woocommerce-germanized-dhl' ) );
+
+	if ( ! empty( $days ) ) {
+		$days = array_keys( $days );
+
+		foreach( $days as $day ) {
+
+			if ( empty( $day ) ) {
+				continue;
+			}
+
+			$formatted_day  = date_i18n( wc_date_format(), strtotime( $day ) );
+			$preferred_days = array_merge( $preferred_days, array( $day => $formatted_day ) );
+		}
+	}
+
+	return $preferred_days;
+}
+
+function wc_gzd_dhl_get_duties() {
+	$duties = array(
+		'DDU' => __( 'Delivery Duty Unpaid', 'woocommerce-germanized-dhl' ),
+		'DDP' => __( 'Delivery Duty Paid', 'woocommerce-germanized-dhl' ),
+		'DXV' => __( 'Delivery Duty Paid (excl. VAT )', 'woocommerce-germanized-dhl' ),
+		'DDX' => __( 'Delivery Duty Paid (excl. Duties, taxes and VAT)', 'woocommerce-germanized-dhl' )
+	);
+
+	return $duties;
+}
+
+function wc_gzd_dhl_get_visual_min_ages() {
+	$visual_age = array(
+		'0'   => _x( 'None', 'age context', 'woocommerce-germanized-dhl' ),
+		'A16' => __( 'Minimum age of 16', 'woocommerce-germanized-dhl' ),
+		'A18' => __( 'Minimum age of 18', 'woocommerce-germanized-dhl' )
+	);
+
+	return $visual_age;
+}
+
+function wc_gzd_dhl_get_ident_min_ages() {
+	return wc_gzd_dhl_get_visual_min_ages();
 }
 
 /**
@@ -81,10 +141,114 @@ function wc_gzd_dhl_get_pickup_types() {
     );
 }
 
+function wc_gzd_dhl_get_working_days() {
+	return array(
+		'Mon' => __( 'mon', 'woocommerce-germanized-dhl' ),
+		'Tue' => __( 'tue', 'woocommerce-germanized-dhl' ),
+		'Wed' => __( 'wed', 'woocommerce-germanized-dhl' ),
+		'Thu' => __( 'thu', 'woocommerce-germanized-dhl' ),
+		'Fri' => __( 'fri', 'woocommerce-germanized-dhl' ),
+		'Sat' => __( 'sat', 'woocommerce-germanized-dhl' )
+	);
+}
+
+function wc_gzd_dhl_get_excluded_working_days() {
+	return array();
+}
+
 function wc_gzd_dhl_get_pickup_type( $type ) {
 	$types = wc_gzd_dhl_get_pickup_types();
 
 	return array_key_exists( $type, $types ) ? $types[ $type ] : false;
+}
+
+function wc_gzd_dhl_validate_label_args( $args = array() ) {
+
+	$args = wp_parse_args( $args, array(
+		'preferred_day'         => '',
+		'preferred_time_start'  => '',
+		'preferred_time_end'    => '',
+		'preferred_location'    => '',
+		'preferred_neighbor'    => '',
+		'ident_date_of_birth'   => '',
+		'ident_min_age'         => '',
+		'visual_min_age'        => '',
+		'email_notification'    => 'no',
+		'has_return'            => 'no',
+		'codeable_address_only' => 'no',
+		'services'              => array(),
+		'return_address'        => array(),
+	) );
+
+	// Do only allow valid services
+	if ( ! empty( $args['services'] ) ) {
+		$args['services'] = array_intersect( $args['services'], wc_gzd_dhl_get_services() );
+	}
+
+	// Add return address fields
+	if ( ! empty( $args['return_address'] ) ) {
+		$args['return_address'] = wp_parse_args( $args['return_address'], array(
+			'first_name'    => '',
+			'last_name'     => '',
+			'company'       => '',
+			'street'        => '',
+			'street_number' => '',
+			'postcode'      => '',
+			'city'          => '',
+			'state'         => '',
+		) );
+	}
+
+	$error = new WP_Error();
+
+	if ( $error->has_errors() ) {
+		return $error;
+	}
+
+	return $args;
+}
+
+/**
+ * @param Shipment $shipment the shipment
+ * @param array $args
+ */
+function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
+	try {
+		if ( ! $shipment || ! is_a( $shipment, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
+			throw new Exception( __( 'Invalid shipment', 'woocommerce-germanized-dhl' ) );
+		}
+
+		if ( ! $order = $shipment->get_order() ) {
+			throw new Exception( __( 'Order does not exist', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$dhl_order = wc_gzd_dhl_get_order( $order );
+		$args      = wp_parse_args( $args, array(
+			'preferred_day'              => $dhl_order->get_preferred_day(),
+			'preferred_time_start'       => $dhl_order->get_preferred_time_start(),
+			'preferred_time_end'         => $dhl_order->get_preferred_time_end(),
+			'preferred_location'         => $dhl_order->get_preferred_location(),
+			'preferred_neighbor'         => $dhl_order->get_preferred_neighbor(),
+			'preferred_neighbor_address' => $dhl_order->get_preferred_neighbor_address(),
+		) );
+
+		$args = wc_gzd_dhl_validate_label_args( $args );
+
+		if ( is_wp_error( $args ) ) {
+			return $args;
+		}
+
+		$label = new Vendidero\Germanized\DHL\Label();
+
+		$label->set_props( $args );
+		$label->set_shipment_id( $shipment->get_id() );
+		$label->save();
+
+	} catch ( Exception $e ) {
+		return new WP_Error( 'error', $e->getMessage() );
+	}
+
+	return $label;
 }
 
 /**
@@ -116,6 +280,108 @@ function wc_gzd_dhl_get_label( $the_label = false ) {
         wc_caught_exception( $e, __FUNCTION__, func_get_args() );
         return false;
     }
+}
+
+function wc_gzd_dhl_get_order( $order ) {
+	if ( is_numeric( $order ) ) {
+		$order = wc_get_order( $order);
+	}
+
+	if ( is_a( $order, 'WC_Order' ) ) {
+		try {
+			return new Vendidero\Germanized\DHL\Order( $order );
+		} catch ( Exception $e ) {
+			wc_caught_exception( $e, __FUNCTION__, func_get_args() );
+			return false;
+		}
+	}
+
+	return false;
+}
+
+function wc_gzd_dhl_get_products_international() {
+
+	$country = Package::get_base_country();
+
+	$germany_int =  array(
+		'V55PAK'  => __( 'DHL Paket Connect', 'woocommerce-germanized-dhl' ),
+		'V54EPAK' => __( 'DHL Europaket (B2B)', 'woocommerce-germanized-dhl' ),
+		'V53WPAK' => __( 'DHL Paket International', 'woocommerce-germanized-dhl' ),
+	);
+
+	$austria_int = array(
+		'V87PARCEL' => __( 'DHL Paket Connect', 'woocommerce-germanized-dhl' ),
+		'V82PARCEL' => __( 'DHL Paket International', 'woocommerce-germanized-dhl' )
+	);
+
+	$dhl_prod_int = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_int = $germany_int;
+			break;
+		case 'AT':
+			$dhl_prod_int = $austria_int;
+			break;
+		default:
+			break;
+	}
+
+	return $dhl_prod_int;
+}
+
+function wc_gzd_dhl_get_products( $shipping_country ) {
+	if ( Package::is_shipping_domestic( $shipping_country ) ) {
+		return wc_gzd_dhl_get_products_domestic();
+	} else {
+		return wc_gzd_dhl_get_products_international();
+	}
+}
+
+function wc_gzd_dhl_get_products_domestic() {
+
+	$country = Package::get_base_country();
+
+	$germany_dom = array(
+		'V01PAK'  => __( 'DHL Paket', 'woocommerce-germanized-dhl' ),
+		'V01PRIO' => __( 'DHL Paket PRIO', 'woocommerce-germanized-dhl' ),
+		'V06PAK'  => __( 'DHL Paket Taggleich', 'woocommerce-germanized-dhl' ),
+	);
+
+	$austria_dom = array(
+		'V86PARCEL' => __( 'DHL Paket Austria', 'woocommerce-germanized-dhl' )
+	);
+
+	$dhl_prod_dom = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_dom = $germany_dom;
+			break;
+		case 'AT':
+			$dhl_prod_dom = $austria_dom;
+			break;
+		default:
+			break;
+	}
+
+	return $dhl_prod_dom;
+}
+
+function wc_gzd_dhl_get_shipment_label( $the_shipment ) {
+	$shipment_id = wc_gzd_get_shipment_id( $the_shipment );
+
+	if ( $shipment_id ) {
+		$labels = wc_gzd_dhl_get_labels( array(
+			'shipment_id' => $shipment_id,
+		) );
+
+		if ( ! empty( $labels ) ) {
+			return $labels[0];
+		}
+	}
+
+	return false;
 }
 
 function wc_gzd_dhl_generate_label_filename( $label, $prefix = 'label' ) {

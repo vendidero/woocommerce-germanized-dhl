@@ -24,16 +24,6 @@ class AuthSoap {
     /**
      * @var string
      */
-    private $client_id;
-
-    /**
-     * @var string
-     */
-    private $client_secret;
-
-    /**
-     * @var string
-     */
     private $wsdl_link;
 
     /**
@@ -43,14 +33,7 @@ class AuthSoap {
         $this->wsdl_link = $wsdl_link;
     }
 
-    public function get_access_token( $client_id, $client_secret ) {
-        $this->client_id     = $client_id;
-        $this->client_secret = $client_secret;
-
-        if ( empty( $this->client_id ) || empty( $this->client_secret ) ) {
-            throw new Exception( __( 'Client username or password is empty.', 'woocommerce-germanized-dhl' ) );
-        }
-
+    public function get_access_token( $client_id = '', $client_secret = '' ) {
         try {
             $soap_client = new SoapClient( $this->wsdl_link,
                 array(
@@ -65,15 +48,17 @@ class AuthSoap {
             throw $e;
         }
 
-        $soap_authentication = array(
-            'user'      => $this->client_id,
-            'signature' => $this->client_secret,
-            'type'      => 0
-        );
+        if ( ! empty( $client_id ) && ! empty( $client_secret ) ) {
+	        $soap_authentication = array(
+		        'user'      => $client_id,
+		        'signature' => $client_secret,
+		        'type'      => 0
+	        );
 
-        $soap_auth_header = new SoapHeader( self::PR_DHL_HEADER_LINK, 'Authentification', $soap_authentication );
+	        $soap_auth_header = new SoapHeader( self::PR_DHL_HEADER_LINK, 'Authentification', $soap_authentication );
 
-        $soap_client->__setSoapHeaders( $soap_auth_header );
+	        $soap_client->__setSoapHeaders( $soap_auth_header );
+        }
 
         return $soap_client;
     }

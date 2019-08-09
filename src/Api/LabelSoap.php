@@ -16,21 +16,20 @@ class LabelSoap extends Soap {
 
     public function __construct( ) {
         try {
-            parent::__construct( Package::get_business_shipping_soap_url() );
+            parent::__construct( Package::get_gk_api_url() );
         } catch ( Exception $e ) {
             throw $e;
         }
     }
 
     public function get_access_token() {
-        return $this->get_auth_api()->get_access_token( Package::get_cig_user(), Package::get_cig_password() );
+        return $this->get_auth_api()->get_access_token( Package::get_gk_api_user(), Package::get_gk_api_signature() );
     }
 
     public function test_connection() {
         try {
         	$soap_client = $this->get_access_token();
-        	$version = $soap_client->getVersion();
-
+        	$version     = $soap_client->getVersion();
         	return true;
         } catch( Exception $e ) {
         	return false;
@@ -50,7 +49,6 @@ class LabelSoap extends Soap {
                     parent::validate_field( $key, $value );
                     break;
             }
-
         } catch ( Exception $e ) {
             throw $e;
         }
@@ -389,7 +387,7 @@ class LabelSoap extends Soap {
                     $services[ $service ]['details'] = $label->get_preferred_day() ? $label->get_preferred_day()->get_date() : '';
                     break;
                 case 'PreferredTime':
-                    $services[ $service ]['type'] = $label->get_preferred_time();
+                    $services[ $service ]['type'] = wc_gzd_dhl_aformat_preferred_api_time( $label->get_preferred_time() );
                     break;
                 case 'VisualCheckOfAge':
                     $services[ $service ]['type'] = $label->get_visual_min_age();
@@ -482,7 +480,7 @@ class LabelSoap extends Soap {
             $address_number = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
 
             if ( $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'packstation' ) ) ) {
-                $parcel_shop['postNumber']        = $shipment->get_meta( 'dhl_postnum' );
+                $parcel_shop['postNumber']        = $shipment->get_meta( '_dhl_postnum' );
                 $parcel_shop['packstationNumber'] = $address_number;
 
                 $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Packstation'] = $parcel_shop;
@@ -490,7 +488,7 @@ class LabelSoap extends Soap {
 
             if ( $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'postoffice' ) ) || $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'parcelshop' ) ) ) {
 
-                if ( $post_number = $shipment->get_meta( 'dhl_postnum' ) ) {
+                if ( $post_number = $shipment->get_meta( '_dhl_postnum' ) ) {
                     $parcel_shop['postNumber'] = $post_number;
 
                     unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] );
@@ -546,8 +544,8 @@ class LabelSoap extends Soap {
 
                 $json_item = array(
                     'description'         => substr( $item['item_description'], 0, 255 ),
-                    'countryCodeOrigin'   => $item->get_meta( 'country_origin' ),
-                    'customsTariffNumber' => $item->get_meta( 'hs_code' ),
+                    'countryCodeOrigin'   => $item->get_meta( '_country_origin' ),
+                    'customsTariffNumber' => $item->get_meta( '_hs_code' ),
                     'amount'              => intval( $item->get_quantity() ),
                     'netWeightInKG'       => round( floatval( wc_get_weight( $item->get_weight(), 'kg' ) ), 2 ),
                     'customsValue'        => round( floatval( $item->get_total() ), 2 ),
