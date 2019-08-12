@@ -17,7 +17,24 @@ class Admin {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_scripts' ) );
 
+		add_action( 'admin_init', array( __CLASS__, 'download_label' ) );
+
 		add_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', array( 'Vendidero\Germanized\DHL\Admin\MetaBox', 'output' ), 10, 1 );
+	}
+
+	public static function download_label() {
+		if ( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-label' === $_GET['action'] ) {
+			if ( isset( $_GET['label_id'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-label' ) ) {
+
+				$label_id = absint( $_GET['label_id'] );
+				$args     = wp_parse_args( $_GET, array(
+					'force'  => 'no',
+					'export' => 'no',
+				) );
+
+				DownloadHandler::download_label( $label_id, wc_string_to_bool( $args['force'] ) );
+			}
+		}
 	}
 
 	public static function admin_styles() {
@@ -53,8 +70,11 @@ class Admin {
 				'wc-gzd-admin-dhl',
 				'wc_gzd_admin_dhl_params',
 				array(
-					'ajax_url'           => admin_url( 'admin-ajax.php' ),
-					'create_label_nonce' => wp_create_nonce( 'create-label' )
+					'ajax_url'                 => admin_url( 'admin-ajax.php' ),
+					'create_label_nonce'       => wp_create_nonce( 'create-dhl-label' ),
+					'remove_label_nonce'       => wp_create_nonce( 'remove-dhl-label' ),
+					'edit_label_nonce'         => wp_create_nonce( 'edit-dhl-label' ),
+					'i18n_remove_label_notice' => __( 'Do you really want to delete the label?', 'woocommerce-germanized-dhl' ),
 				)
 			);
 		}

@@ -180,13 +180,30 @@ function wc_gzd_dhl_validate_label_args( $args = array() ) {
 		'return_address'        => array(),
 	) );
 
+	$error = new WP_Error();
+
 	// Do only allow valid services
 	if ( ! empty( $args['services'] ) ) {
 		$args['services'] = array_intersect( $args['services'], wc_gzd_dhl_get_services() );
 	}
 
-	// Add return address fields
-	if ( ! empty( $args['return_address'] ) ) {
+	// Add default return address fields
+	if ( empty( $args['return_address'] ) && 'yes' === Package::get_setting( 'generate_return_label' ) ) {
+		$args['has_return']     = 'yes';
+		$args['return_address'] = wp_parse_args( $args['return_address'], array(
+			'first_name'    => Package::get_setting( 'generate_return_address_first_name' ),
+			'last_name'     => Package::get_setting( 'generate_return_address_last_name' ),
+			'company'       => Package::get_setting( 'generate_return_address_company' ),
+			'street'        => Package::get_setting( 'generate_return_address_street' ),
+			'street_number' => Package::get_setting( 'generate_return_address_street_no' ),
+			'postcode'      => Package::get_setting( 'generate_return_address_postcode' ),
+			'city'          => Package::get_setting( 'generate_return_address_city' ),
+			'state'         => Package::get_setting( 'generate_return_address_state' ),
+		) );
+	}
+
+	// Check if return address has empty mandatory fields
+	if ( 'yes' === $args['has_return'] ) {
 		$args['return_address'] = wp_parse_args( $args['return_address'], array(
 			'first_name'    => '',
 			'last_name'     => '',
@@ -197,15 +214,102 @@ function wc_gzd_dhl_validate_label_args( $args = array() ) {
 			'city'          => '',
 			'state'         => '',
 		) );
+
+		$mandatory = array(
+			'first_name' => __( 'First name', 'woocommerce-germanized-dhl' ),
+			'last_name'  => __( 'Last name', 'woocommerce-germanized-dhl' ),
+			'street'     => __( 'Street', 'woocommerce-germanized-dhl' ),
+			'postcode'   => __( 'Postcode', 'woocommerce-germanized-dhl' ),
+			'city'       => __( 'City', 'woocommerce-germanized-dhl' ),
+		);
+
+		foreach( $mandatory as $mand => $title ) {
+			if ( empty( $args['return_address'][ $mand ] ) ) {
+				$error->add( 500, sprintf( __( '%s of the return address is a mandatory field.', 'woocommerce-germanized-dhl' ), $title ) );
+			}
+		}
+	} else {
+		$args['return_address'] = array();
 	}
 
-	$error = new WP_Error();
+	if ( ! empty( $args['preferred_day'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_day'], 'Y-m-d' ) ) {
+		$args['services']      = array_merge( $args['services'], array( 'PreferredDay' ) );
+	} else {
+		if ( ! empty( $args['preferred_day'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_day'], 'Y-m-d' ) ) {
+			$error->add( 500, __( 'Error while parsing preferred day.', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$args['services']      = array_diff( $args['services'], array( 'PreferredDay' ) );
+		$args['preferred_day'] = '';
+	}
+
+	if ( ( ! empty( $args['preferred_time_start'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_time_start'], 'H:i' ) ) && ( ! empty( $args['preferred_time_end'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_time_end'], 'H:i' ) ) ) {
+		$args['services']             = array_merge( $args['services'], array( 'PreferredTime' ) );
+	} else {
+		if ( ( ! empty( $args['preferred_time_start'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_time_start'], 'H:i' ) ) || ( ! empty( $args['preferred_time_end'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_time_end'], 'H:i' ) ) ) {
+			$error->add( 500, __( 'Error while parsing preferred time.', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$args['services']             = array_diff( $args['services'], array( 'PreferredTime' ) );
+		$args['preferred_time_start'] = '';
+		$args['preferred_time_end']   = '';
+ 	}
+
+	if ( ! empty( $args['preferred_location'] ) ) {
+		$args['services'] = array_merge( $args['services'], array( 'PreferredLocation' ) );
+	} else {
+		$args['services'] = array_diff( $args['services'], array( 'PreferredLocation' ) );
+	}
+
+	if ( ! empty( $args['preferred_neighbor'] ) ) {
+		$args['services'] = array_merge( $args['services'], array( 'PreferredNeighbour' ) );
+	} else {
+		$args['services'] = array_diff( $args['services'], array( 'PreferredNeighbour' ) );
+	}
+
+	if ( ! empty( $args['visual_min_age'] ) && array_key_exists( $args['visual_min_age'], wc_gzd_dhl_get_visual_min_ages() ) ) {
+		$args['services']       = array_merge( $args['services'], array( 'VisualCheckOfAge' ) );
+	} else {
+		if ( ! empty( $args['visual_min_age'] ) && ! array_key_exists( $args['visual_min_age'], wc_gzd_dhl_get_visual_min_ages() ) ) {
+			$error->add( 500, __( 'The visual min age check is invalid.', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$args['services']       = array_diff( $args['services'], array( 'VisualCheckOfAge' ) );
+		$args['visual_min_age'] = '';
+	}
+
+	if ( in_array( 'IdentCheck', $args['services'] ) ) {
+		if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
+			$error->add( 500, __( 'The ident min age check is invalid.', 'woocommerce-germanized-dhl' ) );
+
+			$args['ident_min_age'] = '';
+		}
+
+		if ( ! empty( $args['ident_date_of_birth'] ) ) {
+			if ( ! wc_gzd_dhl_is_valid_datetime( $args['ident_date_of_birth'], 'Y-m-d' ) ) {
+				$error->add( 500, __( 'There was an error parsing the date of birth for the identity check.', 'woocommerce-germanized-dhl' ) );
+			}
+		}
+	} else {
+		$args['ident_min_age']       = '';
+		$args['ident_date_of_birth'] = '';
+	}
 
 	if ( $error->has_errors() ) {
 		return $error;
 	}
 
 	return $args;
+}
+
+function wc_gzd_dhl_is_valid_datetime( $maybe_datetime, $format = 'Y-m-d' ) {
+	if ( ! is_a( $maybe_datetime, 'DateTime' && ! is_numeric( $maybe_datetime ) ) ) {
+		if ( ! DateTime::createFromFormat( $format, $maybe_datetime ) ) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /**
@@ -230,7 +334,10 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 			'preferred_location'         => $dhl_order->get_preferred_location(),
 			'preferred_neighbor'         => $dhl_order->get_preferred_neighbor(),
 			'preferred_neighbor_address' => $dhl_order->get_preferred_neighbor_address(),
+			'services'                   => array(),
 		) );
+
+		// Add COD service if payment method matches
 
 		$args = wc_gzd_dhl_validate_label_args( $args );
 

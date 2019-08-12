@@ -1,4 +1,18 @@
 .germanized-create-label {
+  .notice-wrapper {
+    .notice {
+      margin: 0;
+      margin-bottom: 1em;
+
+      p {
+        margin: 0.5em 0 !important;
+        padding: 2px !important;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+    }
+  }
+
   p.form-field {
     &:first-child, &:last-child {
       margin-bottom: 5px !important;
@@ -87,5 +101,13 @@
         font-style: normal;
       }
     }
+  }
+}
+
+.wc-gzd-shipment-dhl-label {
+  .shipment-dhl-label-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }

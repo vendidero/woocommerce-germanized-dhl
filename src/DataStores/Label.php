@@ -169,7 +169,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
         }
 
         $wpdb->delete( $wpdb->gzd_dhl_labels, array( 'label_id' => $label->get_id() ), array( '%d' ) );
-        $wpdb->delete( $wpdb->gzd_dhl_labelmeta, array( 'label_id' => $label->get_id() ), array( '%d' ) );
+        $wpdb->delete( $wpdb->gzd_dhl_labelmeta, array( 'gzd_dhl_label_id' => $label->get_id() ), array( '%d' ) );
 
         $this->clear_caches( $label );
 
@@ -272,6 +272,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
             switch ( $prop ) {
                 case "preferred_day":
+	            case "ident_date_of_birth":
                     $value = $value ? strtotime( date("Y-m-d", $value->getOffsetTimestamp() ) ) : '';
                     break;
 	            case "preferred_time_start":

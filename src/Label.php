@@ -153,6 +153,10 @@ class Label extends WC_Data {
         return $this->get_prop( 'path', $context );
     }
 
+    public function get_download_url( $force = false ) {
+    	return add_query_arg( array( 'action' => 'wc-gzd-dhl-download-label', 'label_id' => $this->get_id(), 'force' => wc_bool_to_string( $force ) ), wp_nonce_url( admin_url(), 'dhl-download-label' ) );
+    }
+
     public function get_export_path( $context = 'view' ) {
         return $this->get_prop( 'export_path', $context );
     }
@@ -239,6 +243,10 @@ class Label extends WC_Data {
 
 	public function codeable_address_only() {
 		return ( true === $this->get_codeable_address_only() );
+	}
+
+	public function get_return_address( $context = 'view' ) {
+		return $this->get_prop( 'return_address', $context );
 	}
 
 	/**
@@ -381,7 +389,7 @@ class Label extends WC_Data {
     }
 
     public function set_services( $services ) {
-        $this->set_prop( 'services', (array) $services );
+        $this->set_prop( 'services', empty( $services ) ? array() : (array) $services );
     }
 
 	public function set_preferred_day( $day ) {
@@ -396,12 +404,16 @@ class Label extends WC_Data {
 		$this->set_time_prop( 'preferred_time_end', $time );
 	}
 
+	public function set_preferred_location( $location ) {
+		$this->set_prop( 'preferred_location', $location );
+	}
+
 	public function set_preferred_neighbor( $neighbor ) {
-		$this->set_time_prop( 'preferred_neighbor', $neighbor );
+		$this->set_prop( 'preferred_neighbor', $neighbor );
 	}
 
 	public function set_preferred_neighbor_address( $address ) {
-		$this->set_time_prop( 'preferred_neighbor_address', $address );
+		$this->set_prop( 'preferred_neighbor_address', $address );
 	}
 
 	public function set_email_notification( $value ) {
@@ -413,7 +425,7 @@ class Label extends WC_Data {
 	}
 
 	public function set_return_address( $value ) {
-    	$this->set_prop( 'return_address', (array) $value );
+    	$this->set_prop( 'return_address', empty( $value ) ? array() : (array) $value );
 	}
 
 	public function set_codeable_address_only( $value ) {
@@ -446,7 +458,11 @@ class Label extends WC_Data {
 	}
 
 	public function set_ident_min_age( $age ) {
-    	$this->set_prop( 'ident_min_age', absint( $age ) );
+    	$this->set_prop( 'ident_min_age', $age );
+	}
+
+	public function set_visual_min_age( $age ) {
+		$this->set_prop( 'visual_min_age', $age );
 	}
 
     public function add_service( $service ) {
@@ -470,9 +486,17 @@ class Label extends WC_Data {
         return $this->get_file_by_path( $path );
     }
 
+    public function get_filename() {
+	    if ( ! $path = $this->get_path() ) {
+		    return false;
+	    }
+
+	    return basename( $path );
+    }
+
     protected function get_file_by_path( $file ) {
         // If the file is relative, prepend upload dir.
-        if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\|', $file ) && ( ( $uploads = Package::get_upload_dir() ) && false === $uploads['error'] ) ) {
+        if ( $file && 0 !== strpos( $file, '/' ) && ( ( $uploads = Package::get_upload_dir() ) && false === $uploads['error'] ) ) {
             $file = $uploads['basedir'] . "/$file";
 
             return $file;

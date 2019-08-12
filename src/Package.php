@@ -93,7 +93,7 @@ class Package {
         add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 
         // add_action( 'init', array( '\Vendidero\Germanized\DHL\Install', 'install' ), 15 );
-	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
+	    add_action( 'init', array( __CLASS__, 'test' ), 120 );
 
         add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
         add_action( 'woocommerce_shipping_init', array( __CLASS__, 'shipping_includes' ) );
@@ -101,6 +101,39 @@ class Package {
     }
 
 	public static function test() {
+    	/*$label = wc_gzd_dhl_get_label( 5 );
+    	$label->save();
+    	var_dump($label);
+    	exit();
+    	*/
+
+    	/*$validate = wc_gzd_dhl_validate_label_args( array(
+    		'services' => array(
+    			'IdentCheck'
+		    ),
+		    'preferred_day' => '1989-10-10',
+		    'preferred_time_start' => '10:00',
+		    'preferred_time_end' => '12:00',
+		    'ident_date_of_birth' => '1997-10-10'
+	    ) );
+
+    	if ( ! is_wp_error( $validate ) ) {
+    		$label = new Label();
+    		$label->set_props( $validate );
+
+			var_dump($label->get_services());
+			var_dump($label->get_ident_date_of_birth()->date('Y-m-d'));
+			var_dump($label->get_preferred_day()->date('Y-m-d'));
+			var_dump($label->get_preferred_time());
+    		var_dump($label);
+    		exit();
+	    }
+
+    	var_dump($validate);
+    	exit();
+    	*/
+
+    	/*
 		$api    = self::get_api();
 		$times = $api->get_preferred_day_time( '12207' );
 		var_dump($times);
@@ -108,6 +141,7 @@ class Package {
 		var_dump(wc_gzd_dhl_get_preferred_times_select_options( $times['preferred_time'] ));
 
 		exit();
+    	*/
 
 		/*$result = $api->get_parcel_api()->get_services( array(
 			'postcode'    => '53225',
@@ -115,11 +149,6 @@ class Package {
 			'account_num' => '0',
 		) );
 		*/
-
-		$result_two = $api->get_label_api()->test_connection();
-
-		var_dump($result_two);
-		exit();
 	}
 
 	public static function register_data_stores( $stores ) {

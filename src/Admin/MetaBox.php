@@ -17,22 +17,13 @@ class MetaBox {
 	 * @param Shipment $shipment
 	 */
 	public static function output( $the_shipment ) {
-		global $post, $thepostid, $theorder;
-
-		if ( ! is_int( $thepostid ) ) {
-			$thepostid = $post->ID;
-		}
-
-		if ( ! is_object( $theorder ) ) {
-			$theorder = wc_get_order( $thepostid );
-		}
-
-		$order     = $theorder;
 		$shipment  = $the_shipment;
 		$dhl_label = wc_gzd_dhl_get_shipment_label( $the_shipment );
-		$dhl_order = wc_gzd_dhl_get_order( $order );
+		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
 
-		include( Package::get_path() . '/includes/admin/views/html-shipment-label.php' );
+		if ( 'draft' !== $shipment->get_status() || $dhl_label ) {
+			include( Package::get_path() . '/includes/admin/views/html-shipment-label.php' );
+		}
 	}
 
 	/**

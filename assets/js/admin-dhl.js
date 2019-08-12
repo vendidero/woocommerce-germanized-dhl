@@ -16,13 +16,140 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'click', '#panel-order-shipments .create-shipment-label', self.onCreateLabel )
+                .on( 'click', '#panel-order-shipments .remove-shipment-label', self.onRemoveLabel )
                 .on( 'click', '.germanized-create-label .show-further-services', self.onExpandServices )
                 .on( 'click', '.germanized-create-label .show-fewer-services', self.onHideServices )
-                .on( 'change', '.germanized-create-label input.show-if-trigger', self.onShowIf );
+                .on( 'change', '.germanized-create-label input.show-if-trigger', self.onShowIf )
+                .on( 'click', '.germanized-create-label .notice .notice-dismiss', self.onRemoveNotice );
 
             $( document.body )
                 .on( 'wc_backbone_modal_loaded', self.backbone.init )
                 .on( 'wc_backbone_modal_response', self.backbone.response );
+        },
+
+        onRemoveNotice: function() {
+            $( this ).parents( '.notice' ).slideUp( 150, function() {
+                $( this ).remove();
+            });
+        },
+
+        getShipmentWrapperByLabel: function( labelId ) {
+            var self       = germanized.admin.dhl,
+                $wrapper   = $( '.wc-gzd-shipment-dhl-label[data-label="' + labelId + '"]' );
+
+            if ( $wrapper.length > 0 ) {
+                return $wrapper.parents( '.order-shipment' );
+            }
+
+            return false;
+        },
+
+        getShipmentIdByLabel: function( labelId ) {
+            var self       = germanized.admin.dhl,
+                $wrapper   = $( '.wc-gzd-shipment-dhl-label[data-label="' + labelId + '"]' );
+
+            if ( $wrapper.length > 0 ) {
+                return $wrapper.parents( '.order-shipment' ).data( 'shipment' );
+            }
+
+            return false;
+        },
+
+        removeLabel: function( labelId ) {
+            var self       = germanized.admin.dhl,
+                $wrapper   = self.getShipmentWrapperByLabel( labelId );
+
+            var params = {
+                'action'  : 'woocommerce_gzd_remove_dhl_label',
+                'label_id': labelId,
+                'security': self.params.remove_label_nonce
+            };
+
+            if ( $wrapper ) {
+                self.doAjax( params, $wrapper );
+            }
+        },
+
+        onRemoveLabel: function() {
+            var self       = germanized.admin.dhl,
+                labelId    = $( this ).data( 'label' );
+
+            var answer = window.confirm( self.params.i18n_remove_label_notice );
+
+            if ( answer ) {
+                self.removeLabel( labelId );
+            }
+
+            return false;
+        },
+
+        doAjax: function( params, $wrapper, cSuccess, cError  ) {
+            var self       = germanized.admin.dhl,
+                shipments  = germanized.admin.shipments,
+                $shipment  = $wrapper.hasClass( 'order-shipment' ) ? $wrapper : $wrapper.parents( '.order-shipment' ),
+                shipmentId = $shipment.data( 'shipment' );
+
+            cSuccess = cSuccess || self.onAjaxSuccess;
+            cError   = cError || self.onAjaxError;
+
+            if ( ! params.hasOwnProperty( 'security' ) ) {
+                params['security'] = self.params.edit_label_nonce;
+            }
+
+            if ( ! params.hasOwnProperty( 'shipment_id' ) ) {
+                params['shipment_id'] = shipmentId;
+            }
+
+            $shipment.block({
+                message: null,
+                overlayCSS: {
+                    background: '#fff',
+                    opacity: 0.6
+                }
+            });
+
+            $shipment.find( '.notice-wrapper' ).empty();
+
+            $.ajax({
+                type: "POST",
+                url:  self.params.ajax_url,
+                data: params,
+                success: function( data ) {
+                    if ( data.success ) {
+                        $shipment.unblock();
+
+                        if ( data.fragments ) {
+                            $.each( data.fragments, function ( key, value ) {
+                                $( key ).replaceWith( value );
+                            });
+                        }
+
+                        cSuccess.apply( $shipment, [ data ] );
+                    } else {
+                        cError.apply( $shipment, [ data ] );
+
+                        $shipment.unblock();
+
+                        if ( data.hasOwnProperty( 'message' ) ) {
+                           shipments.addNotice( data.message, 'error' );
+                        } else if( data.hasOwnProperty( 'messages' ) ) {
+                            $.each( data.messages, function( i, message ) {
+                                shipments.addNotice( message, 'error' );
+                            });
+                        }
+                    }
+                },
+                error: function( data ) {},
+                dataType: 'json'
+            });
+        },
+
+        onAjaxSuccess: function( data ) {
+
+        },
+
+        onAjaxError: function( data ) {
+
         },
 
         onShowIf: function() {
@@ -140,19 +267,26 @@ window.germanized.admin = window.germanized.admin || {};
                     success: function( data ) {
                         if ( data.success ) {
                             $modal.unblock();
-                            $modal.find( '.modal-close' ).trigger( 'click' );
 
                             if ( data.fragments ) {
                                 $.each( data.fragments, function ( key, value ) {
                                     $( key ).replaceWith( value );
-                                } );
+                                });
                             }
+
+                            $modal.find( '.modal-close' ).trigger( 'click' );
                         } else {
                             $modal.unblock();
                             if ( data.hasOwnProperty( 'messages' ) ) {
+
                                 $.each( data.messages, function( i, message ) {
                                     self.addNotice( message, 'error', $content );
                                 });
+
+                                // ScrollTo top of modal
+                                $content.animate({
+                                    scrollTop: 0
+                                }, 500 );
                             }
                         }
                     },
