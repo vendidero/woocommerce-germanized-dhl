@@ -63,14 +63,13 @@ abstract class Soap {
 
     abstract public function test_connection();
 
-    // Unset/remove any items that are empty strings or 0
     protected function walk_recursive_remove( array $array ) {
         foreach ( $array as $k => $v ) {
             if ( is_array( $v ) ) {
                 $array[ $k ] = $this->walk_recursive_remove( $v );
             }
 
-            if ( empty( $v ) ) {
+            if ( empty( $v ) && 'minorRelease' !== $k ) {
                 unset( $array[ $k ] );
             }
         }

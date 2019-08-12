@@ -191,14 +191,15 @@ function wc_gzd_dhl_validate_label_args( $args = array() ) {
 	if ( empty( $args['return_address'] ) && 'yes' === Package::get_setting( 'generate_return_label' ) ) {
 		$args['has_return']     = 'yes';
 		$args['return_address'] = wp_parse_args( $args['return_address'], array(
-			'first_name'    => Package::get_setting( 'generate_return_address_first_name' ),
-			'last_name'     => Package::get_setting( 'generate_return_address_last_name' ),
-			'company'       => Package::get_setting( 'generate_return_address_company' ),
-			'street'        => Package::get_setting( 'generate_return_address_street' ),
-			'street_number' => Package::get_setting( 'generate_return_address_street_no' ),
-			'postcode'      => Package::get_setting( 'generate_return_address_postcode' ),
-			'city'          => Package::get_setting( 'generate_return_address_city' ),
-			'state'         => Package::get_setting( 'generate_return_address_state' ),
+			'first_name'    => Package::get_setting( 'return_address_first_name' ),
+			'last_name'     => Package::get_setting( 'return_address_last_name' ),
+			'company'       => Package::get_setting( 'return_address_company' ),
+			'street'        => Package::get_setting( 'return_address_street' ),
+			'street_number' => Package::get_setting( 'return_address_street_no' ),
+			'postcode'      => Package::get_setting( 'return_address_postcode' ),
+			'city'          => Package::get_setting( 'return_address_city' ),
+			'state'         => Package::get_setting( 'return_address_state' ),
+			'country'       => Package::get_setting( 'return_address_country' ),
 		) );
 	}
 
@@ -213,6 +214,7 @@ function wc_gzd_dhl_validate_label_args( $args = array() ) {
 			'postcode'      => '',
 			'city'          => '',
 			'state'         => '',
+			'country'       => Package::get_setting( 'return_address_country' ),
 		) );
 
 		$mandatory = array(

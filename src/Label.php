@@ -377,7 +377,7 @@ class Label extends WC_Data {
     }
 
     public function set_dhl_product( $product ) {
-        $this->set_prop( 'product', $product );
+        $this->set_prop( 'dhl_product', $product );
     }
 
     public function set_path( $path ) {
@@ -476,6 +476,19 @@ class Label extends WC_Data {
         }
 
         return false;
+    }
+
+    public function remove_service( $service ) {
+	    $services = (array) $this->get_services();
+
+	    if ( in_array( $service, $services ) ) {
+		    $services = array_diff( $services, array( $service ) );
+
+		    $this->set_services( $services );
+		    return true;
+	    }
+
+	    return false;
     }
 
     public function get_file() {

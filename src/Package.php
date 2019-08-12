@@ -101,6 +101,26 @@ class Package {
     }
 
 	public static function test() {
+    	$label = wc_gzd_dhl_get_label( 14 );
+    	$label->set_has_return( false );
+    	$label->save();
+
+    	/*$shipment = wc_gzd_get_shipment( $label->get_shipment_id() );
+    	$address = $shipment->get_address();
+    	$address['postcode'] = '12059';
+    	$address['city'] = 'Berlin';
+    	$address['address_1'] = 'Sonnenallee 181';
+    	$address['country'] = 'DE';
+    	$shipment->set_address( $address );
+    	$shipment->save();
+    	*/
+
+    	$api   = self::get_api();
+
+        $api->get_label_api()->get_label( $label );
+
+    	exit();
+
     	/*$label = wc_gzd_dhl_get_label( 5 );
     	$label->save();
     	var_dump($label);
@@ -350,12 +370,36 @@ class Package {
         return $args;
     }
 
+    public static function get_participation_number( $product ) {
+    	return self::get_setting( 'participation_' . $product );
+    }
+
     public static function get_setting( $name ) {
 
     	if ( self::is_debug_mode() && 'account_num' === $name ) {
     		return '2222222222';
 	    } elseif( 'cutoff_time' === $name ) {
     		return '12:00';
+	    } elseif( 'shipper_company' === $name ) {
+    		return 'Company';
+	    } elseif( 'shipper_full_name' === $name ) {
+		    return 'Test';
+	    } elseif( 'shipper_street' === $name ) {
+		    return 'Schillerstraße';
+	    } elseif( 'shipper_street_no' === $name ) {
+		    return '36';
+	    } elseif( 'shipper_postcode' === $name ) {
+		    return '12207';
+	    } elseif( 'shipper_city' === $name ) {
+		    return 'Berlin';
+	    } elseif( 'shipper_country' === $name ) {
+		    return 'DE';
+	    } elseif( 'shipper_email' === $name ) {
+		    return 'info@vendidero.de';
+	    } elseif( 'participation_V01PAK' === $name ) {
+    		return '04';
+	    } elseif( 'participation_return' === $name ) {
+			return '07';
 	    }
 
     	return '';

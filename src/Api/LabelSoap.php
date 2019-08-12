@@ -61,12 +61,16 @@ class LabelSoap extends Soap {
      *
      * @throws Exception
      */
-    public function get_label( $label ) {
+    public function get_label( &$label ) {
         $soap_request = $this->get_request( $label );
+
+        print_r($soap_request);
 
         try {
             $soap_client = $this->get_access_token();
             Package::log( '"createShipmentOrder" called with: ' . print_r( $soap_request, true ) );
+
+            print_r($soap_client);
 
             $response_body = $soap_client->createShipmentOrder( $soap_request );
             Package::log( 'Response: Successful' );
@@ -76,8 +80,17 @@ class LabelSoap extends Soap {
             throw $e;
         }
 
-        if ( $response_body->Status->statusCode != 0 ) {
-            throw new Exception( sprintf( __( 'Could not create label - %s', 'woocommerce-germanized-dhl' ), $response_body->Status->statusMessage ) );
+        print_r($response_body);
+
+        if ( 0 !== $response_body->Status->statusCode ) {
+        	if ( isset( $response_body->CreationState->LabelData->Status ) && isset( $response_body->CreationState->LabelData->Status->statusMessage ) ) {
+        		$messages = (array) $response_body->CreationState->LabelData->Status->statusMessage;
+        		$messages = implode( "\n", $messages );
+
+		        throw new Exception( $messages );
+	        } else {
+		        throw new Exception( __( 'There was an error generating the label. Please check your logs.', 'woocommerce-germanized-dhl' ) );
+	        }
         } else {
             // Give the server 1 second to create the PDF before downloading it
             // sleep( 1 );
@@ -107,7 +120,7 @@ class LabelSoap extends Soap {
                 throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
             }
 
-            return $label;
+            return true;
         }
     }
 
@@ -156,181 +169,30 @@ class LabelSoap extends Soap {
         $label->delete();
     }
 
-    protected function set_arguments( $args ) {
-
-        // Order details
-        if ( empty( $args['order_details']['dhl_product'] )) {
-            throw new Exception( __('DHL "Product" is empty!', 'pr-shipping-dhl') );
-        }
-
-        // return receiver
-        if ( isset( $args['order_details']['return_address'] ) && ( $args['order_details']['return_address'] == 'yes' ) ) {
-
-            if ( ( $args['order_details']['dhl_product'] != 'V01PAK' ) && ( $args['order_details']['dhl_product'] != 'V01PRIO' ) && ( $args['order_details']['dhl_product'] != 'V86PARCEL' ) && ( $args['order_details']['dhl_product'] != 'V55PAK' ) ){
-
-                throw new Exception( __('Returns are not supported by this DHL Service.', 'pr-shipping-dhl') );
-            }
-
-            if ( empty( $args['dhl_settings']['return_name'] )) {
-                throw new Exception( __('Please, provide a return name in the DHL shipping settings', 'pr-shipping-dhl') );
-            }
-
-            if ( empty( $args['dhl_settings']['return_address'] )) {
-                throw new Exception( __('Please, provide a return address in the DHL shipping settings', 'pr-shipping-dhl') );
-            }
-
-            if ( empty( $args['dhl_settings']['return_address_no'] )) {
-                throw new Exception( __('Please, provide a return address number in the DHL shipping settings', 'pr-shipping-dhl') );
-            }
-
-            if ( empty( $args['dhl_settings']['return_address_city'] )) {
-                throw new Exception( __('Please, provide a return city in the DHL shipping settings', 'pr-shipping-dhl') );
-            }
-
-            if ( empty( $args['dhl_settings']['return_address_zip'] )) {
-                throw new Exception( __('Please, provide a return postcode in the DHL shipping settings', 'pr-shipping-dhl') );
-            }
-        }
-
-        if ( empty( $args['order_details']['order_id'] )) {
-            throw new Exception( __('Shop "Order ID" is empty!', 'pr-shipping-dhl') );
-        }
-
-        if ( empty( $args['order_details']['weightUom'] )) {
-            throw new Exception( __('Shop "Weight Units of Measure" is empty!', 'pr-shipping-dhl') );
-        }
-
-        if ( empty( $args['order_details']['weight'] )) {
-            throw new Exception( __('Order "Weight" is empty!', 'pr-shipping-dhl') );
-        }
-
-        if ( isset( $args['order_details']['identcheck'] ) && ( $args['order_details']['identcheck'] == 'yes' ) ) {
-            if ( empty( $args['shipping_address']['first_name'] ) || empty( $args['shipping_address']['last_name'] ) ) {
-                throw new Exception( __('First name and last name must be passed for "Identity Check".', 'pr-shipping-dhl') );
-            }
-
-            if ( empty( $args['order_details']['identcheck_dob'] ) && empty( $args['order_details']['identcheck_age'] ) ) {
-                throw new Exception( __('Either a "Date of Birth" or "Minimum Age" must be eneted for "Ident-Check".', 'pr-shipping-dhl') );
-            }
-        }
-
-        // Validate weight
-        try {
-            $this->validate_field( 'weight', $args['order_details']['weight'] );
-        } catch (Exception $e) {
-            throw new Exception( 'Weight - ' . $e->getMessage() );
-        }
-
-        // if ( empty( $args['order_details']['duties'] )) {
-        // 	throw new Exception( __('DHL "Duties" is empty!', 'pr-shipping-dhl') );
-        // }
-
-        if ( empty( $args['order_details']['currency'] )) {
-            throw new Exception( __('Shop "Currency" is empty!', 'pr-shipping-dhl') );
-        }
-
-        if ( empty( $args['shipping_address']['city'] )) {
-            throw new Exception( __('Shipping "City" is empty!', 'pr-shipping-dhl') );
-        }
-
-        if ( empty( $args['shipping_address']['country'] )) {
-            throw new Exception( __('Shipping "Country" is empty!', 'pr-shipping-dhl') );
-        }
-
-        // Validate shipping address
-        if ( empty( $args['shipping_address']['address_1'] )) {
-            throw new Exception( __('Shipping "Address 1" is empty!', 'pr-shipping-dhl') );
-        }
-
-
-        $this->pos_ps = PR_DHL()->is_packstation( $args['shipping_address']['address_1'] );
-        $this->pos_rs = PR_DHL()->is_parcelshop( $args['shipping_address']['address_1'] );
-        $this->pos_po = PR_DHL()->is_post_office( $args['shipping_address']['address_1'] );
-
-        // If Packstation, post number is mandatory
-        if ( $this->pos_ps && empty( $args['shipping_address']['dhl_postnum'] ) ) {
-            throw new Exception( __('Post Number is missing, it is mandatory for "Packstation" delivery.', 'pr-shipping-dhl') );
-        }
-
-        // Check address 2 if no parcel shop is being selected
-        if ( ! $this->pos_ps && ! $this->pos_rs && ! $this->pos_po ) {
-            // If address 2 missing, set last piece of an address to be address 2
-            if ( empty( $args['shipping_address']['address_2'] )) {
-                // Break address into pieces
-                $address_exploded = explode(' ', $args['shipping_address']['address_1']);
-
-                // Loop through address and set number value only...
-                // ...last found number will be 'address_2'
-                foreach ($address_exploded as $address_key => $address_value) {
-                    if (is_numeric($address_value)) {
-                        // Set last index as street number
-                        $args['shipping_address']['address_2'] = $address_value;
-                        $set_key = $address_key;
-                    }
-                }
-
-                // If no number was found, then take last part of address no matter what it is
-                if ( empty( $args['shipping_address']['address_2'] )) {
-                    $args['shipping_address']['address_2'] = $address_exploded[ $address_key ];
-                    $set_key = $address_key;
-                }
-
-                // Unset it in address 1
-                unset( $address_exploded[ $set_key ] );
-                // Set address 1 without street number or last part of address
-                $args['shipping_address']['address_1'] = implode(' ', $address_exploded );
-            }
-        }
-
-        // Add default values for required fields that might not be passed e.g. phone
-        $default_args = array( 'shipping_address' =>
-            array( 'name' => '',
-                'company' => '',
-                'address_2' => '',
-                'email' => '',
-                'postcode' => '',
-                'state' => '',
-                'phone' => ' '
-            ),
-        );
-
-        $args['shipping_address'] = wp_parse_args( $args['shipping_address'], $default_args['shipping_address'] );
-
-        $default_args_item = array(
-            'item_description' => '',
-            'sku' => '',
-            'line_total' => 0,
-            'country_origin' => '',
-            'hs_code' => '',
-            'qty' => 1
-        );
-
-        foreach ($args['items'] as $key => $item) {
-
-            if ( ! empty( $item['hs_code'] ) ) {
-                try {
-                    $this->validate_field( 'hs_code', $item['hs_code'] );
-                } catch (Exception $e) {
-                    throw new Exception( 'HS Code - ' . $e->getMessage() );
-                }
-            }
-
-            $args['items'][$key] = wp_parse_args( $item, $default_args_item );
-        }
-
-        $this->args = $args;
-    }
-
     protected function get_account_number( $dhl_product ) {
         // create account number
         $product_number = preg_match('!\d+!', $dhl_product, $matches );
 
         if ( $product_number ) {
-            $account_number = Package::get_setting( 'account_num' ) . $matches[0] . Package::get_setting( 'participation' );
+            $account_number = Package::get_setting( 'account_num' ) . $matches[0] . Package::get_participation_number( $dhl_product );
+
             return $account_number;
         } else {
-            throw new Exception( __('Could not create account number - no product number.', 'pr-shipping-dhl') );
+            throw new Exception( __( 'Could not create account number - no product number.', 'woocommerce-germanized-dhl' ) );
         }
+    }
+
+    protected function get_return_account_number() {
+	    // create account number
+	    $product_number = self::DHL_RETURN_PRODUCT;
+
+	    if ( Package::is_debug_mode() ) {
+	    	$product_number = '01';
+	    }
+
+	    $account_number = Package::get_setting( 'account_num' ) . $product_number . Package::get_participation_number( 'return' );
+
+	    return $account_number;
     }
 
     /**
@@ -362,7 +224,7 @@ class LabelSoap extends Soap {
                 case 'IdentCheck':
                     $services[ $service ]['Ident']['surname']     = $shipment->get_first_name();
                     $services[ $service ]['Ident']['givenName']   = $shipment->get_last_name();
-                    $services[ $service ]['Ident']['dateOfBirth'] = $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->get_date() : '';
+                    $services[ $service ]['Ident']['dateOfBirth'] = $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->date( 'Y-m-d' ) : '';
                     $services[ $service ]['Ident']['minimumAge']  = $label->get_ident_min_age();
                     break;
                 case 'CashOnDelivery':
@@ -384,7 +246,7 @@ class LabelSoap extends Soap {
                     }
                     break;
                 case 'PreferredDay':
-                    $services[ $service ]['details'] = $label->get_preferred_day() ? $label->get_preferred_day()->get_date() : '';
+                    $services[ $service ]['details'] = $label->get_preferred_day() ? $label->get_preferred_day()->date( 'Y-m-d' ) : '';
                     break;
                 case 'PreferredTime':
                     $services[ $service ]['type'] = wc_gzd_dhl_aformat_preferred_api_time( $label->get_preferred_time() );
@@ -422,17 +284,17 @@ class LabelSoap extends Soap {
                     ),
                     'Shipper'       => array(
                         'Name'      => array(
-                            'name1' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_name' ),
-                            'name2' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_name' ) : '',
+                            'name1' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_full_name' ),
+                            'name2' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_full_name' ) : '',
                         ),
                         'Address'   => array(
-                            'streetName'   => Package::get_setting( 'shipper_address' ),
-                            'streetNumber' => Package::get_setting( 'shipper_address_no' ),
-                            'zip'          => Package::get_setting( 'shipper_address_zip' ),
-                            'city'         => Package::get_setting( 'shipper_address_city' ),
+                            'streetName'   => Package::get_setting( 'shipper_street' ),
+                            'streetNumber' => Package::get_setting( 'shipper_street_no' ),
+                            'zip'          => Package::get_setting( 'shipper_postcode' ),
+                            'city'         => Package::get_setting( 'shipper_city' ),
                             'Origin'       => array(
                                 'countryISOCode' => Package::get_setting( 'shipper_country' ),
-                                'state'          => Package::get_setting( 'shipper_address_state' ),
+                                'state'          => Package::get_setting( 'shipper_state' ),
                             )
                         ),
                         'Communication' => array(
@@ -500,8 +362,7 @@ class LabelSoap extends Soap {
         }
 
         if ( $label->has_return() ) {
-            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = Package::get_setting( 'account_num' ) . self::DHL_RETURN_PRODUCT . Package::get_setting( 'participation_return' );
-
+            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
             $dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'] = array(
                 'Name' => array(
                     'name1' => $label->get_return_company() ? $label->get_return_company() : $label->get_return_formatted_full_name(),
@@ -556,6 +417,7 @@ class LabelSoap extends Soap {
 
             $item_description = substr( $item_description, 0, 255 );
 
+            // @TODO Duties
             $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = array(
                 'invoiceNumber'         => $shipment->get_id(),
                 'exportType'            => 'OTHER',
@@ -586,10 +448,10 @@ class LabelSoap extends Soap {
         }
 
         // Ensure 'postNumber' is passed with 'Postfiliale' even if empty
-        if ( ! isset( $this->body_request['ShipmentOrder']['Shipment']['Receiver']['Postfiliale']['postNumber'] ) ) {
+        /*if ( ! isset( $this->body_request['ShipmentOrder']['Shipment']['Receiver']['Postfiliale']['postNumber'] ) ) {
             // Additional fees, required and 0 so place after check
             $this->body_request['ShipmentOrder']['Shipment']['Receiver']['Postfiliale']['postNumber'] = '';
-        }
+        }*/
 
         return $this->body_request;
     }

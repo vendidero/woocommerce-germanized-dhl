@@ -109,8 +109,8 @@ class Ajax {
 			if ( substr( $key, 0, strlen( 'dhl_label_service_' ) ) === 'dhl_label_service_' ) {
 				$new_key              = substr( $key, ( strlen( 'dhl_label_service_' ) ) );
 
-				if ( 'yes' === $value ) {
-					$services[ $new_key ] = wc_clean( wp_unslash( $value ) );
+				if ( 'yes' === $value && in_array( $new_key, wc_gzd_dhl_get_services() ) ) {
+					$services[] = $new_key;
 				}
 			} elseif ( substr( $key, 0, strlen( 'dhl_label_' ) ) === 'dhl_label_' ) {
 				$new_key           = substr( $key, ( strlen( 'dhl_label_' ) ) );

@@ -132,7 +132,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             }
         }
 
-        if ( ! empty( $shipment_data ) ) {
+        if ( ! empty( $label_data ) ) {
             $wpdb->update(
                 $wpdb->gzd_dhl_labels,
                 $label_data,
