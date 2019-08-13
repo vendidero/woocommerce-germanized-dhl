@@ -82,7 +82,7 @@ class Ajax {
 	}
 
 	public static function create_dhl_label() {
-		check_ajax_referer( 'create-dhl-label', 'security' );
+		check_ajax_referer( 'edit-dhl-label', 'security' );
 
 		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
 			wp_die( -1 );
@@ -130,7 +130,12 @@ class Ajax {
 		}
 
 		$props['services'] = $services;
-		$label             = wc_gzd_dhl_create_label( $shipment, $props );
+
+		if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+			$label = wc_gzd_dhl_update_label( $label, $props );
+		} else {
+			$label = wc_gzd_dhl_create_label( $shipment, $props );
+		}
 
 		if ( is_wp_error( $label ) ) {
 			$response = array(

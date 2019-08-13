@@ -54,6 +54,40 @@ class LabelSoap extends Soap {
         }
     }
 
+    public function get_label( &$label ) {
+    	if ( empty( $label->get_number() ) ) {
+    		return $this->create_label( $label );
+	    } else {
+			$soap_request = array(
+				'Version'            => array(
+					'majorRelease'   => '3',
+					'minorRelease'   => '0'
+				),
+				'shipmentNumber'     => $label->get_number(),
+				'labelResponseType'  => 'B64',
+			);
+
+		    try {
+			    $soap_client = $this->get_access_token();
+			    Package::log( '"getLabel" called with: ' . print_r( $soap_request, true ) );
+
+			    $response_body = $soap_client->getLabel( $soap_request );
+			    Package::log( 'Response: Successful' );
+
+		    } catch ( Exception $e ) {
+			    Package::log( 'Response Error: ' . $e->getMessage() );
+			    throw $e;
+		    }
+
+		    // Label not found
+		    if ( 2000 === $response_body->Status->statusCode ) {
+		    	return $this->create_label( $label );
+		    } else {
+			    return $this->update_label( $label, $response_body->Status, $response_body );
+		    }
+	    }
+    }
+
     /**
      * @param Label $label
      *
@@ -61,16 +95,11 @@ class LabelSoap extends Soap {
      *
      * @throws Exception
      */
-    public function get_label( &$label ) {
-        $soap_request = $this->get_request( $label );
-
-        print_r($soap_request);
-
-        try {
-            $soap_client = $this->get_access_token();
+    public function create_label( &$label ) {
+    	try {
+	        $soap_request = $this->get_create_label_request( $label );
+            $soap_client  = $this->get_access_token();
             Package::log( '"createShipmentOrder" called with: ' . print_r( $soap_request, true ) );
-
-            print_r($soap_client);
 
             $response_body = $soap_client->createShipmentOrder( $soap_request );
             Package::log( 'Response: Successful' );
@@ -80,48 +109,57 @@ class LabelSoap extends Soap {
             throw $e;
         }
 
-        print_r($response_body);
+        return $this->update_label( $label, $response_body->Status, $response_body->CreationState );
+    }
 
-        if ( 0 !== $response_body->Status->statusCode ) {
-        	if ( isset( $response_body->CreationState->LabelData->Status ) && isset( $response_body->CreationState->LabelData->Status->statusMessage ) ) {
-        		$messages = (array) $response_body->CreationState->LabelData->Status->statusMessage;
-        		$messages = implode( "\n", $messages );
+    protected function update_label( &$label, $status, $response_body ) {
+	    if ( 0 !== $status->statusCode ) {
+		    if ( isset( $response_body->LabelData->Status ) && isset( $response_body->LabelData->Status->statusMessage ) ) {
+			    $messages = (array) $response_body->LabelData->Status->statusMessage;
+			    $messages = implode( "\n", array_unique( $messages ) );
 
-		        throw new Exception( $messages );
-	        } else {
-		        throw new Exception( __( 'There was an error generating the label. Please check your logs.', 'woocommerce-germanized-dhl' ) );
-	        }
-        } else {
-            // Give the server 1 second to create the PDF before downloading it
-            // sleep( 1 );
-            try {
+			    throw new Exception( $messages );
+		    } else {
+			    throw new Exception( __( 'There was an error generating the label. Please check your logs.', 'woocommerce-germanized-dhl' ) );
+		    }
+	    } else {
+		    // Give the server 1 second to create the PDF before downloading it
+		    // sleep( 1 );
+		    try {
+			    if ( isset( $response_body->shipmentNumber ) ) {
+				    $label->set_number( $response_body->shipmentNumber );
+			    }
 
-                if ( isset( $response_body->CreationState->LabelData->shipmentNumber ) ) {
-                    $label->set_number( $response_body->CreationState->LabelData->shipmentNumber );
-                }
+			    if ( isset( $response_body->returnShipmentNumber ) ) {
+				    $label->set_return_number( $response_body->returnShipmentNumber );
+			    }
 
-                $filename_label = wc_gzd_dhl_generate_label_filename( $label, 'label' );
+			    if ( ! $filename_label = $label->get_filename() ) {
+				    $filename_label = wc_gzd_dhl_generate_label_filename( $label, 'label' );
+			    }
 
-                if ( $path = wc_gzd_dhl_upload_file( $filename_label, $response_body->CreationState->LabelData->labelData ) ) {
-                    $label->set_path( $path );
-                }
+			    if ( $path = wc_gzd_dhl_upload_data( $filename_label, base64_decode( $response_body->LabelData->labelData ) ) ) {
+				    $label->set_path( $path );
+			    }
 
-                if ( isset( $response_body->CreationState->LabelData->exportLabelData ) ) {
-                    $filename_export = wc_gzd_dhl_generate_label_filename( $label, 'export' );
+			    if ( isset( $response_body->LabelData->exportLabelData ) ) {
+				    if ( ! $filename_export = $label->get_export_filename() ) {
+					    $filename_export = wc_gzd_dhl_generate_label_filename( $label, 'export' );
+				    }
 
-                    if ( $path = wc_gzd_dhl_upload_file( $filename_export, $response_body->CreationState->LabelData->exportLabelData ) ) {
-                        $label->set_export_path( $path );
-                    }
-                }
+				    if ( $path = wc_gzd_dhl_upload_data( $filename_export, base64_decode( $response_body->LabelData->exportLabelData ) ) ) {
+					    $label->set_export_path( $path );
+				    }
+			    }
 
-                $label->save();
+			    $label->save();
 
-            } catch( Exception $e ) {
-                throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
-            }
+		    } catch( Exception $e ) {
+			    throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
+		    }
 
-            return true;
-        }
+		    return $label;
+	    }
     }
 
     /**
@@ -129,7 +167,7 @@ class LabelSoap extends Soap {
      *
      * @throws Exception
      */
-    protected function delete_label_call( $label ) {
+    protected function delete_label_call( &$label ) {
         $soap_request =	array(
             'Version'          => array(
                 'majorRelease' => '3',
@@ -145,13 +183,30 @@ class LabelSoap extends Soap {
             $response_body = $soap_client->deleteShipmentOrder( $soap_request );
 
             Package::log( 'Response Body: ' . print_r( $response_body, true ) );
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             throw $e;
         }
 
-        if ( $response_body->Status->statusCode != 0 ) {
+	    $label->set_number( '' );
+	    $label->set_return_number( '' );
+
+	    if ( $file = $label->get_file() ) {
+		    wp_delete_file( $file );
+	    }
+
+	    $label->set_path( '' );
+
+	    if ( $file = $label->get_export_file() ) {
+		    wp_delete_file( $file );
+	    }
+
+	    $label->set_export_path( '' );
+
+        if ( 0 !== $response_body->Status->statusCode ) {
             throw new Exception( sprintf( __( 'Could not delete label - %s', 'woocommerce-germanized-dhl' ), $response_body->Status->statusMessage ) );
         }
+
+        return $label;
     }
 
     /**
@@ -159,18 +214,19 @@ class LabelSoap extends Soap {
      *
      * @throws Exception
      */
-    public function delete_label( $label ) {
+    public function delete_label( &$label ) {
         try {
-            $this->delete_label_call( $label );
-        } catch (Exception $e) {
+        	if ( ! empty( $label->get_number() ) ) {
+		        return $this->delete_label_call( $label );
+	        }
+        } catch ( Exception $e ) {
             throw $e;
         }
 
-        $label->delete();
+        return false;
     }
 
     protected function get_account_number( $dhl_product ) {
-        // create account number
         $product_number = preg_match('!\d+!', $dhl_product, $matches );
 
         if ( $product_number ) {
@@ -183,13 +239,7 @@ class LabelSoap extends Soap {
     }
 
     protected function get_return_account_number() {
-	    // create account number
 	    $product_number = self::DHL_RETURN_PRODUCT;
-
-	    if ( Package::is_debug_mode() ) {
-	    	$product_number = '01';
-	    }
-
 	    $account_number = Package::get_setting( 'account_num' ) . $product_number . Package::get_participation_number( 'return' );
 
 	    return $account_number;
@@ -201,7 +251,7 @@ class LabelSoap extends Soap {
      *
      * @throws Exception
      */
-    protected function get_request( $label ) {
+    protected function get_create_label_request( $label ) {
         $shipment = $label->get_shipment();
 
         if ( ! $shipment ) {
@@ -268,19 +318,24 @@ class LabelSoap extends Soap {
                 'majorRelease'   => '3',
                 'minorRelease'   => '0'
             ),
+            'labelResponseType'  => 'B64',
             'ShipmentOrder'      => array (
                 'sequenceNumber' => $label->get_shipment_id(),
                 'Shipment'       => array(
                     'ShipmentDetails' => array(
-                        'product'        => $label->get_dhl_product(),
-                        'accountNumber'  => self::get_account_number( $label->get_dhl_product() ),
-                        'shipmentDate'   => date('Y-m-d' ),
-                        'ShipmentItem'   => array(
-                            'weightInKG' => wc_get_weight( $label->get_shipment()->get_weight(), 'kg' )
+                        'product'           => $label->get_dhl_product(),
+                        'accountNumber'     => self::get_account_number( $label->get_dhl_product() ),
+                        'customerReference' => wc_gzd_dhl_get_label_reference( __( 'Shipment #{shipment_id} to order #{order_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) ),
+                        'shipmentDate'      => date('Y-m-d' ),
+                        'ShipmentItem'      => array(
+                            'weightInKG' => wc_get_weight( $shipment->get_weight(), 'kg' ),
+	                        'lengthInCM' => wc_get_dimension( $shipment->get_length(), 'cm' ),
+                            'widthInCM'  => wc_get_dimension( $shipment->get_width(), 'cm' ),
+                            'heightInCM' => wc_get_dimension( $shipment->get_height(), 'cm' ),
                         ),
-                        'Service'        => $services,
-                        'Notification'   => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
-                        'BankData'       => array(),
+                        'Service'           => $services,
+                        'Notification'      => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
+                        'BankData'          => array(),
                     ),
                     'Shipper'       => array(
                         'Name'      => array(
@@ -294,7 +349,7 @@ class LabelSoap extends Soap {
                             'city'         => Package::get_setting( 'shipper_city' ),
                             'Origin'       => array(
                                 'countryISOCode' => Package::get_setting( 'shipper_country' ),
-                                'state'          => Package::get_setting( 'shipper_state' ),
+                                'state'          => wc_gzd_dhl_format_label_state( Package::get_setting( 'shipper_state' ), Package::get_setting( 'shipper_country' ) ),
                             )
                         ),
                         'Communication' => array(
@@ -312,7 +367,7 @@ class LabelSoap extends Soap {
                             'city'         => $shipment->get_city(),
                             'Origin'       => array(
                                 'countryISOCode' => $shipment->get_country(),
-                                'state'          => $shipment->get_state()
+                                'state'          => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() )
                             )
                         ),
                         'Communication' => array(
@@ -320,8 +375,7 @@ class LabelSoap extends Soap {
                             'email' => $shipment->get_email()
                         )
                     )
-                ),
-                'labelResponseType' => 'B64'
+                )
             )
         );
 
@@ -335,7 +389,7 @@ class LabelSoap extends Soap {
                 'city'   => $shipment->get_city(),
                 'Origin' => array(
                     'countryISOCode' => $shipment->get_country(),
-                    'state'          => $shipment->get_state()
+                    'state'          => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() )
                 )
             );
 
@@ -363,6 +417,8 @@ class LabelSoap extends Soap {
 
         if ( $label->has_return() ) {
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
+            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( __( 'Return shipment #{shipment_id} to order #{order_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) );
+
             $dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'] = array(
                 'Name' => array(
                     'name1' => $label->get_return_company() ? $label->get_return_company() : $label->get_return_formatted_full_name(),
@@ -375,7 +431,7 @@ class LabelSoap extends Soap {
                     'city'         => $label->get_return_city(),
                     'Origin'       => array(
                         'countryISOCode' => $label->get_return_country(),
-                        'state'          => $label->get_return_state(),
+                        'state'          => wc_gzd_dhl_format_label_state( $label->get_return_state(), $label->get_return_country() ),
                     )
                 ),
                 'Communication' => array(

@@ -71,7 +71,6 @@ class Admin {
 				'wc_gzd_admin_dhl_params',
 				array(
 					'ajax_url'                 => admin_url( 'admin-ajax.php' ),
-					'create_label_nonce'       => wp_create_nonce( 'create-dhl-label' ),
 					'remove_label_nonce'       => wp_create_nonce( 'remove-dhl-label' ),
 					'edit_label_nonce'         => wp_create_nonce( 'edit-dhl-label' ),
 					'i18n_remove_label_notice' => __( 'Do you really want to delete the label?', 'woocommerce-germanized-dhl' ),

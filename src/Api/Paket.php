@@ -92,12 +92,12 @@ class Paket {
         return array();
     }
 
-    public function get_label( $args ) {
-        return $this->get_label_api()->get_label( $args );
+    public function get_label( &$label ) {
+        return $this->get_label_api()->get_label( $label );
     }
 
-    public function delete_label( $label_url ) {
-        return $this->get_label_api()->delete_label( $label_url );
+    public function delete_label( &$label ) {
+        return $this->get_label_api()->delete_label( $label );
     }
 
     public function reset_connection( ) {

@@ -93,6 +93,12 @@ function wc_gzd_dhl_get_ident_min_ages() {
 	return wc_gzd_dhl_get_visual_min_ages();
 }
 
+function wc_gzd_dhl_get_label_reference( $reference_type, $placeholders = array() ) {
+	$text = $reference_type;
+
+	return str_replace( array_keys( $placeholders ), array_values( $placeholders ), $text );
+}
+
 /**
  * Standard way of retrieving shipments based on certain parameters.
  *
@@ -162,7 +168,7 @@ function wc_gzd_dhl_get_pickup_type( $type ) {
 	return array_key_exists( $type, $types ) ? $types[ $type ] : false;
 }
 
-function wc_gzd_dhl_validate_label_args( $args = array() ) {
+function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 
 	$args = wp_parse_args( $args, array(
 		'preferred_day'         => '',
@@ -176,11 +182,19 @@ function wc_gzd_dhl_validate_label_args( $args = array() ) {
 		'email_notification'    => 'no',
 		'has_return'            => 'no',
 		'codeable_address_only' => 'no',
+		'cod_total'             => 0,
+		'duties'                => '',
 		'services'              => array(),
 		'return_address'        => array(),
 	) );
 
 	$error = new WP_Error();
+
+	if ( ! $shipment_order = $shipment->get_order() ) {
+		$error->add( 500, sprintf( __( 'Shipment order #%s does not exist', 'woocommerce-germanized-dhl' ), $shipment->get_order_id() ) );
+	}
+
+	$dhl_order = wc_gzd_dhl_get_order( $shipment_order );
 
 	// Do only allow valid services
 	if ( ! empty( $args['services'] ) ) {
@@ -232,6 +246,15 @@ function wc_gzd_dhl_validate_label_args( $args = array() ) {
 		}
 	} else {
 		$args['return_address'] = array();
+	}
+
+	// No cash on delivery available
+	if ( ! empty( $args['cod_total'] ) && ! $dhl_order->has_cod_payment() ) {
+		$args['cod_total'] = 0;
+	}
+
+	if ( ! empty( $args['cod_total'] ) && $dhl_order->has_cod_payment() ) {
+		$args['services'] = array_merge( $args['services'], array( 'CashOnDelivery' ) );
 	}
 
 	if ( ! empty( $args['preferred_day'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_day'], 'Y-m-d' ) ) {
@@ -292,9 +315,22 @@ function wc_gzd_dhl_validate_label_args( $args = array() ) {
 				$error->add( 500, __( 'There was an error parsing the date of birth for the identity check.', 'woocommerce-germanized-dhl' ) );
 			}
 		}
+
+		if ( empty( $args['ident_date_of_birth'] ) && empty( $args['ident_min_age'] ) ) {
+			$error->add( 500, __( 'Either a minimum age or a date of birth must be added to the ident check.', 'woocommerce-germanized-dhl' ) );
+		}
 	} else {
 		$args['ident_min_age']       = '';
 		$args['ident_date_of_birth'] = '';
+	}
+
+	// We don't need duties for non-crossborder shipments
+	if ( ! empty( $args['duties'] ) && ! Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+		unset( $args['duties'] );
+	}
+
+	if ( ! empty( $args['duties'] ) && ! array_key_exists( $args['duties'], wc_gzd_dhl_get_duties() ) ) {
+		$error->add( 500, sprintf( __( '%s duties element does not exist.', 'woocommerce-germanized-dhl' ), $args['duties'] ) );
 	}
 
 	if ( $error->has_errors() ) {
@@ -314,6 +350,77 @@ function wc_gzd_dhl_is_valid_datetime( $maybe_datetime, $format = 'Y-m-d' ) {
 	return true;
 }
 
+function wc_gzd_dhl_format_label_state( $state, $country ) {
+	// If not USA or Australia, then change state from ISO code to name
+	if ( ! in_array( $country, array( 'US', 'AU' ) ) ) {
+
+		// Get all states for a country
+		$states = WC()->countries->get_states( $country );
+
+		// If the state is empty, it was entered as free text
+		if ( ! empty( $states ) && ! empty( $state ) ) {
+			// Change the state to be the name and not the code
+			$state = $states[ $state ];
+
+			// Remove anything in parentheses (e.g. TH)
+			$ind = strpos( $state, " (" );
+
+			if ( false !== $ind ) {
+				$state = substr( $state, 0, $ind );
+			}
+		}
+	}
+
+	return $state;
+}
+
+function wc_gzd_dhl_update_label( $label, $args = array() ) {
+	try {
+		$shipment = $label->get_shipment();
+
+		if ( ! $shipment || ! is_a( $shipment, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
+			throw new Exception( __( 'Invalid shipment', 'woocommerce-germanized-dhl' ) );
+		}
+
+		if ( ! $order = $shipment->get_order() ) {
+			throw new Exception( __( 'Order does not exist', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$dhl_order = wc_gzd_dhl_get_order( $order );
+		$args      = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order ) );
+
+		// Add COD service if payment method matches
+		$args = wc_gzd_dhl_validate_label_args( $shipment, $args );
+
+		if ( is_wp_error( $args ) ) {
+			return $args;
+		}
+
+		$label->set_props( $args );
+		$label->set_shipment_id( $shipment->get_id() );
+
+		do_action( 'woocommerce_gzd_dhl_before_update_label', $label );
+
+		$label->save();
+
+	} catch ( Exception $e ) {
+		return new WP_Error( 'error', $e->getMessage() );
+	}
+
+	return $label;
+}
+
+function wc_gzd_dhl_get_label_default_args( $dhl_order ) {
+	return array(
+		'preferred_day'              => $dhl_order->get_preferred_day(),
+		'preferred_time_start'       => $dhl_order->get_preferred_time_start(),
+		'preferred_time_end'         => $dhl_order->get_preferred_time_end(),
+		'preferred_location'         => $dhl_order->get_preferred_location(),
+		'preferred_neighbor'         => $dhl_order->get_preferred_neighbor_formatted_address(),
+		'services'                   => array(),
+	);
+}
+
 /**
  * @param Shipment $shipment the shipment
  * @param array $args
@@ -329,19 +436,10 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		}
 
 		$dhl_order = wc_gzd_dhl_get_order( $order );
-		$args      = wp_parse_args( $args, array(
-			'preferred_day'              => $dhl_order->get_preferred_day(),
-			'preferred_time_start'       => $dhl_order->get_preferred_time_start(),
-			'preferred_time_end'         => $dhl_order->get_preferred_time_end(),
-			'preferred_location'         => $dhl_order->get_preferred_location(),
-			'preferred_neighbor'         => $dhl_order->get_preferred_neighbor(),
-			'preferred_neighbor_address' => $dhl_order->get_preferred_neighbor_address(),
-			'services'                   => array(),
-		) );
+		$args      = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order ) );
 
 		// Add COD service if payment method matches
-
-		$args = wc_gzd_dhl_validate_label_args( $args );
+		$args = wc_gzd_dhl_validate_label_args( $shipment, $args );
 
 		if ( is_wp_error( $args ) ) {
 			return $args;
@@ -351,6 +449,9 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 
 		$label->set_props( $args );
 		$label->set_shipment_id( $shipment->get_id() );
+
+		do_action( 'woocommerce_gzd_dhl_before_create_label', $label );
+
 		$label->save();
 
 	} catch ( Exception $e ) {
@@ -447,6 +548,10 @@ function wc_gzd_dhl_get_products( $shipping_country ) {
 	}
 }
 
+function wc_gzd_dhl_get_default_product( $country ) {
+	return 'V01PAK';
+}
+
 function wc_gzd_dhl_get_products_domestic() {
 
 	$country = Package::get_base_country();
@@ -481,6 +586,7 @@ function wc_gzd_dhl_get_shipment_label( $the_shipment ) {
 	$shipment_id = wc_gzd_get_shipment_id( $the_shipment );
 
 	if ( $shipment_id ) {
+
 		$labels = wc_gzd_dhl_get_labels( array(
 			'shipment_id' => $shipment_id,
 		) );
@@ -499,19 +605,30 @@ function wc_gzd_dhl_generate_label_filename( $label, $prefix = 'label' ) {
     return $filename;
 }
 
-function wc_gzd_dhl_upload_file( $filename, $file ) {
+function _wc_gzd_dhl_keep_force_filename( $new_filename ) {
+	return isset( $GLOBALS['gzd_dhl_unique_filename'] ) ? $GLOBALS['gzd_dhl_unique_filename'] : $new_filename;
+}
+
+function wc_gzd_dhl_upload_data( $filename, $bits, $relative = true ) {
     try {
         Package::set_upload_dir_filter();
-        // Make sure that WP overrides file if it does already exist
-        add_filter( 'wp_unique_filename', '_wc_gzd_label_force_keep_filename', 10, 3 );
+        $GLOBALS['gzd_dhl_unique_filename'] = $filename;
+	    add_filter( 'wp_unique_filename', '_wc_gzd_dhl_keep_force_filename', 10, 1 );
 
-        $tmp = wp_upload_bits( $filename,null, $file );
+	    $tmp = wp_upload_bits( $filename,null, $bits );
 
-        Package::unset_upload_dir_filter();
-        remove_filter( 'wp_unique_filename', '_wc_gzd_label_force_keep_filename', 10 );
+	    unset( $GLOBALS['gzd_dhl_unique_filename'] );
+	    remove_filter( 'wp_unique_filename', '_wc_gzd_dhl_keep_force_filename', 10 );
+	    Package::unset_upload_dir_filter();
 
         if ( isset( $tmp['file'] ) ) {
-            return $tmp['file'];
+            $path = $tmp['file'];
+
+            if ( $relative ) {
+	            $path = Package::get_relative_upload_dir( $path );
+            }
+
+            return $path;
         } else {
             throw new Exception( __( 'Error while uploading label.', 'woocommerce-germanized-dhl' ) );
         }

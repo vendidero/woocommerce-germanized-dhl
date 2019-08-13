@@ -54,6 +54,7 @@ class Label extends WC_Data {
         'date_created'               => null,
         'shipment_id'                => 0,
         'number'                     => '',
+        'return_number'              => '',
         'path'                       => '',
         'export_path'                => '',
         'dhl_product'                => '',
@@ -62,13 +63,14 @@ class Label extends WC_Data {
         'preferred_time_end'         => '',
         'preferred_location'         => '',
         'preferred_neighbor'         => '',
-        'preferred_neighbor_address' => '',
         'ident_date_of_birth'        => '',
         'ident_min_age'              => '',
         'visual_min_age'             => '',
         'email_notification'         => 'no',
         'has_return'                 => 'no',
         'codeable_address_only'      => 'no',
+        'duties'                     => '',
+        'cod_total'                  => 0,
         'return_address'             => array(),
         'services'                   => array(),
     );
@@ -149,6 +151,18 @@ class Label extends WC_Data {
         return $this->get_prop( 'number', $context );
     }
 
+	public function get_return_number( $context = 'view' ) {
+		return $this->get_prop( 'return_number', $context );
+	}
+
+	public function get_cod_total( $context = 'view' ) {
+		return $this->get_prop( 'cod_total', $context );
+	}
+
+	public function get_duties( $context = 'view' ) {
+		return $this->get_prop( 'duties', $context );
+	}
+
     public function get_path( $context = 'view' ) {
         return $this->get_prop( 'path', $context );
     }
@@ -201,10 +215,6 @@ class Label extends WC_Data {
 
 	public function get_preferred_neighbor( $context = 'view' ) {
 		return $this->get_prop( 'preferred_neighbor', $context );
-	}
-
-	public function get_preferred_neighbor_address( $context = 'view' ) {
-		return $this->get_prop( 'preferred_neighbor_address', $context );
 	}
 
 	public function get_ident_date_of_birth( $context = 'view' ) {
@@ -376,6 +386,24 @@ class Label extends WC_Data {
         $this->set_prop( 'number', $number );
     }
 
+	public function set_return_number( $number ) {
+		$this->set_prop( 'return_number', $number );
+	}
+
+	public function set_cod_total( $value ) {
+		$value = wc_format_decimal( $value );
+
+		if ( ! is_numeric( $value ) ) {
+			$value = 0;
+		}
+
+		$this->set_prop( 'cod_total', $value );
+	}
+
+	public function set_duties( $duties ) {
+		$this->set_prop( 'duties', $duties );
+	}
+
     public function set_dhl_product( $product ) {
         $this->set_prop( 'dhl_product', $product );
     }
@@ -410,10 +438,6 @@ class Label extends WC_Data {
 
 	public function set_preferred_neighbor( $neighbor ) {
 		$this->set_prop( 'preferred_neighbor', $neighbor );
-	}
-
-	public function set_preferred_neighbor_address( $address ) {
-		$this->set_prop( 'preferred_neighbor_address', $address );
 	}
 
 	public function set_email_notification( $value ) {
@@ -525,6 +549,14 @@ class Label extends WC_Data {
 
         return $this->get_file_by_path( $path );
     }
+
+	public function get_export_filename() {
+		if ( ! $path = $this->get_export_path() ) {
+			return false;
+		}
+
+		return basename( $path );
+	}
 
     public function set_shipment_id( $shipment_id ) {
         // Reset order object

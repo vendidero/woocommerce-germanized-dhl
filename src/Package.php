@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\DHL;
 
+use Exception;
 use Vendidero\Germanized\DHL\Api\Paket;
 
 defined( 'ABSPATH' ) || exit;
@@ -87,13 +88,14 @@ class Package {
 	    }
 
 	    Ajax::init();
+	    LabelWatcher::init();
     }
 
     public static function init_hooks() {
         add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 
         // add_action( 'init', array( '\Vendidero\Germanized\DHL\Install', 'install' ), 15 );
-	    add_action( 'init', array( __CLASS__, 'test' ), 120 );
+	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
 
         add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
         add_action( 'woocommerce_shipping_init', array( __CLASS__, 'shipping_includes' ) );
@@ -101,9 +103,12 @@ class Package {
     }
 
 	public static function test() {
-    	$label = wc_gzd_dhl_get_label( 14 );
-    	$label->set_has_return( false );
-    	$label->save();
+    	// $label = new Label();
+    	// $label->set_dhl_product( 123 );
+    	// var_dump($label->get_changes());
+
+		$label = wc_gzd_dhl_get_label( 14 );
+    	$label->set_has_return( true );
 
     	/*$shipment = wc_gzd_get_shipment( $label->get_shipment_id() );
     	$address = $shipment->get_address();
@@ -115,9 +120,20 @@ class Package {
     	$shipment->save();
     	*/
 
-    	$api   = self::get_api();
+    	$api = self::get_api();
+    	try {
+		    $api->get_label_api()->delete_label( $label );
+	    } catch( Exception $e ) {
+    		var_dump($e);
+	    }
 
-        $api->get_label_api()->get_label( $label );
+		try {
+			$api->get_label_api()->get_label( $label );
+		} catch( Exception $e ) {
+			var_dump($e);
+		}
+        // $api->get_label_api()->delete_label( $label );
+		// $api->get_label_api()->delete_label( $label );
 
     	exit();
 
@@ -396,10 +412,12 @@ class Package {
 		    return 'DE';
 	    } elseif( 'shipper_email' === $name ) {
 		    return 'info@vendidero.de';
+	    } elseif( 'return_address_country' === $name ) {
+		    return 'DE';
 	    } elseif( 'participation_V01PAK' === $name ) {
     		return '04';
 	    } elseif( 'participation_return' === $name ) {
-			return '07';
+			return '01';
 	    }
 
     	return '';

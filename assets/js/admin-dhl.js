@@ -216,6 +216,7 @@ window.germanized.admin = window.germanized.admin || {};
                         shipmentId = self.getShipmentId( target );
 
                     $( document.body ).trigger( 'wc-enhanced-select-init' );
+                    $( document.body ).trigger( 'wc-init-datepickers' );
 
                     $( '.germanized-create-label' ).find( 'input.show-if-trigger' ).trigger( 'change' );
                     $( '.germanized-create-label' ).parents( '.wc-backbone-modal' ).on( 'click', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
@@ -246,7 +247,7 @@ window.germanized.admin = window.germanized.admin || {};
                     $form      = $content.find( 'form' ),
                     params     = self.getFormData( $form );
 
-                params['security']    = labels.params.create_label_nonce;
+                params['security']    = labels.params.edit_label_nonce;
                 params['shipment_id'] = e.data.shipmentId;
                 params['action']      = 'woocommerce_gzd_create_dhl_label';
 

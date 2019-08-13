@@ -84,7 +84,7 @@ class Order {
 	protected function get_dhl_prop( $prop ) {
 		$data = $this->get_dhl_props();
 
-		return array_key_exists( $prop, $data ) ? $data[ $prop ] : false;
+		return array_key_exists( $prop, $data ) ? $data[ $prop ] : null;
 	}
 
 	public function get_post_number() {
@@ -93,29 +93,17 @@ class Order {
 		return $fallback;
 	}
 
-	public function get_state() {
-		// If not USA or Australia, then change state from ISO code to name
-		if ( ! in_array( $this->get_shipping_country(), array( 'US', 'AU' ) ) ) {
+	public function has_cod_payment() {
+		return true;
+	}
 
-			// Get all states for a country
-			$states = WC()->countries->get_states( $this->get_shipping_country() );
-			$state  = $this->get_shipping_state();
-
-			// If the state is empty, it was entered as free text
-			if ( ! empty( $states ) && ! empty( $state ) ) {
-				// Change the state to be the name and not the code
-				$state = $states[ $state ];
-
-				// Remove anything in parentheses (e.g. TH)
-				$ind = strpos( $state, " (" );
-
-				if ( false !== $ind ) {
-					$state = substr( $state, 0, $ind );
-				}
-			}
+	public function get_date_of_birth() {
+		if ( $timestamp = $this->get_dhl_prop( 'date_of_birth' ) ) {
+			$date = new WC_DateTime( "@{$timestamp}" );
+			return $date;
 		}
 
-		return $state;
+		return null;
 	}
 
 	public function get_preferred_day() {
@@ -177,6 +165,14 @@ class Order {
 
 	public function get_preferred_neighbor_address() {
 		return $this->get_dhl_prop( 'preferred_neighbor_address' );
+	}
+
+	public function get_preferred_neighbor_formatted_address() {
+		if ( ! empty( $this->get_preferred_neighbor() ) && ! empty( $this->get_preferred_neighbor_address() ) ) {
+			return $this->get_preferred_neighbor() . ', ' . $this->get_preferred_neighbor_address();
+		}
+
+		return '';
 	}
 
 	public function set_preferred_day( $date ) {

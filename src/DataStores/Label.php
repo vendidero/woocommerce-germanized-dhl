@@ -44,7 +44,6 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	    '_preferred_time_end',
         '_preferred_location',
 	    '_preferred_neighbor',
-	    '_preferred_neighbor_address',
 	    '_ident_date_of_birth',
 	    '_ident_min_age',
 	    '_visual_min_age',
@@ -52,7 +51,10 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	    '_codeable_address_only',
 	    '_return_address',
         '_has_return',
-        '_services'
+        '_services',
+	    '_duties',
+	    '_return_number',
+	    '_cod_total'
     );
 
     /*
@@ -98,7 +100,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
             $this->clear_caches( $label );
 
-            do_action( 'woocommerce_gzd_new_dhl_label', $label_id );
+            do_action( 'woocommerce_gzd_dhl_label_created', $label_id );
         }
     }
 
@@ -146,7 +148,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
         $label->apply_changes();
         $this->clear_caches( $label );
 
-        do_action( 'woocommerce_gzd_dhl_label_updated', $label->get_id() );
+        do_action( 'woocommerce_gzd_dhl_label_updated', $label->get_id(), $changed_props );
     }
 
     /**
