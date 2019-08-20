@@ -30,7 +30,6 @@ class FinderSoap extends Soap {
 		    ) );
 
 		    $response_body = $soap_client->getParcellocationByAddress( $soap_request );
-
 		    return true;
 	    } catch( Exception $e ) {
 		    return false;
@@ -59,7 +58,7 @@ class FinderSoap extends Soap {
     	$args = wp_parse_args( $args, array(
     		'city'     => '',
 		    'postcode' => '',
-		    'country'  => '',
+		    'country'  => Package::get_base_country(),
 	    ) );
 
 	    if ( empty( $args['city'] ) && empty( $args['postcode'] ) ) {

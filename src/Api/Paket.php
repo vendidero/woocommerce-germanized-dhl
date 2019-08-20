@@ -85,7 +85,7 @@ class Paket {
     }
 
     public function get_parcel_location( $args ) {
-        $this->get_finder_api()->get_parcel_location( $args );
+        return $this->get_finder_api()->get_parcel_location( $args );
     }
 
     public function get_content_indicator( ) {

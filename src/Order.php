@@ -94,7 +94,13 @@ class Order {
 	}
 
 	public function has_cod_payment() {
-		return true;
+		$result = false;
+
+		if ( 'cod' === $this->get_order()->get_payment_method() ) {
+			$result = true;
+		}
+
+		return apply_filters( 'woocommerce_gzd_dhl_order_has_cod_payment', $result, $this->get_order(), $this );
 	}
 
 	public function get_date_of_birth() {
