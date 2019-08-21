@@ -36,8 +36,44 @@ class FinderSoap extends Soap {
 	    }
     }
 
+    public function validate_parcel_location( $args ) {
+	    $args = wp_parse_args( $args, array(
+		    'city'     => '',
+		    'postcode' => '',
+		    'country'  => Package::get_base_country(),
+	    ) );
+
+
+    }
+
 	public function get_parcel_location( $args ) {
-        $soap_request = $this->get_request( $args );
+    	$args = wp_parse_args( $args, array(
+	        'city'     => '',
+	        'postcode' => '',
+	        'country'  => Package::get_base_country(),
+		    'address'  => '',
+        ) );
+
+		if ( empty( $args['city'] ) && empty( $args['postcode'] ) ) {
+			throw new Exception( __( 'At least shipping city or postcode is required.', 'woocommerce-germanized-dhl' ) );
+		}
+
+		if ( empty( $args['country'] ) ) {
+			throw new Exception( __( 'Shipping country is required.', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$shipping_address = implode(' ', $args );
+		$dhl_label_body   = array(
+			'Version' => array(
+				'majorRelease' => '2',
+				'minorRelease' => '2'
+			),
+			'address'     => $shipping_address,
+			'countrycode' => $args['country']
+		);
+
+		// Unset/remove any items that are empty strings or 0, even if required!
+		$soap_request = $this->walk_recursive_remove( $dhl_label_body );
 
         try {
             $soap_client = $this->get_access_token();
@@ -55,33 +91,6 @@ class FinderSoap extends Soap {
     }
 
     protected function get_request( $args ) {
-    	$args = wp_parse_args( $args, array(
-    		'city'     => '',
-		    'postcode' => '',
-		    'country'  => Package::get_base_country(),
-	    ) );
 
-	    if ( empty( $args['city'] ) && empty( $args['postcode'] ) ) {
-		    throw new Exception( __( 'At least shipping city or postcode is required.', 'woocommerce-germanized-dhl' ) );
-	    }
-
-	    if ( empty( $args['country'] ) ) {
-		    throw new Exception( __( 'Shipping country is required.', 'woocommerce-germanized-dhl' ) );
-	    }
-
-        $shipping_address = implode(' ', $args );
-        $dhl_label_body   = array(
-                'Version' => array(
-                    'majorRelease' => '2',
-                    'minorRelease' => '2'
-                ),
-                'address'     => $shipping_address,
-                'countrycode' => $args['country']
-            );
-
-        // Unset/remove any items that are empty strings or 0, even if required!
-        $request = $this->walk_recursive_remove( $dhl_label_body );
-
-        return $request;
     }
 }

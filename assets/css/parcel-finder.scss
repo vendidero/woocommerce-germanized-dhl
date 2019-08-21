@@ -111,8 +111,34 @@
   }
 
   #dhl-parcel-finder-map {
-    width: 90%;
+    width: 100%;
     height: 85%;
+
+    #parcel-content {
+
+      #bodyContent {
+        line-height: 1.5em;
+      }
+
+      .parcel-title {
+        padding-top: 0;
+        margin-bottom: .5em;
+      }
+
+      .parcel-subtitle {
+        font-size: 0.8125rem;
+        color: #767676;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 1em 0 0;
+      }
+
+      .dhl-parcelshop-select-btn {
+        width: 100%;
+        margin-top: 10px;
+      }
+    }
   }
 
   form#dhl-parcel-finder-form {

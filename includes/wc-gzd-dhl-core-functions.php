@@ -11,6 +11,7 @@
 use Vendidero\Germanized\DHL\Label;
 use Vendidero\Germanized\DHL\LabelQuery;
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
@@ -158,14 +159,41 @@ function wc_gzd_dhl_get_working_days() {
 	);
 }
 
+function wc_gzd_dhl_is_pickup_type( $maybe_type, $type = 'packstation' ) {
+	$label = wc_gzd_dhl_get_pickup_type( $type );
+
+	if ( ! $label ) {
+		return false;
+	}
+
+	$label      = strtolower( trim( $label ) );
+	$maybe_type = strtolower( trim( $maybe_type ) );
+
+	if ( strpos( $maybe_type, $label ) !== false ) {
+		return true;
+	}
+
+	return false;
+}
+
 function wc_gzd_dhl_get_excluded_working_days() {
 	return array();
+}
+
+function wc_gzd_dhl_order_has_pickup( $order ) {
+	return ParcelLocator::order_has_pickup( $order );
 }
 
 function wc_gzd_dhl_get_pickup_type( $type ) {
 	$types = wc_gzd_dhl_get_pickup_types();
 
-	return array_key_exists( $type, $types ) ? $types[ $type ] : false;
+	if ( array_key_exists( $type, $types ) ) {
+		return $types[ $type ];
+	} elseif( in_array( $type, $types ) ) {
+		return $type;
+	} else {
+		return false;
+	}
 }
 
 function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {

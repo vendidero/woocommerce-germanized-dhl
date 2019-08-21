@@ -91,8 +91,23 @@
       stroke-width: 1.5;
       transition: stroke .1s; }
   #dhl-parcel-finder-wrapper #dhl-parcel-finder-map {
-    width: 90%;
+    width: 100%;
     height: 85%; }
+    #dhl-parcel-finder-wrapper #dhl-parcel-finder-map #parcel-content #bodyContent {
+      line-height: 1.5em; }
+    #dhl-parcel-finder-wrapper #dhl-parcel-finder-map #parcel-content .parcel-title {
+      padding-top: 0;
+      margin-bottom: .5em; }
+    #dhl-parcel-finder-wrapper #dhl-parcel-finder-map #parcel-content .parcel-subtitle {
+      font-size: 0.8125rem;
+      color: #767676;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 1em 0 0; }
+    #dhl-parcel-finder-wrapper #dhl-parcel-finder-map #parcel-content .dhl-parcelshop-select-btn {
+      width: 100%;
+      margin-top: 10px; }
   #dhl-parcel-finder-wrapper form#dhl-parcel-finder-form {
     display: flex;
     flex-wrap: wrap;

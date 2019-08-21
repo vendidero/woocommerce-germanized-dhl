@@ -22,15 +22,6 @@ class Ajax {
 	 * Hook in methods - uses WordPress ajax handlers (admin-ajax).
 	 */
 	public static function add_ajax_events() {
-		$ajax_events_nopriv = array(
-			'dhl_parcelfinder_search'
-		);
-
-		foreach ( $ajax_events_nopriv as $ajax_event ) {
-			add_action( 'wp_ajax_nopriv_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-			add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-		}
-
 		$ajax_events = array(
 			'create_dhl_label',
 			'remove_dhl_label'
@@ -39,92 +30,6 @@ class Ajax {
 		foreach ( $ajax_events as $ajax_event ) {
 			add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
 		}
-	}
-
-	public static function dhl_parcelfinder_search() {
-
-		if ( ! ParcelFinder::is_enabled() || ! ParcelFinder::has_map() ) {
-			wp_die();
-		}
-
-		check_ajax_referer( 'dhl-parcel-finder', 'security' );
-
-		$parcelfinder_country	 = isset( $_POST['dhl_parcelfinder_country'] ) ? wc_clean( $_POST['dhl_parcelfinder_country'] ) : Package::get_base_country();
-		$parcelfinder_postcode	 = isset( $_POST['dhl_parcelfinder_postcode'] ) ? wc_clean( $_POST['dhl_parcelfinder_postcode'] ) : '';
-		$parcelfinder_city	 	 = isset( $_POST['dhl_parcelfinder_city'] ) ? wc_clean( $_POST['dhl_parcelfinder_city'] ) : '';
-		$parcelfinder_address	 = isset( $_POST['dhl_parcelfinder_address'] ) ? wc_clean( $_POST['dhl_parcelfinder_address'] ) : '';
-		$packstation_filter	 	 = wc_string_to_bool( isset( $_POST['dhl_parcelinder_packstation_filter'] ) ? wc_clean( $_POST['dhl_parcelinder_packstation_filter'] ) : 'yes' );
-		$branch_filter	 		 = wc_string_to_bool( isset( $_POST['dhl_parcelinder_branch_filter'] ) ? wc_clean( $_POST['dhl_parcelinder_branch_filter'] ) : 'yes' );
-
-		try {
-			$args = array(
-				'address'  => $parcelfinder_address,
-				'postcode' => $parcelfinder_postcode,
-				'city'     => $parcelfinder_city,
-				'country'  => empty( $parcelfinder_country ) ? Package::get_base_country() : $parcelfinder_country,
-			);
-
-			$error                = new WP_Error();
-			$parcel_res          = Package::get_api()->get_parcel_location( $args );
-			$parcel_res_filtered = array();
-
-			if ( ! isset( $parcel_res->parcelLocation ) ) {
-				$error->add( 404, __( 'No parcel shops found', 'woocommerce-germanized-dhl' ) );
-			} else {
-				$res_count = 0;
-
-				foreach ( $parcel_res->parcelLocation as $key => $value ) {
-
-					if ( ( 'packStation' === $value->shopType && ParcelFinder::is_packstation_enabled() && $packstation_filter ) ||
-					     ( 'parcelShop' === $value->shopType && ParcelFinder::is_parcelshop_enabled() && $branch_filter ) ||
-					     ( 'postOffice' === $value->shopType && ParcelFinder::is_post_office_enabled() && $branch_filter )
-					) {
-						if ( $value->psfServicetypes ) {
-							if ( is_array( $value->psfServicetypes ) ) {
-								if ( in_array( 'parcelpickup', $value->psfServicetypes ) ) {
-									array_push($parcel_res_filtered, $value );
-									$res_count++;
-								}
-							} else {
-								if ( 'parcelpickup' === $value->psfServicetypes ) {
-									array_push($parcel_res_filtered, $value );
-									$res_count++;
-								}
-							}
-						}
-					}
-
-					if ( $res_count >= ParcelFinder::get_max_results() ) {
-						break;
-					}
-				}
-			}
-
-			if ( empty( $parcel_res_filtered ) ) {
-				$error->add( 404, __( 'No Parcel Shops found. Ensure "Packstation" or Branch" filter is checked.', 'woocommerce-germanized-dhl' ) );
-			}
-
-			if ( ! $error->has_errors() ) {
-				wp_send_json( array(
-					'parcel_shops' => $parcel_res_filtered,
-					'success'      => true,
-				) );
-			} else {
-				wp_send_json( array(
-					'success'    => false,
-					'messages'   => $error->get_error_messages(),
-				) );
-			}
-		} catch ( Exception $e ) {
-			$error = sprintf( __( 'There was an error while communicating with DHL. Please manually find a %s.', 'woocommerce-germanized-dhl' ), '<a href="">' . __( 'parcel shop', 'woocommerce-germanized-dhl' ) . '</a>' );
-
-			wp_send_json( array(
-				'success' => false,
-				'message' => Package::is_debug_mode() ? $e->getMessage() : $error,
-			) );
-		}
-
-		wp_die();
 	}
 
 	public static function remove_dhl_label() {

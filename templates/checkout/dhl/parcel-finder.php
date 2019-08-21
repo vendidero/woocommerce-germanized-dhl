@@ -33,7 +33,7 @@ defined( 'ABSPATH' ) || exit;
                         </p>
 		            <?php endif; ?>
 
-		            <?php if( $is_parcelshop_enabled || $is_post_office_enabled ) : ?>
+		            <?php if( $is_parcelshop_enabled || $is_postoffice_enabled ) : ?>
                         <p class="form-row form-field parcelshop">
                             <input type="checkbox" name="dhl_parcelfinder_branch_filter" class="input-checkbox" placeholder="" id="dhl-branch-filter" value="yes" checked />
                             <label for="dhl-branch-filter"><?php esc_attr_e( 'Branch', 'woocommerce-germanized-dhl' ); ?></label>
@@ -41,8 +41,8 @@ defined( 'ABSPATH' ) || exit;
                                 <?php if( $is_parcelshop_enabled ) : ?>
                                     <span class="icon" style="background-image: url('<?php echo $img_parcelshop; ?>');"></span>
                                 <?php endif; ?>
-                                <?php if( $is_post_office_enabled ) : ?>
-                                    <span class="icon" style="background-image: url('<?php echo $img_post_office; ?>');"></span>
+                                <?php if( $is_postoffice_enabled ) : ?>
+                                    <span class="icon" style="background-image: url('<?php echo $img_postoffice; ?>');"></span>
                                 <?php endif; ?>
                             </span>
                         </p>
@@ -58,6 +58,7 @@ defined( 'ABSPATH' ) || exit;
                     <button class="dhl-parcel-finder-close" title="close"><svg viewBox="0 0 32 32"><path d="M10,10 L22,22 M22,10 L10,22"></path></svg></button>
                 </form>
 
+                <div class="notice-wrapper"></div>
                 <div id="dhl-parcel-finder-map"></div>
             </div>
         </div>

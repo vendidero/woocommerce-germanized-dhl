@@ -74,5 +74,8 @@
 
 .wc-gzd-shipment-dhl-label .shipment-dhl-label-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   align-items: center; }
+  .wc-gzd-shipment-dhl-label .shipment-dhl-label-actions .shipment-dhl-label-actions-left {
+    margin-right: 1em; }

@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\DHL\Api;
 use Exception;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\Label;
+use Vendidero\Germanized\DHL\ParcelLocator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -278,7 +279,7 @@ class LabelSoap extends Soap {
                     $services[ $service ]['Ident']['minimumAge']  = $label->get_ident_min_age();
                     break;
                 case 'CashOnDelivery':
-                    $services[ $service ]['codAmount'] = $shipment->get_total();
+                    $services[ $service ]['codAmount'] = $label->get_cod_total();
 
                     $bank_data_map = array(
                         'bank_holder' => 'accountOwner',
@@ -379,8 +380,7 @@ class LabelSoap extends Soap {
             )
         );
 
-        if ( $shipment->send_to_external_pickup( array_values( wc_gzd_dhl_get_pickup_types() ) ) ) {
-
+        if ( $shipment->send_to_external_pickup( array_keys( wc_gzd_dhl_get_pickup_types() ) ) ) {
             // Address is NOT needed if using a parcel shop
             unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Address'] );
 
@@ -395,18 +395,16 @@ class LabelSoap extends Soap {
 
             $address_number = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
 
-            if ( $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'packstation' ) ) ) {
-                $parcel_shop['postNumber']        = $shipment->get_meta( '_dhl_postnum' );
+            if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
+                $parcel_shop['postNumber']        = ParcelLocator::get_postnumber_by_shipment( $shipment );
                 $parcel_shop['packstationNumber'] = $address_number;
 
                 $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Packstation'] = $parcel_shop;
             }
 
-            if ( $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'postoffice' ) ) || $shipment->send_to_external_pickup( wc_gzd_dhl_get_pickup_type( 'parcelshop' ) ) ) {
-
-                if ( $post_number = $shipment->get_meta( '_dhl_postnum' ) ) {
+            if ( $shipment->send_to_external_pickup( 'postoffice' ) || $shipment->send_to_external_pickup( 'parcelshop' ) ) {
+                if ( $post_number = ParcelLocator::get_postnumber_by_shipment( $shipment ) ) {
                     $parcel_shop['postNumber'] = $post_number;
-
                     unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] );
                 }
 

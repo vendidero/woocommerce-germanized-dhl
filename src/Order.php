@@ -26,7 +26,7 @@ class Order {
 	/**
 	 * @param WC_Customer $customer
 	 */
-	public function __construct( $order ) {
+	public function __construct( &$order ) {
 		$this->order = $order;
 	}
 
@@ -85,12 +85,6 @@ class Order {
 		$data = $this->get_dhl_props();
 
 		return array_key_exists( $prop, $data ) ? $data[ $prop ] : null;
-	}
-
-	public function get_post_number() {
-		$fallback = $this->get_order()->get_meta( '_shipping_dhl_postnum' );
-
-		return $fallback;
 	}
 
 	public function has_cod_payment() {

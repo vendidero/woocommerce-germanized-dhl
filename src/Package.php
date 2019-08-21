@@ -85,10 +85,10 @@ class Package {
 
 	    if ( is_admin() ) {
 		    Admin\Admin::init();
-	    } else {
-	    	if ( ParcelFinder::is_enabled() ) {
-			    ParcelFinder::init();
-		    }
+	    }
+
+	    if ( ParcelLocator::is_enabled() ) {
+		    ParcelLocator::init();
 	    }
 
 	    Ajax::init();
