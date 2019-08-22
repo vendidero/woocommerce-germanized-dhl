@@ -110,7 +110,7 @@ abstract class Rest {
             case '201':
                 break;
             case '400':
-                $error_message = str_replace('/', ' / ', $response_body->message);
+                $error_message = str_replace('/', ' / ', isset( $response_body->statusText ) ? $response_body->statusText : '' );
                 throw new Exception( __( '400 - ', 'woocommerce-germanized-dhl' ) . $error_message );
                 break;
             case '401':
@@ -126,10 +126,10 @@ abstract class Rest {
                 throw new Exception( __( '503 - Service Unavailable', 'woocommerce-germanized-dhl' ) );
                 break;
             default:
-                if ( empty( $response_body->message ) ) {
+                if ( empty( $response_body->statusText ) ) {
                     $error_message = __( 'GET error or timeout occured. Please try again later.', 'woocommerce-germanized-dhl' );
                 } else {
-                    $error_message = str_replace('/', ' / ', $response_body->message);
+                    $error_message = str_replace('/', ' / ', $response_body->statusText);
                 }
 
                 Package::log( 'GET Error: ' . $response_code . ' - ' . $error_message );

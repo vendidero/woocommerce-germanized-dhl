@@ -91,6 +91,7 @@ class Package {
 		    ParcelLocator::init();
 	    }
 
+	    ParcelServices::init();
 	    Ajax::init();
 	    LabelWatcher::init();
     }

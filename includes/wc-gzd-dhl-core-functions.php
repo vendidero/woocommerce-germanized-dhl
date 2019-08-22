@@ -131,6 +131,15 @@ function wc_gzd_dhl_get_services() {
     );
 }
 
+function wc_gzd_dhl_get_preferred_services() {
+	return array(
+		'PreferredTime',
+		'PreferredLocation',
+		'PreferredNeighbour',
+		'PreferredDay',
+	);
+}
+
 function wc_gzd_dhl_get_return_products() {
 	return array(
 		'V01PAK',

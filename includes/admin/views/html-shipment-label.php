@@ -90,7 +90,7 @@ use Vendidero\Germanized\DHL\Package;
                                                 'id'          		=> 'dhl_label_preferred_day',
                                                 'label'       		=> __( 'Preferred Day', 'woocommerce-germanized-dhl' ),
                                                 'description'		=> '',
-                                                'value'       		=> $dhl_order->get_preferred_day() ? $dhl_order->get_preferred_day() : '',
+                                                'value'       		=> $dhl_order->get_preferred_day() ? $dhl_order->get_preferred_day()->date( 'Y-m-d' ) : '',
                                                 'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days ),
                                             ) ); ?>
                                         </div>

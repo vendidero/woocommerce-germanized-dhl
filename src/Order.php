@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL;
+use Exception;
 use WC_Order;
 use WC_Customer;
 use WC_DateTime;
@@ -26,7 +27,7 @@ class Order {
 	/**
 	 * @param WC_Customer $customer
 	 */
-	public function __construct( &$order ) {
+	public function __construct( $order ) {
 		$this->order = $order;
 	}
 
@@ -45,14 +46,30 @@ class Order {
 		return $data;
 	}
 
-	protected function set_dhl_date_prop( $prop, $value ) {
-		$value = $value ? strtotime( date("Y-m-d", $value->getOffsetTimestamp() ) ) : '';
+	protected function set_dhl_date_prop( $prop, $value, $format = 'Y-m-d' ) {
+		try {
+			if ( ! empty( $value ) ) {
+
+				if ( is_a( $value, 'WC_DateTime' ) ) {
+					$datetime = $value;
+				} elseif ( is_numeric( $value ) ) {
+					$datetime = new WC_DateTime( "@{$value}" );
+				} else {
+					$timestamp = wc_string_to_timestamp( $value );
+					$datetime  = new WC_DateTime( "@{$timestamp}" );
+				}
+
+				if ( $datetime ) {
+					$value = strtotime( date( $format, $datetime->getOffsetTimestamp() ) );
+				}
+			}
+		} catch ( Exception $e ) {} // @codingStandardsIgnoreLine.
+
 		$this->set_dhl_prop( $prop, $value );
 	}
 
 	protected function set_dhl_time_prop( $prop, $value ) {
-		$value = $value ? strtotime( date("H:i:s", $value->getOffsetTimestamp() ) ) : '';
-		$this->set_dhl_prop( $prop, $value );
+		$this->set_dhl_date_prop( $prop, $value, 'H:i:s' );
 	}
 
 	protected function set_dhl_boolean_prop( $prop, $value ) {

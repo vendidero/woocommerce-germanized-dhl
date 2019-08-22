@@ -15,6 +15,7 @@ class ParcelLocator {
 
 	public static function init() {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'add_scripts' ) );
+		add_action( 'wp_head', array( __CLASS__, 'add_inline_styles' ), 50 );
 
 		add_filter( 'woocommerce_shipping_fields', array( __CLASS__, 'add_shipping_fields' ), 10 );
 		add_filter( 'woocommerce_admin_shipping_fields', array( __CLASS__, 'add_admin_shipping_fields' ), 10 );
@@ -262,11 +263,6 @@ class ParcelLocator {
 		$post_number = '';
 
 		if ( $order ) {
-			// Legacy
-			if ( $order->get_meta( '_shipping_parcelshop_post_number' ) ) {
-				$post_number = $order->get_meta( '_shipping_parcelshop_post_number' );
-			}
-
 			if ( $order->get_meta( '_shipping_dhl_postnumber' ) ) {
 				$post_number = $order->get_meta( '_shipping_dhl_postnumber' );
 			}
@@ -472,6 +468,16 @@ class ParcelLocator {
 		}
 
 		return $error->has_errors() ? $error : true;
+	}
+
+	public static function add_inline_styles() {
+
+		// load scripts on checkout page only
+		if ( ! is_checkout() && ! is_wc_endpoint_url( 'edit-address' ) ) {
+			return;
+		}
+
+		echo '<style type="text/css">#shipping_dhl_postnumber_field, #shipping_address_type_field { display: none; }</style>';
 	}
 
 	public static function add_scripts() {
