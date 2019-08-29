@@ -32,10 +32,18 @@ class Package {
      * Init the package - load the REST API Server class.
      */
     public static function init() {
+    	if ( ! self::has_dependencies() ) {
+    		return;
+	    }
+
         self::define_tables();
         self::maybe_set_upload_dir();
         self::init_hooks();
         self::includes();
+    }
+
+    public static function has_dependencies() {
+    	return class_exists( 'WooCommerce' );
     }
 
 	public static function get_holidays( $country = 'DE' ) {

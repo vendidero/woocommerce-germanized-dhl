@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL;
 use Exception;
 use Vendidero\Germanized\Shipments\Shipment;
+use WC_Checkout;
 use WC_Order;
 use WP_Error;
 
@@ -24,7 +25,7 @@ class ParcelLocator {
 		 * Checkout Hooks
 		 */
 		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'manipulate_checkout_fields' ), 10 );
-		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate_checkout' ), 10, 2 );
+		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'validate_checkout' ), 20 );
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'maybe_remove_order_data' ), 10, 2 );
 		add_filter( 'woocommerce_get_order_address', array( __CLASS__, 'add_order_address_data' ), 10, 3 );
 
@@ -397,7 +398,9 @@ class ParcelLocator {
 		return $fields;
 	}
 
-	public static function validate_checkout( &$data, &$errors ) {
+	public static function validate_checkout() {
+		$data   = WC_Checkout::instance()->get_posted_data();
+		$errors = new WP_Error();
 
 		// Validate input only if "ship to different address" flag is set
 		if ( ! isset( $data['ship_to_different_address'] ) || ! $data['ship_to_different_address'] ) {
@@ -432,6 +435,12 @@ class ParcelLocator {
 				foreach( $result->get_error_messages() as $mesage ) {
 					$errors->add( 'validation', $mesage );
 				}
+			}
+		}
+
+		if ( $errors->has_errors() ) {
+			foreach( $errors->get_error_messages() as $message ) {
+				wc_add_notice( $message, 'error' );
 			}
 		}
 	}

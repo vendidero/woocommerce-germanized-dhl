@@ -131,7 +131,7 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 return false;
             }
 
-            return true;
+            return false;
         },
 
         refreshCustomerNumberStatus: function() {
