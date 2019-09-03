@@ -13,9 +13,7 @@ class Install {
         global $wpdb;
 
         $wpdb->hide_errors();
-
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
         dbDelta( self::get_schema() );
     }
 

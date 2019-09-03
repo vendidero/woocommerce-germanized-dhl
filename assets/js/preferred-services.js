@@ -31,7 +31,6 @@ window.germanized.dhl_preferred_services = window.germanized.dhl_preferred_servi
         },
 
         triggerCheckoutRefresh: function() {
-            console.log($(this));
             $( document.body ).trigger( 'update_checkout' );
         },
 

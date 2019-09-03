@@ -18,7 +18,6 @@ class Admin {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_scripts' ) );
 
 		add_action( 'admin_init', array( __CLASS__, 'download_label' ) );
-
 		add_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', array( 'Vendidero\Germanized\DHL\Admin\MetaBox', 'output' ), 10, 1 );
 	}
 

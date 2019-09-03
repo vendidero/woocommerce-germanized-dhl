@@ -24,8 +24,16 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 .on( 'change.dhl', self.wrapper + ' #ship-to-different-address-checkbox', self.onChangeShipping )
                 .on( 'change.dhl', self.wrapper + ' #shipping_country', self.refreshAvailability );
 
+            $( document.body ).on( 'updated_checkout', self.afterRefreshCheckout );
+
             self.refreshAvailability();
             self.refreshAddressType();
+        },
+
+        afterRefreshCheckout: function() {
+            var self = germanized.dhl_parcel_locator;
+
+            self.refreshAvailability();
         },
 
         refreshAvailability: function() {
@@ -232,11 +240,32 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             return self.isAvailable() && $( self.wrapper + ' #shipping_address_type' ).val() === 'dhl';
         },
 
+        getShippingMethod: function() {
+            var current = '';
+
+            if ( $( 'select.shipping_method' ).length > 0 ) {
+                current = $( 'select.shipping_method' ).val();
+            } else if ( $( 'input[name^="shipping_method"]' ).length > 0 ) {
+                current = $( 'input[name^="shipping_method"]:checked' ).val();
+            }
+
+            if ( current.length > 0 ) {
+                var currentParts = current.split(':');
+
+                if ( currentParts.length > 0 ) {
+                    current = currentParts[0];
+                }
+            }
+
+            return current;
+        },
+
         isAvailable: function() {
             var self            = germanized.dhl_parcel_locator,
-                shippingCountry = $( self.wrapper + ' #shipping_country' ).val();
+                shippingCountry = $( self.wrapper + ' #shipping_country' ).val(),
+                shippingMethod  = self.getShippingMethod();
 
-            if ( $.inArray( shippingCountry, self.params.supported_countries ) !== -1 ) {
+            if ( $.inArray( shippingCountry, self.params.supported_countries ) !== -1 && $.inArray( shippingMethod, self.params.excluded_methods ) === -1 ) {
                 return true;
             } else {
                 return false;

@@ -55,6 +55,12 @@ class LabelSoap extends Soap {
         }
     }
 
+	/**
+	 * @param Label $label
+	 *
+	 * @return mixed
+	 * @throws Exception
+	 */
     public function get_label( &$label ) {
     	if ( empty( $label->get_number() ) ) {
     		return $this->create_label( $label );
@@ -113,6 +119,14 @@ class LabelSoap extends Soap {
         return $this->update_label( $label, $response_body->Status, $response_body->CreationState );
     }
 
+	/**
+	 * @param Label $label
+	 * @param $status
+	 * @param $response_body
+	 *
+	 * @return mixed
+	 * @throws Exception
+	 */
     protected function update_label( &$label, $status, $response_body ) {
 	    if ( 0 !== $status->statusCode ) {
 		    if ( isset( $response_body->LabelData->Status ) && isset( $response_body->LabelData->Status->statusMessage ) ) {
@@ -231,7 +245,7 @@ class LabelSoap extends Soap {
         $product_number = preg_match('!\d+!', $dhl_product, $matches );
 
         if ( $product_number ) {
-            $account_number = Package::get_setting( 'account_num' ) . $matches[0] . Package::get_participation_number( $dhl_product );
+            $account_number = Package::get_setting( 'account_number' ) . $matches[0] . Package::get_participation_number( $dhl_product );
 
             return $account_number;
         } else {
@@ -241,7 +255,7 @@ class LabelSoap extends Soap {
 
     protected function get_return_account_number() {
 	    $product_number = self::DHL_RETURN_PRODUCT;
-	    $account_number = Package::get_setting( 'account_num' ) . $product_number . Package::get_participation_number( 'return' );
+	    $account_number = Package::get_setting( 'account_number' ) . $product_number . Package::get_participation_number( 'return' );
 
 	    return $account_number;
     }
@@ -340,8 +354,8 @@ class LabelSoap extends Soap {
                     ),
                     'Shipper'       => array(
                         'Name'      => array(
-                            'name1' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_full_name' ),
-                            'name2' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_full_name' ) : '',
+                            'name1' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_name' ),
+                            'name2' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_name' ) : '',
                         ),
                         'Address'   => array(
                             'streetName'   => Package::get_setting( 'shipper_street' ),

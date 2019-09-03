@@ -46,7 +46,7 @@ function wc_gzd_dhl_get_preferred_times_select_options( $times ) {
 		$preferred_times = $times;
 	}
 
-	return $times;
+	return $preferred_times;
 }
 
 function wc_gzd_dhl_get_preferred_days_select_options( $days ) {
@@ -186,7 +186,26 @@ function wc_gzd_dhl_is_pickup_type( $maybe_type, $type = 'packstation' ) {
 }
 
 function wc_gzd_dhl_get_excluded_working_days() {
-	return array();
+	$work_days = array(
+		'mon',
+		'tue',
+		'wed',
+		'thu',
+		'fri',
+		'sat'
+	);
+
+	$excluded = array();
+
+	foreach ( $work_days as $value ) {
+		$exclusion_day_option = 'preferred_day_exclusion_' . $value;
+
+		if ( 'yes' === Package::get_setting( $exclusion_day_option ) ) {
+			$excluded[] = $value;
+		}
+	}
+
+	return $excluded;
 }
 
 function wc_gzd_dhl_order_has_pickup( $order ) {
@@ -242,8 +261,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	if ( empty( $args['return_address'] ) && 'yes' === Package::get_setting( 'generate_return_label' ) ) {
 		$args['has_return']     = 'yes';
 		$args['return_address'] = wp_parse_args( $args['return_address'], array(
-			'first_name'    => Package::get_setting( 'return_address_first_name' ),
-			'last_name'     => Package::get_setting( 'return_address_last_name' ),
+			'name'          => Package::get_setting( 'return_address_name' ),
 			'company'       => Package::get_setting( 'return_address_company' ),
 			'street'        => Package::get_setting( 'return_address_street' ),
 			'street_number' => Package::get_setting( 'return_address_street_no' ),
@@ -257,8 +275,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	// Check if return address has empty mandatory fields
 	if ( 'yes' === $args['has_return'] ) {
 		$args['return_address'] = wp_parse_args( $args['return_address'], array(
-			'first_name'    => '',
-			'last_name'     => '',
+			'name'          => '',
 			'company'       => '',
 			'street'        => '',
 			'street_number' => '',
@@ -269,8 +286,6 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		) );
 
 		$mandatory = array(
-			'first_name' => __( 'First name', 'woocommerce-germanized-dhl' ),
-			'last_name'  => __( 'Last name', 'woocommerce-germanized-dhl' ),
 			'street'     => __( 'Street', 'woocommerce-germanized-dhl' ),
 			'postcode'   => __( 'Postcode', 'woocommerce-germanized-dhl' ),
 			'city'       => __( 'City', 'woocommerce-germanized-dhl' ),
@@ -280,6 +295,10 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			if ( empty( $args['return_address'][ $mand ] ) ) {
 				$error->add( 500, sprintf( __( '%s of the return address is a mandatory field.', 'woocommerce-germanized-dhl' ), $title ) );
 			}
+		}
+
+		if ( empty( $args['return_address']['name'] ) && empty( $args['return_address']['company'] ) ) {
+			$error->add( 500, __( 'Please either add a return company or name.', 'woocommerce-germanized-dhl' ) );
 		}
 	} else {
 		$args['return_address'] = array();
@@ -496,6 +515,18 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 	}
 
 	return $label;
+}
+
+function wc_gzd_dhl_get_shipping_method_slug( $method ) {
+	if ( empty( $method ) ) {
+		return $method;
+	}
+
+	// Assumes format 'name:id'
+	$new_ship_method = explode(':', $method );
+	$new_ship_method = isset( $new_ship_method[0] ) ? $new_ship_method[0] : $method;
+
+	return $new_ship_method;
 }
 
 /**

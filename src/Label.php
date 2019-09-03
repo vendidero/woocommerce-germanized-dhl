@@ -314,16 +314,12 @@ class Label extends WC_Data {
 		return $this->get_return_address_prop( 'company', $context );
 	}
 
-	public function get_return_first_name( $context = 'view' ) {
-		return $this->get_return_address_prop( 'first_name', $context );
-	}
-
-	public function get_return_last_name( $context = 'view' ) {
-		return $this->get_return_address_prop( 'last_name', $context );
+	public function get_return_name( $context = 'view' ) {
+		return $this->get_return_address_prop( 'name', $context );
 	}
 
 	public function get_return_formatted_full_name() {
-		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-dhl' ), $this->get_return_first_name(), $this->get_return_last_name() );
+		return sprintf( _x( '%1$s', 'full name', 'woocommerce-germanized-dhl' ), $this->get_return_name() );
 	}
 
 	public function get_return_postcode( $context = 'view' ) {

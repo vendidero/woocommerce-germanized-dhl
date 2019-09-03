@@ -23,23 +23,4 @@ class MetaBox {
 
 		include( Package::get_path() . '/includes/admin/views/html-shipment-label.php' );
 	}
-
-	/**
-	 * Save meta box data.
-	 *
-	 * @param int $post_id
-	 */
-	public static function save( $order_id ) {
-		// Get order object.
-		$order_shipment = wc_gzd_get_shipment_order( $order_id );
-
-		self::refresh_shipments( $order_shipment );
-
-		$order_shipment->validate_shipments( array( 'save' => false ) );
-
-		// Refresh status just before saving
-		self::refresh_status( $order_shipment );
-
-		$order_shipment->save();
-	}
 }

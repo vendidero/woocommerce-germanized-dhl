@@ -69,7 +69,7 @@ use Vendidero\Germanized\DHL\Package;
                                     ) ); ?>
                                 <?php endif; ?>
 
-                                <?php if ( 'DE' === Package::get_base_country() && Package::is_shipping_domestic( $shipment->get_country() ) ) :
+                                <?php if ( Package::base_country_supports( 'services' ) && Package::is_shipping_domestic( $shipment->get_country() ) ) :
 
                                     $preferred_days     = array();
                                     $preferred_times    = array();
@@ -138,22 +138,13 @@ use Vendidero\Germanized\DHL\Package;
 
                                     <div class="show-if show-if-has-return">
                                         <div class="columns">
-                                            <div class="column col-6">
+                                            <div class="column col-12">
                                                 <?php woocommerce_wp_text_input( array(
-                                                    'id'          		=> 'dhl_label_return_address[first_name]',
-                                                    'label'       		=> __( 'First Name', 'woocommerce-germanized-dhl' ),
+                                                    'id'          		=> 'dhl_label_return_address[name]',
+                                                    'label'       		=> __( 'Name', 'woocommerce-germanized-dhl' ),
                                                     'placeholder' 		=> '',
                                                     'description'		=> '',
-                                                    'value'             => Package::get_setting( 'return_address_first_name' )
-                                                ) ); ?>
-                                            </div>
-                                            <div class="column col-6">
-                                                <?php woocommerce_wp_text_input( array(
-                                                    'id'          		=> 'dhl_label_return_address[last_name]',
-                                                    'label'       		=> __( 'Last Name', 'woocommerce-germanized-dhl' ),
-                                                    'placeholder' 		=> '',
-                                                    'description'		=> '',
-                                                    'value'             => Package::get_setting( 'return_address_last_name' )
+                                                    'value'             => Package::get_setting( 'return_address_name' )
                                                 ) ); ?>
                                             </div>
                                         </div>

@@ -398,6 +398,21 @@ class ParcelLocator {
 		return $fields;
 	}
 
+	protected static function get_excluded_shipping_methods() {
+		return (array) self::get_setting( 'shipping_methods_excluded' );
+	}
+
+	protected static function shipping_method_supports_pickup( $method ) {
+		$slug             = wc_gzd_dhl_get_shipping_method_slug( $method );
+		$methods          = self::get_excluded_shipping_methods();
+
+		if ( ! empty( $methods ) && in_array( $slug, $methods ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public static function validate_checkout() {
 		$data   = WC_Checkout::instance()->get_posted_data();
 		$errors = new WP_Error();
@@ -421,19 +436,35 @@ class ParcelLocator {
 		}
 
 		if ( 'dhl' === $shipping_address_type ) {
-			$args = array(
-				'address_1'  => isset( $data['shipping_address_1'] ) ? wc_clean( $data['shipping_address_1'] ) : '',
-				'postnumber' => isset( $data['shipping_dhl_postnumber'] ) ? wc_clean( $data['shipping_dhl_postnumber'] ) : '',
-				'postcode'   => isset( $data['shipping_postcode'] ) ? wc_clean( $data['shipping_postcode'] ) : '',
-				'city'       => isset( $data['shipping_city'] ) ? wc_clean( $data['shipping_city'] ) : '',
-				'country'    => isset( $data['shipping_country'] ) ? wc_clean( $data['shipping_country'] ) : '',
-			);
 
-			$result = self::validate_address( $args );
+			$methods   = WC()->session->get( 'chosen_shipping_methods' );
+			$available = true;
 
-			if ( is_wp_error( $result ) ) {
-				foreach( $result->get_error_messages() as $mesage ) {
-					$errors->add( 'validation', $mesage );
+			foreach( $methods as $key => $method ) {
+				if ( ! self::shipping_method_supports_pickup( $method ) ) {
+					$available = false;
+
+					$errors->add( 'validation', __( 'Sorry but your current shipping method does not supports delivery to pickup locations.', 'woocommerce-germanized-dhl' ) );
+					break;
+				}
+			}
+
+			if ( $available ) {
+
+				$args = array(
+					'address_1'  => isset( $data['shipping_address_1'] ) ? wc_clean( $data['shipping_address_1'] ) : '',
+					'postnumber' => isset( $data['shipping_dhl_postnumber'] ) ? wc_clean( $data['shipping_dhl_postnumber'] ) : '',
+					'postcode'   => isset( $data['shipping_postcode'] ) ? wc_clean( $data['shipping_postcode'] ) : '',
+					'city'       => isset( $data['shipping_city'] ) ? wc_clean( $data['shipping_city'] ) : '',
+					'country'    => isset( $data['shipping_country'] ) ? wc_clean( $data['shipping_country'] ) : '',
+				);
+
+				$result = self::validate_address( $args );
+
+				if ( is_wp_error( $result ) ) {
+					foreach( $result->get_error_messages() as $mesage ) {
+						$errors->add( 'validation', $mesage );
+					}
 				}
 			}
 		}
@@ -513,6 +544,7 @@ class ParcelLocator {
 			'ajax_url'             => admin_url( 'admin-ajax.php' ),
 			'parcel_locator_nonce' => wp_create_nonce('dhl-parcel-locator' ),
 			'supported_countries'  => self::get_supported_countries(),
+			'excluded_methods'     => self::get_excluded_shipping_methods(),
 			'i18n'                 => array_merge( wc_gzd_dhl_get_pickup_types(), array() ),
 			'wrapper'              => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
 		) );
@@ -524,7 +556,7 @@ class ParcelLocator {
 				'packstation_icon'	  => Package::get_assets_url() . '/img/packstation.png',
 				'parcelshop_icon'	  => Package::get_assets_url() . '/img/parcelshop.png',
 				'postoffice_icon'	  => Package::get_assets_url() . '/img/post_office.png',
-				'api_key'             => self::get_setting( 'api_key' ),
+				'api_key'             => self::get_setting( 'map_api_key' ),
 				'wrapper'             => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
 				'i18n'                => array_merge( wc_gzd_dhl_get_pickup_types(), array(
 					'opening_times'     => __( 'Opening Times', 'woocommerce-germanized-dhl' ),
@@ -554,13 +586,9 @@ class ParcelLocator {
 	}
 
 	protected static function get_setting( $key ) {
-		$settings = Package::get_setting( 'parcel_finder' );
+		$setting = Package::get_setting( 'parcel_pickup_' . $key );
 
-		if ( 'api_key' === $key ) {
-			return 'AIzaSyA2uVdkB84ubOw3OpHuGbSSLt2l8Ls8q0c';
-		}
-
-		return isset( $settings[ $key ] ) ? $settings[ $key ] : null;
+		return $setting;
 	}
 
 	public static function is_enabled() {
@@ -568,18 +596,15 @@ class ParcelLocator {
 	}
 
 	public static function is_postoffice_enabled() {
-		return true;
-		return 'yes' === self::get_setting( 'display_postoffice' );
+		return 'yes' === self::get_setting( 'postoffice_enable' );
 	}
 
 	public static function is_packstation_enabled() {
-		return true;
-		return 'yes' === self::get_setting( 'display_packstation' );
+		return 'yes' === self::get_setting( 'packstation_enable' );
 	}
 
 	public static function is_parcelshop_enabled() {
-		return true;
-		return 'yes' === self::get_setting( 'display_parcelshop' );
+		return 'yes' === self::get_setting( 'parcelshop_enable' );
 	}
 
 	public static function has_map() {

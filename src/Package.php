@@ -32,6 +32,7 @@ class Package {
      * Init the package - load the REST API Server class.
      */
     public static function init() {
+
     	if ( ! self::has_dependencies() ) {
     		return;
 	    }
@@ -43,7 +44,21 @@ class Package {
     }
 
     public static function has_dependencies() {
-    	return class_exists( 'WooCommerce' );
+    	return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && in_array( self::get_base_country(), self::get_supported_countries() ) );
+    }
+
+    public static function get_supported_countries() {
+    	return array( 'DE', 'AT' );
+    }
+
+    public static function base_country_supports( $type = 'services' ) {
+		$base_country = self::get_base_country();
+
+		if ( 'services' === $type ) {
+			return 'DE' === $base_country;
+		}
+
+		return false;
     }
 
 	public static function get_holidays( $country = 'DE' ) {
@@ -68,8 +83,8 @@ class Package {
 
         // List of tables without prefixes.
         $tables = array(
-            'gzd_dhl_labelmeta'     => 'woocommerce_gzd_dhl_labelmeta',
-            'gzd_dhl_labels'        => 'woocommerce_gzd_dhl_labels',
+            'gzd_dhl_labelmeta' => 'woocommerce_gzd_dhl_labelmeta',
+            'gzd_dhl_labels'    => 'woocommerce_gzd_dhl_labels',
         );
 
         foreach ( $tables as $name => $table ) {
@@ -88,40 +103,52 @@ class Package {
         }
     }
 
+    public static function is_enabled() {
+    	return 'yes' === self::get_setting( 'enable' );
+    }
+
     private static function includes() {
         include_once self::get_path() . '/includes/wc-gzd-dhl-core-functions.php';
 
-	    if ( is_admin() ) {
-		    Admin\Admin::init();
-	    }
+        if ( self::is_enabled() ) {
+	        if ( is_admin() ) {
+		        Admin\Admin::init();
+	        }
 
-	    if ( ParcelLocator::is_enabled() ) {
-		    ParcelLocator::init();
-	    }
+	        if ( ParcelLocator::is_enabled() ) {
+		        ParcelLocator::init();
+	        }
 
-	    ParcelServices::init();
-	    Ajax::init();
-	    LabelWatcher::init();
+	        ParcelServices::init();
+	        Ajax::init();
+	        LabelWatcher::init();
+        }
     }
 
     public static function init_hooks() {
         add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 
+	    // Install
+	    register_activation_hook( trailingslashit( self::get_path() ) . 'woocommerce-germanized-dhl.php', array( __CLASS__, 'install' ) );
+
+	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
+
         // add_action( 'init', array( '\Vendidero\Germanized\DHL\Install', 'install' ), 15 );
 	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
-
-        add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
-        add_action( 'woocommerce_shipping_init', array( __CLASS__, 'shipping_includes' ) );
-        add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'add_shipping_method' ) );
     }
+
+    public static function install() {
+	    Install::install();
+    }
+
+	public static function install_integration() {
+    	self::install();
+	}
 
 	public static function test() {
     	// $label = new Label();
     	// $label->set_dhl_product( 123 );
     	// var_dump($label->get_changes());
-
-		$label = wc_gzd_dhl_get_label( 14 );
-    	$label->set_has_return( true );
 
     	/*$shipment = wc_gzd_get_shipment( $label->get_shipment_id() );
     	$address = $shipment->get_address();
@@ -133,64 +160,10 @@ class Package {
     	$shipment->save();
     	*/
 
-    	$api = self::get_api();
-    	try {
-		    $api->get_label_api()->delete_label( $label );
-	    } catch( Exception $e ) {
-    		var_dump($e);
-	    }
-
-		try {
-			$api->get_label_api()->get_label( $label );
-		} catch( Exception $e ) {
-			var_dump($e);
-		}
-        // $api->get_label_api()->delete_label( $label );
-		// $api->get_label_api()->delete_label( $label );
-
-    	exit();
-
-    	/*$label = wc_gzd_dhl_get_label( 5 );
-    	$label->save();
-    	var_dump($label);
-    	exit();
-    	*/
-
-    	/*$validate = wc_gzd_dhl_validate_label_args( array(
-    		'services' => array(
-    			'IdentCheck'
-		    ),
-		    'preferred_day' => '1989-10-10',
-		    'preferred_time_start' => '10:00',
-		    'preferred_time_end' => '12:00',
-		    'ident_date_of_birth' => '1997-10-10'
-	    ) );
-
-    	if ( ! is_wp_error( $validate ) ) {
-    		$label = new Label();
-    		$label->set_props( $validate );
-
-			var_dump($label->get_services());
-			var_dump($label->get_ident_date_of_birth()->date('Y-m-d'));
-			var_dump($label->get_preferred_day()->date('Y-m-d'));
-			var_dump($label->get_preferred_time());
-    		var_dump($label);
-    		exit();
-	    }
-
-    	var_dump($validate);
-    	exit();
-    	*/
-
-    	/*
 		$api    = self::get_api();
 		$times = $api->get_preferred_day_time( '12207' );
 		var_dump($times);
-
-		var_dump(wc_gzd_dhl_get_preferred_times_select_options( $times['preferred_time'] ));
-
 		exit();
-    	*/
 
 		/*$result = $api->get_parcel_api()->get_services( array(
 			'postcode'    => '53225',
@@ -198,6 +171,10 @@ class Package {
 			'account_num' => '0',
 		) );
 		*/
+	}
+
+	public static function is_integration() {
+		return class_exists( 'WooCommerce_Germanized' ) ? true : false;
 	}
 
 	public static function register_data_stores( $stores ) {
@@ -212,14 +189,6 @@ class Package {
 		}
 
 		return self::$api;
-    }
-
-    public static function shipping_includes() {
-
-    }
-
-    public static function add_shipping_method( $methods ) {
-        return $methods;
     }
 
     public static function load_textdomain() {
@@ -263,7 +232,7 @@ class Package {
 	}
 
     public static function is_debug_mode() {
-        return defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG;
+        return ( defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG ) || 'yes' === self::get_setting( 'sandbox_mode' );
     }
 
     private static function define_constant( $name, $value ) {
@@ -405,35 +374,17 @@ class Package {
 
     public static function get_setting( $name ) {
 
-    	if ( self::is_debug_mode() && 'account_num' === $name ) {
-    		return '2222222222';
-	    } elseif( 'cutoff_time' === $name ) {
-    		return '12:00';
-	    } elseif( 'shipper_company' === $name ) {
-    		return 'Company';
-	    } elseif( 'shipper_full_name' === $name ) {
-		    return 'Test';
-	    } elseif( 'shipper_street' === $name ) {
-		    return 'Schillerstraße';
-	    } elseif( 'shipper_street_no' === $name ) {
-		    return '36';
-	    } elseif( 'shipper_postcode' === $name ) {
-		    return '12207';
-	    } elseif( 'shipper_city' === $name ) {
-		    return 'Berlin';
-	    } elseif( 'shipper_country' === $name ) {
-		    return 'DE';
-	    } elseif( 'shipper_email' === $name ) {
-		    return 'info@vendidero.de';
-	    } elseif( 'return_address_country' === $name ) {
-		    return 'DE';
-	    } elseif( 'participation_V01PAK' === $name ) {
-    		return '04';
-	    } elseif( 'participation_return' === $name ) {
-			return '01';
+    	if ( self::is_debug_mode() ) {
+			if( 'api_username' === $name ) {
+				$name = 'api_sandbox_username';
+			} elseif( 'api_password' === $name ) {
+				$name = 'api_sandbox_password';
+			}
 	    }
 
-    	return '';
+    	$option_name = "woocommerce_gzd_dhl_{$name}";
+
+		return get_option( $option_name );
     }
 
     public static function log( $message, $type = 'info' ) {

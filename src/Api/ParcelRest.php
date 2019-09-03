@@ -17,7 +17,7 @@ class ParcelRest extends Rest {
 
         $args = wp_parse_args( $args, array(
             'postcode'    => '',
-            'account_num' => Package::get_setting( 'account_num' ),
+            'account_num' => Package::get_setting( 'account_number' ),
             'start_date'  => '',
         ) );
 
