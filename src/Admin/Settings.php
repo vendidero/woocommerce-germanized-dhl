@@ -215,6 +215,15 @@ class Settings {
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_automation_enable' => '' )
 			),
 
+			array(
+				'title' 	        => __( 'Age Verification', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => __( 'Verify ages if shipment contains applicable items.', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the age check service enabled.', 'woocommerce-germanized-dhl' ), '<a href="">' . __( 'age verification checkbox', 'woocommerce-germanized' ) . '</a>' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_dhl_label_automation_age_check_sync',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_automation_enable' => '' )
+			),
+
 			array( 'type' => 'sectionend', 'id' => 'dhl_automation_options' ),
 
 			array( 'title' => __( 'Shipper Address', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_shipper_address_options' ),
