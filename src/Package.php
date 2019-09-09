@@ -39,7 +39,14 @@ class Package {
 
         self::define_tables();
         self::maybe_set_upload_dir();
-        self::init_hooks();
+
+	    // Install
+	    register_activation_hook( trailingslashit( self::get_path() ) . 'woocommerce-germanized-dhl.php', array( __CLASS__, 'install' ) );
+
+	    if ( self::is_enabled() ) {
+	        self::init_hooks();
+        }
+
         self::includes();
     }
 
@@ -126,14 +133,7 @@ class Package {
     }
 
     public static function init_hooks() {
-        add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
-
-	    // Install
-	    register_activation_hook( trailingslashit( self::get_path() ) . 'woocommerce-germanized-dhl.php', array( __CLASS__, 'install' ) );
-
 	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
-
-        // add_action( 'init', array( '\Vendidero\Germanized\DHL\Install', 'install' ), 15 );
 	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
 
@@ -189,15 +189,6 @@ class Package {
 		}
 
 		return self::$api;
-    }
-
-    public static function load_textdomain() {
-        $locale = is_admin() && function_exists( 'get_user_locale' ) ? get_user_locale() : get_locale();
-        $locale = apply_filters( 'plugin_locale', $locale, 'woocommerce-germanized-dhl' );
-
-        unload_textdomain( 'woocommerce-germanized-dhl' );
-        load_textdomain( 'woocommerce-germanized-dhl', WP_LANG_DIR . '/woocommerce-germanized-dhl/woocommerce-germanized-dhl-' . $locale . '.mo' );
-        load_plugin_textdomain( 'woocommerce-germanized-dhl', false, self::get_path() . '/i18n/languages' );
     }
 
     /**
