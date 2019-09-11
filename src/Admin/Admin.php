@@ -21,6 +21,33 @@ class Admin {
 		add_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', array( 'Vendidero\Germanized\DHL\Admin\MetaBox', 'output' ), 10, 1 );
 	}
 
+	public static function check_import() {
+		if ( Importer::is_available() ) {
+			if ( isset( $_GET['wc-gzd-dhl-import'] ) && isset( $_GET['_wpnonce'] ) ) { // WPCS: input var ok, CSRF ok.
+				if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), 'woocommerce_gzd_dhl_import_nonce' ) ) { // WPCS: input var ok, CSRF ok.
+					wp_die( esc_html__( 'Action failed. Please refresh the page and retry.', 'woocommerce-germanized-dhl' ) );
+				}
+
+				if ( ! current_user_can( 'manage_woocommerce' ) ) {
+					wp_die( esc_html__( 'You don\'t have permission to do this.', 'woocommerce-germanized-dhl' ) );
+				}
+
+				self::import();
+				wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' ) );
+			}
+		}
+	}
+
+	protected static function import() {
+		Importer::import_order_data( 50 );
+		Importer::import_settings();
+
+		deactivate_plugins( 'dhl-for-woocommerce/pr-dhl-woocommerce.php' );
+		update_option( 'woocommerce_gzd_dhl_enable', 'yes' );
+
+		update_option( 'woocommerc_gzd_dhl_import_finished', 'yes' );
+	}
+
 	public static function download_label() {
 		if ( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-label' === $_GET['action'] ) {
 			if ( isset( $_GET['label_id'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-label' ) ) {

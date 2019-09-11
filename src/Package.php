@@ -240,24 +240,44 @@ class Package {
         return 'Iw4zil3jFJTOXHA6AuWP4ykGkXKLee';
     }
 
+	/**
+	 * CIG Authentication (basic auth) user. In Sandbox mode use Developer ID and password of entwickler.dhl.de
+	 *
+	 * @return mixed|string|void
+	 */
     public static function get_cig_user() {
-    	$debug_user = defined( 'WC_GZD_DHL_SANDBOX_USER' ) ? WC_GZD_DHL_SANDBOX_USER : '';
+    	$debug_user = defined( 'WC_GZD_DHL_SANDBOX_USER' ) ? WC_GZD_DHL_SANDBOX_USER : self::get_setting( 'api_username' );
 
         return self::is_debug_mode() ? $debug_user : self::get_app_id();
     }
 
+	/**
+	 * CIG Authentication (basic auth) password. In Sandbox mode use Developer ID and password of entwickler.dhl.de
+	 *
+	 * @return mixed|string|void
+	 */
     public static function get_cig_password() {
-	    $debug_pwd = defined( 'WC_GZD_DHL_SANDBOX_PASSWORD' ) ? WC_GZD_DHL_SANDBOX_PASSWORD : '';
+	    $debug_pwd = defined( 'WC_GZD_DHL_SANDBOX_PASSWORD' ) ? WC_GZD_DHL_SANDBOX_PASSWORD : self::get_setting( 'api_password' );
 
         return self::is_debug_mode() ? $debug_pwd : self::get_app_token();
     }
 
+	/**
+	 * GK Auth user
+	 *
+	 * @return mixed|string|void
+	 */
     public static function get_gk_api_user() {
-	    return self::is_debug_mode() ? '2222222222_01' : self::get_setting( 'gk_api_user' );
+	    return self::is_debug_mode() ? '2222222222_01' : self::get_setting( 'api_username' );
     }
 
+	/**
+	 * GK Auth password
+	 *
+	 * @return mixed|string|void
+	 */
 	public static function get_gk_api_signature() {
-		return self::is_debug_mode() ? 'pass' : self::get_setting( 'gk_api_signature' );
+		return self::is_debug_mode() ? 'pass' : self::get_setting( 'api_password' );
 	}
 
     public static function get_cig_url() {

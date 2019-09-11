@@ -503,8 +503,14 @@ class ParcelLocator {
 			}
 		}
 
-		if ( empty( $args['postnumber'] ) && $is_packstation ) {
-			$error->add( 'validation', __( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'woocommerce-germanized-dhl' ) );
+		if ( $is_packstation ) {
+			$post_number_len = strlen( $args['postnumber'] );
+
+			if ( empty( $args['postnumber'] ) ) {
+				$error->add( 'validation', __( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'woocommerce-germanized-dhl' ) );
+			} elseif( $post_number_len < 6 || $post_number_len > 12 ) {
+				$error->add( 'validation', __( 'Your DHL customer number (Post number) is not valid. Please check your number.', 'woocommerce-germanized-dhl' ) );
+			}
 		}
 
 		return $error->has_errors() ? $error : true;
@@ -608,11 +614,13 @@ class ParcelLocator {
 	}
 
 	public static function has_map() {
-		return true;
+		$api_key = self::get_setting( 'map_api_key' );
+
+		return ( 'yes' === self::get_setting( 'map_enable' ) && ! empty( $api_key ) );
 	}
 
 	public static function get_max_results() {
-		return 10;
+		return self::get_setting( 'map_max_results' );
 	}
 
 	protected static function get_type_text( $sep = '&amp;', $plural = true ) {
@@ -647,7 +655,7 @@ class ParcelLocator {
 		return $fields;
 	}
 
-	protected static function get_address_types() {
+	public static function get_address_types() {
 		return array(
 			'regular' => __( 'Regular Address', 'woocommerce-germanized-dhl' ),
 			'dhl'     => self::get_type_text( ' / ' )

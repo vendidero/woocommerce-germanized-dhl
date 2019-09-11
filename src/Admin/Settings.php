@@ -11,6 +11,10 @@ defined( 'ABSPATH' ) || exit;
 class Settings {
 
 	public static function get_section_description( $section ) {
+		if ( '' === $section ) {
+			// return __( 'Adjust general settings. Learn more about Germanized & DHL' );
+		}
+
 		return '';
 	}
 
@@ -82,7 +86,7 @@ class Settings {
 			array(
 				'title'             => __( 'Sandbox Username', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your username for the DHL developer portal. Please note the lower case and test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your username for the DHL developer portal. Please note the lower case and test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_api_sandbox_username',
 				'default'           => '',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )
@@ -91,7 +95,7 @@ class Settings {
 			array(
 				'title'             => __( 'Sandbox Password', 'woocommerce-germanized-dhl' ),
 				'type'              => 'password',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your password for the DHL developer portal. Please test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your password for the DHL developer portal. Please test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_api_sandbox_password',
 				'default'           => '',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )
@@ -167,7 +171,7 @@ class Settings {
 				'title'             => __( 'Domestic Default Service', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'default'           => 'V01PAK',
-				'id'                => 'woocommerce_gzd_label_default_product_dom',
+				'id'                => 'woocommerce_gzd_dhl_label_default_product_dom',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . __( 'Please select your default DHL Paket shipping service for domestic shippments that you want to offer to your customers (you can always change this within each individual order afterwards).', 'woocommerce-germanized-dhl' ) . '</div>',
 				'options'           => $select_dhl_product_dom,
 				'class'             => 'wc-enhanced-select',
@@ -177,7 +181,7 @@ class Settings {
 				'title'             => __( 'Int. Default Service', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'default'           => 'V55PAK',
-				'id'                => 'woocommerce_gzd_label_default_product_int',
+				'id'                => 'woocommerce_gzd_dhl_label_default_product_int',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . __( 'Please select your default DHL Paket shipping service for cross-border shippments that you want to offer to your customers (you can always change this within each individual order afterwards).', 'woocommerce-germanized-dhl' ) . '</div>',
 				'options'           => $select_dhl_product_int,
 				'class'             => 'wc-enhanced-select',
@@ -642,7 +646,7 @@ class Settings {
 			array(
 				'title'             => __( 'API Key', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_parcel_pickup_map_api_key',
+				'id' 		        => 'woocommerce_gzd_dhl_parcel_pickup_map_api_key',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_parcel_pickup_map_enable' => '' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'To integrate a map within your checkout you\'ll need a valid API key for Google Maps. You may %s.', 'woocommerce-germanized-dhl' ), '<a href="" target="_blank">' . __( 'retrieve a new one', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'default'           => ''
@@ -651,7 +655,7 @@ class Settings {
 			array(
 				'title'             => __( 'Limit results', 'woocommerce-germanized-dhl' ),
 				'type'              => 'number',
-				'id' 		        => 'woocommerce_gzd_parcel_pickup_map_max_results',
+				'id' 		        => 'woocommerce_gzd_dhl_parcel_pickup_map_max_results',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_parcel_pickup_map_enable' => '' ),
 				'desc_tip'          => __( 'Limit the number of pickup stores shown on the map', 'woocommerce-germanized-dhl' ),
 				'default'           => 20,

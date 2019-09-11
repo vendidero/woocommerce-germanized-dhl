@@ -105,7 +105,7 @@ use Vendidero\Germanized\DHL\Package;
                                         </div>
                                     </div>
 
-                                    <?php if ( $dhl_order->get_preferred_location() ) : ?>
+                                    <?php if ( $dhl_order->has_preferred_location() ) : ?>
                                         <?php woocommerce_wp_text_input( array(
                                             'id'          		=> 'dhl_label_preferred_location',
                                             'label'       		=> __( 'Preferred Location', 'woocommerce-germanized-dhl' ),
@@ -116,7 +116,7 @@ use Vendidero\Germanized\DHL\Package;
                                         ) ); ?>
                                     <?php endif; ?>
 
-                                    <?php if ( ! empty( $dhl_order->get_preferred_neighbor_formatted_address() ) ) : ?>
+                                    <?php if ( $dhl_order->has_preferred_neighbor() ) : ?>
                                         <?php woocommerce_wp_text_input( array(
                                             'id'          		=> 'dhl_label_preferred_neighbor',
                                             'label'       		=> __( 'Preferred Neighbor', 'woocommerce-germanized-dhl' ),
