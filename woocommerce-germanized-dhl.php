@@ -68,4 +68,5 @@ if ( is_readable( $autoloader ) ) {
     return;
 }
 
+register_activation_hook( __FILE__, array( 'Vendidero\Germanized\DHL\Package', 'install' ) );
 add_action( 'plugins_loaded', array( 'Vendidero\Germanized\DHL\Package', 'init' ) );

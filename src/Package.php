@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL;
 
 use Exception;
+use PDFMerger\Pdf;
 use Vendidero\Germanized\DHL\Api\Paket;
 
 defined( 'ABSPATH' ) || exit;
@@ -146,6 +147,16 @@ class Package {
 	}
 
 	public static function test() {
+
+    	$label = wc_gzd_dhl_get_label( 29 );
+
+    	$merger = new Pdf();
+    	$merger->add( $label->get_file() );
+		$merger->add( $label->get_default_file() );
+		$file = $merger->output( 'test.pdf', 'S' );
+		var_dump($file);
+		exit();
+
     	// $label = new Label();
     	// $label->set_dhl_product( 123 );
     	// var_dump($label->get_changes());

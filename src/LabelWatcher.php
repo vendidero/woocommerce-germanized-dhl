@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\DHL;
 use Exception;
+use Vendidero\Germanized\Shipments\ShipmentItem;
+use WC_Order_Item;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -24,6 +26,20 @@ class LabelWatcher {
 
 		// Delete the label if parent shipment has been deleted
 		add_action( 'woocommerce_gzd_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
+
+		add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
+	}
+
+	/**
+	 * @param ShipmentItem $item
+	 * @param WC_Order_Item $order_item
+	 * @param $args
+	 */
+	public static function sync_item_meta( $item, $order_item, $args ) {
+		if ( $product = $item->get_product() ) {
+			$item->update_meta_data( '_dhl_hs_code', $product->get_meta( '_dhl_hs_code' ) );
+			$item->update_meta_data( '_dhl_manufacture_country', $product->get_meta( '_dhl_manufacture_country' ) );
+		}
 	}
 
 	public static function create_label( $label ) {

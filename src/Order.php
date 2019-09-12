@@ -183,6 +183,10 @@ class Order {
 		return null;
 	}
 
+	public function has_preferred_day() {
+		return $this->get_preferred_day() !== null;
+	}
+
 	public function get_preferred_time_start() {
 		if ( $timestamp = $this->get_dhl_prop( 'preferred_time_start' ) ) {
 			$date = new WC_DateTime( "@{$timestamp}" );
@@ -199,6 +203,10 @@ class Order {
 		}
 
 		return null;
+	}
+
+	public function has_preferred_time() {
+		return $this->get_preferred_time_start() !== null && $this->get_preferred_time_end() !== null;
 	}
 
 	public function get_preferred_time() {

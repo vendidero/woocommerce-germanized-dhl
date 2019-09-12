@@ -56,6 +56,7 @@ class Label extends WC_Data {
         'number'                     => '',
         'return_number'              => '',
         'path'                       => '',
+        'default_path'               => '',
         'export_path'                => '',
         'dhl_product'                => '',
         'preferred_day'              => '',
@@ -167,8 +168,18 @@ class Label extends WC_Data {
         return $this->get_prop( 'path', $context );
     }
 
-    public function get_download_url( $force = false ) {
-    	return add_query_arg( array( 'action' => 'wc-gzd-dhl-download-label', 'label_id' => $this->get_id(), 'force' => wc_bool_to_string( $force ) ), wp_nonce_url( admin_url(), 'dhl-download-label' ) );
+	public function get_default_path( $context = 'view' ) {
+		return $this->get_prop( 'default_path', $context );
+	}
+
+	/**
+	 * @param bool   $force Whether to force file download or show stream in browser
+	 * @param string $path E.g. default or export
+	 *
+	 * @return string
+	 */
+    public function get_download_url( $force = false, $path = '' ) {
+    	return add_query_arg( array( 'action' => 'wc-gzd-dhl-download-label', 'label_id' => $this->get_id(), 'path' => $path, 'force' => wc_bool_to_string( $force ) ), wp_nonce_url( admin_url(), 'dhl-download-label' ) );
     }
 
     public function get_export_path( $context = 'view' ) {
@@ -408,6 +419,10 @@ class Label extends WC_Data {
         $this->set_prop( 'path', $path );
     }
 
+	public function set_default_path( $path ) {
+		$this->set_prop( 'default_path', $path );
+	}
+
     public function set_export_path( $path ) {
         $this->set_prop( 'export_path', $path );
     }
@@ -526,6 +541,22 @@ class Label extends WC_Data {
 
 	    return basename( $path );
     }
+
+	public function get_default_file() {
+		if ( ! $path = $this->get_default_path() ) {
+			return false;
+		}
+
+		return $this->get_file_by_path( $path );
+	}
+
+	public function get_default_filename() {
+		if ( ! $path = $this->get_default_path() ) {
+			return false;
+		}
+
+		return basename( $path );
+	}
 
     protected function get_file_by_path( $file ) {
         // If the file is relative, prepend upload dir.

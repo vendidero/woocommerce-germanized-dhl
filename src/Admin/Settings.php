@@ -68,7 +68,7 @@ class Settings {
 			array(
 				'title'             => __( 'Live Username', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your username for the DHL business customer portal. Please note the lower case and test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your username for the DHL business customer portal. Please note the lower case and test your access data in advance %s.', 'woocommerce-germanized-dhl' ), '<a href="" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_api_username',
 				'default'           => '',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
@@ -77,7 +77,7 @@ class Settings {
 			array(
 				'title'             => __( 'Live Password', 'woocommerce-germanized-dhl' ),
 				'type'              => 'password',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your password for the DHL business customer portal. Please note the new assignment of the password to 3 (Standard User) or 12 (System User) months and test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your password for the DHL business customer portal. Please note the new assignment of the password to 3 (Standard User) or 12 (System User) months and test your access data in advance %s.', 'woocommerce-germanized-dhl' ), '<a href="" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_api_password',
 				'default'           => '',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
@@ -86,7 +86,7 @@ class Settings {
 			array(
 				'title'             => __( 'Sandbox Username', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your username for the DHL developer portal. Please note the lower case and test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your username for the DHL developer portal. Please note the lower case and test your access data in advance %s.', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_api_sandbox_username',
 				'default'           => '',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )
@@ -95,7 +95,7 @@ class Settings {
 			array(
 				'title'             => __( 'Sandbox Password', 'woocommerce-germanized-dhl' ),
 				'type'              => 'password',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your password for the DHL developer portal. Please test your access data in advance at %s.', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Your password for the DHL developer portal. Please test your access data in advance %s.', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . __( 'here', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_api_sandbox_password',
 				'default'           => '',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )

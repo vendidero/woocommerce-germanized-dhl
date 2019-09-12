@@ -19,7 +19,60 @@ class ParcelServices {
 			add_action( 'woocommerce_cart_calculate_fees', array( __CLASS__, 'add_fees' ) );
 			add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate' ), 10, 2 );
 			add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'create_order' ), 10 );
+			add_filter( 'woocommerce_get_order_item_totals', array( __CLASS__, 'order_totals' ), 10, 2 );
 		}
+	}
+
+	public static function order_totals( $total_rows, $order ) {
+		$new_rows = array();
+
+		if ( $dhl_order = wc_gzd_dhl_get_order( $order ) ) {
+			if ( $dhl_order->has_preferred_day() ) {
+				$new_rows['preferred_day'] = array(
+					'label' => __( 'Preferred Day', 'woocommerce-germanized-dhl' ),
+					'value' => wc_format_datetime( $dhl_order->get_preferred_day(), wc_date_format() ),
+				);
+			}
+
+			if ( $dhl_order->has_preferred_time() ) {
+				$new_rows['preferred_time'] = array(
+					'label' => __( 'Preferred Time', 'woocommerce-germanized-dhl' ),
+					'value' => $dhl_order->get_preferred_time(),
+				);
+			}
+
+			if ( $dhl_order->has_preferred_location() ) {
+				$new_rows['preferred_location'] = array(
+					'label' => __( 'Preferred Location', 'woocommerce-germanized-dhl' ),
+					'value' => $dhl_order->get_preferred_location(),
+				);
+			} elseif( $dhl_order->has_preferred_neighbor() ) {
+				$new_rows['preferred_neighbor'] = array(
+					'label' => __( 'Preferred Neighbor', 'woocommerce-germanized-dhl' ),
+					'value' => $dhl_order->get_preferred_neighbor_formatted_address(),
+				);
+			}
+		}
+
+		if ( ! empty( $new_rows ) ) {
+
+			// Instert before payment method
+			$insert_before = array_search( 'payment_method', array_keys( $total_rows ) );
+
+			// If no payment method, insert before order total
+			if ( empty( $insert_before ) ) {
+				$insert_before = array_search( 'order_total', array_keys( $total_rows ) );
+			}
+
+			if ( empty( $insert_before ) ) {
+				$total_rows += $new_rows;
+			} else {
+				$first_array = array_splice( $total_rows, 0, $insert_before );
+				$total_rows  = array_merge( $first_array, $new_rows, $total_rows );
+			}
+		}
+
+		return $total_rows;
 	}
 
 	public static function test() {

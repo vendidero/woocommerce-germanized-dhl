@@ -21,6 +21,6 @@ class MetaBox {
 		$dhl_label = wc_gzd_dhl_get_shipment_label( $the_shipment );
 		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
 
-		include( Package::get_path() . '/includes/admin/views/html-shipment-label.php' );
+		include Package::get_path() . '/includes/admin/views/html-shipment-label.php';
 	}
 }

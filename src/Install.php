@@ -11,7 +11,6 @@ class Install {
 
     public static function install() {
         global $wpdb;
-
         $wpdb->hide_errors();
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta( self::get_schema() );
@@ -35,6 +34,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labels (
   label_number varchar(200) NOT NULL DEFAULT '',
   label_dhl_product varchar(200) NOT NULL DEFAULT '',
   label_path varchar(200) NOT NULL DEFAULT '',
+  label_default_path varchar(200) NOT NULL DEFAULT '',
   label_export_path varchar(200) NOT NULL DEFAULT '',
   PRIMARY KEY  (label_id),
   KEY label_shipment_id (label_shipment_id)

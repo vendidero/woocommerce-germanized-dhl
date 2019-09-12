@@ -11,14 +11,48 @@ defined( 'ABSPATH' ) || exit;
  */
 class DownloadHandler {
 
-	public static function download_label( $label_id, $force = false ) {
+	public static function download_label( $label_id, $path = '', $force = false ) {
 		if ( current_user_can( 'edit_shop_orders' ) ) {
 			if ( $label = wc_gzd_dhl_get_label( $label_id ) ) {
-				if ( file_exists( $label->get_file() ) ) {
+
+				if ( 'export' === $path ) {
+					$file     = $label->get_export_file();
+					$filename = $label->get_export_filename();
+				} elseif( 'default' === $path ) {
+					$file     = $label->get_default_file();
+					$filename = $label->get_default_filename();
+				} else {
+					$file     = $label->get_file();
+					$filename = $label->get_filename();
+				}
+
+				if ( file_exists( $file ) ) {
 					if ( $force ) {
-						WC_Download_Handler::download_file_force( $label->get_file(), $label->get_filename() );
+						WC_Download_Handler::download_file_force( $file, $filename );
 					} else {
-						self::embed( $label->get_file(), $label->get_filename() );
+						self::embed( $file, $filename );
+					}
+				}
+			}
+		}
+	}
+
+	public static function download_legacy_label( $order_id, $force = false ) {
+		if ( current_user_can( 'edit_shop_orders' ) ) {
+			if ( $order = wc_get_order( $order_id ) ) {
+				$meta = (array) $order->get_meta( '_pr_shipment_dhl_label_tracking' );
+
+				if ( ! empty( $meta ) ) {
+					$path = $meta['label_path'];
+
+					if ( file_exists( $path ) ) {
+						$filename = basename( $path );
+
+						if ( $force ) {
+							WC_Download_Handler::download_file_force( $path, $filename );
+						} else {
+							self::embed( $path, $filename );
+						}
 					}
 				}
 			}

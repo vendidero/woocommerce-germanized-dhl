@@ -15,22 +15,55 @@ window.germanized.admin = window.germanized.admin || {};
             self.params = wc_gzd_admin_dhl_params;
 
             $( document )
-                .on( 'click', '#panel-order-shipments .create-shipment-label', self.onCreateLabel )
-                .on( 'click', '#panel-order-shipments .remove-shipment-label', self.onRemoveLabel )
-                .on( 'click', '.germanized-create-label .show-further-services', self.onExpandServices )
-                .on( 'click', '.germanized-create-label .show-fewer-services', self.onHideServices )
-                .on( 'change', '.germanized-create-label input.show-if-trigger', self.onShowIf )
-                .on( 'click', '.germanized-create-label .notice .notice-dismiss', self.onRemoveNotice );
+                .on( 'click', '#panel-order-shipments .create-shipment-label:not(.disabled)', self.onCreateLabel )
+                .on( 'click', '#panel-order-shipments .remove-shipment-label', self.onRemoveLabel );
 
             $( document.body )
-                .on( 'wc_backbone_modal_loaded', self.backbone.init )
-                .on( 'wc_backbone_modal_response', self.backbone.response );
+                .on( 'woocommerce_gzd_shipments_needs_saving', self.onShipmentsNeedsSavingChange )
+                .on( 'init_tooltips', self.initTip );
+
+            self.initTip();
         },
 
-        onRemoveNotice: function() {
-            $( this ).parents( '.notice' ).slideUp( 150, function() {
-                $( this ).remove();
-            });
+        initTip: function() {
+            $( '.create-shipment-label' ).tipTip( {
+                'fadeIn': 50,
+                'fadeOut': 50,
+                'delay': 200
+            } );
+        },
+
+        onShipmentsNeedsSavingChange: function( e, needsSaving, currentShipmentId ) {
+            var self      = germanized.admin.dhl,
+                $shipment = self.getShipment( currentShipmentId );
+
+            if ( needsSaving ) {
+                self.disableCreateLabel( $shipment );
+            } else {
+                self.enableCreateLabel( $shipment );
+            }
+        },
+
+        disableCreateLabel: function( $shipment ) {
+            var self    = germanized.admin.dhl,
+                $button =  $shipment.find( '.create-shipment-label' );
+
+            $button.addClass( 'disabled button-disabled' );
+            $button.prop( 'title', self.params.i18n_create_label_disabled );
+
+            // Tooltips
+            $( document.body ).trigger( 'init_tooltips' );
+        },
+
+        enableCreateLabel: function( $shipment ) {
+            var self    = germanized.admin.dhl,
+                $button =  $shipment.find( '.create-shipment-label' );
+
+            $button.removeClass( 'disabled button-disabled' );
+            $button.prop( 'title', self.params.i18n_create_label_enabled );
+
+            // Tooltips
+            $( document.body ).trigger( 'init_tooltips' );
         },
 
         getShipmentWrapperByLabel: function( labelId ) {
@@ -152,44 +185,6 @@ window.germanized.admin = window.germanized.admin || {};
 
         },
 
-        onShowIf: function() {
-            var $wrapper  = $( this ).parents( '.germanized-create-label' ),
-                $show     = $wrapper.find( $( this ).data( 'show-if' ) ),
-                $checkbox = $( this );
-
-            if ( $show.length > 0 ) {
-                if ( $checkbox.is( ':checked' ) ) {
-                    $show.show();
-                } else {
-                    $show.hide();
-                }
-            }
-        },
-
-        onExpandServices: function() {
-            var $wrapper  = $( this ).parents( '.germanized-create-label' ).find( '.show-if-further-services' ),
-                $trigger  = $( this ).parents( '.show-services-trigger' );
-
-            $wrapper.show();
-
-            $trigger.find( '.show-further-services' ).hide();
-            $trigger.find( '.show-fewer-services' ).show();
-
-            return false;
-        },
-
-        onHideServices: function() {
-            var $wrapper  = $( this ).parents( '.germanized-create-label' ).find( '.show-if-further-services' ),
-                $trigger  = $( this ).parents( '.show-services-trigger' );
-
-            $wrapper.hide();
-
-            $trigger.find( '.show-further-services' ).show();
-            $trigger.find( '.show-fewer-services' ).hide();
-
-            return false;
-        },
-
         getShipment: function( id ) {
             return $( '#panel-order-shipments' ).find( '#shipment-' + id );
         },
@@ -203,111 +198,6 @@ window.germanized.admin = window.germanized.admin || {};
             });
 
             return false;
-        },
-
-        backbone: {
-            getShipmentId: function( target ) {
-                return target.replace( /^\D+/g, '' );
-            },
-
-            init: function( e, target ) {
-                if ( target.indexOf( 'wc-gzd-modal-create-shipment-label' ) !== -1 ) {
-                    var self       = germanized.admin.dhl.backbone,
-                        shipmentId = self.getShipmentId( target );
-
-                    $( document.body ).trigger( 'wc-enhanced-select-init' );
-                    $( document.body ).trigger( 'wc-init-datepickers' );
-
-                    $( '.germanized-create-label' ).find( 'input.show-if-trigger' ).trigger( 'change' );
-                    $( '.germanized-create-label' ).parents( '.wc-backbone-modal' ).on( 'click', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
-                }
-            },
-
-            getFormData: function( $form ) {
-                var data = {};
-
-                $.each( $form.serializeArray(), function( index, item ) {
-                    if ( item.name.indexOf( '[]' ) !== -1 ) {
-                        item.name = item.name.replace( '[]', '' );
-                        data[ item.name ] = $.makeArray( data[ item.name ] );
-                        data[ item.name ].push( item.value );
-                    } else {
-                        data[ item.name ] = item.value;
-                    }
-                });
-
-                return data;
-            },
-
-            onSubmit: function( e ) {
-                var self       = germanized.admin.dhl.backbone,
-                    labels     = germanized.admin.dhl,
-                    $modal     = $( this ).parents( '.wc-backbone-modal-content' ),
-                    $content   = $modal.find( '.germanized-create-label' ),
-                    $form      = $content.find( 'form' ),
-                    params     = self.getFormData( $form );
-
-                params['security']    = labels.params.edit_label_nonce;
-                params['shipment_id'] = e.data.shipmentId;
-                params['action']      = 'woocommerce_gzd_create_dhl_label';
-
-                $modal.block({
-                    message: null,
-                    overlayCSS: {
-                        background: '#fff',
-                        opacity: 0.6
-                    }
-                });
-
-                $content.find( '.notice-wrapper' ).empty();
-
-                $.ajax({
-                    type: "POST",
-                    url:  labels.params.ajax_url,
-                    data: params,
-                    success: function( data ) {
-                        if ( data.success ) {
-                            $modal.unblock();
-
-                            if ( data.fragments ) {
-                                $.each( data.fragments, function ( key, value ) {
-                                    $( key ).replaceWith( value );
-                                });
-                            }
-
-                            $modal.find( '.modal-close' ).trigger( 'click' );
-                        } else {
-                            $modal.unblock();
-                            if ( data.hasOwnProperty( 'messages' ) ) {
-
-                                $.each( data.messages, function( i, message ) {
-                                    self.addNotice( message, 'error', $content );
-                                });
-
-                                // ScrollTo top of modal
-                                $content.animate({
-                                    scrollTop: 0
-                                }, 500 );
-                            }
-                        }
-                    },
-                    error: function( data ) {},
-                    dataType: 'json'
-                });
-
-                e.preventDefault();
-                e.stopPropagation();
-            },
-
-            addNotice: function( message, noticeType, $wrapper ) {
-                $wrapper.find( '.notice-wrapper' ).append( '<div class="notice is-dismissible notice-' + noticeType +'"><p>' + message + '</p><button type="button" class="notice-dismiss"></button></div>' );
-            },
-
-            response: function( e, target, data ) {
-                if ( target.indexOf( 'wc-gzd-modal-create-shipment-label' ) !== -1 ) {
-
-                }
-            }
         }
     };
 

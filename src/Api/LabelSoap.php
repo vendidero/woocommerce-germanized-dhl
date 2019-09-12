@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Exception;
+use PDFMerger\Pdf;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\Label;
 use Vendidero\Germanized\DHL\ParcelLocator;
@@ -149,25 +150,53 @@ class LabelSoap extends Soap {
 				    $label->set_return_number( $response_body->returnShipmentNumber );
 			    }
 
-			    if ( ! $filename_label = $label->get_filename() ) {
-				    $filename_label = wc_gzd_dhl_generate_label_filename( $label, 'label' );
+			    if ( ! $filename_label = $label->get_default_filename() ) {
+				    $filename_label = wc_gzd_dhl_generate_label_filename( $label, 'label-default' );
 			    }
 
 			    if ( $path = wc_gzd_dhl_upload_data( $filename_label, base64_decode( $response_body->LabelData->labelData ) ) ) {
-				    $label->set_path( $path );
+				    $label->set_default_path( $path );
 			    }
 
 			    if ( isset( $response_body->LabelData->exportLabelData ) ) {
+
 				    if ( ! $filename_export = $label->get_export_filename() ) {
-					    $filename_export = wc_gzd_dhl_generate_label_filename( $label, 'export' );
+					    $filename_export = wc_gzd_dhl_generate_label_filename( $label, 'label-export' );
 				    }
 
 				    if ( $path = wc_gzd_dhl_upload_data( $filename_export, base64_decode( $response_body->LabelData->exportLabelData ) ) ) {
 					    $label->set_export_path( $path );
 				    }
+
+				    // Merge files
+				    $pdf = new Pdf();
+				    $pdf->add( $label->get_default_file() );
+				    $pdf->add( $label->get_export_file() );
+
+				    if ( ! $filename_label = $label->get_filename() ) {
+					    $filename_label = wc_gzd_dhl_generate_label_filename( $label );
+				    }
+
+				    $file = $pdf->output( $filename_label, 'S' );
+
+				    if ( $path = wc_gzd_dhl_upload_data( $filename_label, $file ) ) {
+					    $label->set_path( $path );
+				    }
+			    } else {
+					$label->set_path( $path );
 			    }
 
+			    do_action( 'woocommerce_gzd_dhl_before_label_api_update', $label );
+
 			    $label->save();
+
+			    // Add tracking id to shipment
+			    if ( ( $shipment = $label->get_shipment() ) && $label->get_number() ) {
+				    $shipment->set_tracking_id( $label->get_number() );
+				    $shipment->save();
+			    }
+
+			    do_action( 'woocommerce_gzd_dhl_label_api_updated', $label );
 
 		    } catch( Exception $e ) {
 			    throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
@@ -198,6 +227,7 @@ class LabelSoap extends Soap {
             $response_body = $soap_client->deleteShipmentOrder( $soap_request );
 
             Package::log( 'Response Body: ' . print_r( $response_body, true ) );
+
         } catch ( Exception $e ) {
             throw $e;
         }
@@ -210,6 +240,12 @@ class LabelSoap extends Soap {
 	    }
 
 	    $label->set_path( '' );
+
+	    if ( $file = $label->get_default_file() ) {
+		    wp_delete_file( $file );
+	    }
+
+	    $label->set_default_path( '' );
 
 	    if ( $file = $label->get_export_file() ) {
 		    wp_delete_file( $file );
@@ -469,12 +505,12 @@ class LabelSoap extends Soap {
             foreach ( $shipment->get_items() as $key => $item ) {
 
                 $item_description .= ! empty( $item_description ) ? ', ' : '';
-                $item_description .= $item['item_description'];
+                $item_description .= $item->get_name();
 
                 $json_item = array(
-                    'description'         => substr( $item['item_description'], 0, 255 ),
-                    'countryCodeOrigin'   => $item->get_meta( '_country_origin' ),
-                    'customsTariffNumber' => $item->get_meta( '_hs_code' ),
+                    'description'         => substr( $item->get_name(), 0, 255 ),
+                    'countryCodeOrigin'   => $item->get_meta( '_dhl_manufacture_country' ),
+                    'customsTariffNumber' => $item->get_meta( '_dhl_hs_code' ),
                     'amount'              => intval( $item->get_quantity() ),
                     'netWeightInKG'       => round( floatval( wc_get_weight( $item->get_weight(), 'kg' ) ), 2 ),
                     'customsValue'        => round( floatval( $item->get_total() ), 2 ),
@@ -485,12 +521,11 @@ class LabelSoap extends Soap {
 
             $item_description = substr( $item_description, 0, 255 );
 
-            // @TODO Duties
             $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = array(
                 'invoiceNumber'         => $shipment->get_id(),
                 'exportType'            => 'OTHER',
                 'exportTypeDescription' => $item_description,
-                'termsOfTrade'          => $this->args['order_details']['duties'],
+                'termsOfTrade'          => $label->get_duties(),
                 'placeOfCommital'       => $shipment->get_country(),
                 'ExportDocPosition'     => $customsDetails
             );
