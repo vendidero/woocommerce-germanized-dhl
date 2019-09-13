@@ -10,6 +10,7 @@
 
 use Vendidero\Germanized\DHL\Label;
 use Vendidero\Germanized\DHL\LabelQuery;
+use Vendidero\Germanized\DHL\Order;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\Shipments\Shipment;
@@ -443,7 +444,7 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 		}
 
 		$dhl_order = wc_gzd_dhl_get_order( $order );
-		$args      = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order ) );
+		$args      = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) );
 
 		// Add COD service if payment method matches
 		$args = wc_gzd_dhl_validate_label_args( $shipment, $args );
@@ -466,15 +467,37 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 	return $label;
 }
 
-function wc_gzd_dhl_get_label_default_args( $dhl_order ) {
-	return array(
-		'preferred_day'              => $dhl_order->get_preferred_day(),
-		'preferred_time_start'       => $dhl_order->get_preferred_time_start(),
-		'preferred_time_end'         => $dhl_order->get_preferred_time_end(),
-		'preferred_location'         => $dhl_order->get_preferred_location(),
-		'preferred_neighbor'         => $dhl_order->get_preferred_neighbor_formatted_address(),
-		'services'                   => array(),
+/**
+ * @param Order $dhl_order
+ * @param Shipment $shipment
+ */
+function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
+	$defaults = array(
+		'dhl_product' => wc_gzd_dhl_get_default_product( $shipment->get_country() ),
+		'services'    => array(),
 	);
+
+	if ( $dhl_order->has_cod_payment() ) {
+		$defaults['cod_total'] = $shipment->get_total();
+	}
+
+	// @TODO choose a default duty
+	if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+		$defaults['duties'] = 'DDP';
+	} else {
+		$defaults = array_merge( array(
+			'codeable_address_only' => wc_string_to_bool( Package::get_setting( 'codeable_address_only' ) ),
+			'preferred_day'         => $dhl_order->get_preferred_day(),
+			'preferred_time_start'  => $dhl_order->get_preferred_time_start(),
+			'preferred_time_end'    => $dhl_order->get_preferred_time_end(),
+			'preferred_location'    => $dhl_order->get_preferred_location(),
+			'preferred_neighbor'    => $dhl_order->get_preferred_neighbor_formatted_address(),
+		), $defaults );
+	}
+
+	// @TODO set other defaults e.g. age check
+
+	return $defaults;
 }
 
 /**
@@ -492,10 +515,10 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		}
 
 		$dhl_order = wc_gzd_dhl_get_order( $order );
-		$args      = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order ) );
+		$args      = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) );
 
 		// Add COD service if payment method matches
-		$args = wc_gzd_dhl_validate_label_args( $shipment, $args );
+		$args      = wc_gzd_dhl_validate_label_args( $shipment, $args );
 
 		if ( is_wp_error( $args ) ) {
 			return $args;
@@ -504,7 +527,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		$label = new Vendidero\Germanized\DHL\Label();
 
 		$label->set_props( $args );
-		$label->set_shipment_id( $shipment->get_id() );
+		$label->set_shipment( $shipment );
 
 		do_action( 'woocommerce_gzd_dhl_before_create_label', $label );
 
@@ -617,7 +640,11 @@ function wc_gzd_dhl_get_products( $shipping_country ) {
 }
 
 function wc_gzd_dhl_get_default_product( $country ) {
-	return 'V01PAK';
+	if ( Package::is_crossborder_shipment( $country ) ) {
+		return Package::get_setting( 'label_default_product_int' );
+	} else {
+		return Package::get_setting( 'label_default_product_dom' );
+	}
 }
 
 function wc_gzd_dhl_get_products_domestic() {

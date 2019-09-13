@@ -7,6 +7,9 @@
 defined( 'ABSPATH' ) || exit;
 
 use Vendidero\Germanized\DHL\Package;
+
+// @TODO Parse defaults to show them in the options
+$default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 ?>
 
 <form action="" method="post" class="wc-gzd-dhl-create-label-form">
@@ -26,7 +29,7 @@ use Vendidero\Germanized\DHL\Package;
 		'label'       		=> __( 'COD Amount', 'woocommerce-germanized-dhl' ),
 		'placeholder' 		=> '',
 		'description'		=> '',
-		'value'       		=> $shipment->get_total(),
+		'value'       		=> isset( $default_args['cod_total'] ) ? $default_args['cod_total'] : '',
 	) ); ?>
 <?php endif; ?>
 
@@ -35,7 +38,7 @@ use Vendidero\Germanized\DHL\Package;
 		'id'          		=> 'dhl_label_duties',
 		'label'       		=> __( 'Duties', 'woocommerce-germanized-dhl' ),
 		'description'		=> '',
-		'value'       		=> '',
+		'value'       		=> isset( $default_args['duties'] ) ? $default_args['duties'] : '',
 		'options'			=> wc_gzd_dhl_get_duties(),
 	) ); ?>
 <?php endif; ?>
@@ -104,6 +107,7 @@ use Vendidero\Germanized\DHL\Package;
 		'class'             => 'checkbox show-if-trigger',
 		'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
 		'desc_tip'          => true,
+		'value'             => isset( $default_args['has_return'] ) ? wc_bool_to_string( $default_args['has_return'] ) : 'no',
 		'wrapper_class'     => 'form-field-checkbox'
 	) ); ?>
 
@@ -193,7 +197,7 @@ use Vendidero\Germanized\DHL\Package;
 		'label'       		=> __( 'Valid address only', 'woocommerce-germanized-dhl' ),
 		'placeholder' 		=> '',
 		'description'		=> '',
-		'value'       		=> Package::get_setting( 'codeable_address_only' ),
+		'value'       		=> isset( $default_args['codeable_address_only'] ) ? wc_bool_to_string( $default_args['codeable_address_only'] ) : 'no',
 		'wrapper_class'     => 'form-field-checkbox'
 	) ); ?>
 
@@ -211,28 +215,31 @@ use Vendidero\Germanized\DHL\Package;
 			'id'          		=> 'dhl_label_visual_min_age',
 			'label'       		=> __( 'Age check', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
-			'value'       		=> '',
+			'value'       		=> isset( $default_args['visual_min_age'] ) ? $default_args['visual_min_age'] : '',
 			'options'			=> wc_gzd_dhl_get_visual_min_ages(),
 		) ); ?>
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_email_notification',
 			'label'       		=> __( 'E-Mail notification', 'woocommerce-germanized-dhl' ),
-			'description'		=> '',
+			'description'       => '',
+			'value'		        => isset( $default_args['email_notification'] ) ? $default_args['email_notification'] : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_AdditionalInsurance',
 			'label'       		=> __( 'Additional insurance', 'woocommerce-germanized-dhl' ),
-			'description'		=> '',
+			'description'       => '',
+			'value'		        => isset( $default_args['services']['AdditionalInsurance'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_NoNeighbourDelivery',
 			'label'       		=> __( 'No neighbor', 'woocommerce-germanized-dhl' ),
-			'description'		=> '',
+			'description'       => '',
+			'value'		        => isset( $default_args['services']['NoNeighbourDelivery'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
@@ -240,6 +247,7 @@ use Vendidero\Germanized\DHL\Package;
 			'id'          		=> 'dhl_label_service_NamedPersonOnly',
 			'label'       		=> __( 'Named person only', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
+			'value'		        => isset( $default_args['services']['NamedPersonOnly'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
@@ -247,6 +255,7 @@ use Vendidero\Germanized\DHL\Package;
 			'id'          		=> 'dhl_label_service_Premium',
 			'label'       		=> __( 'Premium', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
+			'value'		        => isset( $default_args['services']['Premium'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
@@ -254,6 +263,7 @@ use Vendidero\Germanized\DHL\Package;
 			'id'          		=> 'dhl_label_service_BulkyGoods',
 			'label'       		=> __( 'Bulky goods', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
+			'value'		        => isset( $default_args['services']['BulkyGoods'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
@@ -262,6 +272,7 @@ use Vendidero\Germanized\DHL\Package;
 			'label'       		=> __( 'Identity check', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'class'             => 'checkbox show-if-trigger',
+			'value'		        => isset( $default_args['services']['IdentCheck'] ) ? 'yes' : 'no',
 			'custom_attributes' => array( 'data-show-if' => '.show-if-ident-check' ),
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
@@ -272,7 +283,7 @@ use Vendidero\Germanized\DHL\Package;
 				'label'       		=> __( 'Date of Birth', 'woocommerce-germanized-dhl' ),
 				'placeholder' 		=> '',
 				'description'		=> '',
-				'value'       		=> $dhl_order->get_date_of_birth(),
+				'value'       		=> isset( $default_args['ident_date_of_birth'] ) ? $default_args['ident_date_of_birth'] : '',
 				'custom_attributes' => array( 'pattern' => '[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])', 'maxlength' => 10 ),
 				'class'				=> 'short date-picker'
 			) ); ?>
@@ -281,7 +292,7 @@ use Vendidero\Germanized\DHL\Package;
 				'id'          		=> 'dhl_label_ident_min_age',
 				'label'       		=> __( 'Minimum age', 'woocommerce-germanized-dhl' ),
 				'description'		=> '',
-				'value'       		=> '',
+				'value'       		=> isset( $default_args['ident_min_age'] ) ? $default_args['ident_min_age'] : '',
 				'options'			=> wc_gzd_dhl_get_ident_min_ages(),
 			) ); ?>
 		</div>

@@ -190,12 +190,6 @@ class LabelSoap extends Soap {
 
 			    $label->save();
 
-			    // Add tracking id to shipment
-			    if ( ( $shipment = $label->get_shipment() ) && $label->get_number() ) {
-				    $shipment->set_tracking_id( $label->get_number() );
-				    $shipment->save();
-			    }
-
 			    do_action( 'woocommerce_gzd_dhl_label_api_updated', $label );
 
 		    } catch( Exception $e ) {
@@ -232,6 +226,8 @@ class LabelSoap extends Soap {
             throw $e;
         }
 
+	    do_action( 'woocommerce_gzd_dhl_label_api_before_delete', $label );
+
 	    $label->set_number( '' );
 	    $label->set_return_number( '' );
 
@@ -252,6 +248,8 @@ class LabelSoap extends Soap {
 	    }
 
 	    $label->set_export_path( '' );
+
+	    do_action( 'woocommerce_gzd_dhl_label_api_deleted', $label );
 
         if ( 0 !== $response_body->Status->statusCode ) {
             throw new Exception( sprintf( __( 'Could not delete label - %s', 'woocommerce-germanized-dhl' ), $response_body->Status->statusMessage ) );

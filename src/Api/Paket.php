@@ -109,68 +109,65 @@ class Paket {
 	    $cutoff_time           = empty( $cutoff_time ) ? Package::get_setting( 'preferred_cutoff_time' ) : $cutoff_time;
 	    $account_num           = Package::get_setting( 'account_number' );
 
-        // Always exclude Sunday
-        $exclude_working_days  = array_merge( $exclude_working_days, array( 'Sun' => __( 'sun', 'woocommerce-germanized-dhl' ) ) );
-        $day_counter           = 0;
+	    // Always exclude Sunday
+	    $exclude_working_days  = array_merge( $exclude_working_days, array( 'Sun' => __( 'sun', 'woocommerce-germanized-dhl' ) ) );
+	    $day_counter           = 0;
 
-        // Get existing timezone to reset afterwards
-        $current_timzone = date_default_timezone_get();
-        // Always set and get DE timezone and check against it.
-        date_default_timezone_set( 'Europe/Berlin' );
+	    // Get existing timezone to reset afterwards
+	    $current_timzone = date_default_timezone_get();
+	    // Always set and get DE timezone and check against it.
+	    date_default_timezone_set( 'Europe/Berlin' );
 
-        $tz_obj             = new DateTimeZone(  'Europe/Berlin' );
-        $today              = new DateTime( "now", $tz_obj );
+	    $tz_obj             = new DateTimeZone(  'Europe/Berlin' );
+	    $today              = new DateTime( "now", $tz_obj );
+	    $today_de_timestamp = $today->getTimestamp();
 
-        $today_de_timestamp = $today->getTimestamp();
-        $week_day           = strtolower( $today->format('D' ) );
-        $week_date          = $today->format('Y-m-d' );
-        $week_time          = $today->format('H:i' );
+	    $week_day           = strtolower( $today->format('D' ) );
+	    $week_date          = $today->format('Y-m-d' );
+	    $week_time          = $today->format('H:i' );
 
-        // Compare week day with key since key includes capital letter in beginning and will work for English AND German!
-        // Check if today is a working day...
-        if ( ( ! in_array( $week_day, $exclude_working_days ) ) && ( ! in_array( $week_date, Package::get_holidays( 'DE' ) ) ) ) {
+	    // Compare week day with key since key includes capital letter in beginning and will work for English AND German!
+	    // Check if today is a working day...
+	    if ( ( ! in_array( $week_day, $exclude_working_days ) ) && ( ! in_array( $week_date, Package::get_holidays( 'DE' ) ) ) ) {
 
-            // ... and check if after cutoff time if today is a transfer day
-            if( $today_de_timestamp >= strtotime( $cutoff_time ) ) {
-                // If the cut off time has been passed, then add a day
-                $today->add( new DateInterval('P1D' ) ); // Add 1 day
+	    	// ... and check if after cutoff time if today is a transfer day
+		    if( $today_de_timestamp >= strtotime( $cutoff_time ) ) {
 
-                $week_day  = strtolower( $today->format('D' ) );
-                $week_date = $today->format('Y-m-d' );
+		    	// If the cut off time has been passed, then add a day
+			    $today->add( new DateInterval('P1D' ) ); // Add 1 day
+			    $week_day  = strtolower( $today->format('D' ) );
+			    $week_date = $today->format('Y-m-d' );
+			    $day_counter++;
+		    }
+	    }
 
-                $day_counter++;
-            }
-        }
+	    // Make sure the next transfer days are working days
+	    while ( in_array( $week_day, $exclude_working_days ) || in_array( $week_date, Package::get_holidays( 'DE' ) ) ) {
+		    $today->add( new DateInterval( 'P1D' ) ); // Add 1 day
+		    $week_day  = strtolower( $today->format( 'D' ) );
+		    $week_date = $today->format( 'Y-m-d' );
+		    $day_counter++;
+	    }
 
-        // Make sure the next transfer days are working days
-        while ( in_array( $week_day, $exclude_working_days ) || in_array( $week_date, Package::get_holidays( 'DE' ) ) ) {
+	    $args['postcode']    = $postcode;
+	    $args['account_num'] = $account_num;
+	    $args['start_date']  = $week_date;
+	    $preferred_day_time  = array();
 
-            $today->add( new DateInterval( 'P1D' ) ); // Add 1 day
-            $week_day  = strtolower( $today->format( 'D' ) );
-            $week_date = $today->format( 'Y-m-d' );
+	    try {
+		    $preferred_services                   = $this->get_parcel_api()->get_services( $args );
+		    $preferred_day_time['preferred_day']  = $this->get_preferred_day( $preferred_services );
+		    $preferred_day_time['preferred_time'] = $this->get_preferred_time( $preferred_services );
+	    } catch( Exception $e ) {
+		    throw $e;
+	    }
 
-            $day_counter++;
-        }
+	    // Reset time locael
+	    // setlocale(LC_TIME, $current_locale);
+	    // Reset timezone to not affect any other plugins
+	    date_default_timezone_set( $current_timzone );
 
-        $args['postcode']    = $postcode;
-        $args['account_num'] = $account_num;
-        $args['start_date']  = $week_date;
-        $preferred_day_time  = array();
-
-        try {
-            $preferred_services                   = $this->get_parcel_api()->get_services( $args );
-            $preferred_day_time['preferred_day']  = $this->get_preferred_day( $preferred_services );
-            $preferred_day_time['preferred_time'] = $this->get_preferred_time( $preferred_services );
-        } catch( Exception $e ) {
-        	throw $e;
-        }
-
-        // Reset time locael
-        // setlocale(LC_TIME, $current_locale);
-        // Reset timezone to not affect any other plugins
-        date_default_timezone_set( $current_timzone );
-
-        return $preferred_day_time;
+	    return $preferred_day_time;
     }
 
     protected function get_preferred_day( $preferred_services ) {

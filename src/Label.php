@@ -152,6 +152,16 @@ class Label extends WC_Data {
         return $this->get_prop( 'number', $context );
     }
 
+    public function get_tracking_url() {
+    	$url = '';
+
+    	if ( $this->get_number() ) {
+    		$url = 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc=' . $this->get_number() . '&rfn=&extendedSearch=true';
+	    }
+
+    	return apply_filters( $this->get_hook_prefix() . 'tracking_url', $url, $this );
+    }
+
 	public function get_return_number( $context = 'view' ) {
 		return $this->get_prop( 'return_number', $context );
 	}
@@ -591,4 +601,13 @@ class Label extends WC_Data {
 
         $this->set_prop( 'shipment_id', absint( $shipment_id ) );
     }
+
+	/**
+	 * @param Shipment $shipment
+	 */
+	public function set_shipment( &$shipment ) {
+		$this->shipment = $shipment;
+
+		$this->set_prop( 'shipment_id', absint( $shipment->get_id() ) );
+	}
 }

@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\DHL;
 use Exception;
+use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShipmentItem;
 use WC_Order_Item;
 
@@ -27,7 +28,26 @@ class LabelWatcher {
 		// Delete the label if parent shipment has been deleted
 		add_action( 'woocommerce_gzd_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
 
+		// Sync shipment items
 		add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
+
+		// Add shipment tracking url
+		add_filter( 'woocommerce_gzd_shipment_get_tracking_url', array( __CLASS__, 'add_tracking_url' ), 10, 2 );
+	}
+
+	/**
+	 * @param string $url
+	 * @param Shipment $shipment
+	 *
+	 * @return string
+	 */
+	public static function add_tracking_url( $url, $shipment ) {
+
+		if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+			return $label->get_tracking_url();
+		}
+
+		return $url;
 	}
 
 	/**
@@ -45,14 +65,25 @@ class LabelWatcher {
 	public static function create_label( $label ) {
 		try {
 			Package::get_api()->get_label( $label );
+			self::maybe_update_shipment_tracking( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
+		}
+	}
+
+	protected static function maybe_update_shipment_tracking( $label ) {
+		// Add tracking id to shipment
+		if ( ( $shipment = $label->get_shipment() ) && $label->get_number() ) {
+			$shipment->set_tracking_id( $label->get_number() );
+			$shipment->set_shipping_provider( 'dhl_paket' );
+			$shipment->save();
 		}
 	}
 
 	public static function update_label( $label ) {
 		try {
 			Package::get_api()->get_label( $label );
+			self::maybe_update_shipment_tracking( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
 		}
@@ -61,7 +92,17 @@ class LabelWatcher {
 	public static function delete_label( $label_id, $label ) {
 		try {
 			Package::get_api()->delete_label( $label );
+			self::delete_shipment_tracking( $label );
 		} catch( Exception $e ) {}
+	}
+
+	protected static function delete_shipment_tracking( $label ) {
+		// Remove shipment data
+		if ( ( $shipment = $label->get_shipment() ) ) {
+			$shipment->set_tracking_id( '' );
+			$shipment->set_shipping_provider( '' );
+			$shipment->save();
+		}
 	}
 
 	public static function deleted_shipment( $shipment_id, $shipment ) {

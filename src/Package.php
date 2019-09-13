@@ -130,13 +130,24 @@ class Package {
 	        ParcelServices::init();
 	        Ajax::init();
 	        LabelWatcher::init();
+	        Automation::init();
         }
     }
 
     public static function init_hooks() {
 	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
+
+	    // Add shipping provider
+	    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_providers' ), 10, 1 );
+
 	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
+
+	public static function add_shipping_providers( $providers ) {
+		$providers['dhl_paket'] = __( 'DHL Paket', 'woocommerce-germanized-dhl' );
+
+		return $providers;
+	}
 
     public static function install() {
 	    Install::install();

@@ -245,11 +245,15 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
 
             if ( $( 'select.shipping_method' ).length > 0 ) {
                 current = $( 'select.shipping_method' ).val();
-            } else if ( $( 'input[name^="shipping_method"]' ).length > 0 ) {
+            } else if ( $( 'input[name^="shipping_method"]:checked' ).length > 0 ) {
                 current = $( 'input[name^="shipping_method"]:checked' ).val();
+            } else if ( $( 'input[name^="shipping_method"][type="hidden"]' ).length > 0 ) {
+                current = $( 'input[name^="shipping_method"][type="hidden"]' ).val();
             }
 
-            if ( current.length > 0 ) {
+            console.log(current);
+
+            if ( 'undefined' !== typeof current && current.length > 0 ) {
                 var currentParts = current.split(':');
 
                 if ( currentParts.length > 0 ) {

@@ -203,7 +203,7 @@ class Settings {
 			array(
 				'title' 	        => __( 'Enable', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => __( 'Automatically create labels for shipments.', 'woocommerce-germanized-dhl' ),
-				'id' 		        => 'woocommerce_gzd_dhl_label_automation_enable',
+				'id' 		        => 'woocommerce_gzd_dhl_label_auto_enable',
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -212,20 +212,20 @@ class Settings {
 				'title'             => __( 'Status', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'default'           => 'gzd-processing',
-				'id'                => 'woocommerce_gzd_label_automation_shipment_status',
+				'id'                => 'woocommerce_gzd_dhl_label_auto_shipment_status',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . __( 'Choose a shipment status which should trigger generation of a label.', 'woocommerce-germanized-dhl' ) . '</div>',
 				'options'           => $shipment_statuses,
 				'class'             => 'wc-enhanced-select',
-				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_automation_enable' => '' )
+				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_auto_enable' => '' )
 			),
 
 			array(
 				'title' 	        => __( 'Age Verification', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => __( 'Verify ages if shipment contains applicable items.', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the age check service enabled.', 'woocommerce-germanized-dhl' ), '<a href="">' . __( 'age verification checkbox', 'woocommerce-germanized' ) . '</a>' ) . '</div>',
-				'id' 		        => 'woocommerce_gzd_dhl_label_automation_age_check_sync',
+				'id' 		        => 'woocommerce_gzd_dhl_label_auto_age_check_sync',
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
-				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_automation_enable' => '' )
+				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_auto_enable' => '' )
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_automation_options' ),
