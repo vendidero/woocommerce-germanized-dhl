@@ -27,6 +27,42 @@ class Admin {
 		// Shipments
 		add_filter( 'woocommerce_gzd_shipments_table_actions', array( __CLASS__, 'table_label_download' ), 10, 2 );
 		add_action( 'woocommerce_gzd_shipments_table_actions_end', array( __CLASS__, 'table_label_generate' ), 10, 1 );
+		add_filter( 'woocommerce_gzd_shipments_bulk_actions', array( __CLASS__, 'table_bulk_actions' ), 10, 1 );
+
+		// Bulk Labels
+		add_filter( 'woocommerce_gzd_shipments_bulk_action_handlers', array( __CLASS__, 'register_bulk_handler' ) );
+
+		add_action( 'woocommerce_gzd_shipments_bulk_action_labels_handled', array( __CLASS__, 'add_bulk_download' ), 10, 1 );
+	}
+
+	/**
+	 * @param BulkLabel $handler
+	 */
+	public static function add_bulk_download( $handler ) {
+		if ( $path = $handler->get_file() ) {
+
+			$download_url = add_query_arg( array(
+				'action'   => 'wc-gzd-dhl-download-export-label',
+				'force'    => 'no'
+			), wp_nonce_url( admin_url(), 'dhl-download-export-label' ) );
+			?>
+			<div class="wc-gzd-dhl-bulk-downloads">
+				<a class="button button-primary" href="<?php echo $download_url; ?>" target="_blank"><?php _e( 'Download or print labels', 'woocommerce-germanized-dhl' ); ?></a>
+			</div>
+			<?php
+		}
+	}
+
+	public static function table_bulk_actions( $actions ) {
+		$actions['labels'] = __( 'Generate labels', 'woocommerce-germanized-dhl' );
+
+		return $actions;
+	}
+
+	public static function register_bulk_handler( $handlers ) {
+		$handlers['labels'] = '\Vendidero\Germanized\DHL\Admin\BulkLabel';
+
+		return $handlers;
 	}
 
 	public static function table_label_generate( $shipment ) {
@@ -93,10 +129,11 @@ class Admin {
 				$label_id = absint( $_GET['label_id'] );
 				$args     = wp_parse_args( $_GET, array(
 					'force'  => 'no',
+					'print'  => 'no',
 					'path'   => '',
 				) );
 
-				DownloadHandler::download_label( $label_id, $args['path'], wc_string_to_bool( $args['force'] ) );
+				DownloadHandler::download_label( $label_id, $args );
 			}
 		} elseif( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-legacy-label' === $_GET['action'] ) {
 			if ( isset( $_GET['order_id'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-legacy-label' ) ) {
@@ -104,9 +141,20 @@ class Admin {
 				$order_id = absint( $_GET['order_id'] );
 				$args     = wp_parse_args( $_GET, array(
 					'force'  => 'no',
+					'print'  => 'no',
 				) );
 
-				DownloadHandler::download_legacy_label( $order_id, wc_string_to_bool( $args['force'] ) );
+				DownloadHandler::download_legacy_label( $order_id, $args );
+			}
+		} elseif( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-export-label' === $_GET['action'] ) {
+			if ( wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-export-label' ) ) {
+
+				$args = wp_parse_args( $_GET, array(
+					'force'  => 'no',
+					'print'  => 'no',
+				) );
+
+				DownloadHandler::download_export( $args );
 			}
 		}
 	}

@@ -25,7 +25,7 @@ class Ajax {
 		$ajax_events = array(
 			'create_dhl_label',
 			'remove_dhl_label',
-			'dhl_create_label_form'
+			'dhl_create_label_form',
 		);
 
 		foreach ( $ajax_events as $ajax_event ) {

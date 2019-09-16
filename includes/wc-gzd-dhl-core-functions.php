@@ -315,7 +315,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	}
 
 	if ( ! empty( $args['preferred_day'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_day'], 'Y-m-d' ) ) {
-		$args['services']      = array_merge( $args['services'], array( 'PreferredDay' ) );
+		$args['services'] = array_merge( $args['services'], array( 'PreferredDay' ) );
 	} else {
 		if ( ! empty( $args['preferred_day'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_day'], 'Y-m-d' ) ) {
 			$error->add( 500, __( 'Error while parsing preferred day.', 'woocommerce-germanized-dhl' ) );
@@ -326,7 +326,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	}
 
 	if ( ( ! empty( $args['preferred_time_start'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_time_start'], 'H:i' ) ) && ( ! empty( $args['preferred_time_end'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_time_end'], 'H:i' ) ) ) {
-		$args['services']             = array_merge( $args['services'], array( 'PreferredTime' ) );
+		$args['services'] = array_merge( $args['services'], array( 'PreferredTime' ) );
 	} else {
 		if ( ( ! empty( $args['preferred_time_start'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_time_start'], 'H:i' ) ) || ( ! empty( $args['preferred_time_end'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_time_end'], 'H:i' ) ) ) {
 			$error->add( 500, __( 'Error while parsing preferred time.', 'woocommerce-germanized-dhl' ) );
@@ -485,14 +485,25 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 	if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
 		$defaults['duties'] = 'DDP';
 	} else {
-		$defaults = array_merge( array(
-			'codeable_address_only' => wc_string_to_bool( Package::get_setting( 'codeable_address_only' ) ),
-			'preferred_day'         => $dhl_order->get_preferred_day(),
-			'preferred_time_start'  => $dhl_order->get_preferred_time_start(),
-			'preferred_time_end'    => $dhl_order->get_preferred_time_end(),
-			'preferred_location'    => $dhl_order->get_preferred_location(),
-			'preferred_neighbor'    => $dhl_order->get_preferred_neighbor_formatted_address(),
-		), $defaults );
+		$defaults['codeable_address_only'] = wc_string_to_bool( Package::get_setting( 'codeable_address_only' ) );
+
+		if ( $dhl_order->has_preferred_day() ) {
+			$defaults['preferred_day'] = $dhl_order->get_preferred_day()->format( 'Y-m-d' );
+		}
+
+		if ( $dhl_order->has_preferred_time() ) {
+			$defaults['preferred_time']       = $dhl_order->get_preferred_time();
+			$defaults['preferred_time_start'] = $dhl_order->get_preferred_time_start()->format( 'H:i' );
+			$defaults['preferred_time_end']   = $dhl_order->get_preferred_time_end()->format( 'H:i' );
+		}
+
+		if ( $dhl_order->has_preferred_location() ) {
+			$defaults['preferred_location'] = $dhl_order->get_preferred_location();
+		}
+
+		if ( $dhl_order->has_preferred_neighbor() ) {
+			$defaults['preferred_neighbor'] = $dhl_order->get_preferred_neighbor_formatted_address();
+		}
 	}
 
 	// @TODO set other defaults e.g. age check

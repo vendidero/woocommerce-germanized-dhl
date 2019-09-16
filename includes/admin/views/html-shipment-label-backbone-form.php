@@ -64,7 +64,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 				'id'          		=> 'dhl_label_preferred_day',
 				'label'       		=> __( 'Preferred Day', 'woocommerce-germanized-dhl' ),
 				'description'		=> '',
-				'value'       		=> $dhl_order->get_preferred_day() ? $dhl_order->get_preferred_day()->date( 'Y-m-d' ) : '',
+				'value'       		=> isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '',
 				'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days ),
 			) ); ?>
 		</div>
@@ -73,7 +73,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 				'id'          		=> 'dhl_label_preferred_time',
 				'label'       		=> __( 'Preferred Time', 'woocommerce-germanized-dhl' ),
 				'description'		=> '',
-				'value'       		=> $dhl_order->get_preferred_time() ? $dhl_order->get_preferred_time() : '',
+				'value'       		=> isset( $default_args['preferred_time'] ) ? $default_args['preferred_time'] : '',
 				'options'			=> wc_gzd_dhl_get_preferred_times_select_options( $preferred_times ),
 			) ); ?>
 		</div>
@@ -85,7 +85,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'label'       		=> __( 'Preferred Location', 'woocommerce-germanized-dhl' ),
 			'placeholder' 		=> '',
 			'description'		=> '',
-			'value'       		=> $dhl_order->get_preferred_location(),
+			'value'       		=> isset( $default_args['preferred_location'] ) ? $default_args['preferred_location'] : '',
 			'custom_attributes'	=> array( 'maxlength' => '80' )
 		) ); ?>
 	<?php endif; ?>
@@ -96,7 +96,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'label'       		=> __( 'Preferred Neighbor', 'woocommerce-germanized-dhl' ),
 			'placeholder' 		=> '',
 			'description'		=> '',
-			'value'       		=> $dhl_order->get_preferred_neighbor_formatted_address(),
+			'value'       		=> isset( $default_args['preferred_location_neighbor'] ) ? $default_args['preferred_location_neighbor'] : '',
 			'custom_attributes'	=> array( 'maxlength' => '80' )
 		) ); ?>
 	<?php endif; ?>

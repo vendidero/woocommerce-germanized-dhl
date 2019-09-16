@@ -11,14 +11,27 @@ defined( 'ABSPATH' ) || exit;
  */
 class DownloadHandler {
 
-	public static function download_label( $label_id, $path = '', $force = false ) {
+	protected static function parse_args( $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'force' => false,
+			'path'  => '',
+		) );
+
+		$args['force'] = wc_string_to_bool( $args['force'] );
+
+		return $args;
+	}
+
+	public static function download_label( $label_id, $args = array() ) {
+		$args = self::parse_args( $args );
+
 		if ( current_user_can( 'edit_shop_orders' ) ) {
 			if ( $label = wc_gzd_dhl_get_label( $label_id ) ) {
 
-				if ( 'export' === $path ) {
+				if ( 'export' === $args['path'] ) {
 					$file     = $label->get_export_file();
 					$filename = $label->get_export_filename();
-				} elseif( 'default' === $path ) {
+				} elseif( 'default' === $args['path'] ) {
 					$file     = $label->get_default_file();
 					$filename = $label->get_default_filename();
 				} else {
@@ -27,7 +40,7 @@ class DownloadHandler {
 				}
 
 				if ( file_exists( $file ) ) {
-					if ( $force ) {
+					if ( $args['force'] ) {
 						WC_Download_Handler::download_file_force( $file, $filename );
 					} else {
 						self::embed( $file, $filename );
@@ -37,7 +50,27 @@ class DownloadHandler {
 		}
 	}
 
-	public static function download_legacy_label( $order_id, $force = false ) {
+	public static function download_export( $args = array() ) {
+		$args = self::parse_args( $args );
+
+		if ( current_user_can( 'edit_shop_orders' ) ) {
+			$handler = new BulkLabel();
+
+			if ( $path = $handler->get_file() ) {
+				$filename = $handler->get_filename();
+
+				if ( $args['force'] ) {
+					WC_Download_Handler::download_file_force( $path, $filename );
+				} else {
+					self::embed( $path, $filename );
+				}
+			}
+		}
+	}
+
+	public static function download_legacy_label( $order_id, $args = array() ) {
+		$args = self::parse_args( $args );
+
 		if ( current_user_can( 'edit_shop_orders' ) ) {
 			if ( $order = wc_get_order( $order_id ) ) {
 				$meta = (array) $order->get_meta( '_pr_shipment_dhl_label_tracking' );
@@ -48,7 +81,7 @@ class DownloadHandler {
 					if ( file_exists( $path ) ) {
 						$filename = basename( $path );
 
-						if ( $force ) {
+						if ( $args['force'] ) {
 							WC_Download_Handler::download_file_force( $path, $filename );
 						} else {
 							self::embed( $path, $filename );
