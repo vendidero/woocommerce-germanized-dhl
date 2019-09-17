@@ -433,7 +433,7 @@ class ParcelServices {
 			$data['preferred_day_time_options'] = WC()->session->get( 'dhl_preferred_day_time_options' );
 			$data['logo_url']                   = Package::get_assets_url() . '/img/dhl-official.png';
 
-			wc_get_template( 'checkout/dhl/preferred-services.php', $data, '', Package::get_path() . '/templates/' );
+			wc_get_template( 'checkout/dhl/preferred-services.php', $data, Package::get_template_path(), Package::get_path() . '/templates/' );
 		}
 	}
 

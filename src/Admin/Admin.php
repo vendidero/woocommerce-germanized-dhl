@@ -31,9 +31,24 @@ class Admin {
 
 		// Bulk Labels
 		add_filter( 'woocommerce_gzd_shipments_bulk_action_handlers', array( __CLASS__, 'register_bulk_handler' ) );
-
 		add_action( 'woocommerce_gzd_shipments_bulk_action_labels_handled', array( __CLASS__, 'add_bulk_download' ), 10, 1 );
+
+		// Template check
+		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
 	}
+
+	public static function add_template_check( $check ) {
+		$check['dhl'] = array(
+			'title'             => __( 'DHL', 'woocommerce-germanized-dhl' ),
+			'path'              => Package::get_path() . '/templates',
+			'template_path'     => Package::get_template_path(),
+			'outdated_help_url' => $check['germanized']['outdated_help_url'],
+			'files'             => array(),
+			'has_outdated'      => false,
+		);
+
+		return $check;
+    }
 
 	/**
 	 * @param BulkLabel $handler

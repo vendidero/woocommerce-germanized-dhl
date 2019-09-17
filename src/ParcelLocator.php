@@ -713,7 +713,7 @@ class ParcelLocator {
 
 	public static function add_form() {
 
-		if ( ! is_checkout()&& ! is_wc_endpoint_url( 'edit-address' ) ) {
+		if ( ! is_checkout() && ! is_wc_endpoint_url( 'edit-address' ) ) {
 			return;
 		}
 
@@ -726,7 +726,7 @@ class ParcelLocator {
 			'is_parcelshop_enabled'  => self::is_parcelshop_enabled(),
 		);
 
-		wc_get_template( 'checkout/dhl/parcel-finder.php', $args, '', Package::get_path() . '/templates/' );
+		wc_get_template( 'checkout/dhl/parcel-finder.php', $args, Package::get_template_path(), Package::get_path() . '/templates/' );
 	}
 
 	public static function ajax_validate_address() {

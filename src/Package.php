@@ -231,6 +231,10 @@ class Package {
         return dirname( __DIR__ );
     }
 
+    public static function get_template_path() {
+	    return 'woocommerce-germanized/';
+    }
+
     /**
      * Return the path to the package.
      *
