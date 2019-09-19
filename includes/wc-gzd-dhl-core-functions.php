@@ -13,6 +13,7 @@ use Vendidero\Germanized\DHL\LabelQuery;
 use Vendidero\Germanized\DHL\Order;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
+use Vendidero\Germanized\DHL\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
@@ -114,13 +115,25 @@ function wc_gzd_dhl_get_labels( $args ) {
     return $query->get_labels();
 }
 
+function wc_gzd_dhl_get_current_shipping_method() {
+	$chosen_shipping_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods' ) : array();
+
+	if ( ! empty( $chosen_shipping_methods ) ) {
+		$method = wc_gzd_dhl_get_shipping_method( $chosen_shipping_methods[0] );
+
+		return $method;
+	}
+
+	return false;
+}
+
 function wc_gzd_dhl_get_services() {
     return array(
         'PreferredTime',
-        'VisualCheckOfAge',
         'PreferredLocation',
         'PreferredNeighbour',
         'PreferredDay',
+	    'VisualCheckOfAge',
         'Personally',
         'NoNeighbourDelivery',
         'NamedPersonOnly',
@@ -130,6 +143,23 @@ function wc_gzd_dhl_get_services() {
         'IdentCheck',
         'CashOnDelivery'
     );
+}
+
+function wc_gzd_dhl_get_shipping_method( $instance_id ) {
+
+	if ( ! is_numeric( $instance_id ) ) {
+		$expl        = explode( ':', $instance_id );
+		$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : $instance_id );
+	}
+
+	// Make sure shipping zones are loaded
+	include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
+
+	if ( $method = WC_Shipping_Zones::get_shipping_method( $instance_id ) ) {
+		return new ShippingMethod( $method );
+	}
+
+	return false;
 }
 
 function wc_gzd_dhl_get_preferred_services() {

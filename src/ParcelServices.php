@@ -2,7 +2,6 @@
 
 namespace Vendidero\Germanized\DHL;
 use Exception;
-use WC_DateTime;
 use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
@@ -13,14 +12,12 @@ defined( 'ABSPATH' ) || exit;
 class ParcelServices {
 
 	public static function init() {
-		if ( self::is_enabled() ) {
-			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'add_scripts' ) );
-			add_action( 'woocommerce_review_order_after_shipping', array( __CLASS__, 'add_fields' ), 100 );
-			add_action( 'woocommerce_cart_calculate_fees', array( __CLASS__, 'add_fees' ) );
-			add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate' ), 10, 2 );
-			add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'create_order' ), 10 );
-			add_filter( 'woocommerce_get_order_item_totals', array( __CLASS__, 'order_totals' ), 10, 2 );
-		}
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'add_scripts' ) );
+		add_action( 'woocommerce_review_order_after_shipping', array( __CLASS__, 'add_fields' ), 100 );
+		add_action( 'woocommerce_cart_calculate_fees', array( __CLASS__, 'add_fees' ) );
+		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate' ), 10, 2 );
+		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'create_order' ), 10 );
+		add_filter( 'woocommerce_get_order_item_totals', array( __CLASS__, 'order_totals' ), 10, 2 );
 	}
 
 	public static function order_totals( $total_rows, $order ) {
@@ -92,7 +89,7 @@ class ParcelServices {
 	public static function create_order( $order ) {
 		$posted_data = $_POST;
 
-		if ( self::is_available() ) {
+		if ( self::is_preferred_available() ) {
 			$data = self::get_data( $posted_data );
 
 			if ( ! $data['errors']->has_errors() ) {
@@ -120,7 +117,7 @@ class ParcelServices {
 	public static function validate( $data, $errors ) {
 		$posted_data = $_POST;
 
-		if ( self::is_available() ) {
+		if ( self::is_preferred_available() ) {
 			$data = self::get_data( $posted_data );
 
 			if ( $data['errors']->has_errors() ) {
@@ -143,7 +140,7 @@ class ParcelServices {
 			$post_data = $_POST;
 		}
 
-		if ( self::is_available( true ) ) {
+		if ( self::is_preferred_available( true ) ) {
 			$data = self::get_data( $post_data );
 
 			try {
@@ -178,90 +175,55 @@ class ParcelServices {
 		wp_register_script( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/js/preferred-services' . $suffix . '.js', $deps, Package::get_version(), true );
 		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/css/preferred-services' . $suffix . '.css', array(), Package::get_version() );
 
-		$excluded_gateways = self::get_excluded_payment_gateways();
-
 		wp_localize_script( 'wc-gzd-preferred-services-dhl', 'wc_gzd_dhl_preferred_services_params', array(
 			'ajax_url'                  => admin_url( 'admin-ajax.php' ),
-			'payment_gateways_excluded' => empty( $excluded_gateways ) ? false : true,
+			'payment_gateways_excluded' => false,
 		) );
 
 		wp_enqueue_script( 'wc-gzd-preferred-services-dhl' );
 		wp_enqueue_style( 'wc-gzd-preferred-services-dhl' );
 	}
 
-	protected static function get_excluded_payment_gateways() {
-		return (array) self::get_setting( 'payment_gateways_excluded' );
-	}
-
-	protected static function payment_gateway_supports_services( $method ) {
-		$methods = self::get_excluded_payment_gateways();
-
-		if ( ! empty( $methods ) && in_array( $method, $methods ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	protected static function get_enabled_shipping_methods() {
-		return (array) self::get_setting( 'shipping_methods_enabled' );
-	}
-
-	protected static function shipping_method_supports_services( $method ) {
-		$slug             = wc_gzd_dhl_get_shipping_method_slug( $method );
-		$methods          = self::get_enabled_shipping_methods();
-
-		if ( ! empty( $methods ) && in_array( $slug, $methods ) ) {
-			return true;
-		}
-
-		return false;
-	}
-
 	protected static function get_preferred_day_cost() {
-		$cost = self::get_setting( 'day_cost' );
+		$cost = self::get_setting( 'PreferredDay_cost' );
 
 		if ( empty( $cost ) ) {
 			$cost = 0;
 		}
-
-		$cost = 1.2;
 
 		return $cost;
 	}
 
 	protected static function get_preferred_time_cost() {
-		$cost = self::get_setting( 'time_cost' );
+		$cost = self::get_setting( 'PreferredTime_cost' );
 
 		if ( empty( $cost ) ) {
 			$cost = 0;
 		}
-
-		$cost = 5;
 
 		return $cost;
 	}
 
 	protected static function get_preferred_day_time_cost() {
-		$cost = self::get_setting( 'day_time_cost' );
+		$cost = self::get_setting( 'PreferredDay_combined_cost' );
 
 		if ( empty( $cost ) ) {
 			$cost = 0;
 		}
 
-		$cost = 5;
-
 		return $cost;
 	}
 
-	protected static function is_available( $check_day_transfer = false ) {
-		$chosen_shipping_methods = (array) WC()->session->get( 'chosen_shipping_methods' );
-		$chosen_payment_method   = (array) WC()->session->get( 'chosen_payment_method' );
+	protected static function is_preferred_enabled() {
+		return self::is_preferred_day_enabled() || self::is_preferred_time_enabled() || self::is_preferred_location_enabled() || self::is_preferred_neighbor_enabled();
+	}
+
+	protected static function is_preferred_available( $check_day_transfer = false ) {
 		$customer_country        = WC()->customer->get_shipping_country();
 		$display_preferred       = false;
 
 		// Preferred options are only for Germany customers
-		if ( Package::base_country_supports( 'services' ) && 'DE' === $customer_country ) {
+		if ( self::is_enabled() && 'DE' === $customer_country ) {
 
 			if ( $check_day_transfer ) {
 				foreach ( WC()->cart->get_cart() as $cart_item_key => $values ) {
@@ -269,18 +231,8 @@ class ParcelServices {
 				}
 			}
 
-			foreach ( $chosen_shipping_methods as $key => $value ) {
-				if ( self::shipping_method_supports_services( $value ) ) {
-					$display_preferred = true;
-					break;
-				}
-			}
-
-			foreach( $chosen_payment_method as $key => $method ) {
-				if ( ! self::payment_gateway_supports_services( $method ) ) {
-					$display_preferred = false;
-					break;
-				}
+			if ( self::is_preferred_enabled() ) {
+				$display_preferred = true;
 			}
 		}
 
@@ -425,7 +377,7 @@ class ParcelServices {
 			parse_str( $_POST['post_data'], $post_data );
 		}
 
-		if ( self::is_available( true ) ) {
+		if ( self::is_preferred_available( true ) ) {
 			$data = self::get_data( $post_data );
 
 			self::refresh_day_time_session();
@@ -438,27 +390,38 @@ class ParcelServices {
 	}
 
 	public static function is_enabled() {
-		return Package::base_country_supports( 'services' ) && ( self::is_preferred_day_enabled() || self::is_preferred_time_enabled() || self::is_preferred_location_enabled() || self::is_preferred_neighbor_enabled() );
+		return Package::base_country_supports( 'services' );
 	}
 
 	public static function is_preferred_day_enabled() {
-		return 'yes' === self::get_setting( 'day_enable' );
+		return 'yes' === self::get_setting( 'PreferredDay_enable' );
 	}
 
 	public static function is_preferred_time_enabled() {
-		return 'yes' === self::get_setting( 'time_enable' );
+		return 'yes' === self::get_setting( 'PreferredTime_enable' );
 	}
 
 	public static function is_preferred_location_enabled() {
-		return 'yes' === self::get_setting( 'location_enable' );
+		return 'yes' === self::get_setting( 'PreferredLocation_enable' );
 	}
 
 	public static function is_preferred_neighbor_enabled() {
-		return 'yes' === self::get_setting( 'neighbor_enable' );
+		return 'yes' === self::get_setting( 'PreferredNeighbour_enable' );
 	}
 
 	protected static function get_setting( $key ) {
-		$setting = Package::get_setting( "preferred_{$key}" );
+
+		if ( strpos( $key, 'Preferred' ) === false ) {
+			$key = 'preferred_' . $key;
+		}
+
+		if ( $method = wc_gzd_dhl_get_current_shipping_method() ) {
+			if ( $method->has_option( $key ) ) {
+				return $method->get_option( $key );
+			}
+		}
+
+		$setting = Package::get_setting( $key );
 
 		return $setting;
 	}

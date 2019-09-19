@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\DHL\Admin;
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
@@ -54,7 +55,7 @@ class Admin {
 	 * @param BulkLabel $handler
 	 */
 	public static function add_bulk_download( $handler ) {
-		if ( $path = $handler->get_file() ) {
+		if ( ( $path = $handler->get_file() ) && file_exists( $path ) ) {
 
 			$download_url = add_query_arg( array(
 				'action'   => 'wc-gzd-dhl-download-export-label',
@@ -62,7 +63,7 @@ class Admin {
 			), wp_nonce_url( admin_url(), 'dhl-download-export-label' ) );
 			?>
 			<div class="wc-gzd-dhl-bulk-downloads">
-				<a class="button button-primary" href="<?php echo $download_url; ?>" target="_blank"><?php _e( 'Download or print labels', 'woocommerce-germanized-dhl' ); ?></a>
+				<a class="button button-primary" href="<?php echo $download_url; ?>" target="_blank"><?php _e( 'Download labels', 'woocommerce-germanized-dhl' ); ?></a>
 			</div>
 			<?php
 		}
@@ -243,7 +244,8 @@ class Admin {
 
 	public static function get_screen_ids() {
 		$screen_ids = array(
-			'woocommerce_page_wc-gzd-shipments'
+			'woocommerce_page_wc-gzd-shipments',
+            'woocommerce_page_wc-settings',
 		);
 
 		foreach ( wc_get_order_types() as $type ) {

@@ -33,6 +33,19 @@ class LabelWatcher {
 
 		// Add shipment tracking url
 		add_filter( 'woocommerce_gzd_shipment_get_tracking_url', array( __CLASS__, 'add_tracking_url' ), 10, 2 );
+
+		add_action( 'woocommerce_gzd_shipment_synced', array( __CLASS__, 'maybe_set_shipping_provider' ), 10, 3 );
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 * @param \Vendidero\Germanized\Shipments\Order $order_shipment
+	 * @param array $args
+	 */
+	public static function maybe_set_shipping_provider( $shipment, $order_shipment, $args ) {
+		if ( ! isset( $args['shipping_provider'] ) ) {
+
+		}
 	}
 
 	/**
@@ -75,7 +88,7 @@ class LabelWatcher {
 		// Add tracking id to shipment
 		if ( ( $shipment = $label->get_shipment() ) && $label->get_number() ) {
 			$shipment->set_tracking_id( $label->get_number() );
-			$shipment->set_shipping_provider( 'dhl_paket' );
+			$shipment->set_shipping_provider( 'dhl' );
 			$shipment->save();
 		}
 	}

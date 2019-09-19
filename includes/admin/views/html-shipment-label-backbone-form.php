@@ -8,7 +8,6 @@ defined( 'ABSPATH' ) || exit;
 
 use Vendidero\Germanized\DHL\Package;
 
-// @TODO Parse defaults to show them in the options
 $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 ?>
 

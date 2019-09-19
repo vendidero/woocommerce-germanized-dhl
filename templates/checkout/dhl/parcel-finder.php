@@ -25,28 +25,23 @@ defined( 'ABSPATH' ) || exit;
                         <input type="text" name="dhl_parcelfinder_address" class="input-text" placeholder="<?php esc_attr_e( 'Address', 'woocommerce-germanized-dhl' ); ?>" id="dhl-parcelfinder-address" />
                     </p>
 
-		            <?php if ( $is_packstation_enabled ) : ?>
-                        <p class="form-row form-field packstation">
-                            <input type="checkbox" name="dhl_parcelfinder_packstation_filter" class="input-checkbox" id="dhl-packstation-filter" value="yes" checked />
-                            <label for="dhl-packstation-filter"><?php esc_attr_e( 'Packstation', 'woocommerce-germanized-dhl' ); ?></label>
-                            <span class="icon" style="background-image: url('<?php echo $img_packstation; ?>');"></span>
-                        </p>
-		            <?php endif; ?>
+                    <p class="form-row form-field finder-pickup-type packstation <?php echo ( ! $is_packstation_enabled ? 'hidden' : '' ); ?>" data-pickup_type="packstation">
+                        <input type="checkbox" name="dhl_parcelfinder_packstation_filter" class="input-checkbox" id="dhl-packstation-filter" value="yes" <?php echo ( $is_packstation_enabled ? 'checked="checked"' : '' ); ?> />
+                        <label for="dhl-packstation-filter"><?php esc_attr_e( 'Packstation', 'woocommerce-germanized-dhl' ); ?></label>
+                        <span class="icon" style="background-image: url('<?php echo $img_packstation; ?>');"></span>
+                    </p>
 
-		            <?php if( $is_parcelshop_enabled || $is_postoffice_enabled ) : ?>
-                        <p class="form-row form-field parcelshop">
-                            <input type="checkbox" name="dhl_parcelfinder_branch_filter" class="input-checkbox" placeholder="" id="dhl-branch-filter" value="yes" checked />
-                            <label for="dhl-branch-filter"><?php esc_attr_e( 'Branch', 'woocommerce-germanized-dhl' ); ?></label>
-                            <span class="parcel-wrap">
-                                <?php if( $is_parcelshop_enabled ) : ?>
-                                    <span class="icon" style="background-image: url('<?php echo $img_parcelshop; ?>');"></span>
-                                <?php endif; ?>
-                                <?php if( $is_postoffice_enabled ) : ?>
-                                    <span class="icon" style="background-image: url('<?php echo $img_postoffice; ?>');"></span>
-                                <?php endif; ?>
-                            </span>
-                        </p>
-		            <?php endif; ?>
+                    <p class="form-row form-field finder-pickup-type parcelshop <?php echo ( ! $is_parcelshop_enabled ? 'hidden' : '' ); ?>" data-pickup_type="parcelshop">
+                        <input type="checkbox" name="dhl_parcelfinder_parcelshop_filter" class="input-checkbox" id="dhl-parcelshop-filter" value="yes" <?php echo ( $is_parcelshop_enabled ? 'checked="checked"' : '' ); ?> />
+                        <label for="dhl-parcelshop-filter"><?php esc_attr_e( 'Parcelshop', 'woocommerce-germanized-dhl' ); ?></label>
+                        <span class="icon" style="background-image: url('<?php echo $img_parcelshop; ?>');"></span>
+                    </p>
+
+                    <p class="form-row form-field finder-pickup-type postoffice <?php echo ( ! $is_postoffice_enabled ? 'hidden' : '' ); ?>" data-pickup_type="postoffice">
+                        <input type="checkbox" name="dhl_parcelfinder_postoffice_filter" class="input-checkbox" id="dhl-postoffice-filter" value="yes" <?php echo ( $is_postoffice_enabled ? 'checked="checked"' : '' ); ?> />
+                        <label for="dhl-postoffice-filter"><?php esc_attr_e( 'Postoffice', 'woocommerce-germanized-dhl' ); ?></label>
+                        <span class="icon" style="background-image: url('<?php echo $img_postoffice; ?>');"></span>
+                    </p>
 
                     <p id="dhl-search-button" class="form-row form-field small">
                         <input type="submit" class="button" name="apply_parcel_finder" value="<?php esc_attr_e( 'Search', 'woocommerce-germanized-dhl' ); ?>" />

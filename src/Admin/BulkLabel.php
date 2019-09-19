@@ -62,6 +62,14 @@ class BulkLabel extends BulkActionHandler {
 		return '';
 	}
 
+	public function reset( $is_new = false ) {
+		parent::reset( $is_new );
+
+		if ( $is_new ) {
+			delete_user_option( get_current_user_id(), $this->get_file_option_name() );
+		}
+	}
+
 	public function get_success_message() {
 		return __( 'Successfully generated labels.', 'woocommerce-germanized-dhl' );
 	}

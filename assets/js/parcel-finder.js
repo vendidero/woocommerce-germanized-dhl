@@ -23,6 +23,28 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
                 .on( 'submit', '#dhl-parcel-finder-wrapper #dhl-parcel-finder-form', self.onSubmit )
                 .on( 'click', '#dhl-parcel-finder-wrapper .dhl-retry-search', self.onSubmit )
                 .on( 'click', '#dhl-parcel-finder-wrapper .dhl-parcelshop-select-btn', self.onSelectShop );
+
+            $( document.body ).bind( 'woocommerce_gzd_dhl_location_available_pickup_types_changed', self.onChangeAvailablePickupTypes );
+        },
+
+        onChangeAvailablePickupTypes: function() {
+            var self       = germanized.dhl_parcel_finder,
+                loc        = germanized.dhl_parcel_locator,
+                $modal     = self.getModal(),
+                method     = loc.getShippingMethod(),
+                methodData = loc.getShippingMethodData( method );
+
+            if ( methodData ) {
+
+                $modal.find( '.finder-pickup-type' ).addClass( 'hidden' );
+
+                $.each( methodData.supports, function( i, pickupType ) {
+                    var $type = $modal.find( '.finder-pickup-type[data-pickup_type="' + pickupType + '"]' );
+
+                    $type.find( 'input[type=checkbox]' ).prop( 'checked', true );
+                    $type.removeClass( 'hidden' );
+                });
+            }
         },
 
         openModal: function() {
@@ -65,7 +87,7 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
                 params['security'] = self.params.parcel_finder_nonce;
             }
 
-            $wrapper.block({
+            $wrapper.find( '#dhl-parcel-finder-map' ).block({
                 message: null,
                 overlayCSS: {
                     background: '#fff',
@@ -81,11 +103,11 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
                 data: params,
                 success: function( data ) {
                     if ( data.success ) {
-                        $wrapper.unblock();
+                        $wrapper.find( '#dhl-parcel-finder-map' ).unblock();
                         cSuccess.apply( $wrapper, [ data ] );
                     } else {
                         cError.apply( $wrapper, [ data ] );
-                        $wrapper.unblock();
+                        $wrapper.find( '#dhl-parcel-finder-map' ).unblock();
 
                         if ( data.hasOwnProperty( 'message' ) ) {
                             self.addNotice( data.message, 'error', $wrapper );

@@ -6,6 +6,16 @@
   }
 }
 
+.wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
+  margin-top: 1em;
+  line-height: 1.5em;
+  background: #efefef;
+  padding: .5em;
+  font-style: normal;
+  font-size: 13px;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+}
+
 .germanized-create-label {
   .notice-wrapper {
     .notice {
@@ -115,14 +125,21 @@
 }
 
 .wc-gzd-shipment-dhl-label {
-  .shipment-dhl-label-actions {
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    align-items: center;
+  h4 {
+    margin-top: 0;
+  }
 
-    .shipment-dhl-label-actions-left {
-      margin-right: 1em;
+  .shipment-dhl-label-actions {
+    .shipment-dhl-label-actions-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-bottom: 1em;
+      align-items: center;
+
+      a {
+        margin-right: 1em;
+      }
     }
   }
 }

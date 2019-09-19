@@ -37,13 +37,42 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
         },
 
         refreshAvailability: function() {
-            var self = germanized.dhl_parcel_locator;
+            var self           = germanized.dhl_parcel_locator,
+                shippingMethod = self.getShippingMethod(),
+                methodData     = self.getShippingMethodData( shippingMethod );
 
             if ( ! self.isAvailable() ) {
                 $( self.wrapper + ' #shipping_address_type' ).val( 'regular' ).trigger( 'change' );
                 $( self.wrapper + ' #shipping_address_type_field' ).hide();
             } else {
-                $( self.wrapper + ' #shipping_address_type_field' ).show();
+                var $typeField = $( self.wrapper + ' #shipping_address_type' );
+                var selected   = $typeField.val();
+
+                $typeField.html( '' );
+
+                if ( methodData ) {
+
+                    $.each( methodData.address_type_options, function( name, title ) {
+                        $typeField.append( $( '<option/>', {
+                            value: name,
+                            text : title
+                        }));
+                    });
+
+                    if ( $typeField.find( 'option[value="' + selected + '"]' ).length > 0 ) {
+                        $typeField.find( 'option[value="' + selected + '"]' ).prop( 'selected', true );
+                    }
+
+                    $typeField.trigger( 'change' );
+                }
+
+                if ( $typeField.find( 'option' ).length > 0 ) {
+                    $( self.wrapper + ' #shipping_address_type_field' ).show();
+                } else {
+                    $( self.wrapper + ' #shipping_address_type_field' ).hide();
+                }
+
+                $( document.body ).trigger( 'woocommerce_gzd_dhl_location_available_pickup_types_changed' );
             }
          },
 
@@ -124,6 +153,20 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             return false;
         },
 
+        shippingMethodSupportsPickupType: function( method, pickupType ) {
+            var self     = germanized.dhl_parcel_locator,
+                data     = self.getShippingMethodData( method ),
+                supports = false;
+
+            if ( data ) {
+                if ( $.inArray( pickupType, data.supports ) !== -1 ) {
+                    supports = true;
+                }
+            }
+
+            return supports;
+        },
+
         customerNumberIsMandatory: function() {
             var self = germanized.dhl_parcel_locator;
 
@@ -186,14 +229,33 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             });
         },
 
+        getShippingMethodData: function( method ) {
+            var self = germanized.dhl_parcel_locator;
+
+            if ( self.params.methods.hasOwnProperty( method ) ) {
+                return self.params.methods[ method ];
+            }
+
+            return false;
+        },
+
         refreshAddressType: function() {
             var self           = germanized.dhl_parcel_locator,
                 $addressField  = $( self.wrapper + ' #shipping_address_1_field' ),
                 $addressInput  = $( self.wrapper + ' #shipping_address_1' ),
+                shippingMethod = self.getShippingMethod(),
+                methodData     = self.getShippingMethodData( shippingMethod ),
                 address        = $addressInput.val(),
                 $spans;
 
             if ( self.isEnabled() ) {
+
+                if ( methodData ) {
+                    $addressInput.data( 'label-dhl',methodData.street_label );
+                    $addressInput.data( 'placeholder-dhl', methodData.street_placeholder );
+                    $addressInput.data( 'desc-dhl', methodData.finder_button );
+                }
+
                 $( self.wrapper + ' #shipping_dhl_postnumber_field' ).show();
 
                 if ( $addressInput.data( 'label-dhl' ) ) {
@@ -208,9 +270,8 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 }
 
                 if ( $addressInput.data( 'desc-dhl' ) ) {
-                    if ( $addressField.find( '.dhl-desc' ).length === 0 ) {
-                        $addressField.find( '.woocommerce-input-wrapper' ).after( '<p class="desc dhl-desc">' + $addressInput.data( 'desc-dhl' ) + '</p>' );
-                    }
+                    $addressField.find( '.dhl-desc' ).remove();
+                    $addressField.find( '.woocommerce-input-wrapper' ).after( '<p class="desc dhl-desc">' + $addressInput.data( 'desc-dhl' ) + '</p>' );
                 }
 
                 if ( address.length > 0 ) {
@@ -240,8 +301,9 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             return self.isAvailable() && $( self.wrapper + ' #shipping_address_type' ).val() === 'dhl';
         },
 
-        getShippingMethod: function() {
-            var current = '';
+        getShippingMethod: function( pwithInstanceId ) {
+            var current        = '';
+            var withInstanceId = pwithInstanceId ? pwithInstanceId : true;
 
             if ( $( 'select.shipping_method' ).length > 0 ) {
                 current = $( 'select.shipping_method' ).val();
@@ -251,29 +313,47 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 current = $( 'input[name^="shipping_method"][type="hidden"]' ).val();
             }
 
-            console.log(current);
+            if ( ! withInstanceId ) {
+                if ( 'undefined' !== typeof current && current.length > 0 ) {
+                    var currentParts = current.split(':');
 
-            if ( 'undefined' !== typeof current && current.length > 0 ) {
-                var currentParts = current.split(':');
-
-                if ( currentParts.length > 0 ) {
-                    current = currentParts[0];
+                    if ( currentParts.length > 0 ) {
+                        current = currentParts[0];
+                    }
                 }
             }
 
             return current;
         },
 
+        pickupTypeIsAvailable: function( pickupType ) {
+            var self            = germanized.dhl_parcel_locator,
+                shippingMethod  = self.getShippingMethod(),
+                isAvailable     = true;
+
+            if ( ! self.shippingMethodSupportsPickupType( shippingMethod, pickupType ) ) {
+                isAvailable = false;
+            }
+
+            return isAvailable;
+        },
+
         isAvailable: function() {
             var self            = germanized.dhl_parcel_locator,
                 shippingCountry = $( self.wrapper + ' #shipping_country' ).val(),
-                shippingMethod  = self.getShippingMethod();
+                shippingMethod  = self.getShippingMethod(),
+                methodData      = self.getShippingMethodData( shippingMethod ),
+                isAvailable     = true;
 
-            if ( $.inArray( shippingCountry, self.params.supported_countries ) !== -1 && $.inArray( shippingMethod, self.params.excluded_methods ) === -1 ) {
-                return true;
-            } else {
-                return false;
+            if ( $.inArray( shippingCountry, self.params.supported_countries ) === -1 ) {
+                isAvailable = false;
             }
+
+            if ( ! methodData || methodData.supports.length === 0 ) {
+                isAvailable = false;
+            }
+
+            return isAvailable;
         }
     };
 

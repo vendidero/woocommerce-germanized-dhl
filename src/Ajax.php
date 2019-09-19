@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL;
 
 use Exception;
+use Vendidero\Germanized\DHL\Admin\MetaBox;
 use Vendidero\Germanized\DHL\Package;
 use WP_Error;
 
@@ -202,15 +203,14 @@ class Ajax {
 	}
 
 	protected static function refresh_label_html( $p_shipment, $p_label = false ) {
-		$shipment       = $p_shipment;
-		$dhl_order      = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$shipment = $p_shipment;
 
 		if ( $p_label ) {
-			$dhl_label      = $p_label;
+			$dhl_label = $p_label;
 		}
 
 		ob_start();
-		include( Package::get_path() . '/includes/admin/views/html-shipment-label.php' );
+		MetaBox::output( $shipment, $dhl_label );
 		$html = ob_get_clean();
 
 		return $html;

@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\DHL;
 use Exception;
 use PDFMerger\Pdf;
 use Vendidero\Germanized\DHL\Api\Paket;
+use WC_Shipping;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,6 +29,8 @@ class Package {
 	protected static $holidays = array();
 
 	protected static $api = null;
+
+	protected static $method_settings = null;
 
     /**
      * Init the package - load the REST API Server class.
@@ -62,7 +65,7 @@ class Package {
     public static function base_country_supports( $type = 'services' ) {
 		$base_country = self::get_base_country();
 
-		if ( 'services' === $type ) {
+		if ( 'services' === $type || 'returns' === $type || 'pickup' === $type ) {
 			return 'DE' === $base_country;
 		}
 
@@ -127,7 +130,10 @@ class Package {
 		        ParcelLocator::init();
 	        }
 
-	        ParcelServices::init();
+	        if ( ParcelServices::is_enabled() ) {
+	        	ParcelServices::init();
+	        }
+
 	        Ajax::init();
 	        LabelWatcher::init();
 	        Automation::init();
@@ -140,11 +146,60 @@ class Package {
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_providers' ), 10, 1 );
 
+	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
+	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
+
 	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
 
+	public static function set_method_filters( $methods ) {
+
+		foreach ( $methods as $method => $class ) {
+			add_filter( 'woocommerce_shipping_instance_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
+			add_filter( 'woocommerce_shipping_' . $method . '_instance_settings_values', array( __CLASS__, 'filter_method_settings' ), 10, 2 );
+		}
+
+		return $methods;
+	}
+
+	protected static function get_method_settings() {
+    	if ( is_null( self::$method_settings ) ) {
+    		self::$method_settings = include Package::get_path() . '/includes/admin/views/settings-shipping-method.php';
+	    }
+
+    	return self::$method_settings;
+	}
+
+	public static function filter_method_settings( $p_settings, $method ) {
+		$dhl_settings = self::get_method_settings();
+
+		foreach( $p_settings as $setting => $value ) {
+			if ( array_key_exists( $setting, $dhl_settings ) ) {
+				if ( self::get_setting( $setting ) === $value ) {
+					unset( $p_settings[ $setting ] );
+				}
+			}
+		}
+
+		return $p_settings;
+	}
+
+	public static function add_method_settings( $p_settings ) {
+		$dhl_settings = self::get_method_settings();
+
+		return array_merge( $p_settings, $dhl_settings );
+	}
+
+	public static function load_shipping_methods( $package ) {
+		$shipping = WC_Shipping::instance();
+
+		foreach( $shipping->shipping_methods as $key => $method ) {
+			$dhl_method = new ShippingMethod( $method );
+		}
+	}
+
 	public static function add_shipping_providers( $providers ) {
-		$providers['dhl_paket'] = __( 'DHL Paket', 'woocommerce-germanized-dhl' );
+		$providers['dhl'] = __( 'DHL', 'woocommerce-germanized-dhl' );
 
 		return $providers;
 	}
