@@ -54,6 +54,7 @@ class Label extends WC_Data {
         'date_created'               => null,
         'shipment_id'                => 0,
         'number'                     => '',
+        'weight'                     => '',
         'return_number'              => '',
         'path'                       => '',
         'default_path'               => '',
@@ -150,6 +151,10 @@ class Label extends WC_Data {
 
     public function get_number( $context = 'view' ) {
         return $this->get_prop( 'number', $context );
+    }
+
+    public function get_weight( $context = 'view' ) {
+    	return $this->get_prop( 'weight', $context );
     }
 
     public function get_tracking_url() {
@@ -402,6 +407,10 @@ class Label extends WC_Data {
     public function set_number( $number ) {
         $this->set_prop( 'number', $number );
     }
+
+	public function set_weight( $weight ) {
+		$this->set_prop( 'weight','' !== $weight ? wc_format_decimal( $weight ) : '' );
+	}
 
 	public function set_return_number( $number ) {
 		$this->set_prop( 'return_number', $number );

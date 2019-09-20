@@ -83,12 +83,16 @@ class BulkLabel extends BulkActionHandler {
 
 				if ( ! $label ) {
 					if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-						$response = wc_gzd_dhl_create_label( $shipment );
 
-						if ( is_wp_error( $response ) ) {
-							$this->add_notice( sprintf( __( 'Error while creating label for %s: %s', 'woocommerce-germanized-dhl' ), '<a href="' . $shipment->get_edit_shipment_url() .'" target="_blank">' . sprintf( __( 'shipment #%d', 'woocommerce-germanized-dhl' ), $shipment_id ) . '</a>', $response->get_error_message() ), 'error' );
-						} else {
-							$label = $response;
+						// Do only generate label for shipments that support DHL
+						if ( wc_gzd_dhl_shipment_has_dhl( $shipment ) ) {
+							$response = wc_gzd_dhl_create_label( $shipment );
+
+							if ( is_wp_error( $response ) ) {
+								$this->add_notice( sprintf( __( 'Error while creating label for %s: %s', 'woocommerce-germanized-dhl' ), '<a href="' . $shipment->get_edit_shipment_url() .'" target="_blank">' . sprintf( __( 'shipment #%d', 'woocommerce-germanized-dhl' ), $shipment_id ) . '</a>', $response->get_error_message() ), 'error' );
+							} else {
+								$label = $response;
+							}
 						}
 					}
 				}

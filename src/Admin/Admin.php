@@ -83,7 +83,7 @@ class Admin {
 
 	public static function table_label_generate( $shipment ) {
 
-		if ( ! wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+		if ( wc_gzd_dhl_shipment_has_dhl( $shipment ) && ! wc_gzd_dhl_get_shipment_label( $shipment ) ) {
 			include Package::get_path() . '/includes/admin/views/html-shipment-label-backbone.php';
 		}
 	}
@@ -100,7 +100,7 @@ class Admin {
 				'action' => 'download-dhl-label download',
 				'target' => '_blank'
 			);
-		} else {
+		} elseif ( wc_gzd_dhl_shipment_has_dhl( $shipment ) ) {
 			$actions['generate_dhl_label'] = array(
 				'url'    => '#',
 				'name'   => __( 'Generate DHL label', 'woocommerce-germanized-dhl' ),

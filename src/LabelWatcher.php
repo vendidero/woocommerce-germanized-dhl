@@ -43,8 +43,14 @@ class LabelWatcher {
 	 * @param array $args
 	 */
 	public static function maybe_set_shipping_provider( $shipment, $order_shipment, $args ) {
-		if ( ! isset( $args['shipping_provider'] ) ) {
+		if ( $shipping_method = $shipment->get_shipping_method() ) {
 
+			if ( $dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method ) ) {
+
+				if ( $dhl_shipping_method->is_dhl_enabled() ) {
+					$shipment->set_shipping_provider( 'dhl' );
+				}
+			}
 		}
 	}
 
@@ -88,7 +94,6 @@ class LabelWatcher {
 		// Add tracking id to shipment
 		if ( ( $shipment = $label->get_shipment() ) && $label->get_number() ) {
 			$shipment->set_tracking_id( $label->get_number() );
-			$shipment->set_shipping_provider( 'dhl' );
 			$shipment->save();
 		}
 	}
@@ -113,7 +118,6 @@ class LabelWatcher {
 		// Remove shipment data
 		if ( ( $shipment = $label->get_shipment() ) ) {
 			$shipment->set_tracking_id( '' );
-			$shipment->set_shipping_provider( '' );
 			$shipment->save();
 		}
 	}

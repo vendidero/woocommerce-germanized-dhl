@@ -51,7 +51,7 @@ function wc_gzd_dhl_get_preferred_times_select_options( $times ) {
 	return $preferred_times;
 }
 
-function wc_gzd_dhl_get_preferred_days_select_options( $days ) {
+function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
 	$preferred_days = array( 0 => _x( 'None', 'day context', 'woocommerce-germanized-dhl' ) );
 
 	if ( ! empty( $days ) ) {
@@ -66,6 +66,10 @@ function wc_gzd_dhl_get_preferred_days_select_options( $days ) {
 			$formatted_day  = date_i18n( wc_date_format(), strtotime( $day ) );
 			$preferred_days = array_merge( $preferred_days, array( $day => $formatted_day ) );
 		}
+	}
+
+	if ( ! empty( $current ) ) {
+		$preferred_days[ $current ] = date_i18n( wc_date_format(), strtotime( $current ) );
 	}
 
 	return $preferred_days;
@@ -150,6 +154,10 @@ function wc_gzd_dhl_get_shipping_method( $instance_id ) {
 	if ( ! is_numeric( $instance_id ) ) {
 		$expl        = explode( ':', $instance_id );
 		$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : $instance_id );
+	}
+
+	if ( empty( $instance_id ) ) {
+		return false;
 	}
 
 	// Make sure shipping zones are loaded
@@ -461,6 +469,23 @@ function wc_gzd_dhl_format_label_state( $state, $country ) {
 	return $state;
 }
 
+/**
+ * @param Shipment $shipment
+ */
+function wc_gzd_dhl_shipment_has_dhl( $shipment ) {
+	$supports_dhl = false;
+
+	if ( is_numeric( $shipment ) ) {
+		$shipment = wc_gzd_get_shipment( $shipment );
+	}
+
+	if ( $shipment ) {
+		$supports_dhl = ( 'dhl' === $shipment->get_shipping_provider() );
+	}
+
+	return apply_filters( 'woocommerce_gzd_dhl_shipment_has_dhl', $supports_dhl, $shipment );
+}
+
 function wc_gzd_dhl_update_label( $label, $args = array() ) {
 	try {
 		$shipment = $label->get_shipment();
@@ -502,41 +527,96 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
  * @param Shipment $shipment
  */
 function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
+
+	$shipping_method     = $shipment->get_shipping_method();
+	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
+	$shipment_weight     = $shipment->get_weight();
+
 	$defaults = array(
-		'dhl_product' => wc_gzd_dhl_get_default_product( $shipment->get_country() ),
-		'services'    => array(),
+		'dhl_product'           => wc_gzd_dhl_get_default_product( $shipment->get_country(), $dhl_shipping_method ),
+		'services'              => array(),
+		'codeable_address_only' => Package::get_setting( 'label_address_codeable_only', $dhl_shipping_method ),
+		'weight'                => empty( $shipment_weight ) ? Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ) : wc_get_weight( $shipment_weight, 'kg' ),
 	);
+
+	if ( $dhl_order->supports_email_notification() ) {
+		$defaults['email_notification'] = 'yes';
+	}
 
 	if ( $dhl_order->has_cod_payment() ) {
 		$defaults['cod_total'] = $shipment->get_total();
 	}
 
-	// @TODO choose a default duty
 	if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
-		$defaults['duties'] = 'DDP';
-	} else {
-		$defaults['codeable_address_only'] = wc_string_to_bool( Package::get_setting( 'codeable_address_only' ) );
 
-		if ( $dhl_order->has_preferred_day() ) {
-			$defaults['preferred_day'] = $dhl_order->get_preferred_day()->format( 'Y-m-d' );
+		$defaults['duties'] = Package::get_setting( 'label_default_duty', $dhl_shipping_method );
+
+	} elseif ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
+
+		if ( Package::base_country_supports( 'services' ) ) {
+
+			if ( $dhl_order->has_preferred_day() ) {
+				$defaults['preferred_day'] = $dhl_order->get_preferred_day()->format( 'Y-m-d' );
+			}
+
+			if ( $dhl_order->has_preferred_time() ) {
+				$defaults['preferred_time']       = $dhl_order->get_preferred_time();
+				$defaults['preferred_time_start'] = $dhl_order->get_preferred_time_start()->format( 'H:i' );
+				$defaults['preferred_time_end']   = $dhl_order->get_preferred_time_end()->format( 'H:i' );
+			}
+
+			if ( $dhl_order->has_preferred_location() ) {
+				$defaults['preferred_location'] = $dhl_order->get_preferred_location();
+			}
+
+			if ( $dhl_order->has_preferred_neighbor() ) {
+				$defaults['preferred_neighbor'] = $dhl_order->get_preferred_neighbor_formatted_address();
+			}
+
+			if ( 'none' !== Package::get_setting( 'label_visual_min_age', $dhl_shipping_method ) ) {
+				$defaults['services'][]     = 'VisualCheckOfAge';
+				$defaults['visual_min_age'] = Package::get_setting( 'label_visual_min_age', $dhl_shipping_method );
+			}
+
+			if ( $dhl_order->needs_age_verification() && 'yes' === Package::get_setting( 'label_auto_age_check_sync', $dhl_shipping_method ) ) {
+				$defaults['services'][]     = 'VisualCheckOfAge';
+				$defaults['visual_min_age'] = $dhl_order->get_min_age();
+			}
+
+			foreach( wc_gzd_dhl_get_services() as $service ) {
+
+				// Combination is not available
+				if ( $defaults['visual_min_age'] !== 'none' && 'NamedPersonOnly' === $service ) {
+					continue;
+				}
+
+				if ( 'yes' === Package::get_setting( 'label_service_' . $service, $dhl_shipping_method ) ) {
+					$defaults['services'][] = $service;
+				}
+			}
+
+			// Demove duplicates
+			$defaults['services'] = array_unique( $defaults['services'] );
 		}
 
-		if ( $dhl_order->has_preferred_time() ) {
-			$defaults['preferred_time']       = $dhl_order->get_preferred_time();
-			$defaults['preferred_time_start'] = $dhl_order->get_preferred_time_start()->format( 'H:i' );
-			$defaults['preferred_time_end']   = $dhl_order->get_preferred_time_end()->format( 'H:i' );
-		}
+		if ( Package::base_country_supports( 'returns' ) ) {
 
-		if ( $dhl_order->has_preferred_location() ) {
-			$defaults['preferred_location'] = $dhl_order->get_preferred_location();
-		}
+			if ( 'yes' === Package::get_setting( 'label_auto_return_label', $dhl_shipping_method ) ) {
+				$defaults['has_return'] = 'yes';
 
-		if ( $dhl_order->has_preferred_neighbor() ) {
-			$defaults['preferred_neighbor'] = $dhl_order->get_preferred_neighbor_formatted_address();
+				$defaults['return_address'] = array(
+					'name'          => Package::get_setting( 'return_address_name' ),
+					'company'       => Package::get_setting( 'return_address_company' ),
+					'street'        => Package::get_setting( 'return_address_street' ),
+					'street_number' => Package::get_setting( 'return_address_street_no' ),
+					'postcode'      => Package::get_setting( 'return_address_postcode' ),
+					'city'          => Package::get_setting( 'return_address_city' ),
+					'phone'         => Package::get_setting( 'return_address_phone' ),
+					'email'         => Package::get_setting( 'return_address_email' ),
+				);
+			}
 		}
 	}
-
-	// @TODO set other defaults e.g. age check
 
 	return $defaults;
 }
@@ -680,11 +760,11 @@ function wc_gzd_dhl_get_products( $shipping_country ) {
 	}
 }
 
-function wc_gzd_dhl_get_default_product( $country ) {
+function wc_gzd_dhl_get_default_product( $country, $method = false ) {
 	if ( Package::is_crossborder_shipment( $country ) ) {
-		return Package::get_setting( 'label_default_product_int' );
+		return Package::get_setting( 'label_default_product_int', $method );
 	} else {
-		return Package::get_setting( 'label_default_product_dom' );
+		return Package::get_setting( 'label_default_product_dom', $method );
 	}
 }
 

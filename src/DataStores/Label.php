@@ -55,7 +55,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
         '_services',
 	    '_duties',
 	    '_return_number',
-	    '_cod_total'
+	    '_cod_total',
+	    '_weight'
     );
 
     /*

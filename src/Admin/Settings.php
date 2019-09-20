@@ -163,6 +163,7 @@ class Settings {
 
 		$select_dhl_product_dom = wc_gzd_dhl_get_products_domestic();
 		$select_dhl_product_int = wc_gzd_dhl_get_products_international();
+		$duties                 = wc_gzd_dhl_get_duties();
 
 		$settings = array(
 			array(
@@ -186,12 +187,34 @@ class Settings {
 			),
 
 			array(
+				'title'             => __( 'Default Duty', 'woocommerce-germanized-dhl' ),
+				'type'              => 'select',
+				'default'           => 'DDP',
+				'id'                => 'woocommerce_gzd_dhl_label_default_duty',
+				'desc'              => __( 'Please select a default duty type.', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => true,
+				'options'           => $duties,
+				'class'             => 'wc-enhanced-select',
+			),
+
+			array(
 				'title' 	        => __( 'Codeable', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => __( 'Generate label only if address is codeable.', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_address_codeable_only',
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 				'desc_tip'          => __( 'Choose this option if you want to make sure that by default labels are only generated for codeable addresses.', 'woocommerce-germanized-dhl' ),
+			),
+
+			array(
+				'title'             => __( 'Default weight', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => __( 'Choose a default shipment weight to be used for labels if no weight has been applied to the shipment.', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => true,
+				'id' 		        => 'woocommerce_gzd_dhl_label_default_shipment_weight',
+				'default'           => '2',
+				'css'               => 'max-width: 60px;',
+				'class'             => 'wc_input_decimal',
 			),
 		);
 

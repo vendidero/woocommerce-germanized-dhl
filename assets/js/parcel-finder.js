@@ -145,12 +145,15 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
 
         onSubmit: function( e ) {
             var self       = germanized.dhl_parcel_finder,
+                loc        = germanized.dhl_parcel_locator,
                 $modal     = self.getModal(),
                 $content   = $modal.find( '#dhl-parcel-finder' ),
                 $form      = $content.find( 'form' ),
                 params     = self.getFormData( $form );
 
-            params['action'] = 'woocommerce_gzd_dhl_parcelfinder_search';
+            params['action']      = 'woocommerce_gzd_dhl_parcelfinder_search';
+            params['is_checkout'] = loc.isCheckout() ? 'yes' : 'no';
+
             self.doAjax( params, $content, self.onSubmitSuccess );
 
             return false;

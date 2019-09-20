@@ -155,6 +155,34 @@ class Order {
 		return $prop_data;
 	}
 
+	public function supports_email_notification() {
+		return wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() );
+	}
+
+	public function get_min_age() {
+		$min_age = wc_gzd_get_order_min_age( $this->get_order() );
+		$ages    = wc_gzd_dhl_get_visual_min_ages();
+
+		if ( empty( $min_age ) || ! array_key_exists( 'A' . $min_age, $ages ) ) {
+			$min_age = '';
+		} else {
+			$min_age = 'A' . $min_age;
+		}
+
+		return $min_age;
+	}
+
+	public function needs_age_verification() {
+		$min_age            = $this->get_min_age();
+		$needs_verification = false;
+
+		if ( ! empty( $min_age ) ) {
+			$needs_verification = true;
+		}
+
+		return apply_filters( 'woocommerce_gzd_dhl_order_needs_age_verificaton', $needs_verification, $this );
+	}
+
 	public function has_cod_payment() {
 		$result = false;
 

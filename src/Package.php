@@ -464,7 +464,13 @@ class Package {
     	return self::get_setting( 'participation_' . $product );
     }
 
-    public static function get_setting( $name ) {
+	/**
+	 * @param $name
+	 * @param bool|ShippingMethod $method
+	 *
+	 * @return mixed|void
+	 */
+    public static function get_setting( $name, $method = false ) {
 
     	if ( self::is_debug_mode() ) {
 			if( 'api_username' === $name ) {
@@ -474,9 +480,13 @@ class Package {
 			}
 	    }
 
-    	$option_name = "woocommerce_gzd_dhl_{$name}";
+    	if ( $method ) {
+    		if ( $method->has_option( $name ) ) {
+    			return $method->get_option( $name );
+		    }
+	    }
 
-		return get_option( $option_name );
+		return get_option( "woocommerce_gzd_dhl_{$name}" );
     }
 
     public static function log( $message, $type = 'info' ) {

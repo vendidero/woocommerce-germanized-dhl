@@ -44,6 +44,11 @@ class ParcelLocator {
 		add_filter( 'woocommerce_process_myaccount_field_shipping_dhl_postnumber', array( __CLASS__, 'validate_address_postnumber' ), 10, 1 );
 
 		/**
+		 * Profile Hooks
+		 */
+		add_filter( 'woocommerce_customer_meta_fields', array( __CLASS__, 'admin_profile_fields' ), 10, 1 );
+
+		/**
 		 * Address Hooks
 		 */
 		add_filter( 'woocommerce_order_formatted_shipping_address', array( __CLASS__, 'set_formatted_shipping_address' ), 20, 2 );
@@ -63,8 +68,35 @@ class ParcelLocator {
 		}
 	}
 
+	public static function admin_profile_fields( $fields ) {
+
+		if ( ! self::is_available() ) {
+			return $fields;
+		}
+
+		$fields['shipping']['fields']['shipping_address_type'] = array(
+			'label'       => __( 'Address Type', 'woocommerce-germanized-dhl' ),
+			'type'		  => 'select',
+			'options'     => self::get_address_types(),
+			'description' => __( 'Select whether delivery to parcel shop should be enabled.', 'woocommerce-germanized-dhl' ),
+			'class'       => '',
+			'priority'    => 50,
+		);
+		$fields['shipping']['fields']['shipping_dhl_postnumber'] = array(
+			'label'       => __( 'Postnumber', 'woocommerce-germanized-dhl' ),
+			'type'		  => 'text',
+			'description' => __( 'In case delivery to packstation is selected please fill in the corresponding DHL post number.', 'woocommerce-germanized-dhl' ),
+			'priority'    => 60,
+		);
+		return $fields;
+	}
+
 	public static function manipulate_address_fields( $fields ) {
 		global $wp;
+
+		if ( ! self::is_available() ) {
+			return $fields;
+		}
 
 		if ( 'POST' !== strtoupper( $_SERVER['REQUEST_METHOD'] ) ) {
 			return $fields;
@@ -83,13 +115,18 @@ class ParcelLocator {
 		}
 
 		if ( isset( $_POST['shipping_address_type'] ) && 'dhl' === $_POST['shipping_address_type'] ) {
-			$fields['shipping_address_1']['label'] = self::get_type_text( ' / ' );
+			$fields['shipping_address_1']['label'] = self::get_pickup_type_address_label();
 		}
 
 		return $fields;
 	}
 
 	public static function validate_address_postnumber( $value ) {
+
+		if ( ! self::is_available() ) {
+			return $value;
+		}
+
 		$shipping_country      = isset( $_POST['shipping_country'] ) ? wc_clean( $_POST['shipping_country'] ) : '';
 		$shipping_address_type = isset( $_POST['shipping_address_type'] ) ? wc_clean( $_POST['shipping_address_type'] ) : 'regular';
 
@@ -120,6 +157,11 @@ class ParcelLocator {
 	}
 
 	public static function validate_address_fields( $value ) {
+
+		if ( ! self::is_available() ) {
+			return $value;
+		}
+
 		$shipping_country      = isset( $_POST['shipping_country'] ) ? wc_clean( $_POST['shipping_country'] ) : '';
 		$shipping_address_type = isset( $_POST['shipping_address_type'] ) ? wc_clean( $_POST['shipping_address_type'] ) : 'regular';
 
@@ -572,7 +614,8 @@ class ParcelLocator {
 				'ajax_url'             => admin_url( 'admin-ajax.php' ),
 				'parcel_locator_nonce' => wp_create_nonce('dhl-parcel-locator' ),
 				'supported_countries'  => self::get_supported_countries(),
-				'methods'              => self::get_shipping_method_data(),
+				'methods'              => is_checkout() ? self::get_shipping_method_data() : array(),
+				'is_checkout'          => is_checkout(),
 				'pickup_types'         => wc_gzd_dhl_get_pickup_types(),
 				'i18n'                 => array_merge( wc_gzd_dhl_get_pickup_types(), array() ),
 				'wrapper'              => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
@@ -639,12 +682,22 @@ class ParcelLocator {
 		wp_enqueue_script( 'wc-gzd-parcel-locator-dhl' );
 	}
 
+	protected static function disable_method_setting() {
+		$disable_method_check = ( is_account_page() || is_admin() );
+		$is_forced_checkout   = isset( $_POST['is_checkout'] ) ? wc_string_to_bool( $_POST['is_checkout'] ) : true;
+
+		if ( is_ajax() && $is_forced_checkout ) {
+			$disable_method_check = false;
+		}
+
+		return $disable_method_check;
+	}
+
 	protected static function get_setting( $key ) {
 		$option_key = 'parcel_pickup_' . $key;
 
 		if ( $method = wc_gzd_dhl_get_current_shipping_method() ) {
-
-			if ( $method->has_option( $option_key ) ) {
+			if ( $method->has_option( $option_key ) && ! self::disable_method_setting() ) {
 				return $method->get_option( $option_key );
 			}
 		}

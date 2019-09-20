@@ -30,6 +30,12 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             self.refreshAddressType();
         },
 
+        isCheckout: function() {
+            var self = germanized.dhl_parcel_locator;
+
+            return self.params.is_checkout;
+        },
+
         afterRefreshCheckout: function() {
             var self = germanized.dhl_parcel_locator;
 
@@ -48,22 +54,23 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 var $typeField = $( self.wrapper + ' #shipping_address_type' );
                 var selected   = $typeField.val();
 
-                $typeField.html( '' );
+                if ( self.isCheckout() ) {
+                    $typeField.html( '' );
 
-                if ( methodData ) {
+                    if ( methodData ) {
+                        $.each( methodData.address_type_options, function( name, title ) {
+                            $typeField.append( $( '<option/>', {
+                                value: name,
+                                text : title
+                            }));
+                        });
 
-                    $.each( methodData.address_type_options, function( name, title ) {
-                        $typeField.append( $( '<option/>', {
-                            value: name,
-                            text : title
-                        }));
-                    });
+                        if ( $typeField.find( 'option[value="' + selected + '"]' ).length > 0 ) {
+                            $typeField.find( 'option[value="' + selected + '"]' ).prop( 'selected', true );
+                        }
 
-                    if ( $typeField.find( 'option[value="' + selected + '"]' ).length > 0 ) {
-                        $typeField.find( 'option[value="' + selected + '"]' ).prop( 'selected', true );
+                        $typeField.trigger( 'change' );
                     }
-
-                    $typeField.trigger( 'change' );
                 }
 
                 if ( $typeField.find( 'option' ).length > 0 ) {
@@ -251,7 +258,7 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             if ( self.isEnabled() ) {
 
                 if ( methodData ) {
-                    $addressInput.data( 'label-dhl',methodData.street_label );
+                    $addressInput.data( 'label-dhl', methodData.street_label );
                     $addressInput.data( 'placeholder-dhl', methodData.street_placeholder );
                     $addressInput.data( 'desc-dhl', methodData.finder_button );
                 }
@@ -349,8 +356,10 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 isAvailable = false;
             }
 
-            if ( ! methodData || methodData.supports.length === 0 ) {
-                isAvailable = false;
+            if ( self.isCheckout() ) {
+                if ( ! methodData || methodData.supports.length === 0 ) {
+                    isAvailable = false;
+                }
             }
 
             return isAvailable;

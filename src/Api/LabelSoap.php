@@ -377,7 +377,7 @@ class LabelSoap extends Soap {
                         'customerReference' => wc_gzd_dhl_get_label_reference( __( 'Shipment #{shipment_id} to order #{order_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) ),
                         'shipmentDate'      => date('Y-m-d' ),
                         'ShipmentItem'      => array(
-                            'weightInKG' => wc_get_weight( $shipment->get_weight(), 'kg' ),
+                            'weightInKG' => $label->get_weight(),
 	                        'lengthInCM' => wc_get_dimension( $shipment->get_length(), 'cm' ),
                             'widthInCM'  => wc_get_dimension( $shipment->get_width(), 'cm' ),
                             'heightInCM' => wc_get_dimension( $shipment->get_height(), 'cm' ),
