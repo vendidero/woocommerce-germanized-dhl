@@ -14,7 +14,7 @@ class Importer {
 		$options  = get_option( 'woocommerce_pr_dhl_paket_settings' );
 		$imported = get_option( 'woocommerc_gzd_dhl_import_finished' );
 
-		return ( ( ! empty( $options ) && 'yes' !== $imported ) ? true : false );
+		return ( ( ! empty( $options ) && 'yes' !== $imported && Package::base_country_is_supported() ) ? true : false );
 	}
 
 	public static function is_plugin_enabled() {
@@ -60,22 +60,20 @@ class Importer {
 			'bank_bic'                => 'bank_bic',
 			'bank_ref'                => 'bank_ref',
 			'bank_ref_2'              => 'bank_ref_2',
-			'preferred_day'           => 'preferred_day_enable',
-			'preferred_day_cost'      => 'preferred_day_cost',
-			'preferred_day_cutoff'    => 'preferred_cutoff_time',
-			'preferred_exclusion_mon' => 'preferred_day_exclusion_mon',
-			'preferred_exclusion_tue' => 'preferred_day_exclusion_tue',
-			'preferred_exclusion_wed' => 'preferred_day_exclusion_wed',
-			'preferred_exclusion_thu' => 'preferred_day_exclusion_thu',
-			'preferred_exclusion_fri' => 'preferred_day_exclusion_fri',
-			'preferred_exclusion_sat' => 'preferred_day_exclusion_sat',
-			'preferred_time'          => 'preferred_time_enable',
-			'preferred_time_cost'     => 'preferred_time_cost',
-			'preferred_day_time_cost' => 'preferred_day_time_cost',
-			'preferred_location'      => 'preferred_location_enable',
-			'preferred_neighbour'     => 'preferred_neighbor_enable',
-			'shipping_methods'        => 'preferred_shipping_methods_enabled',
-			'payment_gateway'         => 'preferred_payment_gateways_excluded',
+			'preferred_day'           => 'PreferredDay_enable',
+			'preferred_day_cost'      => 'PreferredDay_cost',
+			'preferred_day_cutoff'    => 'PreferredDay_cutoff_time',
+			'preferred_exclusion_mon' => 'PreferredDay_exclusion_mon',
+			'preferred_exclusion_tue' => 'PreferredDay_exclusion_tue',
+			'preferred_exclusion_wed' => 'PreferredDay_exclusion_wed',
+			'preferred_exclusion_thu' => 'PreferredDay_exclusion_thu',
+			'preferred_exclusion_fri' => 'PreferredDay_exclusion_fri',
+			'preferred_exclusion_sat' => 'PreferredDay_exclusion_sat',
+			'preferred_time'          => 'PreferredTime_enable',
+			'preferred_time_cost'     => 'PreferredTime_cost',
+			'preferred_day_time_cost' => 'PreferredDay_combined_cost',
+			'preferred_location'      => 'PreferredLocation_enable',
+			'preferred_neighbour'     => 'PreferredNeighbour_enable',
 			'display_packstation'     => 'parcel_pickup_packstation_enable',
 			'display_parcelshop'      => 'parcel_pickup_parcelshop_enable',
 			'display_post_office'     => 'parcel_pickup_postoffice_enable',

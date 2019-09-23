@@ -55,11 +55,15 @@ class Package {
     }
 
     public static function has_dependencies() {
-    	return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && in_array( self::get_base_country(), self::get_supported_countries() ) );
+    	return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && self::base_country_is_supported() );
+    }
+
+    public static function base_country_is_supported() {
+    	return in_array( self::get_base_country(), self::get_supported_countries() );
     }
 
     public static function get_supported_countries() {
-    	return array( 'DE', 'AT' );
+    	return array( 'DE' );
     }
 
     public static function base_country_supports( $type = 'services' ) {
@@ -214,40 +218,10 @@ class Package {
 
 	public static function test() {
 
-    	$label = wc_gzd_dhl_get_label( 29 );
-
-    	$merger = new Pdf();
-    	$merger->add( $label->get_file() );
-		$merger->add( $label->get_default_file() );
-		$file = $merger->output( 'test.pdf', 'S' );
-		var_dump($file);
-		exit();
-
-    	// $label = new Label();
-    	// $label->set_dhl_product( 123 );
-    	// var_dump($label->get_changes());
-
-    	/*$shipment = wc_gzd_get_shipment( $label->get_shipment_id() );
-    	$address = $shipment->get_address();
-    	$address['postcode'] = '12059';
-    	$address['city'] = 'Berlin';
-    	$address['address_1'] = 'Sonnenallee 181';
-    	$address['country'] = 'DE';
-    	$shipment->set_address( $address );
-    	$shipment->save();
-    	*/
-
 		$api    = self::get_api();
 		$times = $api->get_preferred_day_time( '12207' );
 		var_dump($times);
 		exit();
-
-		/*$result = $api->get_parcel_api()->get_services( array(
-			'postcode'    => '53225',
-			'start_date'  => '2019-08-20',
-			'account_num' => '0',
-		) );
-		*/
 	}
 
 	public static function is_integration() {

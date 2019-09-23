@@ -359,6 +359,9 @@ class LabelSoap extends Soap {
                 case 'PreferredNeighbour':
                     $services[ $service ]['details'] = $label->get_preferred_neighbor();
                     break;
+	            case 'ParcelOutletRouting':
+		            $services[ $service ]['details'] = $shipment->get_email();
+		            break;
             }
         }
 

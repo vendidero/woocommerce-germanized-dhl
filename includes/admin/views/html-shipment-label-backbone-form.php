@@ -227,6 +227,18 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
+        <?php if ( $dhl_order->supports_email_notification() ) : ?>
+
+            <?php woocommerce_wp_checkbox( array(
+                'id'          		=> 'dhl_label_service_ParcelOutletDelivery',
+                'label'       		=> __( 'Retail outlet routing', 'woocommerce-germanized-dhl' ),
+                'description'       => '',
+                'value'		        => in_array( 'ParcelOutletDelivery', $default_args['services'] ) ? 'yes' : 'no',
+                'wrapper_class'     => 'form-field-checkbox'
+            ) ); ?>
+
+        <?php endif; ?>
+
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_NoNeighbourDelivery',
 			'label'       		=> __( 'No neighbor', 'woocommerce-germanized-dhl' ),

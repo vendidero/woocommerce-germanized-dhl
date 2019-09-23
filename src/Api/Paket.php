@@ -11,6 +11,7 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Vendidero\Germanized\DHL\ParcelServices;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -88,10 +89,6 @@ class Paket {
         return $this->get_finder_api()->get_parcel_location( $args );
     }
 
-    public function get_content_indicator( ) {
-        return array();
-    }
-
     public function get_label( &$label ) {
         return $this->get_label_api()->get_label( $label );
     }
@@ -100,58 +97,91 @@ class Paket {
         return $this->get_label_api()->delete_label( $label );
     }
 
-    public function reset_connection( ) {
-        return;
+    protected function is_working_day( $datetime ) {
+    	$is_working_day = ( in_array( $datetime->format( 'Y-m-d' ), Package::get_holidays( 'DE' ) ) ) ? false : true;
+
+    	if ( $is_working_day ) {
+		    if ( apply_filters( 'woocommerce_gzd_dhl_consider_saturday_as_working_day', true ) ) {
+			    $is_working_day = $datetime->format( 'N' ) > 6 ? false : true;
+		    } else {
+			    $is_working_day = $datetime->format( 'N' ) > 5 ? false : true;
+		    }
+	    }
+
+    	return $is_working_day;
     }
 
+	/**
+	 * This method calculates the starting date for the preferred day time option
+	 * and calls the DHL API to retrieve days and times to be chosen by the user in the frontend.
+	 *
+	 * Starting date calculation works as follows:
+	 * 1. If preparation days are set -> add x working days to the current date
+	 * 2. If current time is greater than cutoff time -> add one working day
+	 * 3. If excluded working days have been chosen -> add x working days
+	 * 4. Statically add 2 days for DHL
+	 *
+	 * @param $postcode
+	 * @param string $cutoff_time
+	 *
+	 * @return array
+	 * @throws Exception
+	 */
     public function get_preferred_day_time( $postcode, $cutoff_time = '' ) {
 	    $exclude_working_days  = wc_gzd_dhl_get_excluded_working_days();
-	    $cutoff_time           = empty( $cutoff_time ) ? Package::get_setting( 'preferred_cutoff_time' ) : $cutoff_time;
+	    // Always exclude Sunday
+	    $exclude_working_days  = array_merge( $exclude_working_days, array( 'sun' ) );
+
+	    $preparation_days      = ParcelServices::get_preferred_day_preparation_days();
+	    $cutoff_time           = empty( $cutoff_time ) ? ParcelServices::get_preferred_day_cutoff_time() : $cutoff_time;
 	    $account_num           = Package::get_setting( 'account_number' );
 
-	    // Always exclude Sunday
-	    $exclude_working_days  = array_merge( $exclude_working_days, array( 'Sun' => __( 'sun', 'woocommerce-germanized-dhl' ) ) );
-	    $day_counter           = 0;
+	    $preparation_days      = 2;
 
 	    // Get existing timezone to reset afterwards
 	    $current_timzone = date_default_timezone_get();
+
 	    // Always set and get DE timezone and check against it.
 	    date_default_timezone_set( 'Europe/Berlin' );
 
 	    $tz_obj             = new DateTimeZone(  'Europe/Berlin' );
-	    $today              = new DateTime( "now", $tz_obj );
-	    $today_de_timestamp = $today->getTimestamp();
+	    $starting_date      = new DateTime( "now", $tz_obj );
 
-	    $week_day           = strtolower( $today->format('D' ) );
-	    $week_date          = $today->format('Y-m-d' );
-	    $week_time          = $today->format('H:i' );
+	    // Add preparation days
+	    if ( ! empty( $preparation_days ) ) {
+		    $days_added = 0;
 
-	    // Compare week day with key since key includes capital letter in beginning and will work for English AND German!
-	    // Check if today is a working day...
-	    if ( ( ! in_array( $week_day, $exclude_working_days ) ) && ( ! in_array( $week_date, Package::get_holidays( 'DE' ) ) ) ) {
-
-	    	// ... and check if after cutoff time if today is a transfer day
-		    if( $today_de_timestamp >= strtotime( $cutoff_time ) ) {
-
-		    	// If the cut off time has been passed, then add a day
-			    $today->add( new DateInterval('P1D' ) ); // Add 1 day
-			    $week_day  = strtolower( $today->format('D' ) );
-			    $week_date = $today->format('Y-m-d' );
-			    $day_counter++;
+	    	while ( ! $this->is_working_day( $starting_date ) || $days_added < $preparation_days ) {
+			    $starting_date->add( new DateInterval('P1D' ) );
+			    $days_added++;
 		    }
 	    }
 
-	    // Make sure the next transfer days are working days
-	    while ( in_array( $week_day, $exclude_working_days ) || in_array( $week_date, Package::get_holidays( 'DE' ) ) ) {
-		    $today->add( new DateInterval( 'P1D' ) ); // Add 1 day
-		    $week_day  = strtolower( $today->format( 'D' ) );
-		    $week_date = $today->format( 'Y-m-d' );
-		    $day_counter++;
+	    // In case current date lies after cutoff time add one working day
+	    if ( $starting_date->format( 'Hi' ) > str_replace( ':', '', $cutoff_time ) ) {
+		    while ( ! $this->is_working_day( $starting_date ) ) {
+			    $starting_date->add( new DateInterval('P1D' ) );
+			    break;
+		    }
+	    }
+
+	    // Add days as long as starting date is excluded or is not a working day
+	    while ( in_array( strtolower( $starting_date->format( 'D' ) ), $exclude_working_days ) || ! $this->is_working_day( $starting_date ) ) {
+		    $starting_date->add( new DateInterval('P1D' ) );
+	    }
+
+	    // Add 2 working days (for DHL)
+	    $days_added = 0;
+
+	    while ( ! $this->is_working_day( $starting_date ) || $days_added < 2 ) {
+		    $starting_date->add( new DateInterval('P1D' ) );
+		    $days_added++;
 	    }
 
 	    $args['postcode']    = $postcode;
 	    $args['account_num'] = $account_num;
-	    $args['start_date']  = $week_date;
+	    $args['start_date']  = $starting_date->format( 'Y-m-d' );
+
 	    $preferred_day_time  = array();
 
 	    try {
@@ -162,8 +192,6 @@ class Paket {
 		    throw $e;
 	    }
 
-	    // Reset time locael
-	    // setlocale(LC_TIME, $current_locale);
 	    // Reset timezone to not affect any other plugins
 	    date_default_timezone_set( $current_timzone );
 
@@ -173,13 +201,13 @@ class Paket {
     protected function get_preferred_day( $preferred_services ) {
 
         $day_of_week_arr = array(
-            '1' => __( 'Mon', 'pr-shipping-dhl' ),
-            '2' => __( 'Tue', 'pr-shipping-dhl' ),
-            '3' => __( 'Wed', 'pr-shipping-dhl' ),
-            '4' => __( 'Thu', 'pr-shipping-dhl' ),
-            '5' => __( 'Fri', 'pr-shipping-dhl' ),
-            '6' => __( 'Sat', 'pr-shipping-dhl' ),
-            '7' => __( 'Sun', 'pr-shipping-dhl' )
+            '1' => __( 'Mon', 'woocommerce-germanized-dhl' ),
+            '2' => __( 'Tue', 'woocommerce-germanized-dhl' ),
+            '3' => __( 'Wed', 'woocommerce-germanized-dhl' ),
+            '4' => __( 'Thu', 'woocommerce-germanized-dhl' ),
+            '5' => __( 'Fri', 'woocommerce-germanized-dhl' ),
+            '6' => __( 'Sat', 'woocommerce-germanized-dhl' ),
+            '7' => __( 'Sun', 'woocommerce-germanized-dhl' )
         );
 
         $preferred_days = array();

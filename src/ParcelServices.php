@@ -176,8 +176,7 @@ class ParcelServices {
 		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/css/preferred-services' . $suffix . '.css', array(), Package::get_version() );
 
 		wp_localize_script( 'wc-gzd-preferred-services-dhl', 'wc_gzd_dhl_preferred_services_params', array(
-			'ajax_url'                  => admin_url( 'admin-ajax.php' ),
-			'payment_gateways_excluded' => false,
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
 		) );
 
 		wp_enqueue_script( 'wc-gzd-preferred-services-dhl' );
@@ -192,6 +191,30 @@ class ParcelServices {
 		}
 
 		return $cost;
+	}
+
+	public static function is_preferred_day_excluded( $day ) {
+		if ( 'yes' === self::get_setting( 'PreferredDay_exclusion_' . $day ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static function get_preferred_day_cutoff_time() {
+		$time = self::get_setting( 'PreferredDay_cutoff_time' );
+
+		return $time;
+	}
+
+	public static function get_preferred_day_preparation_days() {
+		$days = self::get_setting(  'PreferredDay_preparation_days' );
+
+		if ( empty( $days ) || $days < 0 ) {
+			$days = 0;
+		}
+
+		return $days;
 	}
 
 	protected static function get_preferred_time_cost() {

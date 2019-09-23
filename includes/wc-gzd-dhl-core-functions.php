@@ -14,6 +14,8 @@ use Vendidero\Germanized\DHL\Order;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\DHL\ShippingMethod;
+use Vendidero\Germanized\DHL\ParcelServices;
+
 use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
@@ -145,7 +147,8 @@ function wc_gzd_dhl_get_services() {
         'AdditionalInsurance',
         'BulkyGoods',
         'IdentCheck',
-        'CashOnDelivery'
+        'CashOnDelivery',
+	    'ParcelOutletRouting'
     );
 }
 
@@ -237,9 +240,7 @@ function wc_gzd_dhl_get_excluded_working_days() {
 	$excluded = array();
 
 	foreach ( $work_days as $value ) {
-		$exclusion_day_option = 'preferred_day_exclusion_' . $value;
-
-		if ( 'yes' === Package::get_setting( $exclusion_day_option ) ) {
+		if ( ParcelServices::is_preferred_day_excluded( $value ) ) {
 			$excluded[] = $value;
 		}
 	}
@@ -396,6 +397,13 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 
 		$args['services']       = array_diff( $args['services'], array( 'VisualCheckOfAge' ) );
 		$args['visual_min_age'] = '';
+	}
+
+	// In case order does not support email notification - remove parcel outlet routing
+	if ( in_array( 'ParcelOutletRouting', $args['services'] ) ) {
+		if ( ! $dhl_order->supports_email_notification() ) {
+			$args['services'] = array_diff( $args['services'], array( 'ParcelOutletRouting' ) );
+		}
 	}
 
 	if ( in_array( 'IdentCheck', $args['services'] ) ) {

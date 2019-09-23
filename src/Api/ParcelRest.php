@@ -35,7 +35,6 @@ class ParcelRest extends Rest {
 
         $this->account_num = $args['account_num'];
 
-        // curl -X GET --header 'Accept: application/json' --header 'X-EKP: 2222222222' 'https://cig.dhl.de/services/sandbox/rest/checkout/28757/availableServices?startDate=2018-08-17'
         return $this->get_request( '/checkout/' . $args['postcode'] . '/availableServices', array( 'startDate' => $args['start_date'] ) );
     }
 

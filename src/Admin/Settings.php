@@ -294,6 +294,13 @@ class Settings {
 				'type' 		        => 'gzd_toggle',
 			),
 			array(
+				'title' 	        => __( 'Retail Outlet Routing', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => __( 'Send undeliverable items to nearest retail outlet instead of immediate return.', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_service_ParcelOutletRouting',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+			array(
 				'title' 	        => __( 'No Neighbor', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => __( 'Do not deliver to neighbors.', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_service_NoNeighbourDelivery',
@@ -325,7 +332,7 @@ class Settings {
 				'title' 	        => __( 'Age Verification', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => __( 'Verify ages if shipment contains applicable items.', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the age check service enabled.', 'woocommerce-germanized-dhl' ), '<a href="">' . __( 'age verification checkbox', 'woocommerce-germanized' ) . '</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_label_auto_age_check_sync',
-				'default'	        => 'no',
+				'default'	        => 'yes',
 				'type' 		        => 'gzd_toggle',
 			),
 		);
@@ -704,9 +711,6 @@ class Settings {
 	}
 
 	protected static function get_service_settings() {
-		$wc_payment_gateways = WC()->payment_gateways()->get_available_payment_gateways();
-		$wc_gateway_titles   = wp_list_pluck( $wc_payment_gateways, 'method_title', 'id' );
-
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_preferred_options' ),
 		);
@@ -718,10 +722,20 @@ class Settings {
 			array(
 				'title'             => __( 'Cut-off time', 'woocommerce-germanized-dhl' ),
 				'type'              => 'time',
-				'id'                => 'woocommerce_gzd_dhl_preferred_cutoff_time',
+				'id'                => 'woocommerce_gzd_dhl_PreferredDay_cutoff_time',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . __( 'The cut-off time is the latest possible order time up to which the minimum preferred day (day of order + 2 working days) can be guaranteed. As soon as the time is exceeded, the earliest preferred day displayed in the frontend will be shifted to one day later (day of order + 3 working days).', 'woocommerce-germanized-dhl' ) . '</div>',
 				'default'           => '12:00',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_PreferredDay_enable' => '' )
+			),
+
+			array(
+				'title'             => __( 'Preparation days', 'woocommerce-germanized-dhl' ),
+				'type'              => 'number',
+				'id'                => 'woocommerce_gzd_dhl_PreferredDay_preparation_days',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . __( 'If you need more time to prepare your shipments you might want to add a static preparation time to the possible starting date for preferred day delivery.', 'woocommerce-germanized-dhl' ) . '</div>',
+				'default'           => '0',
+				'css'               => 'max-width: 60px',
+				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_PreferredDay_enable' => '', 'min' => 0, 'max' => 3 )
 			),
 
 			array(
@@ -778,16 +792,6 @@ class Settings {
 				'default'	        => 'no',
 				'checkboxgroup'	    => 'end',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_PreferredDay_enable' => '' )
-			),
-
-			array(
-				'title'             => __( 'Exclude gateways', 'woocommerce-germanized-dhl' ),
-				'type'              => 'multiselect',
-				'desc'              => __( 'Select payment gateways to be excluded from showing preferred services.', 'woocommerce-germanized-dhl' ),
-				'desc_tip'          => true,
-				'id'                => 'woocommerce_gzd_dhl_preferred_payment_gateways_excluded',
-				'options'           => $wc_gateway_titles,
-				'class'             => 'wc-enhanced-select',
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_preferred_options' ),
