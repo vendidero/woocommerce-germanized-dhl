@@ -18,21 +18,8 @@ class Settings {
 		return '';
 	}
 
-	protected static function get_general_settings() {
-		$dhl_products_int = array();
-		$dhl_products_dom = array();
-
-		foreach( ( wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_international() ) as $product => $title ) {
-			$dhl_products_dom[] = array(
-				'title'             => $title,
-				'type'              => 'text',
-				'default'           => '',
-				'id'                => 'woocommerce_gzd_dhl_participation_' . $product,
-				'custom_attributes'	=> array( 'maxlength' => '2' ),
-			);
-		}
-
-		$settings = array(
+	public static function get_setup_settings() {
+		return array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_general_options' ),
 
 			array(
@@ -102,9 +89,28 @@ class Settings {
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_api_options' ),
-
-			array( 'title' => __( 'Products and Participation Numbers', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options', 'desc' => sprintf( __( 'For each DHL product that you would like to use, please enter your participation number here. The participation number consists of the last two characters of the respective accounting number, which you will find in your %s (e.g.: 01).', 'woocommerce-germanized-dhl' ), '<a href="#" target="_blank">' . __( 'contract data', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
 		);
+	}
+
+	protected static function get_general_settings() {
+		$dhl_products_int = array();
+		$dhl_products_dom = array();
+
+		foreach( ( wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_international() ) as $product => $title ) {
+			$dhl_products_dom[] = array(
+				'title'             => $title,
+				'type'              => 'text',
+				'default'           => '',
+				'id'                => 'woocommerce_gzd_dhl_participation_' . $product,
+				'custom_attributes'	=> array( 'maxlength' => '2' ),
+			);
+		}
+
+		$settings = self::get_setup_settings();
+
+		$settings = array_merge( $settings, array(
+			array( 'title' => __( 'Products and Participation Numbers', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options', 'desc' => sprintf( __( 'For each DHL product that you would like to use, please enter your participation number here. The participation number consists of the last two characters of the respective accounting number, which you will find in your %s (e.g.: 01).', 'woocommerce-germanized-dhl' ), '<a href="#" target="_blank">' . __( 'contract data', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
+		) );
 
 		$settings = array_merge( $settings, $dhl_products_dom );
 
@@ -380,7 +386,7 @@ class Settings {
 
 		foreach( $settings as $setting ) {
 			$new_setting            = array();
-			$new_setting['id']      = str_replace( 'woocommerce_gzd_dhl_', '', $setting['id'] );
+			$new_setting['id']      = str_replace( 'woocommerce_gzd_dhl_', 'dhl_', $setting['id'] );
 			$new_setting['type']    = str_replace( 'gzd_toggle', 'checkbox', $setting['type'] );
 			$new_setting['default'] = Package::get_setting( $new_setting['id'] );
 
@@ -711,7 +717,9 @@ class Settings {
 	}
 
 	protected static function get_service_settings() {
-		$settings = array(
+		$wc_payment_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+		$wc_gateway_titles   = wp_list_pluck( $wc_payment_gateways, 'method_title', 'id' );
+		$settings            = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_preferred_options' ),
 		);
 
@@ -792,6 +800,16 @@ class Settings {
 				'default'	        => 'no',
 				'checkboxgroup'	    => 'end',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_PreferredDay_enable' => '' )
+			),
+
+			array(
+				'title'             => __( 'Exclude gateways', 'woocommerce-germanized-dhl' ),
+				'type'              => 'multiselect',
+				'desc'              => __( 'Select payment gateways to be excluded from showing preferred services.', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => true,
+				'id'                => 'woocommerce_gzd_dhl_preferred_payment_gateways_excluded',
+				'options'           => $wc_gateway_titles,
+				'class'             => 'wc-enhanced-select',
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_preferred_options' ),

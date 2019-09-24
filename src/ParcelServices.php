@@ -175,12 +175,28 @@ class ParcelServices {
 		wp_register_script( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/js/preferred-services' . $suffix . '.js', $deps, Package::get_version(), true );
 		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/css/preferred-services' . $suffix . '.css', array(), Package::get_version() );
 
+		$excluded_gateways = self::get_excluded_payment_gateways();
+
 		wp_localize_script( 'wc-gzd-preferred-services-dhl', 'wc_gzd_dhl_preferred_services_params', array(
-			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'ajax_url'                  => admin_url( 'admin-ajax.php' ),
+			'payment_gateways_excluded' => empty( $excluded_gateways ) ? false : true,
 		) );
 
 		wp_enqueue_script( 'wc-gzd-preferred-services-dhl' );
 		wp_enqueue_style( 'wc-gzd-preferred-services-dhl' );
+	}
+
+	protected static function get_excluded_payment_gateways() {
+		return (array) self::get_setting( 'payment_gateways_excluded' );
+	}
+	protected static function payment_gateway_supports_services( $method ) {
+		$methods = self::get_excluded_payment_gateways();
+
+		if ( ! empty( $methods ) && in_array( $method, $methods ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	protected static function get_preferred_day_cost() {
@@ -243,12 +259,14 @@ class ParcelServices {
 
 	protected static function is_preferred_available( $check_day_transfer = false ) {
 		$customer_country        = WC()->customer->get_shipping_country();
+		$chosen_payment_method   = (array) WC()->session->get( 'chosen_payment_method' );
 		$display_preferred       = false;
 
 		// Preferred options are only for Germany customers
 		if ( self::is_enabled() && 'DE' === $customer_country ) {
 
 			if ( $check_day_transfer ) {
+
 				foreach ( WC()->cart->get_cart() as $cart_item_key => $values ) {
 					// Check products
 				}
@@ -256,6 +274,13 @@ class ParcelServices {
 
 			if ( self::is_preferred_enabled() ) {
 				$display_preferred = true;
+			}
+
+			foreach( $chosen_payment_method as $key => $method ) {
+				if ( ! self::payment_gateway_supports_services( $method ) ) {
+					$display_preferred = false;
+					break;
+				}
 			}
 		}
 

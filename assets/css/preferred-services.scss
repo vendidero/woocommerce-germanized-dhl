@@ -85,6 +85,10 @@
     .dhl-preferred-service-logo {
       img {
         margin: 0;
+        padding: 0;
+        max-height: 100px;
+        max-width: 100px;
+        background: #FFCC00;
       }
       margin-bottom: 1em;
     }

@@ -74,6 +74,7 @@ class Importer {
 			'preferred_day_time_cost' => 'PreferredDay_combined_cost',
 			'preferred_location'      => 'PreferredLocation_enable',
 			'preferred_neighbour'     => 'PreferredNeighbour_enable',
+			'payment_gateway'         => 'preferred_payment_gateways_excluded',
 			'display_packstation'     => 'parcel_pickup_packstation_enable',
 			'display_parcelshop'      => 'parcel_pickup_parcelshop_enable',
 			'display_post_office'     => 'parcel_pickup_postoffice_enable',

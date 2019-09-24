@@ -36,7 +36,24 @@ class Admin {
 
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
+
+		// Check upload folder
+        add_action( 'admin_notices', array( __CLASS__, 'check_upload_dir' ) );
 	}
+
+	public static function check_upload_dir() {
+		$dir     = Package::get_upload_dir();
+		$path    = $dir['basedir'];
+		$dirname = basename( $path );
+
+		if ( @is_dir( $dir['basedir'] ) )
+			return;
+		?>
+        <div class="error">
+            <p><?php printf( __( 'DHL label upload directory missing. Please manually create the folder %s and make sure that it is writeable.', 'woocommerce-germanized-dhl' ), '<i>wp-content/uploads/' . $dirname . '</i>' ); ?></p>
+        </div>
+		<?php
+    }
 
 	public static function add_template_check( $check ) {
 		$check['dhl'] = array(
@@ -198,9 +215,10 @@ class Admin {
 		$screen_id = $screen ? $screen->id : '';
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-		wp_register_script( 'wc-gzd-admin-dhl-backbone', Package::get_assets_url() . '/js/admin-dhl-backbone' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version() );
-		wp_register_script( 'wc-gzd-admin-dhl', Package::get_assets_url() . '/js/admin-dhl' . $suffix . '.js', array( 'wc-gzd-admin-shipments', 'wc-gzd-admin-dhl-backbone' ), Package::get_version() );
-		wp_register_script( 'wc-gzd-admin-dhl-table', Package::get_assets_url() . '/js/admin-dhl-table' . $suffix . '.js', array( 'wc-gzd-admin-dhl-backbone' ), Package::get_version() );
+		wp_register_script( 'wc-gzd-admin-dhl-backbone', Package::get_assets_url() . '/js/admin-dhl-backbone' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version(), true );
+		wp_register_script( 'wc-gzd-admin-dhl', Package::get_assets_url() . '/js/admin-dhl' . $suffix . '.js', array( 'wc-gzd-admin-shipments', 'wc-gzd-admin-dhl-backbone' ), Package::get_version(), true );
+		wp_register_script( 'wc-gzd-admin-dhl-table', Package::get_assets_url() . '/js/admin-dhl-table' . $suffix . '.js', array( 'wc-gzd-admin-dhl-backbone' ), Package::get_version(), true );
+		wp_register_script( 'wc-gzd-admin-dhl-shipping-method', Package::get_assets_url() . '/js/admin-dhl-shipping-method' . $suffix . '.js', array( 'jquery' ), Package::get_version(), true );
 
 		// Orders.
 		$is_edit_order = in_array( str_replace( 'edit-', '', $screen_id ), wc_get_order_types( 'order-meta-boxes' ) );
@@ -219,6 +237,11 @@ class Admin {
 				)
 			);
 		}
+
+		// Shipping zone methods
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) {
+			wp_enqueue_script( 'wc-gzd-admin-dhl-shipping-method' );
+        }
 
 		if ( 'woocommerce_page_wc-gzd-shipments' === $screen_id ) {
 			wp_enqueue_script( 'wc-gzd-admin-dhl-table' );

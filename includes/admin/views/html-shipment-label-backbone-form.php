@@ -18,7 +18,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	'label'       		=> __( 'DHL Product', 'woocommerce-germanized-dhl' ),
 	'description'		=> '',
 	'options'			=> wc_gzd_dhl_get_products( $shipment->get_country() ),
-	'value'             => wc_gzd_dhl_get_default_product( $shipment->get_country() )
+	'value'             => isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : '',
 ) ); ?>
 
 <?php if ( $dhl_order->has_cod_payment() ) : ?>

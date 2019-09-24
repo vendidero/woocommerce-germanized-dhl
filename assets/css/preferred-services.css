@@ -60,7 +60,11 @@
   .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-service-logo {
     margin-bottom: 1em; }
     .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-service-logo img {
-      margin: 0; }
+      margin: 0;
+      padding: 0;
+      max-height: 100px;
+      max-width: 100px;
+      background: #FFCC00; }
   .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-service-title {
     font-weight: bold;
     font-size: 1em;

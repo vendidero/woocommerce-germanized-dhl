@@ -59,11 +59,21 @@ class ShippingMethod {
 
 	public function has_option( $key ) {
 		$fields = $this->instance_form_fields;
+		$key    = $this->maybe_prefix_key( $key );
 
 		return array_key_exists( $key, $fields ) ? true : false;
 	}
 
+	protected function maybe_prefix_key( $key ) {
+		if ( substr( $key, 0, 4 ) !== 'dhl_' ) {
+			$key = 'dhl_' . $key;
+		}
+
+		return $key;
+	}
+
 	public function get_option( $key ) {
+		$key          = $this->maybe_prefix_key( $key );
 		$option_value = $this->method->get_option( $key );
 
 		if ( strpos( $key, 'enable' ) !== false ) {
@@ -88,7 +98,7 @@ class ShippingMethod {
 	}
 
 	public function is_dhl_enabled() {
-		return $this->method->get_option( 'method_enable_dhl' ) === 'yes' ? true : false;
+		return $this->method->get_option( 'dhl_enable' ) === 'yes' ? true : false;
 	}
 
 	public function get_enabled_preferred_services() {

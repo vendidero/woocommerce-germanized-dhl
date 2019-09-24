@@ -21,7 +21,7 @@ class Package {
      */
     const VERSION = '0.0.1-dev';
 
-    protected static $upload_dir_suffix = '';
+    public static $upload_dir_suffix = '';
 
 	// These are all considered domestic by DHL
 	protected static $us_territories = array( 'US', 'GU', 'AS', 'PR', 'UM', 'VI' );
@@ -108,7 +108,7 @@ class Package {
         }
     }
 
-    private static function maybe_set_upload_dir() {
+    public static function maybe_set_upload_dir() {
         // Create a dir suffix
         if ( ! get_option( 'woocommerce_gzd_dhl_upload_dir_suffix', false ) ) {
             self::$upload_dir_suffix = substr( self::generate_key(), 0, 10 );
@@ -445,6 +445,10 @@ class Package {
 	 * @return mixed|void
 	 */
     public static function get_setting( $name, $method = false ) {
+
+    	if ( substr( $name, 0, 4 ) === 'dhl_' ) {
+    		$name = substr( $name, 4 );
+	    }
 
     	if ( self::is_debug_mode() ) {
 			if( 'api_username' === $name ) {

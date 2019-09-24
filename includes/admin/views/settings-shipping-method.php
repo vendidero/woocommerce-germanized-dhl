@@ -18,7 +18,7 @@ $settings = array(
 		/* translators: %s: URL for link. */
 		'description' => sprintf( __( 'Adjust DHL settings accordingly. <a href="%s">Global settings</a> will be used as fallback.', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' ) ),
 	),
-	'method_enable_dhl' => array(
+	'dhl_enable' => array(
 		'title'       => __( 'Ship via DHL', 'woocommerce-germanized-dhl' ),
 		'type'        => 'checkbox',
 		'description' => __( 'Enables DHL features such as parcel services, finder and labels.', 'woocommerce-germanized-dhl' ),
