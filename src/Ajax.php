@@ -140,7 +140,10 @@ class Ajax {
 		}
 
 		$services = array();
-		$props    = array();
+		$props    = array(
+			'has_return'            => 'no',
+			'codeable_address_only' => 'no',
+		);
 
 		foreach( $_POST as $key => $value ) {
 			if ( substr( $key, 0, strlen( 'dhl_label_service_' ) ) === 'dhl_label_service_' ) {
@@ -149,6 +152,7 @@ class Ajax {
 				if ( 'yes' === $value && in_array( $new_key, wc_gzd_dhl_get_services() ) ) {
 					$services[] = $new_key;
 				}
+
 			} elseif ( substr( $key, 0, strlen( 'dhl_label_' ) ) === 'dhl_label_' ) {
 				$new_key           = substr( $key, ( strlen( 'dhl_label_' ) ) );
 				$props[ $new_key ] = wc_clean( wp_unslash( $value ) );

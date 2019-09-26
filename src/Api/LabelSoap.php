@@ -365,7 +365,7 @@ class LabelSoap extends Soap {
     }
 
     /**
-     * @param Label $label
+     * @param SimpleLabel $label
      * @return array
      *
      * @throws Exception
