@@ -76,19 +76,4 @@ abstract class Soap {
 
         return $array;
     }
-
-    protected function validate_field( $key, $value ) {
-        try {
-            switch ( $key ) {
-                case 'pickup':
-                    wc_gzd_dhl_validate_api_field( $value, 'string', 5, 10 );
-                    break;
-                case 'distribution':
-                    wc_gzd_dhl_validate_api_field( $value, 'string', 6, 6 );
-                    break;
-            }
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
 }

@@ -15,8 +15,12 @@ use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\DHL\ShippingMethod;
 use Vendidero\Germanized\DHL\ParcelServices;
+use Vendidero\Germanized\DHL\LabelFactory;
+use Vendidero\Germanized\DHL\SimpleLabel;
+use Vendidero\Germanized\DHL\ReturnLabel;
 
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ShipmentFactory;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -491,6 +495,14 @@ function wc_gzd_dhl_shipment_has_dhl( $shipment ) {
 		$supports_dhl = ( 'dhl' === $shipment->get_shipping_provider() );
 	}
 
+	/**
+	 * Filter to determine whether a shipment supports DHL shipment or not.
+	 *
+	 * @param boolean                                  $supports_dhl Whether the shipment supports DHL or not.
+	 * @param Shipment $shipment The shipment object.
+	 *
+	 * @since 3.0.0
+	 */
 	return apply_filters( 'woocommerce_gzd_dhl_shipment_has_dhl', $supports_dhl, $shipment );
 }
 
@@ -519,15 +531,56 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 		$label->set_props( $args );
 		$label->set_shipment_id( $shipment->get_id() );
 
+		/**
+		 * Action fires before updating a DHL label.
+		 *
+		 * @param Label $label The label object.
+		 *
+		 * @since 3.0.0
+		 *
+		 */
 		do_action( 'woocommerce_gzd_dhl_before_update_label', $label );
 
 		$label->save();
+
+		/**
+		 * Action fires after updating a DHL label.
+		 *
+		 * @param Label $label The label object.
+		 *
+		 * @since 3.0.0
+		 *
+		 */
+		do_action( 'woocommerce_gzd_dhl_after_update_label', $label );
 
 	} catch ( Exception $e ) {
 		return new WP_Error( 'error', $e->getMessage() );
 	}
 
 	return $label;
+}
+
+/**
+ * @param SimpleLabel $parent_label
+ */
+function wc_gzd_dhl_get_return_label_default_args( $parent_label ) {
+	$dhl_shipping_method = false;
+	$defaults            = array(
+		'shipment_id' => $parent_label->get_shipment_id(),
+	);
+
+	if ( $shipment = $parent_label->get_shipment() ) {
+		$shipping_method     = $shipment->get_shipping_method();
+		$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
+
+		$defaults['sender_address'] = $shipment->get_address();
+	}
+
+	return $defaults;
+}
+
+function wc_gzd_dhl_validate_return_label_args( $parent_label, $args = array() ) {
+	return $args;
 }
 
 /**
@@ -653,12 +706,78 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 			return $args;
 		}
 
-		$label = new Vendidero\Germanized\DHL\Label();
+		$label = LabelFactory::get_label( false, 'simple' );
+
+		if ( ! $label ) {
+			throw new Exception( _x( 'Error while creating the label instance', 'woocommerce-germanized-dhl' ) );
+		}
 
 		$label->set_props( $args );
 		$label->set_shipment( $shipment );
 
+		/**
+		 * Action fires before creating a DHL label.
+		 *
+		 * @param Label $label The label object.
+		 *
+		 * @since 3.0.0
+		 *
+		 */
 		do_action( 'woocommerce_gzd_dhl_before_create_label', $label );
+
+		$label->save();
+
+		/**
+		 * Action fires after creating a DHL label.
+		 *
+		 * @param Label $label The label object.
+		 *
+		 * @since 3.0.0
+		 *
+		 */
+		do_action( 'woocommerce_gzd_dhl_after_create_label', $label );
+
+	} catch ( Exception $e ) {
+		return new WP_Error( 'error', $e->getMessage() );
+	}
+
+	return $label;
+}
+
+/**
+ * @param SimpleLabel $parent_label
+ * @param array $args
+ *
+ * @return bool|ReturnLabel|WP_Error
+ */
+function wc_gzd_dhl_create_return_label( $parent_label, $args = array() ) {
+	try {
+		if ( ! $parent_label || ! is_a( $parent_label, 'Vendidero\Germanized\DHL\Label' ) ) {
+			throw new Exception( __( 'Invalid label', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$args      = wp_parse_args( $args, wc_gzd_dhl_get_return_label_default_args( $parent_label ) );
+		$args      = wc_gzd_dhl_validate_return_label_args( $parent_label, $args );
+
+		if ( is_wp_error( $args ) ) {
+			return $args;
+		}
+
+		$label = LabelFactory::get_label( false, 'return' );
+
+		$label->set_props( $args );
+		$label->set_parent_id( $parent_label->get_id() );
+		$label->set_shipment_id( $parent_label->get_shipment_id() );
+
+		/**
+		 * Action fires before creating a DHL return label.
+		 *
+		 * @param ReturnLabel $label The label object.
+		 * @param SimpleLabel $label The parent label object.
+		 *
+		 * @since 3.0.0
+		 */
+		do_action( 'woocommerce_gzd_dhl_before_create_return_label', $label, $parent_label );
 
 		$label->save();
 
@@ -686,30 +805,11 @@ function wc_gzd_dhl_get_shipping_method_slug( $method ) {
  *
  * @param  mixed $the_label Object or label id.
  *
- * @return bool|Label
- *@since  2.2
+ * @return bool|SimpleLabel|ReturnLabel
  *
  */
 function wc_gzd_dhl_get_label( $the_label = false ) {
-    $label_id = wc_gzd_dhl_get_label_id( $the_label );
-
-    if ( ! $label_id ) {
-        return false;
-    }
-
-    // Filter classname so that the class can be overridden if extended.
-    $classname = apply_filters( 'woocommerce_gzd_dhl_label_class', 'Vendidero\Germanized\DHL\Label', $label_id );
-
-    if ( ! class_exists( $classname ) ) {
-        return false;
-    }
-
-    try {
-        return new $classname( $label_id );
-    } catch ( Exception $e ) {
-        wc_caught_exception( $e, __FUNCTION__, func_get_args() );
-        return false;
-    }
+	return LabelFactory::get_label( $the_label );
 }
 
 function wc_gzd_dhl_get_order( $order ) {
@@ -806,8 +906,21 @@ function wc_gzd_dhl_get_products_domestic() {
 	return $dhl_prod_dom;
 }
 
+function wc_gzd_dhl_get_return_label( $label_parent_id ) {
+	$labels = wc_gzd_dhl_get_labels( array(
+		'parent_id' => $label_parent_id,
+		'type'      => 'return',
+	) );
+
+	if ( ! empty( $labels ) ) {
+		return $labels[0];
+	}
+
+	return false;
+}
+
 function wc_gzd_dhl_get_shipment_label( $the_shipment ) {
-	$shipment_id = wc_gzd_get_shipment_id( $the_shipment );
+	$shipment_id = ShipmentFactory::get_shipment_id( $the_shipment );
 
 	if ( $shipment_id ) {
 
@@ -859,6 +972,29 @@ function wc_gzd_dhl_upload_data( $filename, $bits, $relative = true ) {
     } catch ( Exception $e ) {
         return false;
     }
+}
+
+/**
+ * Get label type data by type.
+ *
+ * @param  string $type type name.
+ * @return bool|array Details about the label type.
+ */
+function wc_gzd_dhl_get_label_type_data( $type ) {
+	$types = array(
+		'simple' => array(
+			'class_name' => '\Vendidero\Germanized\DHL\SimpleLabel'
+		),
+		'return' => array(
+			'class_name' => '\Vendidero\Germanized\DHL\ReturnLabel'
+		),
+	);
+
+	if ( $type && array_key_exists( $type, $types ) ) {
+		return $types[ $type ];
+	} else {
+		return $types['simple'];
+	}
 }
 
 /**

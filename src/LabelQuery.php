@@ -47,6 +47,8 @@ class LabelQuery extends WC_Object_Query {
         return array(
             'limit'          => 10,
             'shipment_id'    => '',
+            'parent_id'      => '',
+            'type'           => 'simple',
             'number'         => '',
             'order'          => 'DESC',
             'orderby'        => 'date_created',
@@ -67,11 +69,26 @@ class LabelQuery extends WC_Object_Query {
      * @throws Exception When WC_Data_Store validation fails.
      */
     public function get_labels() {
+	    /**
+	     * Filter to adjust query paramaters for a DHL label query.
+	     *
+	     * @param array $query_vars The query arguments.
+	     *
+	     * @since 3.0.0
+	     */
         $args    = apply_filters( 'woocommerce_gzd_dhl_label_query_args', $this->get_query_vars() );
         $args    = WC_Data_Store::load( 'dhl-label' )->get_query_args( $args );
 
         $this->query( $args );
 
+	    /**
+	     * Filter to adjust query result data for a DHL label query.
+	     *
+	     * @param Label[] $results The results.
+	     * @param array                             $args The query arguments.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_dhl_label_query', $this->results, $args );
     }
 
@@ -93,22 +110,7 @@ class LabelQuery extends WC_Object_Query {
 
         $qv =& $this->args;
 
-        /**
-         * Filters the users array before the query takes place.
-         *
-         * Return a non-null value to bypass WordPress's default user queries.
-         * Filtering functions that require pagination information are encouraged to set
-         * the `total_users` property of the WP_User_Query object, passed to the filter
-         * by reference. If WP_User_Query does not perform a database query, it will not
-         * have enough information to generate these values itself.
-         *
-         * @since 5.1.0
-         *
-         * @param array|null $results Return an array of user data to short-circuit WP's user query
-         *                            or null to allow WP to run its normal queries.
-         * @param WP_User_Query $this The WP_User_Query instance (passed by reference).
-         */
-        $this->results = apply_filters_ref_array( 'woocommerce_gzd_dhl_labels_pre_query', array( null, &$this ) );
+        $this->results = null;
 
         if ( null === $this->results ) {
             $this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
@@ -120,19 +122,7 @@ class LabelQuery extends WC_Object_Query {
             }
 
             if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
-                /**
-                 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
-                 *
-                 * @since 3.2.0
-                 * @since 5.1.0 Added the `$this` parameter.
-                 *
-                 * @global wpdb $wpdb WordPress database abstraction object.
-                 *
-                 * @param string $sql         The SELECT FOUND_ROWS() query for the current WP_User_Query.
-                 * @param WP_User_Query $this The current WP_User_Query instance.
-                 */
-                $found_labels_query = apply_filters( 'woocommerce_gzd_found_dhl_labels_query', 'SELECT FOUND_ROWS()', $this );
-
+                $found_labels_query = 'SELECT FOUND_ROWS()';
                 $this->total_labels = (int) $wpdb->get_var( $found_labels_query );
             }
         }
@@ -157,9 +147,18 @@ class LabelQuery extends WC_Object_Query {
             $this->args['shipment_id'] = absint( $this->args['shipment_id'] );
         }
 
+	    if ( isset( $this->args['parent_id'] ) && ! empty( $this->args['parent_id'] ) ) {
+		    $this->args['parent_id'] = absint( $this->args['parent_id'] );
+	    }
+
         if ( isset( $this->args['number'] ) ) {
             $this->args['number'] = sanitize_key( $this->args['number'] );
         }
+
+	    if ( isset( $this->args['type'] ) ) {
+		    $this->args['type'] = (array) $this->args['type'];
+		    $this->args['type'] = array_map( 'wc_clean', $this->args['type'] );
+	    }
 
         if ( isset( $this->args['search'] ) ) {
             $this->args['search'] = wc_clean( $this->args['search'] );
@@ -206,10 +205,31 @@ class LabelQuery extends WC_Object_Query {
             $this->query_where .= $wpdb->prepare( ' AND label_shipment_id = %d', $this->args['shipment_id'] );
         }
 
+	    // parent id
+	    if ( isset( $this->args['parent_id'] ) ) {
+		    $this->query_where .= $wpdb->prepare( ' AND label_parent_id = %d', $this->args['parent_id'] );
+	    }
+
         // Number
         if ( isset( $this->args['number'] ) ) {
             $this->query_where .= $wpdb->prepare( " AND label_number IN ('%s')", $this->args['number'] );
         }
+
+	    // type
+	    if ( isset( $this->args['type'] ) ) {
+		    $types    = $this->args['type'];
+		    $p_types  = array();
+
+		    foreach( $types as $type ) {
+			    $p_types[] = $wpdb->prepare( "label_type = '%s'", $type );
+		    }
+
+		    $where_type = implode( ' OR ', $p_types );
+
+		    if ( ! empty( $where_type ) ) {
+			    $this->query_where .= " AND ($where_type)";
+		    }
+	    }
 
         // Search
         $search = '';
@@ -251,16 +271,16 @@ class LabelQuery extends WC_Object_Query {
             }
 
             /**
-             * Filters the columns to search in a WP_User_Query search.
+             * Filters the columns to search in a DHL LabelQuery search.
              *
-             * The default columns depend on the search term, and include 'user_email',
-             * 'user_login', 'ID', 'user_url', 'display_name', and 'user_nicename'.
+             * The default columns depend on the search term, and include 'label_id',
+             * 'label_shipment_id', 'label_path' and 'label_number'.
              *
-             * @since 3.6.0
+             * @since 3.0.0
              *
-             * @param string[]      $search_columns Array of column names to be searched.
-             * @param string        $search         Text being searched.
-             * @param WP_User_Query $this           The current WP_User_Query instance.
+             * @param string[]                             $search_columns Array of column names to be searched.
+             * @param string                               $search         Text being searched.
+             * @param LabelQuery $this  The current LabelQuery instance.
              */
             $search_columns = apply_filters( 'woocommerce_gzd_dhl_label_search_columns', $search_columns, $search, $this );
 

@@ -315,6 +315,14 @@ class ParcelLocator {
 			}
 		}
 
+		/**
+		 * Filter to adjust the DHL postnumber for a certain order.
+		 *
+		 * @param string   $post_number The post number.
+		 * @param WC_Order $order The order object.
+		 *
+		 * @since 3.0.0
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_order_postnumber', $post_number, $order );
 	}
 
@@ -377,6 +385,16 @@ class ParcelLocator {
 			}
 		}
 
+		/**
+		 * Filter to adjust the DHL pickup type e.g. packstation for a certain order.
+		 *
+		 * @see wc_gzd_dhl_get_pickup_types()
+		 *
+		 * @param string   $pickup_type The pickup type.
+		 * @param WC_Order $order The order object.
+		 *
+		 * @since 3.0.0
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_order_pickup_type', $pickup_type, $order );
 	}
 
@@ -398,6 +416,14 @@ class ParcelLocator {
 			}
 		}
 
+		/**
+		 * Filter to adjust the DHL postnumber for a certain user.
+		 *
+		 * @param string   $post_number The post number.
+		 * @param WP_User  $user The user object.
+		 *
+		 * @since 3.0.0
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_user_postnumber', $post_number, $user );
 	}
 
@@ -840,10 +866,28 @@ class ParcelLocator {
 	}
 
 	protected static function get_pickup_type_address_label( $method = false ) {
+		/**
+		 * Filter to adjust the pickup type address label added
+		 * to the address field when a certain pickup type was chosen.
+		 *
+		 * @param string                                           $pickup_type_text The pickup type text.
+		 * @param boolean|ShippingMethod $method The shipping method object if available.
+		 *
+		 * @since 3.0.0
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_label', self::get_type_text( ' / ', false, $method ), $method );
 	}
 
 	protected static function get_pickup_type_address_placeholder( $method = false ) {
+		/**
+		 * Filter to adjust the pickup type address placeholder added
+		 * to the address field when a certain pickup type was chosen.
+		 *
+		 * @param string                                           $pickup_type_text The pickup type placeholder text.
+		 * @param boolean|ShippingMethod $method The shipping method object if available.
+		 *
+		 * @since 3.0.0
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_placeholder', self::get_street_placeholder( $method ), $method );
 	}
 

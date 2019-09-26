@@ -180,6 +180,14 @@ class Order {
 			$needs_verification = true;
 		}
 
+		/**
+		 * Filter to decide whether a DHL order needs age verification or not.
+		 *
+		 * @param boolean                         $needs_verification Whether the order needs age verification or not.
+		 * @param Order $order The order instance.
+		 *
+		 * @since 3.0.0
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_order_needs_age_verificaton', $needs_verification, $this );
 	}
 
@@ -190,7 +198,15 @@ class Order {
 			$result = true;
 		}
 
-		return apply_filters( 'woocommerce_gzd_dhl_order_has_cod_payment', $result, $this->get_order(), $this );
+		/**
+		 * Filter to decide whether a DHL order has cash on delivery payment enabled.
+		 *
+		 * @param boolean                         $result Whether the order has COD payment or not.
+		 * @param Order $order The order instance.
+		 *
+		 * @since 3.0.0
+		 */
+		return apply_filters( 'woocommerce_gzd_dhl_order_has_cod_payment', $result, $this );
 	}
 
 	public function get_date_of_birth() {

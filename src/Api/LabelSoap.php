@@ -3,9 +3,12 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Exception;
-use PDFMerger\Pdf;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\Label;
+use Vendidero\Germanized\DHL\PDFMerger;
+use Vendidero\Germanized\DHL\PDFSplitter;
+use Vendidero\Germanized\DHL\SimpleLabel;
+use Vendidero\Germanized\DHL\ReturnLabel;
 use Vendidero\Germanized\DHL\ParcelLocator;
 
 defined( 'ABSPATH' ) || exit;
@@ -35,24 +38,6 @@ class LabelSoap extends Soap {
         	return true;
         } catch( Exception $e ) {
         	return false;
-        }
-    }
-
-    protected function validate_field( $key, $value ) {
-        try {
-            switch ( $key ) {
-                case 'weight':
-                    wc_gzd_dhl_validate_api_field( $value );
-                    break;
-                case 'hs_code':
-                    wc_gzd_dhl_validate_api_field( $value, 'string', 4, 11 );
-                    break;
-                default:
-                    parent::validate_field( $key, $value );
-                    break;
-            }
-        } catch ( Exception $e ) {
-            throw $e;
         }
     }
 
@@ -121,7 +106,7 @@ class LabelSoap extends Soap {
     }
 
 	/**
-	 * @param Label $label
+	 * @param SimpleLabel $label
 	 * @param $status
 	 * @param $response_body
 	 *
@@ -142,24 +127,68 @@ class LabelSoap extends Soap {
 		    // Give the server 1 second to create the PDF before downloading it
 		    // sleep( 1 );
 		    try {
+
 			    if ( isset( $response_body->shipmentNumber ) ) {
 				    $label->set_number( $response_body->shipmentNumber );
 			    }
 
+			    $return_label = false;
+
+			    // Create separate return label
 			    if ( isset( $response_body->returnShipmentNumber ) ) {
-				    $label->set_return_number( $response_body->returnShipmentNumber );
+
+			    	$return_label = $label->get_return_label();
+
+			    	if ( ! $return_label ) {
+						$return_label = wc_gzd_dhl_create_return_label( $label, array( 'created_via' => 'gkv' ) );
+				    }
+
+			    	if ( $return_label ) {
+			    		$return_label->set_number( $response_body->returnShipmentNumber );
+				    }
 			    }
 
+			    $default_file  = base64_decode( $response_body->LabelData->labelData );
+			    $return_file   = false;
+
+			    // Try to split the PDF to extract return label
+			    if ( $return_label ) {
+
+				    $splitter = $splitter = new PDFSplitter( $default_file, true );
+				    $pdfs     = $splitter->split();
+
+				    if ( $pdfs && ! empty( $pdfs ) && sizeof( $pdfs ) > 1 ) {
+				    	$return_file  = $pdfs[1];
+				    }
+
+				    if ( $return_file ) {
+
+					    if ( ! $filename_return_label = $return_label->get_filename() ) {
+						    $filename_return_label = wc_gzd_dhl_generate_label_filename( $return_label, 'return-label' );
+					    }
+
+					    if ( $path = wc_gzd_dhl_upload_data( $filename_return_label, $return_file ) ) {
+						    $return_label->set_default_path( $path );
+						    $return_label->set_path( $path );
+					    }
+				    }
+
+				    $return_label->save();
+			    }
+
+			    // Store the downloaded label as default file
 			    if ( ! $filename_label = $label->get_default_filename() ) {
 				    $filename_label = wc_gzd_dhl_generate_label_filename( $label, 'label-default' );
 			    }
 
-			    if ( $path = wc_gzd_dhl_upload_data( $filename_label, base64_decode( $response_body->LabelData->labelData ) ) ) {
+			    if ( $path = wc_gzd_dhl_upload_data( $filename_label, $default_file ) ) {
 				    $label->set_default_path( $path );
 			    }
 
+			    // Merge export label into label path so that by default the shop owner downloads the merged file
 			    if ( isset( $response_body->LabelData->exportLabelData ) ) {
 
+			    	// Save export file
 				    if ( ! $filename_export = $label->get_export_filename() ) {
 					    $filename_export = wc_gzd_dhl_generate_label_filename( $label, 'label-export' );
 				    }
@@ -169,30 +198,46 @@ class LabelSoap extends Soap {
 				    }
 
 				    // Merge files
-				    $pdf = new Pdf();
-				    $pdf->add( $label->get_default_file() );
-				    $pdf->add( $label->get_export_file() );
+				    $merger = new PDFMerger();
+				    $merger->add( $label->get_default_file() );
+				    $merger->add( $label->get_export_file() );
 
 				    if ( ! $filename_label = $label->get_filename() ) {
 					    $filename_label = wc_gzd_dhl_generate_label_filename( $label );
 				    }
 
-				    $file = $pdf->output( $filename_label, 'S' );
+				    $file = $merger->output( $filename_label, 'S' );
 
 				    if ( $path = wc_gzd_dhl_upload_data( $filename_label, $file ) ) {
 					    $label->set_path( $path );
 				    }
+
 			    } else {
 					$label->set_path( $path );
 			    }
 
+			    /**
+			     * Action fires before updating a DHL PDF label through an API call.
+			     *
+			     * @param Label $label The label object.
+			     *
+			     * @since 3.0.0
+			     */
 			    do_action( 'woocommerce_gzd_dhl_before_label_api_update', $label );
 
 			    $label->save();
 
+			    /**
+			     * Action fires after updating a DHL PDF label through an API call.
+			     *
+			     * @param Label $label The label object.
+			     *
+			     * @since 3.0.0
+			     */
 			    do_action( 'woocommerce_gzd_dhl_label_api_updated', $label );
 
 		    } catch( Exception $e ) {
+		    	var_dump($e);
 			    throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
 		    }
 
@@ -201,7 +246,7 @@ class LabelSoap extends Soap {
     }
 
     /**
-     * @param Label $label
+     * @param SimpleLabel $label
      *
      * @throws Exception
      */
@@ -226,10 +271,28 @@ class LabelSoap extends Soap {
             throw $e;
         }
 
+	    /**
+	     * Action fires before deleting a DHL PDF label through an API call.
+	     *
+	     * @param Label $label The label object.
+	     *
+	     * @since 3.0.0
+	     */
 	    do_action( 'woocommerce_gzd_dhl_label_api_before_delete', $label );
 
+	    if ( $return_label = $label->get_return_label() ) {
+
+	    	$return_label->set_number( '' );
+
+		    if ( $file = $return_label->get_file() ) {
+			    wp_delete_file( $file );
+		    }
+
+		    $return_label->set_path( '' );
+		    $return_label->set_default_path( '' );
+	    }
+
 	    $label->set_number( '' );
-	    $label->set_return_number( '' );
 
 	    if ( $file = $label->get_file() ) {
 		    wp_delete_file( $file );
@@ -249,6 +312,13 @@ class LabelSoap extends Soap {
 
 	    $label->set_export_path( '' );
 
+	    /**
+	     * Action fires after deleting a DHL PDF label through an API call.
+	     *
+	     * @param Label $label The label object.
+	     *
+	     * @since 3.0.0
+	     */
 	    do_action( 'woocommerce_gzd_dhl_label_api_deleted', $label );
 
         if ( 0 !== $response_body->Status->statusCode ) {
@@ -550,12 +620,6 @@ class LabelSoap extends Soap {
                 $this->body_request['ShipmentOrder']['Shipment']['ShipmentDetails']['Service']['IdentCheck']['Ident']['dateOfBirth'] = '';
             }
         }
-
-        // Ensure 'postNumber' is passed with 'Postfiliale' even if empty
-        /*if ( ! isset( $this->body_request['ShipmentOrder']['Shipment']['Receiver']['Postfiliale']['postNumber'] ) ) {
-            // Additional fees, required and 0 so place after check
-            $this->body_request['ShipmentOrder']['Shipment']['Receiver']['Postfiliale']['postNumber'] = '';
-        }*/
 
         return $this->body_request;
     }

@@ -80,11 +80,14 @@ abstract class Rest {
         $this->rest_auth->delete_access_token();
     }
 
+    protected function get_auth() {
+    	return $this->get_basic_auth_encode( Package::get_cig_user(), Package::get_cig_password() );
+    }
+
     public function get_request( $endpoint = '', $query_args = array() ) {
-        $rest_auth = $this->get_basic_auth_encode( Package::get_cig_user(), Package::get_cig_password() );
         $api_url   = Package::get_rest_url();
 
-        $this->set_header( $rest_auth );
+        $this->set_header( $this->get_auth() );
 
         $wp_request_url     = add_query_arg( $query_args, $api_url . $endpoint );
         $wp_request_headers = $this->get_header();
@@ -141,6 +144,36 @@ abstract class Rest {
         return $response_body;
     }
 
+	public function post_request( $endpoint = '', $query_args = array() ) {
+		$api_url   = Package::get_rest_url();
+
+		$this->set_header( $this->get_auth() );
+
+		$wp_request_url     = $api_url . $endpoint;
+		$wp_request_headers = $this->get_header();
+
+		Package::log( 'POST URL: ' . $wp_request_url );
+
+		$wp_dhl_rest_response = wp_remote_post(
+			$wp_request_url,
+			array(
+				'headers' => $wp_request_headers,
+				'timeout' => 30,
+				'body'    => $query_args,
+			)
+		);
+
+		print_r($wp_dhl_rest_response);
+
+		$response_code = wp_remote_retrieve_response_code( $wp_dhl_rest_response );
+		$response_body = json_decode( wp_remote_retrieve_body( $wp_dhl_rest_response ) );
+
+		Package::log( 'POST Response Code: ' . $response_code );
+		Package::log( 'POST Response Body: ' . print_r( $response_body, true ) );
+
+		return $response_body;
+	}
+
     protected function get_basic_auth_encode( $user, $pass ) {
         return 'Basic ' . base64_encode( $user . ':' . $pass );
     }
@@ -159,20 +192,5 @@ abstract class Rest {
 
     protected function get_header( ) {
         return $this->remote_header;
-    }
-
-    protected function validate_field( $key, $value ) {
-        try {
-            switch ( $key ) {
-                case 'pickup':
-                    wc_gzd_dhl_validate_api_field( $value, 'string', 5, 10 );
-                    break;
-                case 'distribution':
-                    wc_gzd_dhl_validate_api_field( $value, 'string', 6, 6 );
-                    break;
-            }
-        } catch (Exception $e) {
-            throw $e;
-        }
     }
 }

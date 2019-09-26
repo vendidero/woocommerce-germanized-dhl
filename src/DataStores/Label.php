@@ -24,8 +24,10 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
     protected $core_props = array(
         'shipment_id',
+        'parent_id',
         'number',
         'path',
+	    'type',
 	    'default_path',
         'export_path',
         'dhl_product',
@@ -51,12 +53,13 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	    '_email_notification',
 	    '_codeable_address_only',
 	    '_return_address',
+	    '_shipper_address',
         '_has_return',
         '_services',
 	    '_duties',
-	    '_return_number',
 	    '_cod_total',
-	    '_weight'
+	    '_weight',
+	    '_created_via'
     );
 
     /*
@@ -82,6 +85,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             'label_default_path'        => $label->get_default_path(),
             'label_export_path'         => $label->get_export_path(),
             'label_dhl_product'         => $label->get_dhl_product(),
+            'label_type'                => $label->get_type(),
+            'label_parent_id'           => is_callable( array( $label, 'get_parent_id' ) ) ? $label->get_parent_id() : 0,
             'label_date_created'        => gmdate( 'Y-m-d H:i:s', $label->get_date_created( 'edit' )->getOffsetTimestamp() ),
             'label_date_created_gmt'    => gmdate( 'Y-m-d H:i:s', $label->get_date_created( 'edit' )->getTimestamp() ),
         );
@@ -103,12 +108,32 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
             $this->clear_caches( $label );
 
-            do_action( 'woocommerce_gzd_dhl_label_created', $label_id );
+            $hook_postfix = $this->get_hook_postfix( $label );
+
+	        /**
+	         * Action fires when a new DHL label has been created.
+	         *
+	         * The dynamic portion of this hook, `$hook_postfix` refers to the
+	         * label type e.g. return in case it is not a simple label.
+	         *
+	         * @param integer $label_id The label id.
+	         *
+	         * @since 3.0.0
+	         */
+            do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_created", $label_id );
         }
     }
 
+    protected function get_hook_postfix( $label ) {
+    	if ( 'simple' !== $label->get_type() ) {
+    		return $label->get_type() . '_';
+	    }
+
+    	return '';
+    }
+
     /**
-     * Method to update a shipment in the database.
+     * Method to update a label in the database.
      *
      * @param \Vendidero\Germanized\DHL\Label $label Label object.
      */
@@ -132,7 +157,9 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
                     $label_data[ 'label_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $label->{'get_' . $prop}( 'edit' )->getTimestamp() );
                     break;
                 default:
-                    $label_data[ 'label_' . $prop ] = $label->{'get_' . $prop}( 'edit' );
+                	if ( is_callable( array( $label, 'get_' . $prop ) ) ) {
+		                $label_data[ 'label_' . $prop ] = $label->{'get_' . $prop}( 'edit' );
+	                }
                     break;
             }
         }
@@ -151,7 +178,20 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
         $label->apply_changes();
         $this->clear_caches( $label );
 
-        do_action( 'woocommerce_gzd_dhl_label_updated', $label->get_id(), $changed_props );
+        $hook_postfix = $this->get_hook_postfix( $label );
+
+	    /**
+	     * Action fires after a DHL label has been updated in the DB.
+	     *
+	     * The dynamic portion of this hook, `$hook_postfix` refers to the
+	     * label type e.g. return in case it is not a simple label.
+	     *
+	     * @param integer $label_id The label id.
+	     * @param array   $changed_props Properties that have been changed.
+	     *
+	     * @since 3.0.0
+	     */
+        do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_updated", $label->get_id(), $changed_props );
     }
 
     /**
@@ -169,6 +209,10 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             wp_delete_file( $file );
         }
 
+	    if ( $file_default = $label->get_default_file() ) {
+		    wp_delete_file( $file_default );
+	    }
+
         if ( $file_export = $label->get_export_file() ) {
             wp_delete_file( $file_export );
         }
@@ -178,7 +222,27 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
         $this->clear_caches( $label );
 
-        do_action( 'woocommerce_gzd_dhl_label_deleted', $label->get_id(), $label );
+	    if ( 'simple' === $label->get_type() ) {
+
+		    if ( $return = $label->get_return_label() ) {
+			    $return->delete( $force_delete );
+		    }
+	    }
+
+        $hook_postfix = $this->get_hook_postfix( $label );
+
+	    /**
+	     * Action fires after a DHL label has been deleted from DB.
+	     *
+	     * The dynamic portion of this hook, `$hook_postfix` refers to the
+	     * label type e.g. return in case it is not a simple label.
+	     *
+	     * @param integer                         $label_id The label id.
+	     * @param \Vendidero\Germanized\DHL\Label $label The label object.
+	     *
+	     * @since 3.0.0
+	     */
+        do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_deleted", $label->get_id(), $label );
     }
 
     /**
@@ -206,6 +270,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
                     'shipment_id'  => $data->label_shipment_id,
                     'number'       => $data->label_number,
                     'path'         => $data->label_path,
+                    'parent_id'    => $data->label_parent_id,
                     'default_path' => $data->label_default_path,
                     'export_path'  => $data->label_export_path,
                     'dhl_product'  => $data->label_dhl_product,
@@ -217,7 +282,19 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             $label->read_meta_data();
             $label->set_object_read( true );
 
-            do_action( 'woocommerce_gzd_label_loaded', $label );
+            $hook_postfix = $this->get_hook_postfix( $label );
+
+	        /**
+	         * Action fires after reading a DHL label from DB.
+	         *
+	         * The dynamic portion of this hook, `$hook_postfix` refers to the
+	         * label type e.g. return in case it is not a simple label.
+	         *
+	         * @param \Vendidero\Germanized\DHL\Label $label The label object.
+	         *
+	         * @since 3.0.0
+	         */
+            do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_loaded", $label );
         } else {
             throw new Exception( __( 'Invalid label.', 'woocommerce-germanized-dhl' ) );
         }
@@ -238,6 +315,25 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
     | Additional Methods
     |--------------------------------------------------------------------------
     */
+
+	/**
+	 * Get the label type based on label ID.
+	 *
+	 * @param int $label_id Label id.
+	 * @return string
+	 */
+	public function get_label_type( $label_id ) {
+		global $wpdb;
+
+		$type = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT label_type FROM {$wpdb->gzd_dhl_labels} WHERE label_id = %d LIMIT 1",
+				$label_id
+			)
+		);
+
+		return ! empty( $type ) ? $type[0] : false;
+	}
 
     /**
      * Read extra data associated with the shipment.
@@ -273,6 +369,10 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
         foreach ( $props_to_update as $meta_key => $prop ) {
 
+        	if ( ! is_callable( array( $label, "get_$prop" ) ) ) {
+        		continue;
+	        }
+
             $value = $label->{"get_$prop"}( 'edit' );
             $value = is_string( $value ) ? wp_slash( $value ) : $value;
 
@@ -299,6 +399,14 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             }
         }
 
+	    /**
+	     * Action fires after DHL label meta properties have been updated.
+	     *
+	     * @param \Vendidero\Germanized\DHL\Label $label The label object.
+	     * @param array                           $updated_props The updated properties.
+	     *
+	     * @since 3.0.0
+	     */
         do_action( 'woocommerce_gzd_dhl_label_object_updated_props', $label, $updated_props );
     }
 
@@ -340,6 +448,11 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
         global $wpdb;
 
         $wp_query_args = parent::get_wp_query_args( $query_vars );
+
+	    // Force type to be existent
+	    if ( isset( $query_vars['type'] ) ) {
+		    $wp_query_args['type'] = $query_vars['type'];
+	    }
 
         if ( ! isset( $wp_query_args['date_query'] ) ) {
             $wp_query_args['date_query'] = array();
@@ -385,6 +498,15 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             $wp_query_args['no_found_rows'] = true;
         }
 
+	    /**
+	     * Filter to adjust the DHL label query args after parsing them.
+	     *
+	     * @param array                                      $wp_query_args Parsed query arguments.
+	     * @param array                                      $query_vars    Original query arguments.
+	     * @param Label $data_store The label data store.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_dhl_label_data_store_get_labels_query', $wp_query_args, $query_vars, $this );
     }
 

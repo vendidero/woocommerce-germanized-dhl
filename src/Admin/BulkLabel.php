@@ -2,8 +2,8 @@
 
 namespace Vendidero\Germanized\DHL\Admin;
 use Exception;
-use PDFMerger\Pdf;
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\PDFMerger;
 use Vendidero\Germanized\Shipments\Admin\BulkActionHandler;
 
 defined( 'ABSPATH' ) || exit;
@@ -102,7 +102,7 @@ class BulkLabel extends BulkActionHandler {
 					try {
 						$path     = $this->get_file();
 						$filename = $this->get_filename();
-						$pdf      = new Pdf();
+						$pdf      = new PDFMerger();
 
 						if ( $path ) {
 							$pdf->add( $path );
@@ -111,6 +111,14 @@ class BulkLabel extends BulkActionHandler {
 						$pdf->add( $label->get_file() );
 
 						if ( ! $path ) {
+							/**
+							 * Filter to adjust the default filename chosen for bulk exporting DHL labels.
+							 *
+							 * @param string                                    $filename The filename.
+							 * @param BulkLabel $this The `BulkLabel instance.
+							 *
+							 * @since 3.0.0
+							 */
 							$filename = apply_filters( 'woocommerce_gzd_dhl_label_bulk_filename', 'export.pdf', $this );
 						}
 

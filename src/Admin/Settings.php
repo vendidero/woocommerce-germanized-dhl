@@ -150,7 +150,7 @@ class Settings {
 	protected static function get_store_address_country() {
 		$default = get_option( 'woocommerce_store_country' );
 
-		return in_array( $default, array( 'DE', 'AT' ) ) ? $default : 'DE';
+		return in_array( $default, Package::get_available_countries() ) ? $default : 'DE';
 	}
 
 	protected static function get_store_address_street() {
@@ -494,7 +494,7 @@ class Settings {
 				'title'             => __( 'Country', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'class'		        => 'wc-enhanced-select',
-				'options'           => array( 'DE' => __( 'Germany', 'woocommerce-germanized-dhl' ), 'AT' => __( 'Austria', 'woocommerce-germanized-dhl' ) ),
+				'options'           => Package::get_available_countries(),
 				'id' 		        => 'woocommerce_gzd_dhl_shipper_country',
 				'default'           => self::get_store_address_country(),
 			),
@@ -563,7 +563,7 @@ class Settings {
 				'title'             => __( 'Country', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'class'		        => 'chosen_select',
-				'options'           => array( 'DE' => __( 'Germany', 'woocommerce-germanized-dhl' ), 'AT' => __( 'Austria', 'woocommerce-germanized-dhl' ) ),
+				'options'           => Package::get_available_countries(),
 				'id' 		        => 'woocommerce_gzd_dhl_return_address_country',
 				'default'           => self::get_store_address_country(),
 			),

@@ -54,13 +54,16 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labels (
   label_date_created datetime NOT NULL default '0000-00-00 00:00:00',
   label_date_created_gmt datetime NOT NULL default '0000-00-00 00:00:00',
   label_shipment_id BIGINT UNSIGNED NOT NULL,
+  label_parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
   label_number varchar(200) NOT NULL DEFAULT '',
   label_dhl_product varchar(200) NOT NULL DEFAULT '',
   label_path varchar(200) NOT NULL DEFAULT '',
   label_default_path varchar(200) NOT NULL DEFAULT '',
   label_export_path varchar(200) NOT NULL DEFAULT '',
+  label_type varchar(200) NOT NULL DEFAULT '',
   PRIMARY KEY  (label_id),
-  KEY label_shipment_id (label_shipment_id)
+  KEY label_shipment_id (label_shipment_id),
+  KEY label_parent_id (label_parent_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labelmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,

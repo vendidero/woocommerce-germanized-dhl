@@ -17,11 +17,25 @@ defined( 'ABSPATH' ) || exit;
 
 class Paket {
 
+	/**
+	 * @var null|LabelSoap
+	 */
     protected $label_api = null;
 
+	/**
+	 * @var null|FinderSoap
+	 */
     protected $finder_api = null;
 
+	/**
+	 * @var null|ParcelRest
+	 */
     protected $parcel_api = null;
+
+	/**
+	 * @var null|ReturnRest
+	 */
+    protected $return_api = null;
 
     protected $country_code = '';
 
@@ -59,6 +73,22 @@ class Paket {
         }
 
         return $this->finder_api;
+    }
+
+    public function get_return_api() {
+	    if ( is_null( $this->return_api ) ) {
+		    try {
+			    $this->return_api = new ReturnRest();
+		    } catch( Exception $e ) {
+			    $this->return_api = null;
+		    }
+	    }
+
+	    if ( is_null( $this->return_api ) ) {
+		    throw new Exception( __( 'Return API not available', 'woocommerce-germanized-dhl' ) );
+	    }
+
+	    return $this->return_api;
     }
 
     public function get_parcel_api() {
@@ -101,6 +131,14 @@ class Paket {
     	$is_working_day = ( in_array( $datetime->format( 'Y-m-d' ), Package::get_holidays( 'DE' ) ) ) ? false : true;
 
     	if ( $is_working_day ) {
+		    /**
+		     * Filter to decide whether DHL should consider saturday as a working day
+		     * for preferred day calculation or not.
+		     *
+		     * @param boolean $is_working_day True if saturday should be considered a working day.
+		     *
+		     * @since 3.0.0
+		     */
 		    if ( apply_filters( 'woocommerce_gzd_dhl_consider_saturday_as_working_day', true ) ) {
 			    $is_working_day = $datetime->format( 'N' ) > 6 ? false : true;
 		    } else {

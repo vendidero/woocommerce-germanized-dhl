@@ -19,8 +19,8 @@ class LabelWatcher {
 	public static function init() {
 
 		// Create labels if they do not yet exist
-		add_action( 'woocommerce_gzd_dhl_before_create_label', array( __CLASS__, 'create_label' ), 10, 1 );
-		add_action( 'woocommerce_gzd_dhl_before_update_label', array( __CLASS__, 'update_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_after_create_label', array( __CLASS__, 'create_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_after_update_label', array( __CLASS__, 'update_label' ), 10, 1 );
 
 		// Delete label
 		add_action( 'woocommerce_gzd_dhl_label_deleted', array( __CLASS__, 'delete_label' ), 10, 2 );

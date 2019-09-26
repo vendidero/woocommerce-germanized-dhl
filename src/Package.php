@@ -87,6 +87,14 @@ class Package {
 			$holidays = array_key_exists( $country, self::$holidays ) ? self::$holidays[ $country ] : array();
 		}
 
+		/**
+		 * Filter to adjust dates regarded as holidays for a certain country.
+		 *
+		 * @param array  $holidays Array containing dates in Y-m-d format.
+		 * @param string $country The country as ISO code.
+		 *
+		 * @since 3.0.0
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_holidays', $holidays, $country );
 	}
 
@@ -218,9 +226,19 @@ class Package {
 
 	public static function test() {
 
-		$api    = self::get_api();
-		$times = $api->get_preferred_day_time( '12207' );
-		var_dump($times);
+    	$label = wc_gzd_dhl_get_label( 87 );
+    	var_dump($label->get_return_label());
+    	exit();
+
+		/*$label = wc_gzd_dhl_get_label( 53 );
+		var_dump($label->has_return());
+		exit();*/
+
+    	/*
+    	$api    = self::get_api();
+		$api->get_return_api()->create_return_label( array() );
+    	*/
+
 		exit();
 	}
 
@@ -288,7 +306,7 @@ class Package {
     }
 
     public static function get_app_id() {
-        return 'dhl_woocommerce_plugin_2_1';
+        return 'woo_germanized';
     }
 
     public static function get_app_token() {
@@ -385,6 +403,14 @@ class Package {
         $upload_dir = wp_upload_dir();
         self::unset_upload_dir_filter();
 
+	    /**
+	     * Filter to adjust the DHL label upload directory. By default
+	     * DHL labels are stored in a custom directory under wp-content/uploads.
+	     *
+	     * @param array $upload_dir Array containing `wp_upload_dir` data.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_dhl_upload_dir', $upload_dir );
     }
 
@@ -394,6 +420,13 @@ class Package {
         $path = _wp_relative_upload_path( $path );
         self::unset_upload_dir_filter();
 
+	    /**
+	     * Filter to retrieve the DHL label relative upload path.
+	     *
+	     * @param array $path Relative path.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_dhl_relative_upload_dir', $path );
     }
 
@@ -425,7 +458,23 @@ class Package {
         $upload_base = trailingslashit( $args['basedir'] );
         $upload_url  = trailingslashit( $args['baseurl'] );
 
+	    /**
+	     * Filter to adjust the DHL label upload path. By default
+	     * DHL labels are stored in a custom directory under wp-content/uploads.
+	     *
+	     * @param string $path Path to the upload directory.
+	     *
+	     * @since 3.0.0
+	     */
         $args['basedir'] = apply_filters( 'woocommerce_gzd_dhl_upload_path', $upload_base . 'wc-gzd-dhl-' . self::get_upload_dir_suffix() );
+	    /**
+	     * Filter to adjust the DHL label upload URL. By default
+	     * DHL labels are stored in a custom directory under wp-content/uploads.
+	     *
+	     * @param string $url URL to the upload directory.
+	     *
+	     * @since 3.0.0
+	     */
         $args['baseurl'] = apply_filters( 'woocommerce_gzd_dhl_upload_url', $upload_url . 'wc-gzd-dhl-' . self::get_upload_dir_suffix() );
 
         $args['path'] = $args['basedir'] . $args['subdir'];
@@ -481,10 +530,27 @@ class Package {
         $logger->{$type}( $message, array( 'source' => 'woocommerce-germanized-dhl' ) );
     }
 
-    public static function get_base_country() {
-	    $base_location = wc_get_base_location();
+    public static function get_available_countries() {
+	    return array( 'DE' => __( 'Germany', 'woocommerce-germanized-dhl' ) );
+    }
 
-	    return $base_location['country'];
+    public static function get_base_country() {
+	    $base_location       = wc_get_base_location();
+	    $base_country        = $base_location['country'];
+	    $sender_base_country = Package::get_setting( 'shipper_country' );
+
+	    if ( ! empty( $sender_base_country ) ) {
+	    	$base_country = $sender_base_country;
+	    }
+
+	    /**
+	     * Filter to adjust the DHL base country.
+	     *
+	     * @param string $country The country as ISO code.
+	     *
+	     * @since 3.0.0
+	     */
+	    return apply_filters( 'woocommerce_gzd_dhl_base_country', $base_country );
     }
 
     public static function get_us_territories() {
