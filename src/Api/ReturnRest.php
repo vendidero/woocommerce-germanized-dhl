@@ -12,10 +12,9 @@ class ReturnRest extends Rest {
 	public function __construct() {}
 
 	public function create_return_label( $args ) {
-		$request_args = $args;
-
 		$request_args = array(
-			'receiverId' => '22222222220701',
+			'receiverId' => 'DE',
+			'billingNumber' => '22222222220701',
 			"customerReference" => "Test",
 			"shipmentReference" =>  "test",
 			"senderAddress" => array(
@@ -26,16 +25,22 @@ class ReturnRest extends Rest {
 				'postCode' => '12207',
 				'city' => 'Berlin',
 				'country' => array(
-					'countryISOCode' => 'DE',
+					'countryISOCode' => 'DEU',
+					'country' => 'Germany'
 				),
 			),
 			'email' => 'info@vendidero.de',
 			'telephoneNumber' => '',
-			"weightInGrams" => '1000',
-			'value' => '0',
+			"weightInGrams" => '5000',
+			'value' => '60',
+			'returnDocumentType' => 'SHIPMENT_LABEL'
 		);
 
-		return $this->post_request( '/returns/', $request_args );
+		return $this->post_request( '/returns/', json_encode( $request_args ) );
+	}
+
+	protected function get_retoure_auth() {
+		return base64_encode( Package::get_retoure_api_user() . ':' . Package::get_retoure_api_signature() );
 	}
 
 	protected function set_header( $authorization = '' ) {
@@ -45,6 +50,6 @@ class ReturnRest extends Rest {
 			$this->remote_header['Authorization'] = $authorization;
 		}
 
-		$this->remote_header['DPDHL-User-Authentication-Token'] = 'MjIyMjIyMjIyMl9DdXN0b21lcjp1QlFiWjYyIVppQmlWVmJoYwo=';
+		$this->remote_header['DPDHL-User-Authentication-Token'] = $this->get_retoure_auth();
 	}
 }

@@ -158,7 +158,7 @@ abstract class Rest {
 			$wp_request_url,
 			array(
 				'headers' => $wp_request_headers,
-				'timeout' => 30,
+				'timeout' => 100,
 				'body'    => $query_args,
 			)
 		);

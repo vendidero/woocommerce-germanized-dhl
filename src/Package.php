@@ -161,7 +161,7 @@ class Package {
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
 	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
 
-	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
+	    add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
 
 	public static function set_method_filters( $methods ) {
@@ -226,18 +226,8 @@ class Package {
 
 	public static function test() {
 
-    	$label = wc_gzd_dhl_get_label( 87 );
-    	var_dump($label->get_return_label());
-    	exit();
-
-		/*$label = wc_gzd_dhl_get_label( 53 );
-		var_dump($label->has_return());
-		exit();*/
-
-    	/*
     	$api    = self::get_api();
 		$api->get_return_api()->create_return_label( array() );
-    	*/
 
 		exit();
 	}
@@ -351,6 +341,24 @@ class Package {
 	 */
 	public static function get_gk_api_signature() {
 		return self::is_debug_mode() ? 'pass' : self::get_setting( 'api_password' );
+	}
+
+	/**
+	 * Retoure Auth user
+	 *
+	 * @return mixed|string|void
+	 */
+	public static function get_retoure_api_user() {
+		return self::is_debug_mode() ? '2222222222_Customer' : self::get_setting( 'api_username' );
+	}
+
+	/**
+	 * Retoure Auth signature
+	 *
+	 * @return mixed|string|void
+	 */
+	public static function get_retoure_api_signature() {
+		return self::is_debug_mode() ? 'uBQbZ62!ZiBiVVbhc' : self::get_setting( 'api_password' );
 	}
 
     public static function get_cig_url() {
