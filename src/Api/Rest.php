@@ -163,13 +163,28 @@ abstract class Rest {
 			)
 		);
 
-		print_r($wp_dhl_rest_response);
-
 		$response_code = wp_remote_retrieve_response_code( $wp_dhl_rest_response );
 		$response_body = json_decode( wp_remote_retrieve_body( $wp_dhl_rest_response ) );
 
 		Package::log( 'POST Response Code: ' . $response_code );
 		Package::log( 'POST Response Body: ' . print_r( $response_body, true ) );
+
+		switch ( $response_code ) {
+			case '200':
+			case '201':
+				break;
+			default:
+				if ( empty( $response_body->detail ) ) {
+					$error_message = __( 'POST error or timeout occured. Please try again later.', 'woocommerce-germanized-dhl' );
+				} else {
+					$error_message = $response_body->detail;
+				}
+
+				Package::log( 'POST Error: ' . $response_code . ' - ' . $error_message );
+
+				throw new Exception( $response_code .' - ' . $error_message );
+				break;
+		}
 
 		return $response_body;
 	}

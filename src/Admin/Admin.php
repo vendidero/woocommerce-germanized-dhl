@@ -28,7 +28,7 @@ class Admin {
 		// Shipments
 		add_filter( 'woocommerce_gzd_shipments_table_actions', array( __CLASS__, 'table_label_download' ), 10, 2 );
 		add_action( 'woocommerce_gzd_shipments_table_actions_end', array( __CLASS__, 'table_label_generate' ), 10, 1 );
-		add_filter( 'woocommerce_gzd_shipments_bulk_actions', array( __CLASS__, 'table_bulk_actions' ), 10, 1 );
+		add_filter( 'woocommerce_gzd_shipments_table_bulk_actions', array( __CLASS__, 'table_bulk_actions' ), 10, 1 );
 
 		// Bulk Labels
 		add_filter( 'woocommerce_gzd_shipments_bulk_action_handlers', array( __CLASS__, 'register_bulk_handler' ) );
@@ -39,7 +39,17 @@ class Admin {
 
 		// Check upload folder
         add_action( 'admin_notices', array( __CLASS__, 'check_upload_dir' ) );
+
+        // Password Settings
+        add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
+		add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
 	}
+
+	public static function sanitize_password_field( $value, $option, $raw_value ) {
+		$value = is_null( $raw_value ) ? '' : $raw_value;
+
+		return trim( $value );
+    }
 
 	public static function check_upload_dir() {
 		$dir     = Package::get_upload_dir();

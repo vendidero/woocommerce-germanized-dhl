@@ -48,7 +48,7 @@ class LabelQuery extends WC_Object_Query {
             'limit'          => 10,
             'shipment_id'    => '',
             'parent_id'      => '',
-            'type'           => 'simple',
+            'type'           => wc_gzd_dhl_get_label_types(),
             'number'         => '',
             'order'          => 'DESC',
             'orderby'        => 'date_created',

@@ -31,6 +31,8 @@ class Package {
 	protected static $api = null;
 
 	protected static $method_settings = null;
+	
+	protected static $iso = null;
 
     /**
      * Init the package - load the REST API Server class.
@@ -129,6 +131,20 @@ class Package {
     public static function is_enabled() {
     	return 'yes' === self::get_setting( 'enable' );
     }
+    
+    public static function get_country_iso_alpha3( $country_code ) {
+	    if ( empty( self::$iso ) ) {
+		    self::$iso = include self::get_path() . '/i18n/iso.php';
+	    }
+
+	    $iso = self::$iso;
+
+    	if ( isset( $iso[ $country_code ] ) ) {
+    		return $iso[ $country_code ];
+	    }
+
+    	return $country_code;
+    }
 
     private static function includes() {
         include_once self::get_path() . '/includes/wc-gzd-dhl-core-functions.php';
@@ -226,10 +242,17 @@ class Package {
 
 	public static function test() {
 
+    	/*var_dump(wc_clean(WC_GZD_DHL_SANDBOX_PASSWORD));
+    	var_dump(WC_GZD_DHL_SANDBOX_PASSWORD);
+    	exit();
+    	*/
+
+    	/*
     	$api    = self::get_api();
 		$api->get_return_api()->create_return_label( array() );
 
 		exit();
+    	*/
 	}
 
 	public static function is_integration() {
@@ -309,7 +332,7 @@ class Package {
 	 * @return mixed|string|void
 	 */
     public static function get_cig_user() {
-    	$debug_user = defined( 'WC_GZD_DHL_SANDBOX_USER' ) ? WC_GZD_DHL_SANDBOX_USER : self::get_setting( 'api_username' );
+    	$debug_user = defined( 'WC_GZD_DHL_SANDBOX_USER' ) ? WC_GZD_DHL_SANDBOX_USER : self::get_setting( 'api_sandbox_username' );
 
         return self::is_debug_mode() ? $debug_user : self::get_app_id();
     }
@@ -320,7 +343,7 @@ class Package {
 	 * @return mixed|string|void
 	 */
     public static function get_cig_password() {
-	    $debug_pwd = defined( 'WC_GZD_DHL_SANDBOX_PASSWORD' ) ? WC_GZD_DHL_SANDBOX_PASSWORD : self::get_setting( 'api_password' );
+	    $debug_pwd = defined( 'WC_GZD_DHL_SANDBOX_PASSWORD' ) ? WC_GZD_DHL_SANDBOX_PASSWORD : self::get_setting( 'api_sandbox_password' );
 
         return self::is_debug_mode() ? $debug_pwd : self::get_app_token();
     }

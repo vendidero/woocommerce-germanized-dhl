@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 use Vendidero\Germanized\DHL\Package;
 ?>
 
-<script type="text/template" id="tmpl-wc-gzd-modal-create-shipment-label-<?php echo esc_attr( $shipment->get_id() ); ?>">
+<script type="text/template" id="tmpl-wc-gzd-modal-create-shipment-label-<?php echo esc_attr( $shipment->get_id() ); ?>" class="wc-gzd-dhl-shipment-label-<?php echo esc_attr( $shipment->get_type() ); ?>">
 	<div class="wc-backbone-modal">
 		<div class="wc-backbone-modal-content">
 			<section class="wc-backbone-modal-main" role="main">
@@ -19,7 +19,7 @@ use Vendidero\Germanized\DHL\Package;
 						<span class="screen-reader-text">Close modal panel</span>
 					</button>
 				</header>
-				<article class="germanized-shipments germanized-create-label">
+				<article class="germanized-shipments germanized-create-label" data-shipment-type="<?php echo esc_attr( $shipment->get_type() ); ?>">
 					<div class="notice-wrapper"></div>
 
 					<div class="wc-gzd-dhl-create-label"></div>

@@ -101,12 +101,12 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	<?php endif; ?>
 
 	<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_has_return',
+		'id'          		=> 'dhl_label_has_direct_return',
 		'label'       		=> __( 'Create return label', 'woocommerce-germanized-dhl' ),
 		'class'             => 'checkbox show-if-trigger',
 		'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
 		'desc_tip'          => true,
-		'value'             => isset( $default_args['has_return'] ) ? wc_bool_to_string( $default_args['has_return'] ) : 'no',
+		'value'             => isset( $default_args['has_direct_return'] ) ? wc_bool_to_string( $default_args['has_direct_return'] ) : 'no',
 		'wrapper_class'     => 'form-field-checkbox'
 	) ); ?>
 

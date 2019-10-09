@@ -46,7 +46,7 @@ class Ajax {
 		$response_error = array(
 			'success'  => false,
 			'messages' => array(
-				__( 'There was an error deleting the label.', 'woocommerce-germanized-dhl' )
+				__( 'There was an error creating the label.', 'woocommerce-germanized-dhl' )
 			),
 		);
 
@@ -58,8 +58,14 @@ class Ajax {
 			wp_send_json( $response_error );
 		}
 
+		$path = Package::get_path() . '/includes/admin/views/html-shipment-label-backbone-form.php';
+
+		if ( 'return' === $shipment->get_type() ) {
+			$path = Package::get_path() . '/includes/admin/views/html-shipment-return-label-backbone-form.php';
+		}
+
 		ob_start();
-		include( Package::get_path() . '/includes/admin/views/html-shipment-label-backbone-form.php' );
+		include $path;
 		$html = ob_get_clean();
 
 		$response = array(
@@ -108,7 +114,7 @@ class Ajax {
 				'success'   => true,
 				'label_id'  => $label->get_id(),
 				'fragments' => array(
-					'#shipment-' . $shipment_id . ' .wc-gzd-shipment-dhl-label' => self::refresh_label_html( $shipment )
+					'#shipment-' . $shipment_id . ' .wc-gzd-shipment-dhl-label:first' => self::refresh_label_html( $shipment )
 				),
 			);
 		} else {
@@ -141,9 +147,13 @@ class Ajax {
 
 		$services = array();
 		$props    = array(
-			'has_return'            => 'no',
+			'has_direct_return'     => 'no',
 			'codeable_address_only' => 'no',
 		);
+
+		if ( 'return' === $shipment->get_type() ) {
+			$props = array();
+		}
 
 		foreach( $_POST as $key => $value ) {
 			if ( substr( $key, 0, strlen( 'dhl_label_service_' ) ) === 'dhl_label_service_' ) {
@@ -188,7 +198,7 @@ class Ajax {
 				'success'   => true,
 				'label_id'  => $label->get_id(),
 				'fragments' => array(
-					'#shipment-' . $shipment_id . ' .wc-gzd-shipment-dhl-label'                                     => self::refresh_label_html( $shipment, $label ),
+					'#shipment-' . $shipment_id . ' .wc-gzd-shipment-dhl-label:first'                               => self::refresh_label_html( $shipment, $label ),
 					'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-dhl-label' => self::label_download_button_html( $label ),
 				),
 			);

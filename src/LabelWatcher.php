@@ -19,20 +19,26 @@ class LabelWatcher {
 	public static function init() {
 
 		// Create labels if they do not yet exist
-		add_action( 'woocommerce_gzd_dhl_after_create_label', array( __CLASS__, 'create_label' ), 10, 1 );
-		add_action( 'woocommerce_gzd_dhl_after_update_label', array( __CLASS__, 'update_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_before_create_label', array( __CLASS__, 'create_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_before_update_label', array( __CLASS__, 'update_label' ), 10, 1 );
+
+		// Create labels if they do not yet exist
+		add_action( 'woocommerce_gzd_dhl_before_create_return_label', array( __CLASS__, 'create_return_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_before_update_reutrn_label', array( __CLASS__, 'update_return_label' ), 10, 1 );
 
 		// Delete label
 		add_action( 'woocommerce_gzd_dhl_label_deleted', array( __CLASS__, 'delete_label' ), 10, 2 );
 
 		// Delete the label if parent shipment has been deleted
 		add_action( 'woocommerce_gzd_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
+		add_action( 'woocommerce_gzd_return_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
 
 		// Sync shipment items
 		add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
 
 		// Add shipment tracking url
 		add_filter( 'woocommerce_gzd_shipment_get_tracking_url', array( __CLASS__, 'add_tracking_url' ), 10, 2 );
+		add_filter( 'woocommerce_gzd_return_shipment_get_tracking_url', array( __CLASS__, 'add_tracking_url' ), 10, 2 );
 
 		add_action( 'woocommerce_gzd_shipment_synced', array( __CLASS__, 'maybe_set_shipping_provider' ), 10, 3 );
 	}
@@ -90,6 +96,15 @@ class LabelWatcher {
 		}
 	}
 
+	public static function create_return_label( $label ) {
+		try {
+			Package::get_api()->get_return_label( $label );
+			self::maybe_update_shipment_tracking( $label );
+		} catch( Exception $e ) {
+			throw new Exception( nl2br( $e->getMessage() ) );
+		}
+	}
+
 	protected static function maybe_update_shipment_tracking( $label ) {
 		// Add tracking id to shipment
 		if ( ( $shipment = $label->get_shipment() ) && $label->get_number() ) {
@@ -101,6 +116,15 @@ class LabelWatcher {
 	public static function update_label( $label ) {
 		try {
 			Package::get_api()->get_label( $label );
+			self::maybe_update_shipment_tracking( $label );
+		} catch( Exception $e ) {
+			throw new Exception( nl2br( $e->getMessage() ) );
+		}
+	}
+
+	public static function update_return_label( $label ) {
+		try {
+			Package::get_api()->get_return_label( $label );
 			self::maybe_update_shipment_tracking( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );

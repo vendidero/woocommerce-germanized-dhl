@@ -22,7 +22,7 @@ use Vendidero\Germanized\DHL\Package;
 	        <?php else: ?>
                 <div class="shipment-dhl-label-actions-wrapper shipment-dhl-label-actions-create">
                     <a class="button button-secondary create-shipment-label" href="#" title="<?php _e( 'Create new DHL label', 'woocommerce-germanized-dhl' ); ?>"><?php _e( 'Create label', 'woocommerce-germanized-dhl' ); ?></a>
-		            <?php include_once( 'html-shipment-label-backbone.php' ); ?>
+                    <?php include( 'html-shipment-label-backbone.php' ); ?>
                 </div>
 	        <?php endif; ?>
         </div>

@@ -23,6 +23,7 @@ class ReturnLabel extends Label {
 	protected $extra_data = array(
 		'parent_id'      => 0,
 		'sender_address' => array(),
+		'receiver_id'    => '',
 	);
 
 	protected function get_hook_prefix() {
@@ -35,6 +36,10 @@ class ReturnLabel extends Label {
 
 	public function get_parent_id( $context = 'view' ) {
 		return $this->get_prop( 'parent_id', $context );
+	}
+
+	public function get_receiver_id( $context = 'view' ) {
+		return $this->get_prop( 'receiver_id', $context );
 	}
 
 	public function get_sender_address( $context = 'view' ) {
@@ -102,6 +107,10 @@ class ReturnLabel extends Label {
 
 	public function set_parent_id( $parent_id ) {
 		$this->set_prop( 'parent_id', absint( $parent_id ) );
+	}
+
+	public function set_receiver_id( $receiver_id ) {
+		$this->set_prop( 'receiver_id', $receiver_id );
 	}
 
 	public function set_sender_address( $value ) {

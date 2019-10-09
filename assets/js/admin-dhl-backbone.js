@@ -77,11 +77,11 @@ window.germanized.admin = window.germanized.admin || {};
 
             init: function( e, target ) {
                 if ( target.indexOf( 'wc-gzd-modal-create-shipment-label' ) !== -1 ) {
-                    var self       = germanized.admin.dhl_backbone.backbone,
-                        backbone   = germanized.admin.dhl_backbone,
-                        $modal     = $( '.germanized-create-label' ).parents( '.wc-backbone-modal-content' ),
-                        shipmentId = self.getShipmentId( target ),
-                        params     = {
+                    var self         = germanized.admin.dhl_backbone.backbone,
+                        backbone     = germanized.admin.dhl_backbone,
+                        $modal       = $( '.germanized-create-label' ).parents( '.wc-backbone-modal-content' ),
+                        shipmentId   = self.getShipmentId( target ),
+                        params       = {
                             'action'     : 'woocommerce_gzd_dhl_create_label_form',
                             'shipment_id': shipmentId,
                             'security'   : backbone.params.create_label_form_nonce

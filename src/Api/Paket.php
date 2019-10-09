@@ -119,6 +119,10 @@ class Paket {
         return $this->get_finder_api()->get_parcel_location( $args );
     }
 
+    public function get_return_label( &$label ) {
+	    return $this->get_return_api()->get_return_label( $label );
+    }
+
     public function get_label( &$label ) {
         return $this->get_label_api()->get_label( $label );
     }

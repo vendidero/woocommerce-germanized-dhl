@@ -229,7 +229,7 @@ class Settings {
 				array(
 					'title' 	        => __( 'Return label', 'woocommerce-germanized-dhl' ),
 					'desc' 		        => __( 'Additionally create return labels for shipments that support returns.', 'woocommerce-germanized-dhl' ),
-					'id' 		        => 'woocommerce_gzd_dhl_label_auto_return_label',
+					'id' 		        => 'woocommerce_gzd_dhl_label_auto_direct_return_label',
 					'default'	        => 'no',
 					'type' 		        => 'gzd_toggle',
 					'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_auto_enable' => '' )

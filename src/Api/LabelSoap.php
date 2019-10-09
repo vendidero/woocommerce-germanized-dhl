@@ -32,13 +32,7 @@ class LabelSoap extends Soap {
     }
 
     public function test_connection() {
-        try {
-        	$soap_client = $this->get_access_token();
-        	$version     = $soap_client->getVersion();
-        	return true;
-        } catch( Exception $e ) {
-        	return false;
-        }
+
     }
 
 	/**
@@ -126,21 +120,25 @@ class LabelSoap extends Soap {
 	    } else {
 		    // Give the server 1 second to create the PDF before downloading it
 		    // sleep( 1 );
+
+		    $return_label = false;
+
 		    try {
 
 			    if ( isset( $response_body->shipmentNumber ) ) {
 				    $label->set_number( $response_body->shipmentNumber );
 			    }
 
-			    $return_label = false;
+			    // Make sure the label does exist from this point on so that the parent id is available for returns.
+			    $label->save();
 
 			    // Create separate return label
 			    if ( isset( $response_body->returnShipmentNumber ) ) {
 
-			    	$return_label = $label->get_return_label();
+			    	$return_label = $label->get_direct_return_label();
 
 			    	if ( ! $return_label ) {
-						$return_label = wc_gzd_dhl_create_return_label( $label, array( 'created_via' => 'gkv' ) );
+						$return_label = wc_gzd_dhl_create_direct_return_label( $label, array( 'created_via' => 'gkv' ) );
 				    }
 
 			    	if ( $return_label ) {
@@ -216,28 +214,10 @@ class LabelSoap extends Soap {
 					$label->set_path( $path );
 			    }
 
-			    /**
-			     * Action fires before updating a DHL PDF label through an API call.
-			     *
-			     * @param Label $label The label object.
-			     *
-			     * @since 3.0.0
-			     */
-			    do_action( 'woocommerce_gzd_dhl_before_label_api_update', $label );
-
-			    $label->save();
-
-			    /**
-			     * Action fires after updating a DHL PDF label through an API call.
-			     *
-			     * @param Label $label The label object.
-			     *
-			     * @since 3.0.0
-			     */
-			    do_action( 'woocommerce_gzd_dhl_label_api_updated', $label );
-
 		    } catch( Exception $e ) {
-		    	var_dump($e);
+		    	// Delete the label dues to errors.
+		    	$label->delete();
+
 			    throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
 		    }
 
@@ -280,7 +260,7 @@ class LabelSoap extends Soap {
 	     */
 	    do_action( 'woocommerce_gzd_dhl_label_api_before_delete', $label );
 
-	    if ( $return_label = $label->get_return_label() ) {
+	    if ( $return_label = $label->get_direct_return_label() ) {
 
 	    	$return_label->set_number( '' );
 
@@ -534,7 +514,7 @@ class LabelSoap extends Soap {
             }
         }
 
-        if ( $label->has_return() ) {
+        if ( $label->has_direct_return() ) {
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( __( 'Return shipment #{shipment_id} to order #{order_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) );
 
