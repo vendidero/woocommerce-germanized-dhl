@@ -101,12 +101,12 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	<?php endif; ?>
 
 	<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_has_direct_return',
-		'label'       		=> __( 'Create return label', 'woocommerce-germanized-dhl' ),
+		'id'          		=> 'dhl_label_has_inlay_return',
+		'label'       		=> __( 'Create inlay return label', 'woocommerce-germanized-dhl' ),
 		'class'             => 'checkbox show-if-trigger',
 		'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
 		'desc_tip'          => true,
-		'value'             => isset( $default_args['has_direct_return'] ) ? wc_bool_to_string( $default_args['has_direct_return'] ) : 'no',
+		'value'             => isset( $default_args['has_inlay_return'] ) ? wc_bool_to_string( $default_args['has_inlay_return'] ) : 'no',
 		'wrapper_class'     => 'form-field-checkbox'
 	) ); ?>
 
@@ -239,27 +239,23 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
         <?php endif; ?>
 
-		<?php woocommerce_wp_checkbox( array(
-			'id'          		=> 'dhl_label_service_NoNeighbourDelivery',
-			'label'       		=> __( 'No neighbor', 'woocommerce-germanized-dhl' ),
-			'description'       => '',
-			'value'		        => in_array( 'NoNeighbourDelivery', $default_args['services'] ) ? 'yes' : 'no',
-			'wrapper_class'     => 'form-field-checkbox'
-		) ); ?>
+        <?php if ( ! $dhl_order->has_preferred_neighbor() ) : ?>
+
+            <?php woocommerce_wp_checkbox( array(
+                'id'          		=> 'dhl_label_service_NoNeighbourDelivery',
+                'label'       		=> __( 'No neighbor', 'woocommerce-germanized-dhl' ),
+                'description'       => '',
+                'value'		        => in_array( 'NoNeighbourDelivery', $default_args['services'] ) ? 'yes' : 'no',
+                'wrapper_class'     => 'form-field-checkbox'
+            ) ); ?>
+
+        <?php endif; ?>
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_NamedPersonOnly',
 			'label'       		=> __( 'Named person only', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'value'		        => in_array( 'NamedPersonOnly', $default_args['services'] ) ? 'yes' : 'no',
-			'wrapper_class'     => 'form-field-checkbox'
-		) ); ?>
-
-		<?php woocommerce_wp_checkbox( array(
-			'id'          		=> 'dhl_label_service_Premium',
-			'label'       		=> __( 'Premium', 'woocommerce-germanized-dhl' ),
-			'description'		=> '',
-			'value'		        => in_array( 'Premium', $default_args['services'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
 		) ); ?>
 
@@ -301,6 +297,16 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			) ); ?>
 		</div>
 	</div>
+<?php elseif( Package::is_crossborder_shipment( $shipment->get_country ) ) : ?>
+
+	<?php woocommerce_wp_checkbox( array(
+		'id'          		=> 'dhl_label_service_Premium',
+		'label'       		=> __( 'Premium', 'woocommerce-germanized-dhl' ),
+		'description'		=> '',
+		'value'		        => in_array( 'Premium', $default_args['services'] ) ? 'yes' : 'no',
+		'wrapper_class'     => 'form-field-checkbox'
+	) ); ?>
+
 <?php endif; ?>
 
 </form>

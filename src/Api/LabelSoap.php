@@ -135,10 +135,10 @@ class LabelSoap extends Soap {
 			    // Create separate return label
 			    if ( isset( $response_body->returnShipmentNumber ) ) {
 
-			    	$return_label = $label->get_direct_return_label();
+			    	$return_label = $label->get_inlay_return_label();
 
 			    	if ( ! $return_label ) {
-						$return_label = wc_gzd_dhl_create_direct_return_label( $label, array( 'created_via' => 'gkv' ) );
+						$return_label = wc_gzd_dhl_create_inlay_return_label( $label, array( 'created_via' => 'gkv' ) );
 				    }
 
 			    	if ( $return_label ) {
@@ -260,7 +260,7 @@ class LabelSoap extends Soap {
 	     */
 	    do_action( 'woocommerce_gzd_dhl_label_api_before_delete', $label );
 
-	    if ( $return_label = $label->get_direct_return_label() ) {
+	    if ( $return_label = $label->get_inlay_return_label() ) {
 
 	    	$return_label->set_number( '' );
 
@@ -514,7 +514,7 @@ class LabelSoap extends Soap {
             }
         }
 
-        if ( $label->has_direct_return() ) {
+        if ( $label->has_inlay_return() ) {
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( __( 'Return shipment #{shipment_id} to order #{order_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) );
 
@@ -547,7 +547,7 @@ class LabelSoap extends Soap {
         if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
 
             if ( sizeof( $shipment->get_items() ) > self::DHL_MAX_ITEMS ) {
-                throw new Exception( sprintf( __( 'Only %s shipment items can be processed, your shipment has %s', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, sizeof( $shipment->get_items() ) ) );
+                throw new Exception( sprintf( __( 'Only %s shipment items can be processed, your shipment has %s items.', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, sizeof( $shipment->get_items() ) ) );
             }
 
             $customsDetails   = array();
@@ -558,13 +558,19 @@ class LabelSoap extends Soap {
                 $item_description .= ! empty( $item_description ) ? ', ' : '';
                 $item_description .= $item->get_name();
 
+                $dhl_product = false;
+
+                if ( $product = $item->get_product() ) {
+                	$dhl_product = wc_gzd_dhl_get_product( $product );
+                }
+
                 $json_item = array(
                     'description'         => substr( $item->get_name(), 0, 255 ),
-                    'countryCodeOrigin'   => $item->get_meta( '_dhl_manufacture_country' ),
-                    'customsTariffNumber' => $item->get_meta( '_dhl_hs_code' ),
+                    'countryCodeOrigin'   => $dhl_product ? $dhl_product->get_manufacture_country() : '',
+                    'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
                     'amount'              => intval( $item->get_quantity() ),
-                    'netWeightInKG'       => round( floatval( wc_get_weight( $item->get_weight(), 'kg' ) ), 2 ),
-                    'customsValue'        => round( floatval( $item->get_total() ), 2 ),
+                    'netWeightInKG'       => wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg' ) ), 2 ),
+                    'customsValue'        => wc_format_decimal( floatval( $item->get_total() ), 2 ),
                 );
 
                 array_push($customsDetails, $json_item );

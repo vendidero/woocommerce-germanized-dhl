@@ -93,11 +93,10 @@ class Settings {
 	}
 
 	protected static function get_general_settings() {
-		$dhl_products_int = array();
-		$dhl_products_dom = array();
+		$dhl_products = array();
 
 		foreach( ( wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_international() ) as $product => $title ) {
-			$dhl_products_dom[] = array(
+			$dhl_products[] = array(
 				'title'             => $title,
 				'type'              => 'text',
 				'default'           => '',
@@ -112,19 +111,9 @@ class Settings {
 			array( 'title' => __( 'Products and Participation Numbers', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options', 'desc' => sprintf( __( 'For each DHL product that you would like to use, please enter your participation number here. The participation number consists of the last two characters of the respective accounting number, which you will find in your %s (e.g.: 01).', 'woocommerce-germanized-dhl' ), '<a href="#" target="_blank">' . __( 'contract data', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
 		) );
 
-		$settings = array_merge( $settings, $dhl_products_dom );
-
-		$settings = array_merge( $settings, $dhl_products_int );
+		$settings = array_merge( $settings, $dhl_products );
 
 		$settings = array_merge( $settings, array(
-			array(
-				'title'             => __( 'DHL Retoure', 'woocommerce-germanized-dhl' ),
-				'type'              => 'text',
-				'id'                => 'woocommerce_gzd_dhl_participation_return',
-				'placeholder'		=> '',
-				'custom_attributes'	=> array( 'maxlength' => '2' )
-			),
-
 			array( 'type' => 'sectionend', 'id' => 'dhl_product_options' ),
 		) );
 
@@ -205,7 +194,7 @@ class Settings {
 
 			array(
 				'title' 	        => __( 'Codeable', 'woocommerce-germanized-dhl' ),
-				'desc' 		        => __( 'Generate label only if address is codeable.', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => __( 'Generate label only if address can be automatically retrieved DHL.', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_address_codeable_only',
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
@@ -227,9 +216,9 @@ class Settings {
 		if ( Package::base_country_supports( 'returns' ) ) {
 			$settings = array_merge( $settings, array(
 				array(
-					'title' 	        => __( 'Return label', 'woocommerce-germanized-dhl' ),
-					'desc' 		        => __( 'Additionally create return labels for shipments that support returns.', 'woocommerce-germanized-dhl' ),
-					'id' 		        => 'woocommerce_gzd_dhl_label_auto_direct_return_label',
+					'title' 	        => __( 'Inlay Returns', 'woocommerce-germanized-dhl' ),
+					'desc' 		        => __( 'Additionally create inlay return labels for shipments that support returns.', 'woocommerce-germanized-dhl' ),
+					'id' 		        => 'woocommerce_gzd_dhl_label_auto_inlay_return_label',
 					'default'	        => 'no',
 					'type' 		        => 'gzd_toggle',
 					'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_auto_enable' => '' )
@@ -321,13 +310,6 @@ class Settings {
 				'type' 		        => 'gzd_toggle',
 			),
 			array(
-				'title' 	        => __( 'Premium', 'woocommerce-germanized-dhl' ),
-				'desc' 		        => __( 'Premium delivery.', 'woocommerce-germanized-dhl' ),
-				'id' 		        => 'woocommerce_gzd_dhl_label_service_Premium',
-				'default'	        => 'no',
-				'type' 		        => 'gzd_toggle',
-			),
-			array(
 				'title' 	        => __( 'Bulky Goods', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => __( 'Deliver as bulky goods.', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_service_BulkyGoods',
@@ -339,6 +321,13 @@ class Settings {
 				'desc' 		        => __( 'Verify ages if shipment contains applicable items.', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( __( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the age check service enabled.', 'woocommerce-germanized-dhl' ), '<a href="">' . __( 'age verification checkbox', 'woocommerce-germanized' ) . '</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_label_auto_age_check_sync',
 				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+			),
+			array(
+				'title' 	        => __( 'Premium', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => __( 'Premium delivery for international shipments.', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_service_Premium',
+				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
 		);
@@ -355,7 +344,7 @@ class Settings {
 
 		$settings = array(
 			array(
-				'title' 	        => __( 'Automation', 'woocommerce-germanized-dhl' ),
+				'title' 	        => __( 'Labels', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => __( 'Automatically create labels for shipments.', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_auto_enable',
 				'default'	        => 'no',
@@ -371,6 +360,25 @@ class Settings {
 				'options'           => $shipment_statuses,
 				'class'             => 'wc-enhanced-select',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_auto_enable' => '' )
+			),
+
+			array(
+				'title' 	        => __( 'Returns', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => __( 'Automatically create labels for returns.', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_return_auto_enable',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title'             => __( 'Status', 'woocommerce-germanized-dhl' ),
+				'type'              => 'select',
+				'default'           => 'gzd-processing',
+				'id'                => 'woocommerce_gzd_dhl_label_return_auto_shipment_status',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . __( 'Choose a shipment status which should trigger generation of a return label.', 'woocommerce-germanized-dhl' ) . '</div>',
+				'options'           => $shipment_statuses,
+				'class'             => 'wc-enhanced-select',
+				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_return_auto_enable' => '' )
 			),
 		);
 
@@ -422,6 +430,16 @@ class Settings {
 			array( 'type' => 'sectionend', 'id' => 'dhl_label_options' ),
 		) );
 
+		$settings = array_merge( $settings, array(
+			array( 'title' => __( 'Retoure', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_retoure_options', 'desc' => sprintf( __( 'Adjust handling of return shipments through the DHL Retoure API. Make sure that your %s contains DHL Retoure Online.', 'woocommerce-germanized-dhl' ), '<a href="">' . __( 'contract', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
+		) );
+
+		$settings = array_merge( $settings, self::get_retoure_settings() );
+
+		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'dhl_retoure_options' ),
+		) );
+
 		if ( Package::base_country_supports( 'services' ) ) {
 
 			$settings = array_merge( $settings, array(
@@ -443,8 +461,10 @@ class Settings {
 		$settings = array_merge( $settings, self::get_automation_settings() );
 
 		$settings = array_merge( $settings, array(
-
 			array( 'type' => 'sectionend', 'id' => 'dhl_automation_options' ),
+		) );
+
+		$settings = array_merge( $settings, array(
 
 			array( 'title' => __( 'Shipper Address', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_shipper_address_options' ),
 
@@ -515,7 +535,7 @@ class Settings {
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_shipper_address_options' ),
 
-			array( 'title' => __( 'Return Address', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_return_address_options' ),
+			array( 'title' => __( 'Inlay Return Address', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_return_address_options' ),
 
 			array(
 				'title'             => __( 'Name', 'woocommerce-germanized-dhl' ),
@@ -634,6 +654,27 @@ class Settings {
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_bank_account_options' ),
 		) );
+
+		return $settings;
+	}
+
+	public static function get_retoure_settings( $for_shipping_method = false ) {
+		$settings = array(
+			array(
+				'title' 	        => __( 'Retoure', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => __( 'Enable creating labels for return shipments.', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . __( 'By enabling this option you might generate retoure labels for return shipments and send them to your customer via email.', 'woocommerce-germanized-dhl' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_dhl_label_retoure_enable',
+				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+			),
+			array(
+				'type' => 'dhl_receiver_ids',
+			),
+		);
+
+		if ( $for_shipping_method ) {
+			$settings = self::convert_for_shipping_method( $settings );
+		}
 
 		return $settings;
 	}

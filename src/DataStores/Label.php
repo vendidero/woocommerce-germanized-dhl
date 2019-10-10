@@ -54,13 +54,13 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	    '_codeable_address_only',
 	    '_return_address',
 	    '_shipper_address',
-        '_has_direct_return',
+        '_has_inlay_return',
         '_services',
 	    '_duties',
 	    '_cod_total',
 	    '_weight',
 	    '_created_via',
-	    '_receiver_id'
+	    '_receiver_slug'
     );
 
     /*
@@ -225,7 +225,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
 	    if ( 'simple' === $label->get_type() ) {
 
-		    if ( $return = $label->get_direct_return_label() ) {
+		    if ( $return = $label->get_inlay_return_label() ) {
 			    $return->delete( $force_delete );
 		    }
 	    }
@@ -387,7 +387,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		            $value = $value ? strtotime( date("H:i:s", $value->getOffsetTimestamp() ) ) : '';
 		            break;
 	            case "email_notification":
-	            case "has_direct_return":
+	            case "has_inlay_return":
 	            case "codeable_address_only":
 		            $value = wc_bool_to_string( $value );
 		            break;

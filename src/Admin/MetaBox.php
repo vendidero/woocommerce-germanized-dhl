@@ -28,7 +28,7 @@ class MetaBox {
 		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
 
 		// Do not enable label generation if shipment is not shipped via DHL
-		if ( ! $dhl_label && ! wc_gzd_dhl_shipment_has_dhl( $shipment ) ) {
+		if ( ! $dhl_label && ! wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
 			return;
 		}
 

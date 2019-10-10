@@ -147,7 +147,7 @@ class Ajax {
 
 		$services = array();
 		$props    = array(
-			'has_direct_return'     => 'no',
+			'has_inlay_return'     => 'no',
 			'codeable_address_only' => 'no',
 		);
 

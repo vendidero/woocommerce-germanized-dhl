@@ -82,8 +82,10 @@ class LabelWatcher {
 	 */
 	public static function sync_item_meta( $item, $order_item, $args ) {
 		if ( $product = $item->get_product() ) {
-			$item->update_meta_data( '_dhl_hs_code', $product->get_meta( '_dhl_hs_code' ) );
-			$item->update_meta_data( '_dhl_manufacture_country', $product->get_meta( '_dhl_manufacture_country' ) );
+			$dhl_product = wc_gzd_dhl_get_product( $product );
+
+			$item->update_meta_data( '_dhl_hs_code', $dhl_product->get_hs_code() );
+			$item->update_meta_data( '_dhl_manufacture_country', $dhl_product->get_manufacture_country() );
 		}
 	}
 

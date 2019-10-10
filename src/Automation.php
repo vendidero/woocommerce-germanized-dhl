@@ -27,14 +27,14 @@ class Automation {
 
 		$disable = false;
 
-		if ( ! wc_gzd_dhl_shipment_has_dhl( $shipment ) ) {
+		if ( ! wc_gzd_dhl_shipment_needs_label( $shipment, false ) ) {
 			$disable = true;
 		}
 
 		/**
 		 * Filter that allows to disable automatically creating DHL labels for a certain shipment.
 		 *
-		 * @param boolean                                  $disable True if you want to disable automation.
+		 * @param boolean  $disable True if you want to disable automation.
 		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
@@ -46,14 +46,17 @@ class Automation {
 		}
 
 		$shipping_method = wc_gzd_dhl_get_shipping_method( $shipment->get_shipping_method() );
+		$setting         = 'return' === $shipment->get_type() ? 'label_return_auto_enable' : 'label_auto_enable';
+		$setting_status  = 'return' === $shipment->get_type() ? 'label_return_auto_shipment_status' : 'label_auto_shipment_status';
+		$hook_prefix     = 'woocommerce_gzd_' . ( 'return' === $shipment->get_type() ? 'return_' : '' ) . 'shipment_status_';
 
-		if ( 'yes' === Package::get_setting( 'label_auto_enable', $shipping_method ) ) {
-			$status = Package::get_setting( 'label_auto_shipment_status', $shipping_method );
+		if ( 'yes' === Package::get_setting( $setting, $shipping_method ) ) {
+			$status = Package::get_setting( $setting_status, $shipping_method );
 
 			if ( ! empty( $status ) ) {
 				$status = str_replace( 'gzd-', '', $status );
 
-				add_action( 'woocommerce_gzd_shipment_status_' . $status, array( __CLASS__, 'maybe_create_label' ), 10, 1 );
+				add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 10, 1 );
 			}
 		}
 	}

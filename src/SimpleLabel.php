@@ -30,7 +30,7 @@ class SimpleLabel extends Label {
 		'ident_min_age'              => '',
 		'visual_min_age'             => '',
 		'email_notification'         => 'no',
-		'has_direct_return'          => 'no',
+		'has_inlay_return'          => 'no',
 		'codeable_address_only'      => 'no',
 		'duties'                     => '',
 		'return_address'             => array(),
@@ -179,14 +179,14 @@ class SimpleLabel extends Label {
 		return ( true === $this->get_email_notification() );
 	}
 
-	public function get_has_direct_return( $context = 'view' ) {
-		return $this->get_prop( 'has_direct_return', $context );
+	public function get_has_inlay_return( $context = 'view' ) {
+		return $this->get_prop( 'has_inlay_return', $context );
 	}
 
-	public function has_direct_return() {
-		$products = wc_gzd_dhl_get_direct_return_products();
+	public function has_inlay_return() {
+		$products = wc_gzd_dhl_get_inlay_return_products();
 
-		return ( true === $this->get_has_direct_return() && in_array( $this->get_dhl_product(), $products ) );
+		return ( true === $this->get_has_inlay_return() && in_array( $this->get_dhl_product(), $products ) );
 	}
 
 	/**
@@ -194,7 +194,7 @@ class SimpleLabel extends Label {
 	 *
 	 * @return bool|ReturnLabel
 	 */
-	public function get_direct_return_label() {
+	public function get_inlay_return_label() {
 		return wc_gzd_dhl_get_return_label_by_parent( $this->get_id() );
 	}
 
@@ -203,8 +203,8 @@ class SimpleLabel extends Label {
 	 *
 	 * @return bool
 	 */
-	public function has_direct_return_label() {
-		$label = $this->get_direct_return_label();
+	public function has_inlay_return_label() {
+		$label = $this->get_inlay_return_label();
 
 		return $label ? true : false;
 	}
@@ -263,8 +263,8 @@ class SimpleLabel extends Label {
 		$this->set_prop( 'email_notification', wc_string_to_bool( $value ) );
 	}
 
-	public function set_has_direct_return( $value ) {
-		$this->set_prop( 'has_direct_return', wc_string_to_bool( $value ) );
+	public function set_has_inlay_return( $value ) {
+		$this->set_prop( 'has_inlay_return', wc_string_to_bool( $value ) );
 	}
 
 	public function set_codeable_address_only( $value ) {

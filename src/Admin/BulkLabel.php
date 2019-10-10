@@ -85,7 +85,7 @@ class BulkLabel extends BulkActionHandler {
 					if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
 
 						// Do only generate label for shipments that support DHL
-						if ( wc_gzd_dhl_shipment_has_dhl( $shipment ) ) {
+						if ( wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
 							$response = wc_gzd_dhl_create_label( $shipment );
 
 							if ( is_wp_error( $response ) ) {

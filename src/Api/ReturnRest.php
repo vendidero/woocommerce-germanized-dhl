@@ -53,7 +53,6 @@ class ReturnRest extends Rest {
 
 		$request_args = array(
 			'receiverId'        => $label->get_receiver_id(),
-			'billingNumber'     => $this->get_account_number( $label->get_sender_country() ),
 			"customerReference" => wc_gzd_dhl_get_label_reference( __( 'Return #{shipment_id} to shipment #{original_shipment_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{original_shipment_id}' => $parent_shipment->get_id() ) ),
 			"shipmentReference" => '',
 			"senderAddress"     => array(
@@ -80,21 +79,27 @@ class ReturnRest extends Rest {
 			$items = array();
 
 			foreach( $shipment->get_items() as $item ) {
+				$dhl_product = false;
+
+				if ( $product = $item->get_product() ) {
+					$dhl_product = wc_gzd_dhl_get_product( $product );
+				}
+
 				$items[] = array(
 					'positionDescription' => substr( $item->get_name(), 0, 50 ),
 					'count'               => $item->get_quantity(),
-					'weightInGrams'       => wc_get_weight( $item->get_weight(), 'g' ),
-					'values'              => $item->get_total(),
-					'originCountry'       => Package::get_country_iso_alpha3( $item->get_meta( '_dhl_manufacture_country' ) ),
+					'weightInGrams'       => intval( wc_get_weight( $item->get_weight(), 'g' ) ),
+					'values'              => wc_format_decimal( floatval( $item->get_total() ), 2 ),
+					'originCountry'       => $dhl_product ? Package::get_country_iso_alpha3( $dhl_product->get_manufacture_country() ) : '',
 					'articleReference'    => '',
-					'tarifNumber'         => $item->get_meta( '_dhl_hs_code' ),
+					'tarifNumber'         => $dhl_product ? $dhl_product->get_hs_code() : '',
 				);
 			}
 
 			$request_args['customsDocument'] = array(
 				'currency'               => $order ? $order->get_currency() : 'EUR',
 				'originalShipmentNumber' => $parent_label ? $parent_label->get_number() : '',
-				'originalOperator'       => '',
+				'originalOperator'       => $parent_shipment->get_shipping_provider(),
 				'originalInvoiceNumber'  => $parent_shipment->get_id(),
 				'originalInvoiceDate'    => $parent_shipment->get_date_created()->format( 'Y-m-d' ),
 				'positions'              => $items,

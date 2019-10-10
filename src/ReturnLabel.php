@@ -23,7 +23,7 @@ class ReturnLabel extends Label {
 	protected $extra_data = array(
 		'parent_id'      => 0,
 		'sender_address' => array(),
-		'receiver_id'    => '',
+		'receiver_slug'  => '',
 	);
 
 	protected function get_hook_prefix() {
@@ -38,8 +38,30 @@ class ReturnLabel extends Label {
 		return $this->get_prop( 'parent_id', $context );
 	}
 
-	public function get_receiver_id( $context = 'view' ) {
-		return $this->get_prop( 'receiver_id', $context );
+	public function get_receiver_id() {
+		$slug = $this->get_receiver_slug();
+		$id   = '';
+
+		if ( $has_id = Package::get_return_receiver_by_slug( $slug ) ) {
+			$id = $has_id['id'];
+		}
+
+		/**
+		 * Returns the return receiver id for a certain DHL label.
+		 *
+		 * The dynamic portion of the hook name, `$this->get_hook_prefix()` constructs an individual
+		 * hook name which uses `woocommerce_gzd_dhl_return_label_get_` as a prefix.
+		 *
+		 * Example hook name: `woocommerce_gzd_dhl_return_label_get_receiver_id`
+		 *
+		 * @param string      $id The receiver id.
+		 * @param ReturnLabel $label The return label
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}receiver_id", $id, $this );
+	}
+
+	public function get_receiver_slug( $context = 'view' ) {
+		return $this->get_prop( 'receiver_slug', $context );
 	}
 
 	public function get_sender_address( $context = 'view' ) {
@@ -109,8 +131,8 @@ class ReturnLabel extends Label {
 		$this->set_prop( 'parent_id', absint( $parent_id ) );
 	}
 
-	public function set_receiver_id( $receiver_id ) {
-		$this->set_prop( 'receiver_id', $receiver_id );
+	public function set_receiver_slug( $receiver_slug ) {
+		$this->set_prop( 'receiver_slug', $receiver_slug );
 	}
 
 	public function set_sender_address( $value ) {

@@ -30,9 +30,15 @@ class Admin {
 		add_action( 'woocommerce_gzd_shipments_table_actions_end', array( __CLASS__, 'table_label_generate' ), 10, 1 );
 		add_filter( 'woocommerce_gzd_shipments_table_bulk_actions', array( __CLASS__, 'table_bulk_actions' ), 10, 1 );
 
+		// Returns
+		add_filter( 'woocommerce_gzd_return_shipments_table_actions', array( __CLASS__, 'table_label_download' ), 10, 2 );
+		add_action( 'woocommerce_gzd_return_shipments_table_actions_end', array( __CLASS__, 'table_label_generate' ), 10, 1 );
+		add_filter( 'woocommerce_gzd_return_shipments_table_bulk_actions', array( __CLASS__, 'table_bulk_actions' ), 10, 1 );
+
 		// Bulk Labels
-		add_filter( 'woocommerce_gzd_shipments_bulk_action_handlers', array( __CLASS__, 'register_bulk_handler' ) );
-		add_action( 'woocommerce_gzd_shipments_bulk_action_labels_handled', array( __CLASS__, 'add_bulk_download' ), 10, 1 );
+		add_filter( 'woocommerce_gzd_shipments_table_bulk_action_handlers', array( __CLASS__, 'register_bulk_handler' ) );
+		add_action( 'woocommerce_gzd_shipments_table_bulk_action_labels_handled', array( __CLASS__, 'add_bulk_download' ), 10, 1 );
+		add_action( 'woocommerce_gzd_return_shipments_table_bulk_action_labels_handled', array( __CLASS__, 'add_bulk_download' ), 10, 1 );
 
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
@@ -43,7 +49,123 @@ class Admin {
         // Password Settings
         add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
 		add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
+
+	    // Product Options
+		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ) );
+		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
+
+		// Reveiver ID options
+        add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ) );
+        add_action( 'woocommerce_gzd_admin_settings_after_save_dhl_labels', array( __CLASS__, 'save_receiver_ids' ) );
 	}
+
+	public static function save_receiver_ids() {
+		$receiver = array();
+
+		// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()
+		if ( isset( $_POST['receiver_id'] ) ) {
+
+			$receiver_ids    = wc_clean( wp_unslash( $_POST['receiver_id'] ) );
+			$countries       = wc_clean( wp_unslash( $_POST['receiver_country'] ) );
+
+			foreach ( $receiver_ids as $i => $name ) {
+				$country = isset( $countries[ $i ] ) ? substr( strtoupper( $countries[ $i ] ), 0, 2 ) : '';
+				$slug    = sanitize_key( $receiver_ids[ $i ] . '_' . $country );
+
+				$receiver[ $slug ] = array(
+					'id'      => $receiver_ids[ $i ],
+					'country' => $country,
+                    'slug'    => $slug,
+				);
+			}
+		}
+		// phpcs:enable
+
+		update_option( 'woocommerce_gzd_dhl_retoure_receiver_ids', $receiver );
+    }
+
+	public static function output_receiver_ids_field( $value ) {
+		ob_start();
+		?>
+        <tr valign="top">
+            <th scope="row" class="titledesc"><?php esc_html_e( 'Receiver Ids', 'woocommerce-germanized-dhl' ); ?></th>
+            <td class="forminp" id="dhl_receiver_ids">
+                <div class="wc_input_table_wrapper">
+                    <table class="widefat wc_input_table sortable" cellspacing="0">
+                        <input type="text" name="dhl_settings_hider" style="display: none" data-show_if_woocommerce_gzd_dhl_label_retoure_enable="" />
+                        <thead>
+                        <tr>
+                            <th><?php esc_html_e( 'Receiver Id', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( __( 'Find your Receiver Ids within your DHL contract data.', 'woocommerce-germanized' ) ); ?></th>
+                            <th><?php esc_html_e( 'Country Code', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( __( 'Leave empty to use the Receiver Id as fallback.', 'woocommerce-germanized' ) ); ?></th>
+                        </tr>
+                        </thead>
+                        <tbody class="receiver_ids">
+						<?php
+						$i = -1;
+						if ( Package::get_return_receivers() ) {
+							foreach ( Package::get_return_receivers() as $receiver ) {
+								$i++;
+
+								echo '<tr class="receiver">
+										<td><input type="text" value="' . esc_attr( wp_unslash( $receiver['id'] ) ) . '" name="receiver_id[' . esc_attr( $i ) . ']" /></td>
+										<td><input type="text" value="' . esc_attr( wp_unslash( $receiver['country'] ) ) . '" name="receiver_country[' . esc_attr( $i ) . ']" /></td>
+									</tr>';
+							}
+						}
+						?>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="7"><a href="#" class="add button"><?php esc_html_e( '+ Add receiver', 'woocommerce-germanized-dhl' ); ?></a> <a href="#" class="remove_rows button"><?php esc_html_e( 'Remove selected receiver(s)', 'woocommerce-germanized-dhl' ); ?></a></th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <script type="text/javascript">
+                    jQuery(function() {
+                        jQuery('#dhl_receiver_ids').on( 'click', 'a.add', function(){
+
+                            var size = jQuery('#dhl_receiver_ids').find('tbody .receiver').length;
+
+                            jQuery('<tr class="receiver">\
+									<td><input type="text" name="receiver_id[' + size + ']" /></td>\
+									<td><input type="text" name="receiver_country[' + size + ']" /></td>\
+								</tr>').appendTo('#dhl_receiver_ids table tbody');
+
+                            return false;
+                        });
+                    });
+                </script>
+            </td>
+        </tr>
+		<?php
+		$html = ob_get_clean();
+
+		echo $html;
+    }
+
+	public static function product_options() {
+		global $post, $thepostid;
+
+		$thepostid     = $post->ID;
+		$_product      = wc_get_product( $thepostid );
+		$dhl_product   = wc_gzd_dhl_get_product( $_product );
+
+		$countries = WC()->countries->get_countries();
+		$countries = array_merge( array( '0' => __( 'Select a country', 'woocommerce-germanized-dhl' )  ), $countries );
+
+		woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => __( 'Harmonized Tariff Schedule (DHL)', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => __( 'This code is needed for customs of international shipping.', 'woocommerce-germanized-dhl' ) ) );
+		woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => __( 'Country of manufacture (DHL)', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => __( 'The country of manufacture is needed for customs of international shipping.', 'woocommerce-germanized-dhl' ) ) );
+	}
+
+    public static function save_product( $product ) {
+	    $hs_code = isset( $_POST['_dhl_hs_code'] ) ? wc_clean( $_POST['_dhl_hs_code'] ) : '';
+	    $country = isset( $_POST['_dhl_manufacture_country'] ) ? wc_clean( $_POST['_dhl_manufacture_country'] ) : '';
+
+	    $dhl_product = wc_gzd_dhl_get_product( $product );
+	    $dhl_product->set_hs_code( $hs_code );
+	    $dhl_product->set_manufacture_country( $country );
+    }
 
 	public static function sanitize_password_field( $value, $option, $raw_value ) {
 		$value = is_null( $raw_value ) ? '' : $raw_value;
@@ -110,7 +232,7 @@ class Admin {
 
 	public static function table_label_generate( $shipment ) {
 
-		if ( wc_gzd_dhl_shipment_has_dhl( $shipment ) && ! wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+		if ( wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
 			include Package::get_path() . '/includes/admin/views/html-shipment-label-backbone.php';
 		}
 	}
@@ -127,7 +249,7 @@ class Admin {
 				'action' => 'download-dhl-label download',
 				'target' => '_blank'
 			);
-		} elseif ( wc_gzd_dhl_shipment_has_dhl( $shipment ) ) {
+		} elseif ( wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
 			$actions['generate_dhl_label'] = array(
 				'url'    => '#',
 				'name'   => __( 'Generate DHL label', 'woocommerce-germanized-dhl' ),
@@ -218,6 +340,13 @@ class Admin {
 		}
 	}
 
+	protected static function get_table_screen_ids() {
+	    return array(
+            'woocommerce_page_wc-gzd-shipments',
+            'woocommerce_page_wc-gzd-return-shipments'
+        );
+    }
+
 	public static function admin_scripts() {
 		global $post;
 
@@ -234,7 +363,7 @@ class Admin {
 		$is_edit_order = in_array( str_replace( 'edit-', '', $screen_id ), wc_get_order_types( 'order-meta-boxes' ) );
 
 		// Table
-		if ( $is_edit_order || 'woocommerce_page_wc-gzd-shipments' === $screen_id ) {
+		if ( $is_edit_order || in_array(  $screen_id, self::get_table_screen_ids() ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-dhl-backbone' );
 
 			wp_localize_script(
@@ -253,7 +382,7 @@ class Admin {
 			wp_enqueue_script( 'wc-gzd-admin-dhl-shipping-method' );
         }
 
-		if ( 'woocommerce_page_wc-gzd-shipments' === $screen_id ) {
+		if ( in_array( $screen_id, self::get_table_screen_ids() ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-dhl-table' );
 		}
 
@@ -276,10 +405,7 @@ class Admin {
 	}
 
 	public static function get_screen_ids() {
-		$screen_ids = array(
-			'woocommerce_page_wc-gzd-shipments',
-            'woocommerce_page_wc-settings',
-		);
+		$screen_ids = self::get_table_screen_ids();
 
 		foreach ( wc_get_order_types() as $type ) {
 			$screen_ids[] = $type;

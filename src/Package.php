@@ -375,6 +375,57 @@ class Package {
 		return self::is_debug_mode() ? '2222222222_Customer' : self::get_setting( 'api_username' );
 	}
 
+	public static function get_return_receivers() {
+		$receiver = self::get_setting( 'retoure_receiver_ids' );
+
+		if ( ! empty( $receiver ) ) {
+			return (array) $receiver;
+		} else {
+			return array();
+		}
+	}
+
+	public static function get_return_receiver_by_slug( $slug ) {
+		$receivers         = self::get_return_receivers();
+
+		if ( array_key_exists( sanitize_key( $slug ), $receivers ) ) {
+			return $receivers[ $slug ];
+		}
+
+		return false;
+	}
+
+	public static function get_return_receiver_by_country( $country ) {
+		$receivers         = self::get_return_receivers();
+		$country_receiver  = false;
+		$fallback_receiver = false;
+
+		foreach( $receivers as $receiver ) {
+
+			if ( ! $fallback_receiver && empty( $receiver['country'] ) ) {
+				$fallback_receiver = $receiver;
+			}
+
+			if ( $receiver['country'] === $country ) {
+				$country_receiver = $receiver;
+			}
+		}
+
+		if ( ! $country_receiver ) {
+			$country_receiver = $fallback_receiver;
+		}
+
+		/**
+		 * Returns the DHL retoure receiver id for a certain country.
+		 *
+		 * @param array  $receiver The receiver to be used for the retoure.
+		 * @param string $country The country code of the retoure.
+		 *
+		 * @since 3.0.0
+		 */
+		return apply_filters( 'woocommerce_gzd_dhl_retoure_receiver', $country_receiver, $country );
+	}
+
 	/**
 	 * Retoure Auth signature
 	 *

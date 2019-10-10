@@ -18,6 +18,7 @@ use Vendidero\Germanized\DHL\ParcelServices;
 use Vendidero\Germanized\DHL\LabelFactory;
 use Vendidero\Germanized\DHL\SimpleLabel;
 use Vendidero\Germanized\DHL\ReturnLabel;
+use Vendidero\Germanized\DHL\Product;
 
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\SimpleShipment;
@@ -264,15 +265,15 @@ function wc_gzd_dhl_get_pickup_type( $type ) {
 function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 
 	$args = wp_parse_args( $args, array(
-		'receiver_id' => '',
+		'receiver_slug' => '',
 	) );
 
 	$error = new WP_Error();
 
-	$args['receiver_id'] = wc_gzd_dhl_get_return_receiver_id( $args['receiver_id'] );
+	$args['receiver_slug'] = sanitize_key( $args['receiver_slug'] );
 
-	if ( empty( $args['receiver_id'] ) ) {
-		$error->add( 500, __( 'Receiver Id is missing or does not exist.', 'woocommerce-germanized-dhl' ) );
+	if ( empty( $args['receiver_slug'] ) ) {
+		$error->add( 500, __( 'Receiver is missing or does not exist.', 'woocommerce-germanized-dhl' ) );
 	}
 
 	if ( $error->has_errors() ) {
@@ -294,7 +295,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		'ident_min_age'         => '',
 		'visual_min_age'        => '',
 		'email_notification'    => 'no',
-		'has_direct_return'     => 'no',
+		'has_inlay_return'     => 'no',
 		'codeable_address_only' => 'no',
 		'cod_total'             => 0,
 		'duties'                => '',
@@ -316,7 +317,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	}
 
 	// Check if return address has empty mandatory fields
-	if ( 'yes' === $args['has_direct_return'] ) {
+	if ( 'yes' === $args['has_inlay_return'] ) {
 		$args['return_address'] = wp_parse_args( $args['return_address'], array(
 			'name'          => '',
 			'company'       => '',
@@ -480,35 +481,62 @@ function wc_gzd_dhl_format_label_state( $state, $country ) {
 	return $state;
 }
 
+function wc_gzd_dhl_get_product( $the_product ) {
+	if ( ! is_a( $the_product, '\Vendidero\Germanized\DHL\Product' ) ) {
+		$product = new Product( $the_product );
+	} else {
+		$product = $the_product;
+	}
+
+	return $product;
+}
+
 /**
  * @param Shipment $shipment
  */
-function wc_gzd_dhl_shipment_has_dhl( $shipment ) {
-	$supports_dhl = false;
+function wc_gzd_dhl_shipment_needs_label( $shipment, $check_status = true ) {
+	$needs_label = true;
 
 	if ( is_numeric( $shipment ) ) {
 		$shipment = wc_gzd_get_shipment( $shipment );
 	}
 
-	if ( $shipment ) {
-		$supports_dhl = ( 'dhl' === $shipment->get_shipping_provider() );
+	if ( $shipment && 'dhl' !== $shipment->get_shipping_provider() ) {
+		$needs_label = false;
+	}
+
+	// In case it is a return shipment - make sure that retoures are enabled
+	if ( 'return' === $shipment->get_type() ) {
+		if ( 'no' === Package::get_setting( 'label_retoure_enable' ) ) {
+			$needs_label = false;
+		}
+	}
+
+	// If label already exists
+	if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+		$needs_label = false;
+	}
+
+	// If shipment is already delivered
+	if ( $check_status && $shipment->has_status( array( 'delivered', 'shipped', 'returned' ) ) ) {
+		$needs_label = false;
 	}
 
 	/**
-	 * Filter to determine whether a shipment supports DHL shipment or not.
+	 * Filter to determine whether a shipment needs a DHL label or not.
 	 *
-	 * @param boolean                                  $supports_dhl Whether the shipment supports DHL or not.
+	 * @param boolean  $needs_label Whether the shipment needs a DHL label or not.
 	 * @param Shipment $shipment The shipment object.
 	 *
 	 * @since 3.0.0
 	 */
-	return apply_filters( 'woocommerce_gzd_dhl_shipment_has_dhl', $supports_dhl, $shipment );
+	return apply_filters( 'woocommerce_gzd_dhl_shipment_needs_label', $needs_label, $shipment );
 }
 
 /**
  * @param SimpleLabel $parent_label
  */
-function wc_gzd_dhl_get_direct_return_label_default_args( $parent_label ) {
+function wc_gzd_dhl_get_inlay_return_label_default_args( $parent_label ) {
 	$dhl_shipping_method = false;
 	$defaults            = array(
 		'shipment_id' => $parent_label->get_shipment_id(),
@@ -524,7 +552,7 @@ function wc_gzd_dhl_get_direct_return_label_default_args( $parent_label ) {
 	return $defaults;
 }
 
-function wc_gzd_dhl_validate_direct_return_label_args( $parent_label, $args = array() ) {
+function wc_gzd_dhl_validate_inlay_return_label_args( $parent_label, $args = array() ) {
 	return $args;
 }
 
@@ -618,8 +646,8 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				'email'         => Package::get_setting( 'return_address_email' ),
 			);
 
-			if ( 'yes' === Package::get_setting( 'label_auto_direct_return_label', $dhl_shipping_method ) ) {
-				$defaults['has_direct_return'] = 'yes';
+			if ( 'yes' === Package::get_setting( 'label_auto_inlay_return_label', $dhl_shipping_method ) ) {
+				$defaults['has_inlay_return'] = 'yes';
 			}
 		}
 	}
@@ -639,7 +667,7 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 
 	$defaults = array(
 		'services'       => array(),
-		'receiver_id'    => wc_gzd_dhl_get_default_return_receiver_id( $shipment->get_country(), $dhl_shipping_method ),
+		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_country(), $dhl_shipping_method ),
 		'weight'         => empty( $shipment_weight ) ? Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ) : wc_get_weight( $shipment_weight, 'kg' ),
 		'sender_address' => $shipment->get_sender_address(),
 	);
@@ -802,46 +830,20 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 	return $label;
 }
 
-function wc_gzd_dhl_get_return_receiver_id_key( $maybe_key ) {
-	$ids = wc_gzd_dhl_get_return_receiver_ids();
-	$key = '';
-
-	if ( array_key_exists( $maybe_key, $ids ) ) {
-		$key = $maybe_key;
-	} elseif( in_array( $maybe_key, $ids ) ) {
-		$key = array_search( $maybe_key, $ids );
-	}
-
-	return $key;
-}
-
-function wc_gzd_dhl_get_return_receiver_id( $maybe_key ) {
-	$ids = wc_gzd_dhl_get_return_receiver_ids();
-	$id  = '';
-
-	if ( array_key_exists( $maybe_key, $ids ) ) {
-		$id = $ids[ $maybe_key ];
-	} elseif( in_array( $maybe_key, $ids ) ) {
-		$id = $maybe_key;
-	}
-
-	return $id;
-}
-
 /**
  * @param SimpleLabel $parent_label
  * @param array $args
  *
  * @return bool|ReturnLabel|WP_Error
  */
-function wc_gzd_dhl_create_direct_return_label( $parent_label, $args = array() ) {
+function wc_gzd_dhl_create_inlay_return_label( $parent_label, $args = array() ) {
 	try {
 		if ( ! $parent_label || ! is_a( $parent_label, 'Vendidero\Germanized\DHL\Label' ) ) {
 			throw new Exception( __( 'Invalid label', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$args      = wp_parse_args( $args, wc_gzd_dhl_get_direct_return_label_default_args( $parent_label ) );
-		$args      = wc_gzd_dhl_validate_direct_return_label_args( $parent_label, $args );
+		$args      = wp_parse_args( $args, wc_gzd_dhl_get_inlay_return_label_default_args( $parent_label ) );
+		$args      = wc_gzd_dhl_validate_inlay_return_label_args( $parent_label, $args );
 
 		if ( is_wp_error( $args ) ) {
 			return $args;
@@ -860,7 +862,7 @@ function wc_gzd_dhl_create_direct_return_label( $parent_label, $args = array() )
 		 *
 		 * @since 3.0.0
 		 */
-		do_action( 'woocommerce_gzd_dhl_before_create_direct_return_label', $label, $parent_label );
+		do_action( 'woocommerce_gzd_dhl_before_create_inlay_return_label', $label, $parent_label );
 
 		$label->save();
 
@@ -912,7 +914,7 @@ function wc_gzd_dhl_get_order( $order ) {
 	return false;
 }
 
-function wc_gzd_dhl_get_direct_return_products() {
+function wc_gzd_dhl_get_inlay_return_products() {
 	return array(
 		'V01PAK',
 		'V01PRIO',
@@ -924,8 +926,8 @@ function wc_gzd_dhl_get_direct_return_products() {
 function wc_gzd_dhl_get_return_products_international() {
 
 	$retoure =  array(
-		'V55PAK'  => __( 'DHL Retoure International A', 'woocommerce-germanized-dhl' ),
-		'V54EPAK' => __( 'DHL Retoure International B', 'woocommerce-germanized-dhl' ),
+		'retoure_international_a' => __( 'DHL Retoure International A', 'woocommerce-germanized-dhl' ),
+		'retoure_international_b' => __( 'DHL Retoure International B', 'woocommerce-germanized-dhl' ),
 	);
 
 	return $retoure;
@@ -934,7 +936,7 @@ function wc_gzd_dhl_get_return_products_international() {
 function wc_gzd_dhl_get_return_products_domestic() {
 
 	$retoure =  array(
-		'V55PAK'  => __( 'DHL Retoure Online', 'woocommerce-germanized-dhl' ),
+		'retoure_online'  => __( 'DHL Retoure Online', 'woocommerce-germanized-dhl' ),
 	);
 
 	return $retoure;
@@ -979,16 +981,25 @@ function wc_gzd_dhl_get_return_products( $shipping_country ) {
 	}
 }
 
-function wc_gzd_dhl_get_return_receiver_ids() {
-	return array(
-		'de' => 'DE',
-	);
+function wc_gzd_dhl_get_return_receivers() {
+	$receivers = Package::get_return_receivers();
+	$select    = array();
+
+	foreach( $receivers as $receiver ) {
+		$select[ $receiver['slug'] ] = esc_attr( $receiver['id'] ) . ' (' . ( ! empty( esc_attr( $receiver['country'] ) ) ? $receiver['country'] : '*' ) . ')';
+	}
+
+	return $select;
 }
 
-function wc_gzd_dhl_get_default_return_receiver_id( $country, $method = false ) {
-	$ids = wc_gzd_dhl_get_return_receiver_ids();
+function wc_gzd_dhl_get_default_return_receiver( $country, $method = false ) {
+	return Package::get_return_receiver_by_country( $country );
+}
 
-	return $ids['de'];
+function wc_gzd_dhl_get_default_return_receiver_slug( $country, $method = false ) {
+	$receiver = Package::get_return_receiver_by_country( $country );
+	
+	return ( $receiver ? $receiver['slug'] : '' );
 }
 
 function wc_gzd_dhl_get_default_product( $country, $method = false ) {
