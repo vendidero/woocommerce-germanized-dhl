@@ -380,6 +380,14 @@ class Settings {
 				'class'             => 'wc-enhanced-select',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_label_return_auto_enable' => '' )
 			),
+
+			array(
+				'title' 	        => __( 'Email', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => __( 'Send the label to the customer by email after creating it.', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_return_auto_email',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
 		);
 
 		if ( $for_shipping_method ) {

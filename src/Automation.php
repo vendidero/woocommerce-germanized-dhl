@@ -17,6 +17,13 @@ class Automation {
 	 */
 	public static function init() {
 		add_action( 'woocommerce_gzd_shipment_before_status_change', array( __CLASS__, 'set_automation' ), 10, 2 );
+		add_action( 'woocommerce_gzd_dhl_after_create_return_label', array( __CLASS__, 'maybe_send_email' ), 10, 1 );
+	}
+
+	public static function maybe_send_email( $label ) {
+		if ( 'yes' === Package::get_setting( 'label_return_auto_email' ) ) {
+			$label->send_to_customer();
+		}
 	}
 
 	/**

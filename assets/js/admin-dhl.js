@@ -16,7 +16,8 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'click', '#panel-order-shipments .create-shipment-label:not(.disabled)', self.onCreateLabel )
-                .on( 'click', '#panel-order-shipments .remove-shipment-label', self.onRemoveLabel );
+                .on( 'click', '#panel-order-shipments .remove-shipment-label', self.onRemoveLabel )
+                .on( 'click', '#panel-order-shipments .send-shipment-label', self.onSendLabel );
 
             $( document.body )
                 .on( 'woocommerce_gzd_shipments_needs_saving', self.onShipmentsNeedsSavingChange )
@@ -71,7 +72,7 @@ window.germanized.admin = window.germanized.admin || {};
                 $wrapper   = $( '.wc-gzd-shipment-dhl-label[data-label="' + labelId + '"]' );
 
             if ( $wrapper.length > 0 ) {
-                return $wrapper.parents( '.order-shipment' );
+                return $wrapper.parents( '.order-shipment:first' );
             }
 
             return false;
@@ -116,10 +117,42 @@ window.germanized.admin = window.germanized.admin || {};
             return false;
         },
 
+        sendLabel: function( labelId ) {
+            var self       = germanized.admin.dhl,
+                $wrapper   = self.getShipmentWrapperByLabel( labelId );
+
+            var params = {
+                'action'  : 'woocommerce_gzd_dhl_email_return_label',
+                'label_id': labelId,
+                'security': self.params.send_label_nonce
+            };
+
+            if ( $wrapper ) {
+                self.doAjax( params, $wrapper, self.onSendLabelSuccess );
+            }
+        },
+
+        onSendLabelSuccess: function( data ) {
+            var shipments = germanized.admin.shipments;
+
+            $.each( data.messages, function( i, message ) {
+                shipments.addNotice( message, 'success' );
+            });
+        },
+
+        onSendLabel: function() {
+            var self       = germanized.admin.dhl,
+                labelId    = $( this ).data( 'label' );
+
+            self.sendLabel( labelId );
+
+            return false;
+        },
+
         doAjax: function( params, $wrapper, cSuccess, cError  ) {
             var self       = germanized.admin.dhl,
                 shipments  = germanized.admin.shipments,
-                $shipment  = $wrapper.hasClass( 'order-shipment' ) ? $wrapper : $wrapper.parents( '.order-shipment' ),
+                $shipment  = $wrapper.hasClass( 'order-shipment' ) ? $wrapper : $wrapper.parents( '.order-shipment:first' ),
                 shipmentId = $shipment.data( 'shipment' );
 
             cSuccess = cSuccess || self.onAjaxSuccess;

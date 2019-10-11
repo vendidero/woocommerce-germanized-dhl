@@ -3,6 +3,9 @@
   float: left;
   margin: 1em 0; }
 
+.woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.email::after {
+  content: "\f465"; }
+
 .wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
   margin-top: 1em;
   line-height: 1.5em;

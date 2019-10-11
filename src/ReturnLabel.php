@@ -24,6 +24,7 @@ class ReturnLabel extends Label {
 		'parent_id'      => 0,
 		'sender_address' => array(),
 		'receiver_slug'  => '',
+		'is_email_sent'  => false,
 	);
 
 	protected function get_hook_prefix() {
@@ -36,6 +37,38 @@ class ReturnLabel extends Label {
 
 	public function get_parent_id( $context = 'view' ) {
 		return $this->get_prop( 'parent_id', $context );
+	}
+
+	public function get_is_email_sent( $context = 'view' ) {
+		return $this->get_prop( 'is_email_sent', $context );
+	}
+
+	public function is_email_sent() {
+		return true === $this->get_is_email_sent();
+	}
+
+	public function send_to_customer( $force = false ) {
+		$emails = WC()->mailer()->emails;
+
+		if ( ! $force && $this->is_email_sent() ) {
+			return false;
+		}
+
+		// Label does not exist
+		if ( ! $file = $this->get_file() ) {
+			return false;
+		}
+
+		if ( isset( $emails['WC_GZD_DHL_Email_Customer_Return_Shipment_Label'] ) ) {
+			$emails['WC_GZD_DHL_Email_Customer_Return_Shipment_Label']->trigger( $this );
+
+			$this->set_is_email_sent( true );
+			$this->save();
+
+			return true;
+		}
+
+		return false;
 	}
 
 	public function get_receiver_id() {
@@ -129,6 +162,10 @@ class ReturnLabel extends Label {
 
 	public function set_parent_id( $parent_id ) {
 		$this->set_prop( 'parent_id', absint( $parent_id ) );
+	}
+
+	public function set_is_email_sent( $is_sent ) {
+		$this->set_prop( 'is_email_sent', wc_string_to_bool( $is_sent ) );
 	}
 
 	public function set_receiver_slug( $receiver_slug ) {

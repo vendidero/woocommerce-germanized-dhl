@@ -249,6 +249,14 @@ class Admin {
 				'action' => 'download-dhl-label download',
 				'target' => '_blank'
 			);
+
+			if ( 'return' === $label->get_type() ) {
+				$actions['email_dhl_label'] = array(
+					'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_dhl_email_return_label&label_id=' . $label->get_id() ), 'email-dhl-label' ),
+					'name'   => __( 'Send DHL label to customer', 'woocommerce-germanized-dhl' ),
+					'action' => 'email-send-dhl-label email',
+				);
+            }
 		} elseif ( wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
 			$actions['generate_dhl_label'] = array(
 				'url'    => '#',
@@ -396,6 +404,7 @@ class Admin {
 					'ajax_url'                   => admin_url( 'admin-ajax.php' ),
 					'remove_label_nonce'         => wp_create_nonce( 'remove-dhl-label' ),
 					'edit_label_nonce'           => wp_create_nonce( 'edit-dhl-label' ),
+					'send_label_nonce'           => wp_create_nonce( 'email-dhl-label' ),
 					'i18n_remove_label_notice'   => __( 'Do you really want to delete the label?', 'woocommerce-germanized-dhl' ),
 					'i18n_create_label_enabled'  => __( 'Create new DHL label', 'woocommerce-germanized-dhl' ),
 					'i18n_create_label_disabled' => __( 'Please save the shipment before creating a new label', 'woocommerce-germanized-dhl' ),

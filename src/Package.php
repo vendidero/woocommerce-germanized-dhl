@@ -163,6 +163,7 @@ class Package {
 	        }
 
 	        Ajax::init();
+	        Emails::init();
 	        LabelWatcher::init();
 	        Automation::init();
         }
@@ -177,8 +178,20 @@ class Package {
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
 	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
 
+	    // Filter email templates
+	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+
 	    add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
+
+	public static function filter_templates( $path, $template_name ) {
+
+		if ( file_exists( self::get_path() . '/templates/' . $template_name ) ) {
+			$path = self::get_path() . '/templates/' . $template_name;
+		}
+
+		return $path;
+	}
 
 	public static function set_method_filters( $methods ) {
 
