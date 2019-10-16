@@ -2,6 +2,7 @@
 
 RELEASER_PATH=$(pwd)
 PLUGIN_SLUG="woocommerce-germanized-dhl"
+GITHUB_ORG="vendidero"
 IS_PRE_RELEASE=false
 
 # Functions
@@ -44,10 +45,6 @@ output 5 "============================="
 echo
 printf "This script will build files and create a tag on GitHub based on your local branch."
 echo
-echo
-printf "The /build/ directory will also be pushed to the tagged release."
-echo
-echo
 echo "Before proceeding:"
 echo " • Ensure you have checked out the branch you wish to release"
 echo " • Ensure you have committed/pushed all local changes"
@@ -73,11 +70,6 @@ if is_substring "-" "${VERSION}"; then
 	output 2 "Detected pre-release version!"
 fi
 
-if [ ! -d "build" ]; then
-	output 3 "Build directory not found. Aborting."
-	exit 1
-fi
-
 printf "Ready to proceed? [y/N]: "
 read -r PROCEED
 echo
@@ -95,11 +87,6 @@ CURRENTBRANCH="$(git rev-parse --abbrev-ref HEAD)"
 # Create a release branch.
 BRANCH="build/${VERSION}"
 git checkout -b $BRANCH
-
-# Force add build directory and commit.
-git add build/. --force
-git add .
-git commit -m "Adding /build directory to release" --no-verify
 
 # Force add vendor directory and commit.
 git add vendor/. --force
