@@ -65,14 +65,14 @@ class Ajax {
 				wp_send_json( array(
 					'success'  => true,
 					'messages' => array(
-						__( 'Label successfully sent to customer.', 'woocommerce-germanized-dhl' )
+						_x( 'Label successfully sent to customer.', 'dhl', 'woocommerce-germanized-dhl' )
 					),
 				) );
 			} else {
 				wp_send_json( array(
 					'success'  => false,
 					'messages' => array(
-						__( 'There was an error while sending the label.', 'woocommerce-germanized-dhl' )
+						_x( 'There was an error while sending the label.', 'dhl', 'woocommerce-germanized-dhl' )
 					),
 				) );
 			}
@@ -91,7 +91,7 @@ class Ajax {
 		$response_error = array(
 			'success'  => false,
 			'messages' => array(
-				__( 'There was an error creating the label.', 'woocommerce-germanized-dhl' )
+				_x( 'There was an error creating the label.', 'dhl', 'woocommerce-germanized-dhl' )
 			),
 		);
 
@@ -135,7 +135,7 @@ class Ajax {
 		$response_error = array(
 			'success'  => false,
 			'messages' => array(
-				__( 'There was an error deleting the label.', 'woocommerce-germanized-dhl' )
+				_x( 'There was an error deleting the label.', 'dhl', 'woocommerce-germanized-dhl' )
 			),
 		);
 
@@ -180,7 +180,7 @@ class Ajax {
 		$response_error = array(
 			'success'  => false,
 			'messages' => array(
-				__( 'There was an error processing the label.', 'woocommerce-germanized-dhl' )
+				_x( 'There was an error processing the label.', 'dhl', 'woocommerce-germanized-dhl' )
 			),
 		);
 
@@ -258,7 +258,7 @@ class Ajax {
 	 * @return string
 	 */
 	protected static function label_download_button_html( $label ) {
-		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-dhl-label download" href="' . $label->get_download_url() .'" target="_blank" title="' . __( 'Download DHL label', 'woocommerce-germanized-dhl' ) . '">' . __( 'Download label', 'woocommerce-germanized-dhl' ) . '</a>';
+		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-dhl-label download" href="' . $label->get_download_url() .'" target="_blank" title="' . _x( 'Download DHL label', 'dhl', 'woocommerce-germanized-dhl' ) . '">' . _x(  'Download label', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>';
 	}
 
 	protected static function refresh_label_html( $p_shipment, $p_label = false ) {

@@ -14,7 +14,7 @@ use Vendidero\Germanized\DHL\Package;
 		<div class="wc-backbone-modal-content">
 			<section class="wc-backbone-modal-main" role="main">
 				<header class="wc-backbone-modal-header">
-					<h1><?php esc_html_e( 'Create label', 'woocommerce-germanized-dhl' ); ?></h1>
+					<h1><?php echo esc_html_x(  'Create label', 'dhl', 'woocommerce-germanized-dhl' ); ?></h1>
 					<button class="modal-close modal-close-link dashicons dashicons-no-alt">
 						<span class="screen-reader-text">Close modal panel</span>
 					</button>
@@ -26,7 +26,7 @@ use Vendidero\Germanized\DHL\Package;
 				</article>
 				<footer>
 					<div class="inner">
-						<button id="btn-ok" class="button button-primary button-large"><?php esc_html_e( 'Create' ,'woocommerce-germanized-dhl' ); ?></button>
+						<button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Create' ,'dhl', 'woocommerce-germanized-dhl' ); ?></button>
 					</div>
 				</footer>
 			</section>

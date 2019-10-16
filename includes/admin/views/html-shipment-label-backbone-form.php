@@ -15,7 +15,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 <?php woocommerce_wp_select( array(
 	'id'          		=> 'dhl_label_dhl_product',
-	'label'       		=> __( 'DHL Product', 'woocommerce-germanized-dhl' ),
+	'label'       		=> _x( 'DHL Product', 'dhl', 'woocommerce-germanized-dhl' ),
 	'description'		=> '',
 	'options'			=> wc_gzd_dhl_get_products( $shipment->get_country() ),
 	'value'             => isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : '',
@@ -25,7 +25,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	<?php woocommerce_wp_text_input( array(
 		'id'          		=> 'dhl_label_cod_total',
 		'class'          	=> 'wc_input_decimal',
-		'label'       		=> __( 'COD Amount', 'woocommerce-germanized-dhl' ),
+		'label'       		=> _x( 'COD Amount', 'dhl', 'woocommerce-germanized-dhl' ),
 		'placeholder' 		=> '',
 		'description'		=> '',
 		'value'       		=> isset( $default_args['cod_total'] ) ? $default_args['cod_total'] : '',
@@ -35,7 +35,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 <?php if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) : ?>
 	<?php woocommerce_wp_select( array(
 		'id'          		=> 'dhl_label_duties',
-		'label'       		=> __( 'Duties', 'woocommerce-germanized-dhl' ),
+		'label'       		=> _x( 'Duties', 'dhl', 'woocommerce-germanized-dhl' ),
 		'description'		=> '',
 		'value'       		=> isset( $default_args['duties'] ) ? $default_args['duties'] : '',
 		'options'			=> wc_gzd_dhl_get_duties(),
@@ -61,7 +61,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		<div class="column col-6">
 			<?php woocommerce_wp_select( array(
 				'id'          		=> 'dhl_label_preferred_day',
-				'label'       		=> __( 'Preferred Day', 'woocommerce-germanized-dhl' ),
+				'label'       		=> _x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description'		=> '',
 				'value'       		=> isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '',
 				'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, ( isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '' ) ),
@@ -70,7 +70,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		<div class="column col-6">
 			<?php woocommerce_wp_select( array(
 				'id'          		=> 'dhl_label_preferred_time',
-				'label'       		=> __( 'Preferred Time', 'woocommerce-germanized-dhl' ),
+				'label'       		=> _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description'		=> '',
 				'value'       		=> isset( $default_args['preferred_time'] ) ? $default_args['preferred_time'] : '',
 				'options'			=> wc_gzd_dhl_get_preferred_times_select_options( $preferred_times ),
@@ -81,7 +81,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	<?php if ( $dhl_order->has_preferred_location() ) : ?>
 		<?php woocommerce_wp_text_input( array(
 			'id'          		=> 'dhl_label_preferred_location',
-			'label'       		=> __( 'Preferred Location', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ),
 			'placeholder' 		=> '',
 			'description'		=> '',
 			'value'       		=> isset( $default_args['preferred_location'] ) ? $default_args['preferred_location'] : '',
@@ -92,7 +92,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	<?php if ( $dhl_order->has_preferred_neighbor() ) : ?>
 		<?php woocommerce_wp_text_input( array(
 			'id'          		=> 'dhl_label_preferred_neighbor',
-			'label'       		=> __( 'Preferred Neighbor', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Preferred Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
 			'placeholder' 		=> '',
 			'description'		=> '',
 			'value'       		=> isset( $default_args['preferred_location_neighbor'] ) ? $default_args['preferred_location_neighbor'] : '',
@@ -102,7 +102,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 	<?php woocommerce_wp_checkbox( array(
 		'id'          		=> 'dhl_label_has_inlay_return',
-		'label'       		=> __( 'Create inlay return label', 'woocommerce-germanized-dhl' ),
+		'label'       		=> _x( 'Create inlay return label', 'dhl', 'woocommerce-germanized-dhl' ),
 		'class'             => 'checkbox show-if-trigger',
 		'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
 		'desc_tip'          => true,
@@ -115,7 +115,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			<div class="column col-12">
 				<?php woocommerce_wp_text_input( array(
 					'id'          		=> 'dhl_label_return_address[name]',
-					'label'       		=> __( 'Name', 'woocommerce-germanized-dhl' ),
+					'label'       		=> _x( 'Name', 'dhl', 'woocommerce-germanized-dhl' ),
 					'placeholder' 		=> '',
 					'description'		=> '',
 					'value'             => isset( $default_args['return_address']['name'] ) ? $default_args['return_address']['name'] : '',
@@ -124,7 +124,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		</div>
 		<?php woocommerce_wp_text_input( array(
 			'id'          		=> 'dhl_label_return_address[company]',
-			'label'       		=> __( 'Company', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Company', 'dhl', 'woocommerce-germanized-dhl' ),
 			'placeholder' 		=> '',
 			'description'		=> '',
 			'value'             => isset( $default_args['return_address']['company'] ) ? $default_args['return_address']['company'] : '',
@@ -133,7 +133,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			<div class="column col-9">
 				<?php woocommerce_wp_text_input( array(
 					'id'          		=> 'dhl_label_return_address[street]',
-					'label'       		=> __( 'Street', 'woocommerce-germanized-dhl' ),
+					'label'       		=> _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),
 					'placeholder' 		=> '',
 					'description'		=> '',
 					'value'             => isset( $default_args['return_address']['street'] ) ? $default_args['return_address']['street'] : '',
@@ -142,7 +142,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			<div class="column col-3">
 				<?php woocommerce_wp_text_input( array(
 					'id'          		=> 'dhl_label_return_address[street_number]',
-					'label'       		=> __( 'Street No', 'woocommerce-germanized-dhl' ),
+					'label'       		=> _x( 'Street No', 'dhl', 'woocommerce-germanized-dhl' ),
 					'placeholder' 		=> '',
 					'description'		=> '',
 					'value'             => isset( $default_args['return_address']['street_number'] ) ? $default_args['return_address']['street_number'] : '',
@@ -153,7 +153,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			<div class="column col-6">
 				<?php woocommerce_wp_text_input( array(
 					'id'          		=> 'dhl_label_return_address[postcode]',
-					'label'       		=> __( 'Postcode', 'woocommerce-germanized-dhl' ),
+					'label'       		=> _x( 'Postcode', 'dhl', 'woocommerce-germanized-dhl' ),
 					'placeholder' 		=> '',
 					'description'		=> '',
 					'value'             => isset( $default_args['return_address']['postcode'] ) ? $default_args['return_address']['postcode'] : '',
@@ -162,7 +162,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			<div class="column col-6">
 				<?php woocommerce_wp_text_input( array(
 					'id'          		=> 'dhl_label_return_address[city]',
-					'label'       		=> __( 'City', 'woocommerce-germanized-dhl' ),
+					'label'       		=> _x( 'City', 'dhl', 'woocommerce-germanized-dhl' ),
 					'placeholder' 		=> '',
 					'description'		=> '',
 					'value'             => isset( $default_args['return_address']['city'] ) ? $default_args['return_address']['city'] : '',
@@ -173,7 +173,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			<div class="column col-6">
 				<?php woocommerce_wp_text_input( array(
 					'id'          		=> 'dhl_label_return_address[phone]',
-					'label'       		=> __( 'Phone', 'woocommerce-germanized-dhl' ),
+					'label'       		=> _x( 'Phone', 'dhl', 'woocommerce-germanized-dhl' ),
 					'placeholder' 		=> '',
 					'description'		=> '',
 					'value'             => isset( $default_args['return_address']['phone'] ) ? $default_args['return_address']['phone'] : '',
@@ -182,7 +182,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			<div class="column col-6">
 				<?php woocommerce_wp_text_input( array(
 					'id'          		=> 'dhl_label_return_address[email]',
-					'label'       		=> __( 'Email', 'woocommerce-germanized-dhl' ),
+					'label'       		=> _x( 'Email', 'dhl', 'woocommerce-germanized-dhl' ),
 					'placeholder' 		=> '',
 					'description'		=> '',
 					'value'             => isset( $default_args['return_address']['email'] ) ? $default_args['return_address']['email'] : '',
@@ -193,7 +193,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 	<?php woocommerce_wp_checkbox( array(
 		'id'          		=> 'dhl_label_codeable_address_only',
-		'label'       		=> __( 'Valid address only', 'woocommerce-germanized-dhl' ),
+		'label'       		=> _x( 'Valid address only', 'dhl', 'woocommerce-germanized-dhl' ),
 		'placeholder' 		=> '',
 		'description'		=> '',
 		'value'       		=> isset( $default_args['codeable_address_only'] ) ? wc_bool_to_string( $default_args['codeable_address_only'] ) : 'no',
@@ -202,10 +202,10 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 	<p class="show-services-trigger">
 		<a href="#" class="show-further-services <?php echo ( ! empty( $default_args['services'] ) ? 'hide-default' : '' ); ?>">
-			<span class="dashicons dashicons-plus"></span> <?php _e( 'More services', 'woocommerce-germanized-dhl' ); ?>
+			<span class="dashicons dashicons-plus"></span> <?php _ex(  'More services', 'dhl', 'woocommerce-germanized-dhl' ); ?>
 		</a>
 		<a class="show-fewer-services <?php echo ( empty( $default_args['services'] ) ? 'hide-default' : '' ); ?>" href="#">
-			<span class="dashicons dashicons-minus"></span> <?php _e( 'Fewer services', 'woocommerce-germanized-dhl' ); ?>
+			<span class="dashicons dashicons-minus"></span> <?php _ex(  'Fewer services', 'dhl', 'woocommerce-germanized-dhl' ); ?>
 		</a>
 	</p>
 
@@ -213,7 +213,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 		<?php woocommerce_wp_select( array(
 			'id'          		=> 'dhl_label_visual_min_age',
-			'label'       		=> __( 'Age check', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Age check', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'value'       		=> isset( $default_args['visual_min_age'] ) ? $default_args['visual_min_age'] : '',
 			'options'			=> wc_gzd_dhl_get_visual_min_ages(),
@@ -221,7 +221,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_AdditionalInsurance',
-			'label'       		=> __( 'Additional insurance', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Additional insurance', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'       => '',
 			'value'		        => in_array( 'AdditionalInsurance', $default_args['services'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
@@ -231,7 +231,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
             <?php woocommerce_wp_checkbox( array(
                 'id'          		=> 'dhl_label_service_ParcelOutletDelivery',
-                'label'       		=> __( 'Retail outlet routing', 'woocommerce-germanized-dhl' ),
+                'label'       		=> _x( 'Retail outlet routing', 'dhl', 'woocommerce-germanized-dhl' ),
                 'description'       => '',
                 'value'		        => in_array( 'ParcelOutletDelivery', $default_args['services'] ) ? 'yes' : 'no',
                 'wrapper_class'     => 'form-field-checkbox'
@@ -243,7 +243,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
             <?php woocommerce_wp_checkbox( array(
                 'id'          		=> 'dhl_label_service_NoNeighbourDelivery',
-                'label'       		=> __( 'No neighbor', 'woocommerce-germanized-dhl' ),
+                'label'       		=> _x( 'No neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
                 'description'       => '',
                 'value'		        => in_array( 'NoNeighbourDelivery', $default_args['services'] ) ? 'yes' : 'no',
                 'wrapper_class'     => 'form-field-checkbox'
@@ -253,7 +253,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_NamedPersonOnly',
-			'label'       		=> __( 'Named person only', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'value'		        => in_array( 'NamedPersonOnly', $default_args['services'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
@@ -261,7 +261,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_BulkyGoods',
-			'label'       		=> __( 'Bulky goods', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Bulky goods', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'value'		        => in_array( 'BulkyGoods', $default_args['services'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox'
@@ -269,7 +269,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_IdentCheck',
-			'label'       		=> __( 'Identity check', 'woocommerce-germanized-dhl' ),
+			'label'       		=> _x( 'Identity check', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'class'             => 'checkbox show-if-trigger',
 			'value'		        => in_array( 'IdentCheck', $default_args['services'] ) ? 'yes' : 'no',
@@ -280,7 +280,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		<div class="show-if show-if-ident-check">
 			<?php woocommerce_wp_text_input( array(
 				'id'          		=> 'dhl_label_ident_date_of_birth',
-				'label'       		=> __( 'Date of Birth', 'woocommerce-germanized-dhl' ),
+				'label'       		=> _x( 'Date of Birth', 'dhl', 'woocommerce-germanized-dhl' ),
 				'placeholder' 		=> '',
 				'description'		=> '',
 				'value'       		=> isset( $default_args['ident_date_of_birth'] ) ? $default_args['ident_date_of_birth'] : '',
@@ -290,7 +290,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 			<?php woocommerce_wp_select( array(
 				'id'          		=> 'dhl_label_ident_min_age',
-				'label'       		=> __( 'Minimum age', 'woocommerce-germanized-dhl' ),
+				'label'       		=> _x( 'Minimum age', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description'		=> '',
 				'value'       		=> isset( $default_args['ident_min_age'] ) ? $default_args['ident_min_age'] : '',
 				'options'			=> wc_gzd_dhl_get_ident_min_ages(),
@@ -301,7 +301,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 	<?php woocommerce_wp_checkbox( array(
 		'id'          		=> 'dhl_label_service_Premium',
-		'label'       		=> __( 'Premium', 'woocommerce-germanized-dhl' ),
+		'label'       		=> _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
 		'description'		=> '',
 		'value'		        => in_array( 'Premium', $default_args['services'] ) ? 'yes' : 'no',
 		'wrapper_class'     => 'form-field-checkbox'

@@ -114,23 +114,23 @@ abstract class Rest {
                 break;
             case '400':
                 $error_message = str_replace('/', ' / ', isset( $response_body->statusText ) ? $response_body->statusText : '' );
-                throw new Exception( __( '400 - ', 'woocommerce-germanized-dhl' ) . $error_message );
+                throw new Exception( _x( '400 - ', 'dhl', 'woocommerce-germanized-dhl' ) . $error_message );
                 break;
             case '401':
-                throw new Exception( __( '401 - Unauthorized Access - Invalid token or Authentication Header parameter', 'woocommerce-germanized-dhl' ) );
+                throw new Exception( _x( '401 - Unauthorized Access - Invalid token or Authentication Header parameter', 'dhl', 'woocommerce-germanized-dhl' ) );
                 break;
             case '408':
-                throw new Exception( __( '408 - Request Timeout', 'woocommerce-germanized-dhl' ) );
+                throw new Exception( _x( '408 - Request Timeout', 'dhl', 'woocommerce-germanized-dhl' ) );
                 break;
             case '429':
-                throw new Exception( __( '429 - Too many requests in given amount of time', 'woocommerce-germanized-dhl' ) );
+                throw new Exception( _x( '429 - Too many requests in given amount of time', 'dhl', 'woocommerce-germanized-dhl' ) );
                 break;
             case '503':
-                throw new Exception( __( '503 - Service Unavailable', 'woocommerce-germanized-dhl' ) );
+                throw new Exception( _x( '503 - Service Unavailable', 'dhl', 'woocommerce-germanized-dhl' ) );
                 break;
             default:
                 if ( empty( $response_body->statusText ) ) {
-                    $error_message = __( 'GET error or timeout occured. Please try again later.', 'woocommerce-germanized-dhl' );
+                    $error_message = _x( 'GET error or timeout occured. Please try again later.', 'dhl', 'woocommerce-germanized-dhl' );
                 } else {
                     $error_message = str_replace('/', ' / ', $response_body->statusText);
                 }
@@ -175,7 +175,7 @@ abstract class Rest {
 				break;
 			default:
 				if ( empty( $response_body->detail ) ) {
-					$error_message = __( 'POST error or timeout occured. Please try again later.', 'woocommerce-germanized-dhl' );
+					$error_message = _x( 'POST error or timeout occured. Please try again later.', 'dhl', 'woocommerce-germanized-dhl' );
 				} else {
 					$error_message = $response_body->detail;
 				}

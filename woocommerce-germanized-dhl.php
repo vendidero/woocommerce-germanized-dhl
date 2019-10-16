@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: Germanized for WooCommerce DHL
+ * Plugin Name: Germanized DHL for WooCommerce
  * Plugin URI: https://github.com/vendidero/woocommerce-germanized-dhl
  * Description: The Germanized DHL integration, installed as a feature plugin for development and testing purposes.
  * Author: vendidero
  * Author URI: https://vendidero.de
- * Version: 0.0.1-dev
+ * Version: 0.0.1
  * Requires PHP: 5.6
  * License: GPLv3
  *
@@ -37,7 +37,7 @@ if ( is_readable( $autoloader ) ) {
         error_log(  // phpcs:ignore
             sprintf(
             /* translators: 1: composer command. 2: plugin directory */
-                esc_html__( 'Your installation of the Germanized DHL feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-dhl' ),
+                esc_html_x(  'Your installation of the Germanized DHL feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'dhl', 'woocommerce-germanized-dhl' ),
                 '`composer install`',
                 '`' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '`'
             )
@@ -55,7 +55,7 @@ if ( is_readable( $autoloader ) ) {
                     <?php
                     printf(
                     /* translators: 1: composer command. 2: plugin directory */
-                        esc_html__( 'Your installation of the Germanized DHL feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-dhl' ),
+                        esc_html_x(  'Your installation of the Germanized DHL feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'dhl', 'woocommerce-germanized-dhl' ),
                         '<code>composer install</code>',
                         '<code>' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '</code>'
                     );

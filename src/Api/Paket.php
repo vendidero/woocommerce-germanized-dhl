@@ -53,7 +53,7 @@ class Paket {
         }
 
         if ( is_null( $this->label_api ) ) {
-            throw new Exception( __( 'Label API not available', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
 
         return $this->label_api;
@@ -69,7 +69,7 @@ class Paket {
         }
 
         if ( is_null( $this->finder_api ) ) {
-            throw new Exception( __( 'Parcel Finder API not available', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Parcel Finder API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
 
         return $this->finder_api;
@@ -85,7 +85,7 @@ class Paket {
 	    }
 
 	    if ( is_null( $this->return_api ) ) {
-		    throw new Exception( __( 'Return API not available', 'woocommerce-germanized-dhl' ) );
+		    throw new Exception( _x( 'Return API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
 	    }
 
 	    return $this->return_api;
@@ -101,7 +101,7 @@ class Paket {
         }
 
         if ( is_null( $this->parcel_api ) ) {
-            throw new Exception( __( 'Parcel API not available', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Parcel API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
 
         return $this->parcel_api;
@@ -243,13 +243,13 @@ class Paket {
     protected function get_preferred_day( $preferred_services ) {
 
         $day_of_week_arr = array(
-            '1' => __( 'Mon', 'woocommerce-germanized-dhl' ),
-            '2' => __( 'Tue', 'woocommerce-germanized-dhl' ),
-            '3' => __( 'Wed', 'woocommerce-germanized-dhl' ),
-            '4' => __( 'Thu', 'woocommerce-germanized-dhl' ),
-            '5' => __( 'Fri', 'woocommerce-germanized-dhl' ),
-            '6' => __( 'Sat', 'woocommerce-germanized-dhl' ),
-            '7' => __( 'Sun', 'woocommerce-germanized-dhl' )
+            '1' => _x( 'Mon', 'dhl', 'woocommerce-germanized-dhl' ),
+            '2' => _x( 'Tue', 'dhl', 'woocommerce-germanized-dhl' ),
+            '3' => _x( 'Wed', 'dhl', 'woocommerce-germanized-dhl' ),
+            '4' => _x( 'Thu', 'dhl', 'woocommerce-germanized-dhl' ),
+            '5' => _x( 'Fri', 'dhl', 'woocommerce-germanized-dhl' ),
+            '6' => _x( 'Sat', 'dhl', 'woocommerce-germanized-dhl' ),
+            '7' => _x( 'Sun', 'dhl', 'woocommerce-germanized-dhl' )
         );
 
         $preferred_days = array();
@@ -265,7 +265,7 @@ class Paket {
             }
 
             // Add none option
-            array_unshift( $preferred_days, _x( 'none', 'day context', 'woocommerce-germanized-dhl' ) );
+            array_unshift( $preferred_days, _x( 'None', 'dhl day context', 'woocommerce-germanized-dhl' ) );
         }
 
         return $preferred_days;
@@ -277,7 +277,7 @@ class Paket {
         if ( isset( $preferred_services->preferredTime->available ) && $preferred_services->preferredTime->available && isset( $preferred_services->preferredTime->timeframes ) ) {
 
             // Add none option
-            $preferred_times[0] = _x( 'None', 'time context', 'woocommerce-germanized-dhl' );
+            $preferred_times[0] = _x( 'None', 'dhl time context', 'woocommerce-germanized-dhl' );
 
             foreach ( $preferred_services->preferredTime->timeframes as $time_key => $time_value ) {
                 $temp_day_time      = str_replace( ':00', '', $time_value->start );

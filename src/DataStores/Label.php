@@ -298,7 +298,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	         */
             do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_loaded", $label );
         } else {
-            throw new Exception( __( 'Invalid label.', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Invalid label.', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
     }
 

@@ -47,8 +47,8 @@ if ( ! class_exists( 'WC_GZD_DHL_Email_Customer_Return_Shipment_Label', false ) 
 		public function __construct() {
 			$this->customer_email = true;
 			$this->id             = 'customer_dhl_return_shipment_label';
-			$this->title          = _x( 'DHL Return Label', 'shipments', 'woocommerce-germanized-dhl' );
-			$this->description    = __( 'This email is being used to send the DHL return label to the customer.', 'woocommerce-germanized-dhl' );
+			$this->title          = _x( 'DHL Return Label', 'dhl', 'woocommerce-germanized-dhl' );
+			$this->description    = _x( 'This email is being used to send the DHL return label to the customer.', 'dhl', 'woocommerce-germanized-dhl' );
 
 			$this->template_html  = 'emails/customer-dhl-return-shipment-label.php';
 			$this->template_plain = 'emails/plain/customer-dhl-return-shipment-label.php';
@@ -72,7 +72,7 @@ if ( ! class_exists( 'WC_GZD_DHL_Email_Customer_Return_Shipment_Label', false ) 
 		 * @return string
 		 */
 		public function get_default_subject() {
-			return _x( 'New DHL label for your return #{shipment_number} to your order #{order_number}', 'woocommerce-germanized-dhl' );
+			return _x( 'New DHL label for your return #{shipment_number} to your order #{order_number}', 'dhl', 'woocommerce-germanized-dhl' );
 		}
 
 		/**
@@ -82,7 +82,7 @@ if ( ! class_exists( 'WC_GZD_DHL_Email_Customer_Return_Shipment_Label', false ) 
 		 * @return string
 		 */
 		public function get_default_heading( $partial = false ) {
-			return _x( 'DHL label for your order: #{order_number}', 'woocommerce-germanized-dhl' );
+			return _x( 'DHL label for your order: #{order_number}', 'dhl', 'woocommerce-germanized-dhl' );
 		}
 
 		/**

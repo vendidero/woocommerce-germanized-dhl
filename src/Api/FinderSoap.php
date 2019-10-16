@@ -55,11 +55,11 @@ class FinderSoap extends Soap {
         ) );
 
 		if ( empty( $args['city'] ) && empty( $args['postcode'] ) ) {
-			throw new Exception( __( 'At least shipping city or postcode is required.', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'At least shipping city or postcode is required.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		if ( empty( $args['country'] ) ) {
-			throw new Exception( __( 'Shipping country is required.', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Shipping country is required.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$shipping_address = implode(' ', $args );

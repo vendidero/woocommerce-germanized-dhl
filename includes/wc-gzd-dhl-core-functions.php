@@ -31,27 +31,8 @@ function wc_gzd_dhl_aformat_preferred_api_time( $time ) {
 	return str_replace( array( ':', '-' ), '', $time );
 }
 
-function wc_gzd_dhl_validate_api_field( $value, $type = 'int', $min_len = 0, $max_len = 0 ) {
-    switch ( $type ) {
-        case 'string':
-            if ( ( strlen( $value ) < $min_len ) || ( strlen( $value ) > $max_len ) ) {
-                if ( $min_len === $max_len ) {
-                    throw new Exception( sprintf( __( 'The value must be %s characters.', 'woocommerce-germanized-dhl' ), $min_len ) );
-                } else {
-                    throw new Exception( sprintf( __( 'The value must be between %s and %s characters.', 'woocommerce-germanized-dhl' ), $min_len, $max_len ) );
-                }
-            }
-            break;
-        case 'int':
-            if ( ! is_numeric( $value ) ) {
-                throw new Exception( __( 'The value must be a number', 'woocommerce-germanized-dhl' ) );
-            }
-            break;
-    }
-}
-
 function wc_gzd_dhl_get_preferred_times_select_options( $times ) {
-	$preferred_times = array( 0 => _x( 'None', 'time context', 'woocommerce-germanized-dhl' ) );
+	$preferred_times = array( 0 => _x( 'None', 'dhl time context', 'woocommerce-germanized-dhl' ) );
 
 	if ( ! empty( $times ) ) {
 		$preferred_times = $times;
@@ -61,7 +42,7 @@ function wc_gzd_dhl_get_preferred_times_select_options( $times ) {
 }
 
 function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
-	$preferred_days = array( 0 => _x( 'None', 'day context', 'woocommerce-germanized-dhl' ) );
+	$preferred_days = array( 0 => _x( 'None', 'dhl day context', 'woocommerce-germanized-dhl' ) );
 
 	if ( ! empty( $days ) ) {
 		$days = array_keys( $days );
@@ -86,10 +67,10 @@ function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
 
 function wc_gzd_dhl_get_duties() {
 	$duties = array(
-		'DDU' => __( 'Delivery Duty Unpaid', 'woocommerce-germanized-dhl' ),
-		'DDP' => __( 'Delivery Duty Paid', 'woocommerce-germanized-dhl' ),
-		'DXV' => __( 'Delivery Duty Paid (excl. VAT )', 'woocommerce-germanized-dhl' ),
-		'DDX' => __( 'Delivery Duty Paid (excl. Duties, taxes and VAT)', 'woocommerce-germanized-dhl' )
+		'DDU' => _x( 'Delivery Duty Unpaid', 'dhl', 'woocommerce-germanized-dhl' ),
+		'DDP' => _x( 'Delivery Duty Paid', 'dhl', 'woocommerce-germanized-dhl' ),
+		'DXV' => _x( 'Delivery Duty Paid (excl. VAT )', 'dhl', 'woocommerce-germanized-dhl' ),
+		'DDX' => _x( 'Delivery Duty Paid (excl. Duties, taxes and VAT)', 'dhl', 'woocommerce-germanized-dhl' )
 	);
 
 	return $duties;
@@ -98,8 +79,8 @@ function wc_gzd_dhl_get_duties() {
 function wc_gzd_dhl_get_visual_min_ages() {
 	$visual_age = array(
 		'0'   => _x( 'None', 'age context', 'woocommerce-germanized-dhl' ),
-		'A16' => __( 'Minimum age of 16', 'woocommerce-germanized-dhl' ),
-		'A18' => __( 'Minimum age of 18', 'woocommerce-germanized-dhl' )
+		'A16' => _x( 'Minimum age of 16', 'dhl', 'woocommerce-germanized-dhl' ),
+		'A18' => _x( 'Minimum age of 18', 'dhl', 'woocommerce-germanized-dhl' )
 	);
 
 	return $visual_age;
@@ -191,21 +172,10 @@ function wc_gzd_dhl_get_preferred_services() {
 
 function wc_gzd_dhl_get_pickup_types() {
     return array(
-    	'packstation' => __( 'Packstation', 'woocommerce-germanized-dhl' ),
-	    'postoffice'  => __( 'Postfiliale', 'woocommerce-germanized-dhl' ),
-	    'parcelshop'  => __( 'Postfiliale', 'woocommerce-germanized-dhl' )
+    	'packstation' => _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ),
+	    'postoffice'  => _x( 'Postfiliale', 'dhl', 'woocommerce-germanized-dhl' ),
+	    'parcelshop'  => _x( 'Postfiliale', 'dhl', 'woocommerce-germanized-dhl' )
     );
-}
-
-function wc_gzd_dhl_get_working_days() {
-	return array(
-		'Mon' => __( 'mon', 'woocommerce-germanized-dhl' ),
-		'Tue' => __( 'tue', 'woocommerce-germanized-dhl' ),
-		'Wed' => __( 'wed', 'woocommerce-germanized-dhl' ),
-		'Thu' => __( 'thu', 'woocommerce-germanized-dhl' ),
-		'Fri' => __( 'fri', 'woocommerce-germanized-dhl' ),
-		'Sat' => __( 'sat', 'woocommerce-germanized-dhl' )
-	);
 }
 
 function wc_gzd_dhl_is_pickup_type( $maybe_type, $type = 'packstation' ) {
@@ -273,7 +243,7 @@ function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 	$args['receiver_slug'] = sanitize_key( $args['receiver_slug'] );
 
 	if ( empty( $args['receiver_slug'] ) ) {
-		$error->add( 500, __( 'Receiver is missing or does not exist.', 'woocommerce-germanized-dhl' ) );
+		$error->add( 500, _x( 'Receiver is missing or does not exist.', 'dhl', 'woocommerce-germanized-dhl' ) );
 	}
 
 	if ( $error->has_errors() ) {
@@ -306,7 +276,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	$error = new WP_Error();
 
 	if ( ! $shipment_order = $shipment->get_order() ) {
-		$error->add( 500, sprintf( __( 'Shipment order #%s does not exist', 'woocommerce-germanized-dhl' ), $shipment->get_order_id() ) );
+		$error->add( 500, sprintf( _x( 'Shipment order #%s does not exist', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_order_id() ) );
 	}
 
 	$dhl_order = wc_gzd_dhl_get_order( $shipment_order );
@@ -330,19 +300,19 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		) );
 
 		$mandatory = array(
-			'street'     => __( 'Street', 'woocommerce-germanized-dhl' ),
-			'postcode'   => __( 'Postcode', 'woocommerce-germanized-dhl' ),
-			'city'       => __( 'City', 'woocommerce-germanized-dhl' ),
+			'street'     => _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),
+			'postcode'   => _x( 'Postcode', 'dhl', 'woocommerce-germanized-dhl' ),
+			'city'       => _x( 'City', 'dhl', 'woocommerce-germanized-dhl' ),
 		);
 
 		foreach( $mandatory as $mand => $title ) {
 			if ( empty( $args['return_address'][ $mand ] ) ) {
-				$error->add( 500, sprintf( __( '%s of the return address is a mandatory field.', 'woocommerce-germanized-dhl' ), $title ) );
+				$error->add( 500, sprintf( _x( '%s of the return address is a mandatory field.', 'dhl', 'woocommerce-germanized-dhl' ), $title ) );
 			}
 		}
 
 		if ( empty( $args['return_address']['name'] ) && empty( $args['return_address']['company'] ) ) {
-			$error->add( 500, __( 'Please either add a return company or name.', 'woocommerce-germanized-dhl' ) );
+			$error->add( 500, _x( 'Please either add a return company or name.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	} else {
 		$args['return_address'] = array();
@@ -361,7 +331,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$args['services'] = array_merge( $args['services'], array( 'PreferredDay' ) );
 	} else {
 		if ( ! empty( $args['preferred_day'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_day'], 'Y-m-d' ) ) {
-			$error->add( 500, __( 'Error while parsing preferred day.', 'woocommerce-germanized-dhl' ) );
+			$error->add( 500, _x( 'Error while parsing preferred day.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$args['services']      = array_diff( $args['services'], array( 'PreferredDay' ) );
@@ -372,7 +342,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$args['services'] = array_merge( $args['services'], array( 'PreferredTime' ) );
 	} else {
 		if ( ( ! empty( $args['preferred_time_start'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_time_start'], 'H:i' ) ) || ( ! empty( $args['preferred_time_end'] ) && ! wc_gzd_dhl_is_valid_datetime( $args['preferred_time_end'], 'H:i' ) ) ) {
-			$error->add( 500, __( 'Error while parsing preferred time.', 'woocommerce-germanized-dhl' ) );
+			$error->add( 500, _x( 'Error while parsing preferred time.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$args['services']             = array_diff( $args['services'], array( 'PreferredTime' ) );
@@ -396,7 +366,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$args['services']       = array_merge( $args['services'], array( 'VisualCheckOfAge' ) );
 	} else {
 		if ( ! empty( $args['visual_min_age'] ) && ! array_key_exists( $args['visual_min_age'], wc_gzd_dhl_get_visual_min_ages() ) ) {
-			$error->add( 500, __( 'The visual min age check is invalid.', 'woocommerce-germanized-dhl' ) );
+			$error->add( 500, _x( 'The visual min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$args['services']       = array_diff( $args['services'], array( 'VisualCheckOfAge' ) );
@@ -412,19 +382,19 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 
 	if ( in_array( 'IdentCheck', $args['services'] ) ) {
 		if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
-			$error->add( 500, __( 'The ident min age check is invalid.', 'woocommerce-germanized-dhl' ) );
+			$error->add( 500, _x( 'The ident min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
 
 			$args['ident_min_age'] = '';
 		}
 
 		if ( ! empty( $args['ident_date_of_birth'] ) ) {
 			if ( ! wc_gzd_dhl_is_valid_datetime( $args['ident_date_of_birth'], 'Y-m-d' ) ) {
-				$error->add( 500, __( 'There was an error parsing the date of birth for the identity check.', 'woocommerce-germanized-dhl' ) );
+				$error->add( 500, _x( 'There was an error parsing the date of birth for the identity check.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		}
 
 		if ( empty( $args['ident_date_of_birth'] ) && empty( $args['ident_min_age'] ) ) {
-			$error->add( 500, __( 'Either a minimum age or a date of birth must be added to the ident check.', 'woocommerce-germanized-dhl' ) );
+			$error->add( 500, _x( 'Either a minimum age or a date of birth must be added to the ident check.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	} else {
 		$args['ident_min_age']       = '';
@@ -437,7 +407,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	}
 
 	if ( ! empty( $args['duties'] ) && ! array_key_exists( $args['duties'], wc_gzd_dhl_get_duties() ) ) {
-		$error->add( 500, sprintf( __( '%s duties element does not exist.', 'woocommerce-germanized-dhl' ), $args['duties'] ) );
+		$error->add( 500, sprintf( _x( '%s duties element does not exist.', 'dhl', 'woocommerce-germanized-dhl' ), $args['duties'] ) );
 	}
 
 	if ( $error->has_errors() ) {
@@ -607,9 +577,11 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				$defaults['preferred_neighbor'] = $dhl_order->get_preferred_neighbor_formatted_address();
 			}
 
-			if ( 'none' !== Package::get_setting( 'label_visual_min_age', $dhl_shipping_method ) ) {
+			$visual_min_age = Package::get_setting( 'label_visual_min_age', $dhl_shipping_method );
+
+			if ( ! empty( $visual_min_age ) ) {
 				$defaults['services'][]     = 'VisualCheckOfAge';
-				$defaults['visual_min_age'] = Package::get_setting( 'label_visual_min_age', $dhl_shipping_method );
+				$defaults['visual_min_age'] = $visual_min_age;
 			}
 
 			if ( $dhl_order->needs_age_verification() && 'yes' === Package::get_setting( 'label_auto_age_check_sync', $dhl_shipping_method ) ) {
@@ -620,7 +592,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 			foreach( wc_gzd_dhl_get_services() as $service ) {
 
 				// Combination is not available
-				if ( $defaults['visual_min_age'] !== 'none' && 'NamedPersonOnly' === $service ) {
+				if ( ! empty( $defaults['visual_min_age'] ) && 'NamedPersonOnly' === $service ) {
 					continue;
 				}
 
@@ -692,11 +664,11 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 	try {
 		if ( ! $shipment || ! is_a( $shipment, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
-			throw new Exception( __( 'Invalid shipment', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Invalid shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		if ( ! $order = $shipment->get_order() ) {
-			throw new Exception( __( 'Order does not exist', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Order does not exist', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$dhl_order     = wc_gzd_dhl_get_order( $order );
@@ -719,7 +691,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		$label = LabelFactory::get_label( false, $label_type );
 
 		if ( ! $label ) {
-			throw new Exception( _x( 'Error while creating the label instance', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Error while creating the label instance', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$label->set_props( $args );
@@ -767,11 +739,11 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 		$shipment = $label->get_shipment();
 
 		if ( ! $shipment || ! is_a( $shipment, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
-			throw new Exception( __( 'Invalid shipment', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Invalid shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		if ( ! $order = $shipment->get_order() ) {
-			throw new Exception( __( 'Order does not exist', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Order does not exist', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$dhl_order   = wc_gzd_dhl_get_order( $order );
@@ -839,7 +811,7 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 function wc_gzd_dhl_create_inlay_return_label( $parent_label, $args = array() ) {
 	try {
 		if ( ! $parent_label || ! is_a( $parent_label, 'Vendidero\Germanized\DHL\Label' ) ) {
-			throw new Exception( __( 'Invalid label', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Invalid label', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$args      = wp_parse_args( $args, wc_gzd_dhl_get_inlay_return_label_default_args( $parent_label ) );
@@ -926,8 +898,8 @@ function wc_gzd_dhl_get_inlay_return_products() {
 function wc_gzd_dhl_get_return_products_international() {
 
 	$retoure =  array(
-		'retoure_international_a' => __( 'DHL Retoure International A', 'woocommerce-germanized-dhl' ),
-		'retoure_international_b' => __( 'DHL Retoure International B', 'woocommerce-germanized-dhl' ),
+		'retoure_international_a' => _x( 'DHL Retoure International A', 'dhl', 'woocommerce-germanized-dhl' ),
+		'retoure_international_b' => _x( 'DHL Retoure International B', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
 
 	return $retoure;
@@ -936,7 +908,7 @@ function wc_gzd_dhl_get_return_products_international() {
 function wc_gzd_dhl_get_return_products_domestic() {
 
 	$retoure =  array(
-		'retoure_online'  => __( 'DHL Retoure Online', 'woocommerce-germanized-dhl' ),
+		'retoure_online'  => _x( 'DHL Retoure Online', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
 
 	return $retoure;
@@ -947,9 +919,9 @@ function wc_gzd_dhl_get_products_international() {
 	$country = Package::get_base_country();
 
 	$germany_int =  array(
-		'V55PAK'  => __( 'DHL Paket Connect', 'woocommerce-germanized-dhl' ),
-		'V54EPAK' => __( 'DHL Europaket (B2B)', 'woocommerce-germanized-dhl' ),
-		'V53WPAK' => __( 'DHL Paket International', 'woocommerce-germanized-dhl' ),
+		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
 
 	$dhl_prod_int = array();
@@ -1023,9 +995,9 @@ function wc_gzd_dhl_get_products_domestic() {
 	$country = Package::get_base_country();
 
 	$germany_dom = array(
-		'V01PAK'  => __( 'DHL Paket', 'woocommerce-germanized-dhl' ),
-		'V01PRIO' => __( 'DHL Paket PRIO', 'woocommerce-germanized-dhl' ),
-		'V06PAK'  => __( 'DHL Paket Taggleich', 'woocommerce-germanized-dhl' ),
+		'V01PAK'  => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V01PRIO' => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V06PAK'  => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
 
 	$dhl_prod_dom = array();
@@ -1112,7 +1084,7 @@ function wc_gzd_dhl_upload_data( $filename, $bits, $relative = true ) {
 
             return $path;
         } else {
-            throw new Exception( __( 'Error while uploading label.', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Error while uploading label.', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
     } catch ( Exception $e ) {
         return false;

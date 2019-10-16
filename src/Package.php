@@ -19,7 +19,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '0.0.1-dev';
+    const VERSION = '0.0.1';
 
     public static $upload_dir_suffix = '';
 
@@ -240,7 +240,7 @@ class Package {
 	}
 
 	public static function add_shipping_providers( $providers ) {
-		$providers['dhl'] = __( 'DHL', 'woocommerce-germanized-dhl' );
+		$providers['dhl'] = _x(  'DHL', 'dhl', 'woocommerce-germanized-dhl' );
 
 		return $providers;
 	}
@@ -626,7 +626,7 @@ class Package {
     }
 
     public static function get_available_countries() {
-	    return array( 'DE' => __( 'Germany', 'woocommerce-germanized-dhl' ) );
+	    return array( 'DE' => _x(  'Germany', 'dhl', 'woocommerce-germanized-dhl' ) );
     }
 
     public static function get_base_country() {

@@ -26,26 +26,26 @@ class ParcelServices {
 		if ( $dhl_order = wc_gzd_dhl_get_order( $order ) ) {
 			if ( $dhl_order->has_preferred_day() ) {
 				$new_rows['preferred_day'] = array(
-					'label' => __( 'Preferred Day', 'woocommerce-germanized-dhl' ),
+					'label' => _x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ),
 					'value' => wc_format_datetime( $dhl_order->get_preferred_day(), wc_date_format() ),
 				);
 			}
 
 			if ( $dhl_order->has_preferred_time() ) {
 				$new_rows['preferred_time'] = array(
-					'label' => __( 'Preferred Time', 'woocommerce-germanized-dhl' ),
+					'label' => _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
 					'value' => $dhl_order->get_preferred_time(),
 				);
 			}
 
 			if ( $dhl_order->has_preferred_location() ) {
 				$new_rows['preferred_location'] = array(
-					'label' => __( 'Preferred Location', 'woocommerce-germanized-dhl' ),
+					'label' => _x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ),
 					'value' => $dhl_order->get_preferred_location(),
 				);
 			} elseif( $dhl_order->has_preferred_neighbor() ) {
 				$new_rows['preferred_neighbor'] = array(
-					'label' => __( 'Preferred Neighbor', 'woocommerce-germanized-dhl' ),
+					'label' => _x( 'Preferred Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
 					'value' => $dhl_order->get_preferred_neighbor_formatted_address(),
 				);
 			}
@@ -146,15 +146,15 @@ class ParcelServices {
 			try {
 				if ( ! empty( $data['preferred_time'] ) && ! empty( $data['preferred_day'] ) ) {
 					if ( ! empty( $data['preferred_day_time_cost'] ) ) {
-						$cart->add_fee( __( 'DHL Preferred Day & Time', 'woocommerce-germanized-dhl' ), $data['preferred_day_time_cost'] );
+						$cart->add_fee( _x( 'DHL Preferred Day & Time', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_day_time_cost'] );
 					}
 				} elseif ( ! empty( $data['preferred_time'] ) ) {
 					if ( ! empty( $data['preferred_time_cost'] ) ) {
-						$cart->add_fee( __( 'DHL Preferred Time', 'woocommerce-germanized-dhl' ), $data['preferred_time_cost'] );
+						$cart->add_fee( _x( 'DHL Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_time_cost'] );
 					}
 				} elseif ( ! empty( $data['preferred_day'] ) ) {
 					if ( ! empty( $data['preferred_day_cost'] ) ) {
-						$cart->add_fee( __( 'DHL Preferred Day', 'woocommerce-germanized-dhl' ), $data['preferred_day_cost'] );
+						$cart->add_fee( _x( 'DHL Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_day_cost'] );
 					}
 				}
 			} catch ( Exception $e ) {}
@@ -328,7 +328,7 @@ class ParcelServices {
 					}
 
 					if ( empty( $data['preferred_day'] ) ) {
-						$data['errors']->add( 'validation', __( 'Sorry, but the preferred day you have chosen is no longer available.', 'woocommerce-germanized-dhl' ) );
+						$data['errors']->add( 'validation', _x( 'Sorry, but the preferred day you have chosen is no longer available.', 'dhl', 'woocommerce-germanized-dhl' ) );
 					}
 				}
 			}
@@ -356,7 +356,7 @@ class ParcelServices {
 					}
 
 					if ( empty( $data['preferred_time'] ) ) {
-						$data['errors']->add( 'validation', __( 'Sorry, but the preferred time you have chosen is no longer available.', 'woocommerce-germanized-dhl' ) );
+						$data['errors']->add( 'validation', _x( 'Sorry, but the preferred time you have chosen is no longer available.', 'dhl', 'woocommerce-germanized-dhl' ) );
 					}
 				}
 			}
@@ -379,7 +379,7 @@ class ParcelServices {
 						if ( ! empty( $location ) ) {
 							$data['preferred_location'] = $location;
 						} else {
-							$data['errors']->add( 'validation', __( 'Please choose a preferred location.', 'woocommerce-germanized-dhl' ) );
+							$data['errors']->add( 'validation', _x( 'Please choose a preferred location.', 'dhl', 'woocommerce-germanized-dhl' ) );
 						}
 					} elseif( self::is_preferred_neighbor_enabled() && 'neighbor' === $post_data['dhl_preferred_location_type'] ) {
 						$name    = isset( $post_data['dhl_preferred_location_neighbor_name'] ) ? wc_clean( $post_data['dhl_preferred_location_neighbor_name'] ) : '';
@@ -391,7 +391,7 @@ class ParcelServices {
 							$data['preferred_location_neighbor_name']    = $name;
 							$data['preferred_location_neighbor_address'] = $address;
 						} else {
-							$data['errors']->add( 'validation', __( 'Please choose name and address of your preferred neighbor.', 'woocommerce-germanized-dhl' ) );
+							$data['errors']->add( 'validation', _x( 'Please choose name and address of your preferred neighbor.', 'dhl', 'woocommerce-germanized-dhl' ) );
 						}
 					}
 				}

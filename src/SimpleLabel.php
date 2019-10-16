@@ -82,7 +82,7 @@ class SimpleLabel extends Label {
 	}
 
 	public function get_return_formatted_full_name() {
-		return sprintf( _x( '%1$s', 'full name', 'woocommerce-germanized-dhl' ), $this->get_return_name() );
+		return sprintf( _x( '%1$s', 'dhl full name', 'woocommerce-germanized-dhl' ), $this->get_return_name() );
 	}
 
 	public function get_return_postcode( $context = 'view' ) {
@@ -145,7 +145,7 @@ class SimpleLabel extends Label {
 		$end   = $this->get_preferred_time_end();
 
 		if ( $start && $end ) {
-			return sprintf( _x( '%s-%s', 'time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
+			return sprintf( _x( '%s-%s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
 		}
 
 		return null;

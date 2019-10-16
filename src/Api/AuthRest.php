@@ -121,7 +121,7 @@ class AuthRest {
                 break;
             case '401':
             default:
-                throw new Exception( __( 'Authentication failed: Please check client ID and secret in the DHL shipping settings', 'woocommerce-germanized-dhl' ) );
+                throw new Exception( _x( 'Authentication failed: Please check client ID and secret in the DHL shipping settings', 'dhl', 'woocommerce-germanized-dhl' ) );
                 break;
         }
 

@@ -115,7 +115,7 @@ class LabelSoap extends Soap {
 
 			    throw new Exception( $messages );
 		    } else {
-			    throw new Exception( __( 'There was an error generating the label. Please check your logs.', 'woocommerce-germanized-dhl' ) );
+			    throw new Exception( _x( 'There was an error generating the label. Please check your logs.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		    }
 	    } else {
 		    // Give the server 1 second to create the PDF before downloading it
@@ -218,7 +218,7 @@ class LabelSoap extends Soap {
 		    	// Delete the label dues to errors.
 		    	$label->delete();
 
-			    throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
+			    throw new Exception( _x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
 		    }
 
 		    return $label;
@@ -302,7 +302,7 @@ class LabelSoap extends Soap {
 	    do_action( 'woocommerce_gzd_dhl_label_api_deleted', $label );
 
         if ( 0 !== $response_body->Status->statusCode ) {
-            throw new Exception( sprintf( __( 'Could not delete label - %s', 'woocommerce-germanized-dhl' ), $response_body->Status->statusMessage ) );
+            throw new Exception( sprintf( _x( 'Could not delete label - %s', 'dhl', 'woocommerce-germanized-dhl' ), $response_body->Status->statusMessage ) );
         }
 
         return $label;
@@ -333,7 +333,7 @@ class LabelSoap extends Soap {
 
             return $account_number;
         } else {
-            throw new Exception( __( 'Could not create account number - no product number.', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Could not create account number - no product number.', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
     }
 
@@ -354,7 +354,7 @@ class LabelSoap extends Soap {
         $shipment = $label->get_shipment();
 
         if ( ! $shipment ) {
-            throw new Exception( sprintf( __( 'Could not fetch shipment %d.', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
+            throw new Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
         }
 
         $services  = array();
@@ -427,7 +427,7 @@ class LabelSoap extends Soap {
                     'ShipmentDetails' => array(
                         'product'           => $label->get_dhl_product(),
                         'accountNumber'     => self::get_account_number( $label->get_dhl_product() ),
-                        'customerReference' => wc_gzd_dhl_get_label_reference( __( 'Shipment #{shipment_id} to order #{order_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) ),
+                        'customerReference' => wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) ),
                         'shipmentDate'      => date('Y-m-d' ),
                         'ShipmentItem'      => array(
                             'weightInKG' => $label->get_weight(),
@@ -516,7 +516,7 @@ class LabelSoap extends Soap {
 
         if ( $label->has_inlay_return() ) {
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
-            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( __( 'Return shipment #{shipment_id} to order #{order_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) );
+            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) );
 
             $dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'] = array(
                 'Name' => array(
@@ -547,7 +547,7 @@ class LabelSoap extends Soap {
         if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
 
             if ( sizeof( $shipment->get_items() ) > self::DHL_MAX_ITEMS ) {
-                throw new Exception( sprintf( __( 'Only %s shipment items can be processed, your shipment has %s items.', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, sizeof( $shipment->get_items() ) ) );
+                throw new Exception( sprintf( _x( 'Only %s shipment items can be processed, your shipment has %s items.', 'dhl', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, sizeof( $shipment->get_items() ) ) );
             }
 
             $customsDetails   = array();

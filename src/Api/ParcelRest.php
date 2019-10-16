@@ -22,15 +22,15 @@ class ParcelRest extends Rest {
         ) );
 
         if ( empty( $args['postcode'] ) ) {
-            throw new Exception( __( 'Please provide the receiver postnumber.', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Please provide the receiver postnumber.', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
 
         if ( empty( $args['account_num'] ) && ! Package::is_debug_mode() ) {
-            throw new Exception( __( 'Please set an account in the DHL shipping settings.', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Please set an account in the DHL shipping settings.', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
 
         if ( empty( $args['start_date'] ) ) {
-            throw new Exception( __( 'Please provide the shipment start date.', 'woocommerce-germanized-dhl' ) );
+            throw new Exception( _x( 'Please provide the shipment start date.', 'dhl', 'woocommerce-germanized-dhl' ) );
         }
 
         $this->account_num = $args['account_num'];

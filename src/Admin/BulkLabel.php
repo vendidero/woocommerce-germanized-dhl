@@ -28,7 +28,7 @@ class BulkLabel extends BulkActionHandler {
 	}
 
 	public function get_title() {
-		return __( 'Generating labels...', 'woocommerce-germanizd-dhl' );
+		return _x( 'Generating labels...', 'dhl', 'woocommerce-germanized-dhl' );
 	}
 
 	public function get_file() {
@@ -71,7 +71,7 @@ class BulkLabel extends BulkActionHandler {
 	}
 
 	public function get_success_message() {
-		return __( 'Successfully generated labels.', 'woocommerce-germanized-dhl' );
+		return _x( 'Successfully generated labels.', 'dhl', 'woocommerce-germanized-dhl' );
 	}
 
 	public function handle() {
@@ -89,7 +89,7 @@ class BulkLabel extends BulkActionHandler {
 							$response = wc_gzd_dhl_create_label( $shipment );
 
 							if ( is_wp_error( $response ) ) {
-								$this->add_notice( sprintf( __( 'Error while creating label for %s: %s', 'woocommerce-germanized-dhl' ), '<a href="' . $shipment->get_edit_shipment_url() .'" target="_blank">' . sprintf( __( 'shipment #%d', 'woocommerce-germanized-dhl' ), $shipment_id ) . '</a>', $response->get_error_message() ), 'error' );
+								$this->add_notice( sprintf( _x( 'Error while creating label for %s: %s', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . $shipment->get_edit_shipment_url() .'" target="_blank">' . sprintf( _x(  'shipment #%d', 'dhl', 'woocommerce-germanized-dhl' ), $shipment_id ) . '</a>', $response->get_error_message() ), 'error' );
 							} else {
 								$label = $response;
 							}

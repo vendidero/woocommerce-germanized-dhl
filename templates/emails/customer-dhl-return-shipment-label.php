@@ -28,13 +28,13 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
 	<p>
 		<?php
-			printf( __( 'You\'ve requested a return for your order #%s. Please find the DHL label attached to this email.', 'woocommerce-germanized-dhl' ), $order->get_order_number() ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+			printf( _x( 'You\'ve requested a return for your order #%s. Please find the DHL label attached to this email.', 'dhl', 'woocommerce-germanized-dhl' ), $order->get_order_number() ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
 		?>
 	</p>
 
 	<p>
 		<?php
-			printf( __( 'Please print the DHL label attached to this email and stick it on your parcel.', 'woocommerce-germanized-dhl' ), '' ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+			printf( _x( 'Please print the DHL label attached to this email and stick it on your parcel.', 'dhl', 'woocommerce-germanized-dhl' ), '' ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
 		?>
 	</p>
 <?php

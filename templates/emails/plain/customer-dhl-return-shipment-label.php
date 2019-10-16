@@ -23,7 +23,7 @@ echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 /* translators: %s: Customer first name */
 echo sprintf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_first_name() ) ) . "\n\n";
 
-printf( esc_html__( 'You\'ve requested a return for your order #%s. Please find the DHL label attached to this email.', 'woocommerce-germanized-dhl' ), $order->get_order_number() ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+printf( esc_html_x( 'You\'ve requested a return for your order #%s. Please find the DHL label attached to this email.', 'dhl', 'woocommerce-germanized-dhl' ), $order->get_order_number() ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
 
 echo "\n\n";
 

@@ -11,7 +11,9 @@
   "main": "Gruntfile.js",
   "scripts": {
     "build": "grunt",
-    "build-watch": "grunt watch"
+    "build-watch": "grunt watch",
+    "deploy": "composer install --no-dev && sh ./bin/github-deploy.sh",
+    "package-plugin": "./bin/build-plugin-zip.sh"
   },
   "devDependencies": {
     "autoprefixer": "9.6.1",
@@ -29,6 +31,7 @@
     "eslint-config-wpcalypso": "4.0.1",
     "eslint-plugin-wpcalypso": "4.1.0",
     "grunt": "1.0.4",
+    "grunt-checktextdomain": "1.0.1",
     "grunt-contrib-clean": "2.0.0",
     "grunt-contrib-concat": "1.0.1",
     "grunt-contrib-copy": "1.0.0",
@@ -43,6 +46,7 @@
     "grunt-sass": "3.0.2",
     "grunt-shell": "3.0.1",
     "grunt-stylelint": "0.11.1",
+    "grunt-wp-i18n": "1.0.3",
     "istanbul": "1.0.0-alpha.2",
     "mocha": "6.2.0",
     "node-sass": "4.12.0",

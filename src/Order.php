@@ -269,7 +269,7 @@ class Order {
 		$end   = $this->get_preferred_time_end();
 
 		if ( $start && $end ) {
-			return sprintf( _x( '%s-%s', 'time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
+			return sprintf( _x( '%s-%s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
 		}
 
 		return null;

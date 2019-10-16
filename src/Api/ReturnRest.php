@@ -35,11 +35,11 @@ class ReturnRest extends Rest {
 		$country_name = $label->get_sender_country();
 
 		if ( ! $shipment ) {
-			throw new Exception( sprintf( __( 'Could not fetch shipment %d.', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
+			throw new Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
 		if ( ! $parent_shipment = $shipment->get_parent() ) {
-			throw new Exception( sprintf( __( 'Could not fetch parent shipment %d.', 'woocommerce-germanized-dhl' ), $shipment->get_parent_id() ) );
+			throw new Exception( sprintf( _x( 'Could not fetch parent shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_parent_id() ) );
 		}
 
 		$parent_label = wc_gzd_dhl_get_label( $parent_shipment );
@@ -53,7 +53,7 @@ class ReturnRest extends Rest {
 
 		$request_args = array(
 			'receiverId'        => $label->get_receiver_id(),
-			"customerReference" => wc_gzd_dhl_get_label_reference( __( 'Return #{shipment_id} to shipment #{original_shipment_id}', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{original_shipment_id}' => $parent_shipment->get_id() ) ),
+			"customerReference" => wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to shipment #{original_shipment_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{original_shipment_id}' => $parent_shipment->get_id() ) ),
 			"shipmentReference" => '',
 			"senderAddress"     => array(
 				'name1'       => $label->get_sender_company() ? $label->get_sender_company() : $label->get_sender_formatted_full_name(),
@@ -147,7 +147,7 @@ class ReturnRest extends Rest {
 			// Delete the label dues to errors.
 			$label->delete();
 
-			throw new Exception( __( 'Error while creating and uploading the label', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( _x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return $label;

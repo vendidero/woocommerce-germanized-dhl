@@ -88,15 +88,15 @@ class Admin {
 		ob_start();
 		?>
         <tr valign="top">
-            <th scope="row" class="titledesc"><?php esc_html_e( 'Receiver Ids', 'woocommerce-germanized-dhl' ); ?></th>
+            <th scope="row" class="titledesc"><?php echo esc_html_x(  'Receiver Ids', 'dhl', 'woocommerce-germanized-dhl' ); ?></th>
             <td class="forminp" id="dhl_receiver_ids">
                 <div class="wc_input_table_wrapper">
                     <table class="widefat wc_input_table sortable" cellspacing="0">
                         <input type="text" name="dhl_settings_hider" style="display: none" data-show_if_woocommerce_gzd_dhl_label_retoure_enable="" />
                         <thead>
                         <tr>
-                            <th><?php esc_html_e( 'Receiver Id', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( __( 'Find your Receiver Ids within your DHL contract data.', 'woocommerce-germanized' ) ); ?></th>
-                            <th><?php esc_html_e( 'Country Code', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( __( 'Leave empty to use the Receiver Id as fallback.', 'woocommerce-germanized' ) ); ?></th>
+                            <th><?php echo esc_html_x(  'Receiver Id', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Find your Receiver Ids within your DHL contract data.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></th>
+                            <th><?php echo esc_html_x(  'Country Code', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Leave empty to use the Receiver Id as fallback.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></th>
                         </tr>
                         </thead>
                         <tbody class="receiver_ids">
@@ -116,7 +116,7 @@ class Admin {
                         </tbody>
                         <tfoot>
                         <tr>
-                            <th colspan="7"><a href="#" class="add button"><?php esc_html_e( '+ Add receiver', 'woocommerce-germanized-dhl' ); ?></a> <a href="#" class="remove_rows button"><?php esc_html_e( 'Remove selected receiver(s)', 'woocommerce-germanized-dhl' ); ?></a></th>
+                            <th colspan="7"><a href="#" class="add button"><?php echo esc_html_x(  '+ Add receiver', 'dhl', 'woocommerce-germanized-dhl' ); ?></a> <a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected receiver(s)', 'dhl', 'woocommerce-germanized-dhl' ); ?></a></th>
                         </tr>
                         </tfoot>
                     </table>
@@ -152,10 +152,10 @@ class Admin {
 		$dhl_product   = wc_gzd_dhl_get_product( $_product );
 
 		$countries = WC()->countries->get_countries();
-		$countries = array_merge( array( '0' => __( 'Select a country', 'woocommerce-germanized-dhl' )  ), $countries );
+		$countries = array_merge( array( '0' => _x( 'Select a country', 'dhl', 'woocommerce-germanized-dhl' )  ), $countries );
 
-		woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => __( 'Harmonized Tariff Schedule (DHL)', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => __( 'This code is needed for customs of international shipping.', 'woocommerce-germanized-dhl' ) ) );
-		woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => __( 'Country of manufacture (DHL)', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => __( 'The country of manufacture is needed for customs of international shipping.', 'woocommerce-germanized-dhl' ) ) );
+		woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => _x( 'Harmonized Tariff Schedule (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x(  'This code is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
+		woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => _x( 'Country of manufacture (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x(  'The country of manufacture is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
 	}
 
     public static function save_product( $product ) {
@@ -182,14 +182,14 @@ class Admin {
 			return;
 		?>
         <div class="error">
-            <p><?php printf( __( 'DHL label upload directory missing. Please manually create the folder %s and make sure that it is writeable.', 'woocommerce-germanized-dhl' ), '<i>wp-content/uploads/' . $dirname . '</i>' ); ?></p>
+            <p><?php printf( _x( 'DHL label upload directory missing. Please manually create the folder %s and make sure that it is writeable.', 'dhl', 'woocommerce-germanized-dhl' ), '<i>wp-content/uploads/' . $dirname . '</i>' ); ?></p>
         </div>
 		<?php
     }
 
 	public static function add_template_check( $check ) {
 		$check['dhl'] = array(
-			'title'             => __( 'DHL', 'woocommerce-germanized-dhl' ),
+			'title'             => _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' ),
 			'path'              => Package::get_path() . '/templates',
 			'template_path'     => Package::get_template_path(),
 			'outdated_help_url' => $check['germanized']['outdated_help_url'],
@@ -212,14 +212,14 @@ class Admin {
 			), wp_nonce_url( admin_url(), 'dhl-download-export-label' ) );
 			?>
 			<div class="wc-gzd-dhl-bulk-downloads">
-				<a class="button button-primary" href="<?php echo $download_url; ?>" target="_blank"><?php _e( 'Download labels', 'woocommerce-germanized-dhl' ); ?></a>
+				<a class="button button-primary" href="<?php echo $download_url; ?>" target="_blank"><?php _ex(  'Download labels', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
 			</div>
 			<?php
 		}
 	}
 
 	public static function table_bulk_actions( $actions ) {
-		$actions['labels'] = __( 'Generate labels', 'woocommerce-germanized-dhl' );
+		$actions['labels'] = _x( 'Generate labels', 'dhl', 'woocommerce-germanized-dhl' );
 
 		return $actions;
 	}
@@ -245,7 +245,7 @@ class Admin {
 		if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
 			$actions['download_dhl_label'] = array(
 				'url'    => $label->get_download_url(),
-				'name'   => __( 'Download DHL label', 'woocommerce-germanized-dhl' ),
+				'name'   => _x( 'Download DHL label', 'dhl', 'woocommerce-germanized-dhl' ),
 				'action' => 'download-dhl-label download',
 				'target' => '_blank'
 			);
@@ -253,14 +253,14 @@ class Admin {
 			if ( 'return' === $label->get_type() ) {
 				$actions['email_dhl_label'] = array(
 					'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_dhl_email_return_label&label_id=' . $label->get_id() ), 'email-dhl-label' ),
-					'name'   => __( 'Send DHL label to customer', 'woocommerce-germanized-dhl' ),
+					'name'   => _x( 'Send DHL label to customer', 'dhl', 'woocommerce-germanized-dhl' ),
 					'action' => 'email-send-dhl-label email',
 				);
             }
 		} elseif ( wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
 			$actions['generate_dhl_label'] = array(
 				'url'    => '#',
-				'name'   => __( 'Generate DHL label', 'woocommerce-germanized-dhl' ),
+				'name'   => _x( 'Generate DHL label', 'dhl', 'woocommerce-germanized-dhl' ),
 				'action' => 'generate-dhl-label generate',
 			);
 		}
@@ -272,7 +272,7 @@ class Admin {
 		global $post;
 
 		if ( ! Importer::is_plugin_enabled() && ( $post && 'shop_order' === $post->post_type && get_post_meta(  $post->ID, '_pr_shipment_dhl_label_tracking' ) ) ) {
-			add_meta_box( 'woocommerce-gzd-shipment-dhl-legacy-label', __( 'DHL Label', 'woocommerce-germanized-dhl' ), array( __CLASS__, 'legacy_meta_box' ), 'shop_order', 'side', 'high' );
+			add_meta_box( 'woocommerce-gzd-shipment-dhl-legacy-label', _x( 'DHL Label', 'dhl', 'woocommerce-germanized-dhl' ), array( __CLASS__, 'legacy_meta_box' ), 'shop_order', 'side', 'high' );
 		}
 	}
 
@@ -284,8 +284,8 @@ class Admin {
 		$meta     = $order->get_meta( '_pr_shipment_dhl_label_tracking' );
 
 		if ( ! empty( $meta ) ) {
-			echo '<p>' . __( 'This label has been generated by the DHL for WooCommerce Plugin and is shown for legacy purposes.', 'woocommerce-germanized-dhl' ) . '</p>';
-			echo '<a class="button button-primary" target="_blank" href="' . self::get_legacy_label_download_url( $order_id ) . '">' . __( 'Download label', 'woocommerce-germanized-dhl' ) . '</a>';
+			echo '<p>' . _x( 'This label has been generated by the DHL for WooCommerce Plugin and is shown for legacy purposes.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>';
+			echo '<a class="button button-primary" target="_blank" href="' . self::get_legacy_label_download_url( $order_id ) . '">' . _x( 'Download label', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>';
 		}
 	}
 
@@ -344,6 +344,11 @@ class Admin {
 
 		// Admin styles for WC pages only.
 		if ( in_array( $screen_id, self::get_screen_ids() ) ) {
+			wp_enqueue_style( 'woocommerce_gzd_dhl_admin' );
+		}
+
+		// Shipping zone methods
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) {
 			wp_enqueue_style( 'woocommerce_gzd_dhl_admin' );
 		}
 	}
@@ -405,9 +410,9 @@ class Admin {
 					'remove_label_nonce'         => wp_create_nonce( 'remove-dhl-label' ),
 					'edit_label_nonce'           => wp_create_nonce( 'edit-dhl-label' ),
 					'send_label_nonce'           => wp_create_nonce( 'email-dhl-label' ),
-					'i18n_remove_label_notice'   => __( 'Do you really want to delete the label?', 'woocommerce-germanized-dhl' ),
-					'i18n_create_label_enabled'  => __( 'Create new DHL label', 'woocommerce-germanized-dhl' ),
-					'i18n_create_label_disabled' => __( 'Please save the shipment before creating a new label', 'woocommerce-germanized-dhl' ),
+					'i18n_remove_label_notice'   => _x( 'Do you really want to delete the label?', 'dhl', 'woocommerce-germanized-dhl' ),
+					'i18n_create_label_enabled'  => _x( 'Create new DHL label', 'dhl', 'woocommerce-germanized-dhl' ),
+					'i18n_create_label_disabled' => _x( 'Please save the shipment before creating a new label', 'dhl', 'woocommerce-germanized-dhl' ),
 				)
 			);
 		}

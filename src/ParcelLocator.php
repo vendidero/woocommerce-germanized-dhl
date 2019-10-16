@@ -75,17 +75,17 @@ class ParcelLocator {
 		}
 
 		$fields['shipping']['fields']['shipping_address_type'] = array(
-			'label'       => __( 'Address Type', 'woocommerce-germanized-dhl' ),
+			'label'       => _x( 'Address Type', 'dhl', 'woocommerce-germanized-dhl' ),
 			'type'		  => 'select',
 			'options'     => self::get_address_types(),
-			'description' => __( 'Select whether delivery to parcel shop should be enabled.', 'woocommerce-germanized-dhl' ),
+			'description' => _x( 'Select whether delivery to DHL locations should be enabled.', 'dhl', 'woocommerce-germanized-dhl' ),
 			'class'       => '',
 			'priority'    => 50,
 		);
 		$fields['shipping']['fields']['shipping_dhl_postnumber'] = array(
-			'label'       => __( 'Postnumber', 'woocommerce-germanized-dhl' ),
+			'label'       => _x( 'Postnumber', 'dhl', 'woocommerce-germanized-dhl' ),
 			'type'		  => 'text',
-			'description' => __( 'In case delivery to packstation is selected please fill in the corresponding DHL post number.', 'woocommerce-germanized-dhl' ),
+			'description' => _x( 'In case delivery to packstation is selected please fill in the corresponding DHL post number.', 'dhl', 'woocommerce-germanized-dhl' ),
 			'priority'    => 60,
 		);
 		return $fields;
@@ -171,7 +171,7 @@ class ParcelLocator {
 		}
 
 		if ( ! array_key_exists( $shipping_address_type, self::get_address_types() ) ) {
-			wc_add_notice( __( 'Invalid address type.', 'woocommerce-germanized-dhl' ), 'error' );
+			wc_add_notice( _x( 'Invalid address type.', 'dhl', 'woocommerce-germanized-dhl' ), 'error' );
 		}
 
 		if ( 'dhl' === $shipping_address_type ) {
@@ -526,7 +526,7 @@ class ParcelLocator {
 		}
 
 		if ( ! array_key_exists( $shipping_address_type, self::get_address_types() ) ) {
-			$errors->add( 'validation', __( 'Invalid address type.', 'woocommerce-germanized-dhl' ) );
+			$errors->add( 'validation', _x( 'Invalid address type.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		if ( 'dhl' === $shipping_address_type ) {
@@ -589,23 +589,23 @@ class ParcelLocator {
 			$is_packstation = true;
 
 			if ( ! self::is_packstation_enabled() ) {
-				$error->add( 'validation', __( 'Sorry, but delivery to packstation is not available.', 'woocommerce-germanized-dhl' ) );
+				$error->add( 'validation', _x( 'Sorry, but delivery to packstation is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
 				$is_packstation = false;
 			}
 		} elseif( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'parcelshop' ) ) {
 			if ( ! self::is_parcelshop_enabled() ) {
-				$error->add( 'validation', __( 'Sorry, but delivery to parcel shops is not available.', 'woocommerce-germanized-dhl' ) );
+				$error->add( 'validation', _x( 'Sorry, but delivery to parcel shops is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		} elseif( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'postoffice' ) ) {
 			if ( ! self::is_postoffice_enabled() ) {
-				$error->add( 'validation', __( 'Sorry, but delivery to post offices is not available.', 'woocommerce-germanized-dhl' ) );
+				$error->add( 'validation', _x( 'Sorry, but delivery to post offices is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		} else {
 			// Try validation
 			$valid = false;
 
 			if ( ! $valid ) {
-				$error->add( 'validation', sprintf( __( 'Please indicate shipment to %s by one of the following values: %s.', 'woocommerce-germanized-dhl' ), self::get_type_text( ' / ' ), implode( ', ', array_unique( array_values( self::get_available_pickup_types() ) ) ) ) );
+				$error->add( 'validation', sprintf( _x( 'Please indicate shipment to %s by one of the following values: %s.', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( ' / ' ), implode( ', ', array_unique( array_values( self::get_available_pickup_types() ) ) ) ) );
 			}
 		}
 
@@ -613,9 +613,9 @@ class ParcelLocator {
 			$post_number_len = strlen( $args['postnumber'] );
 
 			if ( empty( $args['postnumber'] ) ) {
-				$error->add( 'validation', __( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'woocommerce-germanized-dhl' ) );
+				$error->add( 'validation', _x( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			} elseif( $post_number_len < 6 || $post_number_len > 12 ) {
-				$error->add( 'validation', __( 'Your DHL customer number (Post number) is not valid. Please check your number.', 'woocommerce-germanized-dhl' ) );
+				$error->add( 'validation', _x( 'Your DHL customer number (Post number) is not valid. Please check your number.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		}
 
@@ -660,22 +660,22 @@ class ParcelLocator {
 				'api_key'             => self::get_setting( 'map_api_key' ),
 				'wrapper'             => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
 				'i18n'                => array_merge( wc_gzd_dhl_get_pickup_types(), array(
-					'opening_times'     => __( 'Opening Times', 'woocommerce-germanized-dhl' ),
-					'monday'		    => __( 'Monday', 'woocommerce-germanized-dhl' ),
-					'tueday'		    => __( 'Tuesday', 'woocommerce-germanized-dhl' ),
-					'wednesday'		    => __( 'Wednesday', 'woocommerce-germanized-dhl' ),
-					'thrusday'		    => __( 'Thursday', 'woocommerce-germanized-dhl' ),
-					'friday'			=> __( 'Friday', 'woocommerce-germanized-dhl' ),
-					'satuday'			=> __( 'Saturday', 'woocommerce-germanized-dhl' ),
-					'sunday'			=> __( 'Sunday', 'woocommerce-germanized-dhl' ),
-					'services'			=> __( 'Services', 'woocommerce-germanized-dhl' ),
-					'yes'				=> __( 'Yes', 'woocommerce-germanized-dhl' ),
-					'no'				=> __( 'No', 'woocommerce-germanized-dhl' ),
-					'parking'			=> __( 'Parking', 'woocommerce-germanized-dhl' ),
-					'handicap'			=> __( 'Handicap Accessible', 'woocommerce-germanized-dhl' ),
-					'branch'			=> __( 'Branch', 'woocommerce-germanized-dhl' ),
-					'select'			=> __( 'Select ', 'woocommerce-germanized-dhl' ),
-					'post_number'		=> __( 'Post Number ', 'woocommerce-germanized-dhl' ),
+					'opening_times'     => _x( 'Opening Times', 'dhl', 'woocommerce-germanized-dhl' ),
+					'monday'		    => _x( 'Monday', 'dhl', 'woocommerce-germanized-dhl' ),
+					'tueday'		    => _x( 'Tuesday', 'dhl', 'woocommerce-germanized-dhl' ),
+					'wednesday'		    => _x( 'Wednesday', 'dhl', 'woocommerce-germanized-dhl' ),
+					'thrusday'		    => _x( 'Thursday', 'dhl', 'woocommerce-germanized-dhl' ),
+					'friday'			=> _x( 'Friday', 'dhl', 'woocommerce-germanized-dhl' ),
+					'satuday'			=> _x( 'Saturday', 'dhl', 'woocommerce-germanized-dhl' ),
+					'sunday'			=> _x( 'Sunday', 'dhl', 'woocommerce-germanized-dhl' ),
+					'services'			=> _x( 'Services', 'dhl', 'woocommerce-germanized-dhl' ),
+					'yes'				=> _x( 'Yes', 'dhl', 'woocommerce-germanized-dhl' ),
+					'no'				=> _x( 'No', 'dhl', 'woocommerce-germanized-dhl' ),
+					'parking'			=> _x( 'Parking', 'dhl', 'woocommerce-germanized-dhl' ),
+					'handicap'			=> _x( 'Handicap Accessible', 'dhl', 'woocommerce-germanized-dhl' ),
+					'branch'			=> _x( 'Branch', 'dhl', 'woocommerce-germanized-dhl' ),
+					'select'			=> _x( 'Select ', 'dhl', 'woocommerce-germanized-dhl' ),
+					'post_number'		=> _x( 'Postnumber ', 'dhl', 'woocommerce-germanized-dhl' ),
 				) ),
 			) );
 		}
@@ -776,7 +776,7 @@ class ParcelLocator {
 		}
 
 		if ( ! empty( $type ) ) {
-			$text = sprintf( __( 'e.g. %s 456', 'woocommerce-germanized-dhl' ), $type );
+			$text = sprintf( _x( 'e.g. %s 456', 'dhl', 'woocommerce-germanized-dhl' ), $type );
 		}
 
 		return $text;
@@ -797,11 +797,11 @@ class ParcelLocator {
 		}
 
 		if ( ( $method && $method->is_packstation_enabled() ) || ( ! $method && self::is_packstation_enabled() ) ) {
-			$search_types .= __( 'Packstation', 'woocommerce-germanized-dhl' );
+			$search_types .= _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' );
 		}
 
 		if ( ( $method && ( $method->is_parcelshop_enabled() || $method->is_postoffice_enabled() ) ) || ( ! $method && ( self::is_parcelshop_enabled() || self::is_postoffice_enabled() ) ) ) {
-			$branch_type   = ( $plural ) ? __( 'Branches', 'woocommerce-germanized-dhl' ) : __( 'Branch', 'woocommerce-germanized-dhl' );
+			$branch_type   = ( $plural ) ? _x( 'Branches', 'dhl', 'woocommerce-germanized-dhl' ) : _x(  'Branch', 'dhl', 'woocommerce-germanized-dhl' );
 			$search_types .= ( ! empty( $search_types ) ? ' ' . $sep . ' ' . $branch_type : $branch_type );
 		}
 
@@ -810,14 +810,14 @@ class ParcelLocator {
 
 	public static function add_admin_shipping_fields( $fields ) {
 		$fields['address_type'] = array(
-			'label'        => __( 'Address Type', 'woocommerce-germanized-dhl' ),
+			'label'        => _x( 'Address Type', 'dhl', 'woocommerce-germanized-dhl' ),
 			'type'         => 'select',
 			'show'         => false,
 			'options'	   => self::get_address_types()
 		);
 
 		$fields['dhl_postnumber'] = array(
-			'label'        => __( 'DHL customer number (Post number)', 'woocommerce-germanized-dhl' ),
+			'label'        => _x( 'DHL customer number (Post number)', 'dhl', 'woocommerce-germanized-dhl' ),
 			'show'         => false,
 			'type'         => 'text',
 		);
@@ -827,7 +827,7 @@ class ParcelLocator {
 
 	public static function get_address_types( $method = false ) {
 		return array(
-			'regular' => __( 'Regular Address', 'woocommerce-germanized-dhl' ),
+			'regular' => _x( 'Regular Address', 'dhl', 'woocommerce-germanized-dhl' ),
 			'dhl'     => self::get_type_text( ' / ', true, $method )
 		);
 	}
@@ -835,7 +835,7 @@ class ParcelLocator {
 	public static function add_shipping_fields( $fields ) {
 		if ( self::is_available() ) {
 			$fields['shipping_address_type'] = array(
-				'label'        => __( 'Address Type', 'woocommerce-germanized-dhl' ),
+				'label'        => _x( 'Address Type', 'dhl', 'woocommerce-germanized-dhl' ),
 				'required'     => true,
 				'type'         => 'select',
 				'class'        => array( 'shipping-dhl-address-type' ),
@@ -845,11 +845,11 @@ class ParcelLocator {
 			);
 
 			$fields['shipping_dhl_postnumber'] = array(
-				'label'        => __( 'DHL customer number (Post number)', 'woocommerce-germanized-dhl' ),
+				'label'        => _x( 'DHL customer number (Post number)', 'dhl', 'woocommerce-germanized-dhl' ),
 				'required'     => false,
 				'type'         => 'text',
 				'class'        => array( 'shipping-dhl-postnumber' ),
-				'description'  => __( 'Not yet a DHL customer?', 'woocommerce-germanized-dhl' ) . '<br/><a href="">' . __( 'Register now', 'woocommerce-germanized-dhl' ) . '</a>',
+				'description'  => _x( 'Not yet a DHL customer?', 'dhl', 'woocommerce-germanized-dhl' ) . '<br/><a href="">' . _x(  'Register now', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>',
 				'clear'        => true,
 				'priority'     => 45,
 			);
@@ -896,7 +896,7 @@ class ParcelLocator {
 	}
 
 	protected static function get_button_text( $method = false ) {
-		$text = sprintf( __( 'Search %s', 'woocommerce-germanized-dhl' ), self::get_type_text( '', true, $method ) );
+		$text = sprintf( _x( 'Search %s', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( '', true, $method ) );
 
 		return $text;
 	}
@@ -907,8 +907,12 @@ class ParcelLocator {
 		if ( self::has_map() ) {
 			return '<a class="dhl-parcel-finder-link gzd-dhl-parcel-shop-modal" href="javascript:;">' . $text . '</a>';
 		} else {
-			return '<a href="" class="dhl-parcel-finder-link dhl-parcel-finder-plain-link">' . $text . '</a>';
+			return '<a href="' . self::get_pickup_locator_link() . '" class="dhl-parcel-finder-link dhl-parcel-finder-plain-link" target="_blank">' . $text . '</a>';
 		}
+	}
+
+	protected static function get_pickup_locator_link() {
+		return 'https://www.dhl.de/de/privatkunden/dhl-standorte-finden.html';
 	}
 
 	public static function add_button() {
@@ -975,7 +979,7 @@ class ParcelLocator {
 			$parcel_res_filtered = array();
 
 			if ( ! isset( $parcel_res->parcelLocation ) ) {
-				$error->add( 404, __( 'No parcel shops found', 'woocommerce-germanized-dhl' ) );
+				$error->add( 404, _x( 'No DHL locations found', 'dhl', 'woocommerce-germanized-dhl' ) );
 			} else {
 				$res_count = 0;
 
@@ -1007,7 +1011,7 @@ class ParcelLocator {
 			}
 
 			if ( empty( $parcel_res_filtered ) ) {
-				$error->add( 404, __( 'No Parcel Shops found. Ensure filters are checked.', 'woocommerce-germanized-dhl' ) );
+				$error->add( 404, _x( 'No DHL locations found. Ensure filters are checked.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 
 			if ( ! $error->has_errors() ) {
@@ -1022,7 +1026,7 @@ class ParcelLocator {
 				) );
 			}
 		} catch ( Exception $e ) {
-			$error = sprintf( __( 'There was an error while communicating with DHL. Please manually find a %s or %s.', 'woocommerce-germanized-dhl' ), '<a href="">' . __( 'parcel shop', 'woocommerce-germanized-dhl' ) . '</a>', '<a class="dhl-retry-search" href="#">' . __( 'retry', 'woocommerce-germanized-dhl' ) . '</a>' );
+			$error = sprintf( _x( 'There was an error while communicating with DHL. Please manually find a %s or %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . self::get_pickup_locator_link() . '" target="_blank">' . _x( 'DHL location', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>', '<a class="dhl-retry-search" href="#">' . _x(  'retry', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' );
 
 			wp_send_json( array(
 				'success' => false,

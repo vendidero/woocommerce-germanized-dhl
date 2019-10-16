@@ -133,7 +133,7 @@ class ReturnLabel extends Label {
 	}
 
 	public function get_sender_formatted_full_name() {
-		return sprintf( _x( '%1$s', 'full name', 'woocommerce-germanized-dhl' ), $this->get_sender_name() );
+		return sprintf( _x( '%1$s', 'dhl full name', 'woocommerce-germanized-dhl' ), $this->get_sender_name() );
 	}
 
 	public function get_sender_postcode( $context = 'view' ) {
