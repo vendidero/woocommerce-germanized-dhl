@@ -321,9 +321,9 @@ class Package {
 		return self::get_url() . '/assets';
 	}
 
-    public static function is_debug_mode() {
-        return ( defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG ) || 'yes' === self::get_setting( 'sandbox_mode' );
-    }
+	public static function is_debug_mode() {
+		return ( defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG ) || 'yes' === get_option( "woocommerce_gzd_dhl_sandbox_mode" );
+	}
 
     private static function define_constant( $name, $value ) {
         if ( ! defined( $name ) ) {

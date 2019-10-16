@@ -51,6 +51,7 @@ copy_dest_files() {
 		--exclude=package-lock.json \
 		--exclude=none \
 		--exclude=Gruntfile.js \
+		--exclude=auth.json \
 		--exclude=woocommerce-germanized-dhl.zip \
 		--exclude="zip-file/"
 	status "Done copying files!"
