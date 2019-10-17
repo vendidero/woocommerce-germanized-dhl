@@ -3,7 +3,6 @@
 namespace Vendidero\Germanized\DHL;
 
 use Exception;
-use PDFMerger\Pdf;
 use Vendidero\Germanized\DHL\Api\Paket;
 use WC_Shipping;
 
@@ -339,6 +338,10 @@ class Package {
         return 'Iw4zil3jFJTOXHA6AuWP4ykGkXKLee';
     }
 
+    public static function get_geschaeftskunden_portal_url() {
+    	return 'https://www.dhl-geschaeftskundenportal.de';
+    }
+
 	/**
 	 * CIG Authentication (basic auth) user. In Sandbox mode use Developer ID and password of entwickler.dhl.de
 	 *
@@ -612,10 +615,21 @@ class Package {
     }
 
     public static function log( $message, $type = 'info' ) {
-        $logger = wc_get_logger();
+        $logger         = wc_get_logger();
+        $enable_logging = self::is_debug_mode() ? true : false;
 
         if ( ! $logger ) {
             return false;
+        }
+
+	    /**
+	     * Filter that allows adjusting whether to enable or disable
+	     * logging for the DHL package (e.g. API requests).
+	     *
+	     * @param boolean $enable_logging True if logging should be enabled. False otherwise.
+	     */
+        if ( ! apply_filters( 'woocommerce_gzd_dhl_enable_logging', $enable_logging ) ) {
+        	return false;
         }
 
         if ( ! is_callable( array( $logger, $type ) ) ) {

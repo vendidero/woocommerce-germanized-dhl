@@ -103,12 +103,17 @@ class BulkLabel extends BulkActionHandler {
 						$path     = $this->get_file();
 						$filename = $this->get_filename();
 						$pdf      = new PDFMerger();
+						$file     = $label->get_file();
+
+						if ( ! $file || ! file_exists( $file ) ) {
+							continue;
+						}
 
 						if ( $path ) {
 							$pdf->add( $path );
 						}
 
-						$pdf->add( $label->get_file() );
+						$pdf->add( $file );
 
 						if ( ! $path ) {
 							/**

@@ -20,12 +20,12 @@ abstract class Rest {
     protected $response = null;
 
     /**
-     * @var PR_DHL_API_Auth_REST
+     * @var AuthRest
      */
     protected $rest_auth = null;
 
     /**
-     * @var Integrater
+     * @var mixed
      */
     protected $id = '';
 
@@ -47,7 +47,7 @@ abstract class Rest {
     public function __construct( ) {
         try {
             $this->rest_auth = AuthRest::get_instance();
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             throw $e;
         }
     }

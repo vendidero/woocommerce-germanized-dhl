@@ -219,7 +219,7 @@ class Admin {
 	}
 
 	public static function table_bulk_actions( $actions ) {
-		$actions['labels'] = _x( 'Generate labels', 'dhl', 'woocommerce-germanized-dhl' );
+		$actions['labels'] = _x( 'Generate and download labels', 'dhl', 'woocommerce-germanized-dhl' );
 
 		return $actions;
 	}
