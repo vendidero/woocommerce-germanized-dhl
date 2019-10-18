@@ -18,7 +18,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '0.0.1-beta-2';
+    const VERSION = '0.0.1-beta-3';
 
     public static $upload_dir_suffix = '';
 
@@ -44,9 +44,6 @@ class Package {
 
         self::define_tables();
         self::maybe_set_upload_dir();
-
-	    // Install
-	    register_activation_hook( trailingslashit( self::get_path() ) . 'woocommerce-germanized-dhl.php', array( __CLASS__, 'install' ) );
 
 	    if ( self::is_enabled() ) {
 	        self::init_hooks();
@@ -245,6 +242,7 @@ class Package {
 	}
 
     public static function install() {
+	    self::includes();
 	    Install::install();
     }
 
