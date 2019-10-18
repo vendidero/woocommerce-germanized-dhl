@@ -142,13 +142,14 @@ if ( ! class_exists( 'WC_GZD_DHL_Email_Customer_Return_Shipment_Label', false ) 
 		public function get_content_html() {
 			return wc_get_template_html(
 				$this->template_html, array(
-					'shipment'         => $this->shipment,
-					'order'            => $this->object,
-					'label'            => $this->label,
-					'email_heading'    => $this->get_heading(),
-					'sent_to_admin'    => false,
-					'plain_text'       => false,
-					'email'            => $this,
+					'shipment'           => $this->shipment,
+					'order'              => $this->object,
+					'label'              => $this->label,
+					'email_heading'      => $this->get_heading(),
+					'additional_content' => $this->get_additional_content(),
+					'sent_to_admin'      => false,
+					'plain_text'         => false,
+					'email'              => $this,
 				)
 			);
 		}
@@ -161,13 +162,14 @@ if ( ! class_exists( 'WC_GZD_DHL_Email_Customer_Return_Shipment_Label', false ) 
 		public function get_content_plain() {
 			return wc_get_template_html(
 				$this->template_plain, array(
-					'shipment'         => $this->shipment,
-					'order'            => $this->object,
-					'label'            => $this->label,
-					'email_heading'    => $this->get_heading(),
-					'sent_to_admin'    => false,
-					'plain_text'       => true,
-					'email'            => $this,
+					'shipment'           => $this->shipment,
+					'order'              => $this->object,
+					'label'              => $this->label,
+					'email_heading'      => $this->get_heading(),
+					'additional_content' => $this->get_additional_content(),
+					'sent_to_admin'      => false,
+					'plain_text'         => true,
+					'email'              => $this,
 				)
 			);
 		}
