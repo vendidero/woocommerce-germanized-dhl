@@ -90,7 +90,5 @@ class FinderSoap extends Soap {
         }
     }
 
-    protected function get_request( $args ) {
-
-    }
+    protected function get_request( $args ) {}
 }

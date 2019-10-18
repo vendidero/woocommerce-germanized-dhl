@@ -251,7 +251,7 @@ class ParcelLocator {
 		 *
 		 * @param array $country_codes Array of country codes which support DHL parcel shop delivery.
 		 */
-		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_countries', array( 'DE' ) );
+		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_countries', array( 'DE', 'AT' ) );
 
 		return $codes;
 	}
