@@ -971,18 +971,10 @@ function wc_gzd_dhl_get_default_return_receiver_slug( $country, $method = false 
 }
 
 function wc_gzd_dhl_get_default_product( $country, $method = false ) {
-	if ( Package::is_crossborder_shipment( $country ) ) {
-		return Package::get_setting( 'label_default_product_int', $method );
-	} else {
+	if ( Package::is_shipping_domestic( $country ) ) {
 		return Package::get_setting( 'label_default_product_dom', $method );
-	}
-}
-
-function wc_gzd_dhl_get_default_return_product( $country, $method = false ) {
-	if ( Package::is_crossborder_shipment( $country ) ) {
-		return Package::get_setting( 'return_label_default_product_int', $method );
 	} else {
-		return Package::get_setting( 'return_label_default_product_dom', $method );
+		return Package::get_setting( 'label_default_product_int', $method );
 	}
 }
 

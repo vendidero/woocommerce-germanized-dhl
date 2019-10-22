@@ -17,6 +17,11 @@ class Automation {
 	 */
 	public static function init() {
 		add_action( 'woocommerce_gzd_shipment_before_status_change', array( __CLASS__, 'set_automation' ), 10, 2 );
+
+		// Watch shipment creations - e.g. default status is set to shipped - needs to trigger label generation
+		add_action( 'woocommerce_gzd_new_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 1 );
+		add_action( 'woocommerce_gzd_new_return_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 1 );
+
 		add_action( 'woocommerce_gzd_dhl_after_create_return_label', array( __CLASS__, 'maybe_send_email' ), 10, 1 );
 	}
 
@@ -26,12 +31,17 @@ class Automation {
 		}
 	}
 
-	/**
-	 * @param $shipment_id
-	 * @param Shipment $shipment
-	 */
-	public static function set_automation( $shipment_id, $shipment ) {
+	public static function set_after_create_automation( $shipment_id ) {
+		if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+			self::do_automation( $shipment, false );
+		}
+	}
 
+	/**
+	 * @param Shipment $shipment
+	 * @param boolean $is_hook
+	 */
+	protected static function do_automation( $shipment, $is_hook = true ) {
 		$disable = false;
 
 		if ( ! wc_gzd_dhl_shipment_needs_label( $shipment, false ) ) {
@@ -63,9 +73,21 @@ class Automation {
 			if ( ! empty( $status ) ) {
 				$status = str_replace( 'gzd-', '', $status );
 
-				add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 10, 1 );
+				if ( $is_hook ) {
+					add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 10, 1 );
+				} elseif( $shipment->has_status( $status ) ) {
+					self::maybe_create_label( $shipment->get_id() );
+				}
 			}
 		}
+	}
+
+	/**
+	 * @param $shipment_id
+	 * @param Shipment $shipment
+	 */
+	public static function set_automation( $shipment_id, $shipment ) {
+		self::do_automation( $shipment, true );
 	}
 
 	public static function maybe_create_label( $shipment_id ) {

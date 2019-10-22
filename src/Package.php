@@ -18,7 +18,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '0.0.1-beta-5';
+    const VERSION = '0.0.1-beta-6';
 
     public static $upload_dir_suffix = '';
 
@@ -681,12 +681,12 @@ class Package {
 		// If base is US territory
 		if ( in_array( self::get_base_country(), self::get_us_territories() ) ) {
 			// ...and destination is US territory, then it is "domestic"
-			if( in_array( $country_receiver, self::get_us_territories() ) ) {
+			if ( in_array( $country_receiver, self::get_us_territories() ) ) {
 				return true;
 			} else {
 				return false;
 			}
-		} elseif( $country_receiver == self::get_base_country() ) {
+		} elseif ( $country_receiver == self::get_base_country() ) {
 			return true;
 		} else {
 			return false;
