@@ -61,8 +61,6 @@ abstract class Soap {
 
     abstract public function get_access_token();
 
-    abstract public function test_connection();
-
     protected function walk_recursive_remove( array $array ) {
         foreach ( $array as $k => $v ) {
             if ( is_array( $v ) ) {

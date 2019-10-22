@@ -96,6 +96,8 @@
     position: relative !important; }
     #dhl-parcel-finder-wrapper #dhl-parcel-finder-map #parcel-content #bodyContent {
       line-height: 1.5em; }
+    #dhl-parcel-finder-wrapper #dhl-parcel-finder-map #parcel-content address {
+      margin-bottom: 0; }
     #dhl-parcel-finder-wrapper #dhl-parcel-finder-map #parcel-content .parcel-title {
       padding-top: 0;
       margin-bottom: .5em; }

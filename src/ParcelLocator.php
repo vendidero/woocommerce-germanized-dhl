@@ -660,21 +660,7 @@ class ParcelLocator {
 				'api_key'             => self::get_setting( 'map_api_key' ),
 				'wrapper'             => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
 				'i18n'                => array_merge( wc_gzd_dhl_get_pickup_types(), array(
-					'opening_times'     => _x( 'Opening Times', 'dhl', 'woocommerce-germanized-dhl' ),
-					'monday'		    => _x( 'Monday', 'dhl', 'woocommerce-germanized-dhl' ),
-					'tueday'		    => _x( 'Tuesday', 'dhl', 'woocommerce-germanized-dhl' ),
-					'wednesday'		    => _x( 'Wednesday', 'dhl', 'woocommerce-germanized-dhl' ),
-					'thrusday'		    => _x( 'Thursday', 'dhl', 'woocommerce-germanized-dhl' ),
-					'friday'			=> _x( 'Friday', 'dhl', 'woocommerce-germanized-dhl' ),
-					'satuday'			=> _x( 'Saturday', 'dhl', 'woocommerce-germanized-dhl' ),
-					'sunday'			=> _x( 'Sunday', 'dhl', 'woocommerce-germanized-dhl' ),
-					'services'			=> _x( 'Services', 'dhl', 'woocommerce-germanized-dhl' ),
-					'yes'				=> _x( 'Yes', 'dhl', 'woocommerce-germanized-dhl' ),
-					'no'				=> _x( 'No', 'dhl', 'woocommerce-germanized-dhl' ),
-					'parking'			=> _x( 'Parking', 'dhl', 'woocommerce-germanized-dhl' ),
-					'handicap'			=> _x( 'Handicap Accessible', 'dhl', 'woocommerce-germanized-dhl' ),
 					'branch'			=> _x( 'Branch', 'dhl', 'woocommerce-germanized-dhl' ),
-					'select'			=> _x( 'Select ', 'dhl', 'woocommerce-germanized-dhl' ),
 					'post_number'		=> _x( 'Postnumber ', 'dhl', 'woocommerce-germanized-dhl' ),
 				) ),
 			) );
@@ -969,54 +955,35 @@ class ParcelLocator {
 		try {
 			$args = array(
 				'address'  => $parcelfinder_address,
-				'postcode' => $parcelfinder_postcode,
+				'zip'      => $parcelfinder_postcode,
 				'city'     => $parcelfinder_city,
 				'country'  => empty( $parcelfinder_country ) ? Package::get_base_country() : $parcelfinder_country,
 			);
 
-			$error                = new WP_Error();
-			$parcel_res          = Package::get_api()->get_parcel_location( $args );
-			$parcel_res_filtered = array();
+			$error = new WP_Error();
+			$types = array();
 
-			if ( ! isset( $parcel_res->parcelLocation ) ) {
-				$error->add( 404, _x( 'No DHL locations found', 'dhl', 'woocommerce-germanized-dhl' ) );
-			} else {
-				$res_count = 0;
-
-				foreach ( $parcel_res->parcelLocation as $key => $value ) {
-
-					if ( ( 'packStation' === $value->shopType && self::is_packstation_enabled() && $packstation_filter ) ||
-					     ( 'parcelShop' === $value->shopType && self::is_parcelshop_enabled() && $parcelshop_filter ) ||
-					     ( 'postOffice' === $value->shopType && self::is_postoffice_enabled() && $postoffice_filter )
-					) {
-						if ( $value->psfServicetypes ) {
-							if ( is_array( $value->psfServicetypes ) ) {
-								if ( in_array( 'parcelpickup', $value->psfServicetypes ) ) {
-									array_push($parcel_res_filtered, $value );
-									$res_count++;
-								}
-							} else {
-								if ( 'parcelpickup' === $value->psfServicetypes ) {
-									array_push($parcel_res_filtered, $value );
-									$res_count++;
-								}
-							}
-						}
-					}
-
-					if ( $res_count >= self::get_max_results() ) {
-						break;
-					}
-				}
+			if ( $packstation_filter && self::is_packstation_enabled() ) {
+				$types[] = 'packstation';
 			}
 
-			if ( empty( $parcel_res_filtered ) ) {
-				$error->add( 404, _x( 'No DHL locations found. Ensure filters are checked.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			if ( $parcelshop_filter && self::is_parcelshop_enabled() ) {
+				$types[] = 'parcelshop';
+			}
+
+			if ( $postoffice_filter && self::is_postoffice_enabled() ) {
+				$types[] = 'postoffice';
+			}
+
+			$parcel_res = Package::get_api()->get_parcel_location( $args, $types );
+
+			if ( empty( $parcel_res ) ) {
+				$error->add( 404, _x( 'No DHL locations found', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 
 			if ( ! $error->has_errors() ) {
 				wp_send_json( array(
-					'parcel_shops' => $parcel_res_filtered,
+					'parcel_shops' => $parcel_res,
 					'success'      => true,
 				) );
 			} else {

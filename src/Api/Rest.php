@@ -20,19 +20,9 @@ abstract class Rest {
     protected $response = null;
 
     /**
-     * @var AuthRest
-     */
-    protected $rest_auth = null;
-
-    /**
      * @var mixed
      */
     protected $id = '';
-
-    /**
-     * @var string
-     */
-    protected $token_bearer = '';
 
     /**
      * @var array
@@ -44,13 +34,7 @@ abstract class Rest {
      *
      * @param string $api_key, $api_secret
      */
-    public function __construct( ) {
-        try {
-            $this->rest_auth = AuthRest::get_instance();
-        } catch ( Exception $e ) {
-            throw $e;
-        }
-    }
+    public function __construct( ) {}
 
     /**
      * Method to set id
@@ -68,16 +52,6 @@ abstract class Rest {
      */
     public function get_id() {
         return $this->id;
-    }
-
-    public function get_access_token( $client_id, $client_secret ) {
-        $this->token_bearer = $this->rest_auth->get_access_token( $client_id, $client_secret );
-
-        return $this->token_bearer;
-    }
-
-    public function delete_access_token( ) {
-        $this->rest_auth->delete_access_token();
     }
 
     protected function get_auth() {
@@ -194,13 +168,13 @@ abstract class Rest {
     }
 
     protected function set_header( $authorization = '' ) {
-        $wp_version                  = get_bloginfo('version');
+        $wp_version                  = get_bloginfo( 'version' );
         $wc_version                  = defined( 'WC_Version' ) ? WC_Version : '';
 
         $dhl_header['Content-Type']  = 'application/json';
         $dhl_header['Accept']        = 'application/json';
         $dhl_header['Authorization'] = 'Bearer ' . $authorization;
-        $dhl_header['User-Agent']    = 'WooCommerce/'. $wc_version . ' (WordPress/'. $wp_version . ') DHL-plug-in/' . Package::get_version();
+        $dhl_header['User-Agent']    = 'WooCommerce/'. $wc_version . ' (WordPress/'. $wp_version . ') Germanized-DHL/' . Package::get_version();
 
         $this->remote_header         = array_merge( $this->remote_header, $dhl_header );
     }

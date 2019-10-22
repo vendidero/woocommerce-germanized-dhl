@@ -22,10 +22,6 @@ class ReturnRest extends Rest {
 		return $this->create_return_label( $label );
 	}
 
-	protected function get_account_number( $country ) {
-		return '22222222220701';
-	}
-
 	/**
 	 * @param ReturnLabel $label
 	 */

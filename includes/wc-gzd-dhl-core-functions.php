@@ -639,7 +639,7 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 
 	$defaults = array(
 		'services'       => array(),
-		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_country(), $dhl_shipping_method ),
+		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country(), $dhl_shipping_method ),
 		'weight'         => empty( $shipment_weight ) ? Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ) : wc_get_weight( $shipment_weight, 'kg' ),
 		'sender_address' => $shipment->get_sender_address(),
 	);
@@ -649,10 +649,6 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 		'street'        => $shipment->get_sender_address_street(),
 		'street_number' => $shipment->get_sender_address_street_number(),
 	) );
-
-	if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
-
-	} elseif ( Package::is_shipping_domestic( $shipment->get_country() ) ) {}
 
 	return $defaults;
 }
@@ -970,7 +966,7 @@ function wc_gzd_dhl_get_default_return_receiver( $country, $method = false ) {
 
 function wc_gzd_dhl_get_default_return_receiver_slug( $country, $method = false ) {
 	$receiver = Package::get_return_receiver_by_country( $country );
-	
+
 	return ( $receiver ? $receiver['slug'] : '' );
 }
 

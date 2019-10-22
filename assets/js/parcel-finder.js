@@ -207,118 +207,40 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
 
             var infoWinArray = [];
 
-            $.each( parcelShops, function( key,value ) {
-                var uluru = {lat: value.location.latitude, lng: value.location.longitude};
+            $.each( parcelShops, function( key, value ) {
 
-                // Get opening times
-                var openingTimes = '<h5 class="parcel-subtitle">' + self.params.i18n.opening_times + '</h5>',
-                    prev_day     = 0,
-                    day_of_week;
-
-                $.each( value.psfTimeinfos, function( key_times, value_times ) {
-                    if ( value_times.type === 'openinghour' ) {
-                        switch ( value_times.weekday ) {
-                            case 1:
-                                day_of_week = self.params.i18n.monday;
-                                break;
-                            case 2:
-                                day_of_week = self.params.i18n.tueday;
-                                break;
-                            case 3:
-                                day_of_week = self.params.i18n.wednesday;
-                                break;
-                            case 4:
-                                day_of_week = self.params.i18n.thrusday;
-                                break;
-                            case 5:
-                                day_of_week = self.params.i18n.friday;
-                                break;
-                            case 6:
-                                day_of_week = self.params.i18n.satuday;
-                                break;
-                            case 7:
-                                day_of_week = self.params.i18n.sunday;
-                                break;
-                        }
-
-                        if ( prev_day ) {
-                            if ( prev_day === value_times.weekday ) {
-                                openingTimes += ', ';
-                            } else {
-                                openingTimes += '<br/>' + day_of_week + ': ';
-                            }
-                        } else {
-                            openingTimes += day_of_week + ': ';
-                        }
-
-                        prev_day = value_times.weekday;
-                        openingTimes += value_times.timefrom + ' - ' + value_times.timeto;
-                    }
-                });
-
-                // Get services
-                var shopServices         = '<h5 class="parcel-subtitle">' + self.params.i18n.services + '</h5>',
-                    shopServicesParking  = ': ' + self.params.i18n.no,
-                    shopServicesHandicap = ': ' + self.params.i18n.no;
-
-                $.each( value.psfServicetypes, function( key_services, value_services ) {
-                    switch ( value_services ) {
-                        case 'parking':
-                            shopServicesParking = ': ' + self.params.i18n.yes;
-                            break;
-                        case 'handicappedAccess':
-                            shopServicesHandicap = ': ' + self.params.i18n.yes;
-                            break;
-                    }
-                });
-
-                shopServices += self.params.i18n.parking + shopServicesParking + '<br/>';
-                shopServices += self.params.i18n.handicap + shopServicesHandicap + '<br/>';
+                var uluru = {
+                    lat: value.location.latitude,
+                    lng: value.location.longitude
+                };
 
                 var markerIcon = self.params.packstation_icon,
-                    shopName   = self.params.i18n.packstation,
                     shopLabel  = self.params.i18n.packstation;
 
-                switch ( value.shopType ) {
-                    case 'parcelShop':
+                switch ( value.gzd_type ) {
+                    case 'parcelshop':
                         markerIcon = self.params.parcelshop_icon;
-                        shopName   = self.params.i18n.parcelshop;
                         shopLabel  = self.params.i18n.branch;
                         break;
-                    case 'postOffice':
+                    case 'postoffice':
                         markerIcon = self.params.postoffice_icon;
-                        shopName   = self.params.i18n.postoffice;
                         shopLabel  = self.params.i18n.branch;
                         break;
                 }
 
-                shopName += ' ' + value.primaryKeyZipRegion;
-
-                var contentString = '<div id="parcel-content">'+
-                    '<div id="site-notice">'+
-                    '</div>'+
-                    '<h4 class="parcel-title">' + shopName + '</h4>'+
-                    '<div id="bodyContent">'+
-                    '<div>' + value.street + ' ' + value.houseNo + '</br>' + value.city + ' ' + value.zipCode + '</div>'+
-                    openingTimes +
-                    shopServices +
-                    '<button type="button" class="dhl-parcelshop-select-btn" id="' + value.id + '">' + self.params.i18n.select + '</button>'+
-                    '</div>'+
-                    '</div>';
-
                 var infowindow = new google.maps.InfoWindow({
-                    content: contentString,
+                    content: value.html_content,
                     maxWidth: 300
                 });
 
                 infoWinArray.push( infowindow );
 
                 var marker = new google.maps.Marker({
-                    position: uluru,
-                    map: map,
-                    title: shopLabel,
+                    position : uluru,
+                    map      : map,
+                    title    : shopLabel,
                     animation: google.maps.Animation.DROP,
-                    icon: markerIcon
+                    icon     : markerIcon
                 });
 
                 marker.addListener('click', function() {
@@ -338,33 +260,20 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
         onSelectShop: function() {
             var self         = germanized.dhl_parcel_finder,
                 parcelShopId = parseInt( $( this ).attr( 'id' ) ),
-                shopName     = self.params.i18n.packstation,
                 $addressType = $( self.wrapper + ' #shipping_address_type' );
 
-            $.each( self.parcelShops, function( key,value ) {
+            $.each( self.parcelShops, function( key, value ) {
                 if ( parseInt( value.id ) === parcelShopId ) {
-                    var isPackstation = false;
 
-                    switch ( value.shopType ) {
-                        case 'packStation':
-                            shopName      = self.params.i18n.packstation;
-                            isPackstation = true;
-                            break;
-                        case 'parcelShop':
-                            shopName = self.params.i18n.parcelshop;
-                            break;
-                        case 'postOffice':
-                            shopName = self.params.i18n.postoffice;
-                            break;
-                    }
+                    var isPackstation = 'packstation' === value.gzd_type;
 
                     $( self.wrapper + ' #shipping_first_name' ).val( $( self.wrapper + ' #shipping_first_name' ).val().length > 0 ? $( self.wrapper + ' #shipping_first_name' ).val() : $( self.wrapper + ' #billing_first_name' ).val() );
                     $( self.wrapper + ' #shipping_last_name' ).val( $( self.wrapper + ' #shipping_last_name' ).val().length > 0 ? $( self.wrapper + ' #shipping_last_name' ).val() : $( self.wrapper + ' #billing_last_name' ).val() );
 
-                    $( self.wrapper + ' #shipping_address_1' ).val( shopName + ' ' + value.primaryKeyZipRegion );
+                    $( self.wrapper + ' #shipping_address_1' ).val( value.gzd_name );
                     $( self.wrapper + ' #shipping_address_2' ).val( '' );
-                    $( self.wrapper + ' #shipping_postcode' ).val( value.zipCode );
-                    $( self.wrapper + ' #shipping_city' ).val( value.city );
+                    $( self.wrapper + ' #shipping_postcode' ).val( value.address.zip );
+                    $( self.wrapper + ' #shipping_city' ).val( value.address.city );
 
                     $addressType.val( 'dhl' ).trigger( 'change' );
 

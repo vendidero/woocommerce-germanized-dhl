@@ -18,7 +18,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '0.0.1-beta-4';
+    const VERSION = '0.0.1-beta-5';
 
     public static $upload_dir_suffix = '';
 
@@ -177,7 +177,7 @@ class Package {
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
-	    add_action( 'init', array( __CLASS__, 'test' ), 120 );
+	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
 
 	public static function filter_templates( $path, $template_name ) {
@@ -251,6 +251,16 @@ class Package {
 	}
 
 	public static function test() {
+
+		$api    = self::get_api();
+		$result = $api->get_parcel_location( array(
+			'city' => 'Berlin',
+			'zip' => '12207',
+		) );
+
+		var_dump($result);
+		exit();
+
 
     	/*var_dump(wc_clean(WC_GZD_DHL_SANDBOX_PASSWORD));
     	var_dump(WC_GZD_DHL_SANDBOX_PASSWORD);
@@ -329,7 +339,7 @@ class Package {
     }
 
     public static function get_app_id() {
-        return 'woo_germanized';
+        return 'woo_germanized_1';
     }
 
     public static function get_app_token() {
@@ -462,7 +472,7 @@ class Package {
     }
 
 	public static function get_parcel_finder_api_url() {
-		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-sandbox.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/parcelshopfinder/1.0/parcelshopfinder-1.0-production.wsdl';
+		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/standortsuche-api/1.1/standortsuche-api-1.1.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/standortsuche-api/1.1/standortsuche-api-1.1.wsdl';
 	}
 
     public static function get_business_portal_url() {
