@@ -55,6 +55,7 @@ class Automation {
 		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		$disable = apply_filters( 'woocommerce_gzd_dhl_disable_label_auto_generate', $disable, $shipment );
 

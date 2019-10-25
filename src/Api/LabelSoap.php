@@ -257,6 +257,7 @@ class LabelSoap extends Soap {
 	     * @param Label $label The label object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
 	    do_action( 'woocommerce_gzd_dhl_label_api_before_delete', $label );
 
@@ -298,6 +299,7 @@ class LabelSoap extends Soap {
 	     * @param Label $label The label object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
 	    do_action( 'woocommerce_gzd_dhl_label_api_deleted', $label );
 

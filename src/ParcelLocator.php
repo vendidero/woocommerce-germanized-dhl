@@ -6,6 +6,7 @@ use Vendidero\Germanized\Shipments\Shipment;
 use WC_Checkout;
 use WC_Order;
 use WP_Error;
+use WP_User;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -247,9 +248,9 @@ class ParcelLocator {
 		/**
 		 * Filter to enable DHL parcel shop delivery for certain countries.
 		 *
-		 * @since 1.8.5
-		 *
 		 * @param array $country_codes Array of country codes which support DHL parcel shop delivery.
+		 *
+		 * @package Vendidero/Germanized/DHL
 		 */
 		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_countries', array( 'DE', 'AT' ) );
 
@@ -322,6 +323,7 @@ class ParcelLocator {
 		 * @param WC_Order $order The order object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( 'woocommerce_gzd_dhl_order_postnumber', $post_number, $order );
 	}
@@ -394,6 +396,7 @@ class ParcelLocator {
 		 * @param WC_Order $order The order object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( 'woocommerce_gzd_dhl_order_pickup_type', $pickup_type, $order );
 	}
@@ -420,9 +423,10 @@ class ParcelLocator {
 		 * Filter to adjust the DHL postnumber for a certain user.
 		 *
 		 * @param string   $post_number The post number.
-		 * @param WP_User  $user The user object.
+		 * @param WP_User $user The user object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( 'woocommerce_gzd_dhl_user_postnumber', $post_number, $user );
 	}
@@ -856,10 +860,11 @@ class ParcelLocator {
 		 * Filter to adjust the pickup type address label added
 		 * to the address field when a certain pickup type was chosen.
 		 *
-		 * @param string                                           $pickup_type_text The pickup type text.
+		 * @param string                 $pickup_type_text The pickup type text.
 		 * @param boolean|ShippingMethod $method The shipping method object if available.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_label', self::get_type_text( ' / ', false, $method ), $method );
 	}
@@ -869,10 +874,11 @@ class ParcelLocator {
 		 * Filter to adjust the pickup type address placeholder added
 		 * to the address field when a certain pickup type was chosen.
 		 *
-		 * @param string                                           $pickup_type_text The pickup type placeholder text.
+		 * @param string                 $pickup_type_text The pickup type placeholder text.
 		 * @param boolean|ShippingMethod $method The shipping method object if available.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_placeholder', self::get_street_placeholder( $method ), $method );
 	}

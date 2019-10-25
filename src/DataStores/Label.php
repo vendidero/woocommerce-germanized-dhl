@@ -121,6 +121,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	         * @param integer $label_id The label id.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/DHL
 	         */
             do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_created", $label_id );
         }
@@ -192,6 +193,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	     * @param array   $changed_props Properties that have been changed.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_updated", $label->get_id(), $changed_props );
     }
@@ -243,6 +245,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	     * @param \Vendidero\Germanized\DHL\Label $label The label object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_deleted", $label->get_id(), $label );
     }
@@ -295,6 +298,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	         * @param \Vendidero\Germanized\DHL\Label $label The label object.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/DHL
 	         */
             do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_loaded", $label );
         } else {
@@ -409,6 +413,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	     * @param array                           $updated_props The updated properties.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         do_action( 'woocommerce_gzd_dhl_label_object_updated_props', $label, $updated_props );
     }
@@ -509,6 +514,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	     * @param Label $data_store The label data store.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         return apply_filters( 'woocommerce_gzd_dhl_label_data_store_get_labels_query', $wp_query_args, $query_vars, $this );
     }

@@ -142,6 +142,7 @@ class Paket {
 		     * @param boolean $is_working_day True if saturday should be considered a working day.
 		     *
 		     * @since 3.0.0
+		     * @package Vendidero/Germanized/DHL
 		     */
 		    if ( apply_filters( 'woocommerce_gzd_dhl_consider_saturday_as_working_day', true ) ) {
 			    $is_working_day = $datetime->format( 'N' ) > 6 ? false : true;
@@ -178,8 +179,6 @@ class Paket {
 	    $cutoff_time           = empty( $cutoff_time ) ? ParcelServices::get_preferred_day_cutoff_time() : $cutoff_time;
 	    $account_num           = Package::get_setting( 'account_number' );
 
-	    $preparation_days      = 2;
-
 	    // Get existing timezone to reset afterwards
 	    $current_timzone = date_default_timezone_get();
 
@@ -199,7 +198,7 @@ class Paket {
 		    }
 	    }
 
-	    // In case current date lies after cutoff time add one working day
+	    // In case current date lies after cutoff time -> add one working day
 	    if ( $starting_date->format( 'Hi' ) > str_replace( ':', '', $cutoff_time ) ) {
 		    while ( ! $this->is_working_day( $starting_date ) ) {
 			    $starting_date->add( new DateInterval('P1D' ) );

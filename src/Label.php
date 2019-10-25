@@ -170,7 +170,7 @@ abstract class Label extends WC_Data {
 	     * @param Label $label The label object.
 	     *
 	     * @since 3.0.0
-	     *
+	     * @package Vendidero/Germanized/DHL
 	     */
     	return apply_filters( "{$this->get_hook_prefix()}tracking_url", $url, $this );
     }
@@ -227,6 +227,7 @@ abstract class Label extends WC_Data {
 				 * @param Label $label The label object.
 				 *
 				 * @since 3.0.0
+				 * @package Vendidero/Germanized/DHL
 				 */
 				$value = apply_filters( "{$this->get_hook_prefix()}{$address}_{$prop}", $value, $this );
 			}

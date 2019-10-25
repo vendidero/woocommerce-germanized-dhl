@@ -499,6 +499,7 @@ function wc_gzd_dhl_shipment_needs_label( $shipment, $check_status = true ) {
 	 * @param Shipment $shipment The shipment object.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/DHL
 	 */
 	return apply_filters( 'woocommerce_gzd_dhl_shipment_needs_label', $needs_label, $shipment );
 }
@@ -703,7 +704,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		 * @param Label $label The label object.
 		 *
 		 * @since 3.0.0
-		 *
+		 * @package Vendidero/Germanized/DHL
 		 */
 		do_action( "woocommerce_gzd_dhl_before_create_{$hook_suffix}label", $label );
 
@@ -719,7 +720,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		 * @param Label $label The label object.
 		 *
 		 * @since 3.0.0
-		 *
+		 * @package Vendidero/Germanized/DHL
 		 */
 		do_action( "woocommerce_gzd_dhl_after_create_{$hook_suffix}label", $label );
 
@@ -771,7 +772,7 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 		 * @param Label $label The label object.
 		 *
 		 * @since 3.0.0
-		 *
+		 * @package Vendidero/Germanized/DHL
 		 */
 		do_action( "woocommerce_gzd_dhl_before_update_{$hook_suffix}label", $label );
 
@@ -787,7 +788,7 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 		 * @param Label $label The label object.
 		 *
 		 * @since 3.0.0
-		 *
+		 * @package Vendidero/Germanized/DHL
 		 */
 		do_action( "woocommerce_gzd_dhl_after_update_{$hook_suffix}label", $label );
 
@@ -829,6 +830,7 @@ function wc_gzd_dhl_create_inlay_return_label( $parent_label, $args = array() ) 
 		 * @param SimpleLabel $label The parent label object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		do_action( 'woocommerce_gzd_dhl_before_create_inlay_return_label', $label, $parent_label );
 

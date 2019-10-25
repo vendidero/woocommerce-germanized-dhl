@@ -123,6 +123,7 @@ class BulkLabel extends BulkActionHandler {
 							 * @param BulkLabel $this The `BulkLabel instance.
 							 *
 							 * @since 3.0.0
+							 * @package Vendidero/Germanized/DHL
 							 */
 							$filename = apply_filters( 'woocommerce_gzd_dhl_label_bulk_filename', 'export.pdf', $this );
 						}

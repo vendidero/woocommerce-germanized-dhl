@@ -27,9 +27,7 @@ printf( esc_html_x( 'You\'ve requested a return for your order #%s. Please find 
 
 echo "\n\n";
 
-/*
- * @since 3.0.0
- */
+/* This filter is documented in templates/emails/customer-dhl-return-shipment-label.php */
 do_action( 'woocommerce_gzd_email_return_shipment_details', $shipment, $sent_to_admin, $plain_text, $email );
 
 echo "\n----------------------------------------\n\n";

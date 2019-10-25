@@ -50,6 +50,7 @@ class LabelFactory {
 		 * @param string  $label_type The label type.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		$classname = apply_filters( 'woocommerce_gzd_dhl_label_class', $classname, $label_id, $label_type );
 

@@ -92,6 +92,7 @@ class Package {
 		 * @param string $country The country as ISO code.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( 'woocommerce_gzd_dhl_holidays', $holidays, $country );
 	}
@@ -177,7 +178,7 @@ class Package {
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
-	    // add_action( 'init', array( __CLASS__, 'test' ), 120 );
+	    add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
 
 	public static function filter_templates( $path, $template_name ) {
@@ -252,28 +253,7 @@ class Package {
 
 	public static function test() {
 
-		$api    = self::get_api();
-		$result = $api->get_parcel_location( array(
-			'city' => 'Berlin',
-			'zip' => '12207',
-		) );
-
-		var_dump($result);
-		exit();
-
-
-    	/*var_dump(wc_clean(WC_GZD_DHL_SANDBOX_PASSWORD));
-    	var_dump(WC_GZD_DHL_SANDBOX_PASSWORD);
-    	exit();
-    	*/
-
-    	/*
-    	$api    = self::get_api();
-		$api->get_return_api()->create_return_label( array() );
-
-		exit();
-    	*/
-	}
+    }
 
 	public static function is_integration() {
 		return class_exists( 'WooCommerce_Germanized' ) ? true : false;
@@ -339,11 +319,11 @@ class Package {
     }
 
     public static function get_app_id() {
-        return 'woo_germanized_1';
+        return 'woo_germanized_2';
     }
 
     public static function get_app_token() {
-        return 'Iw4zil3jFJTOXHA6AuWP4ykGkXKLee';
+        return '8KdXFjxwY0I1oOEo28Jk997tS5Rkky';
     }
 
     public static function get_geschaeftskunden_portal_url() {
@@ -446,6 +426,7 @@ class Package {
 		 * @param string $country The country code of the retoure.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( 'woocommerce_gzd_dhl_retoure_receiver', $country_receiver, $country );
 	}
@@ -516,6 +497,7 @@ class Package {
 	     * @param array $upload_dir Array containing `wp_upload_dir` data.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         return apply_filters( 'woocommerce_gzd_dhl_upload_dir', $upload_dir );
     }
@@ -532,6 +514,7 @@ class Package {
 	     * @param array $path Relative path.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         return apply_filters( 'woocommerce_gzd_dhl_relative_upload_dir', $path );
     }
@@ -571,6 +554,7 @@ class Package {
 	     * @param string $path Path to the upload directory.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         $args['basedir'] = apply_filters( 'woocommerce_gzd_dhl_upload_path', $upload_base . 'wc-gzd-dhl-' . self::get_upload_dir_suffix() );
 	    /**
@@ -580,6 +564,7 @@ class Package {
 	     * @param string $url URL to the upload directory.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         $args['baseurl'] = apply_filters( 'woocommerce_gzd_dhl_upload_url', $upload_url . 'wc-gzd-dhl-' . self::get_upload_dir_suffix() );
 
@@ -610,6 +595,8 @@ class Package {
 				$name = 'api_sandbox_username';
 			} elseif( 'api_password' === $name ) {
 				$name = 'api_sandbox_password';
+			} elseif( 'account_number' === $name ) {
+				return '2222222222';
 			}
 	    }
 
@@ -619,7 +606,13 @@ class Package {
 		    }
 	    }
 
-		return get_option( "woocommerce_gzd_dhl_{$name}" );
+		$value = get_option( "woocommerce_gzd_dhl_{$name}" );
+
+    	if ( ! empty( $value ) && strpos( $name, 'password' ) !== false ) {
+    		return stripslashes( $value );
+	    }
+
+    	return $value;
     }
 
     public static function log( $message, $type = 'info' ) {
@@ -635,6 +628,8 @@ class Package {
 	     * logging for the DHL package (e.g. API requests).
 	     *
 	     * @param boolean $enable_logging True if logging should be enabled. False otherwise.
+	     *
+	     * @package Vendidero/Germanized/DHL
 	     */
         if ( ! apply_filters( 'woocommerce_gzd_dhl_enable_logging', $enable_logging ) ) {
         	return false;
@@ -666,6 +661,7 @@ class Package {
 	     * @param string $country The country as ISO code.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
 	    return apply_filters( 'woocommerce_gzd_dhl_base_country', $base_country );
     }

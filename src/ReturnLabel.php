@@ -89,6 +89,8 @@ class ReturnLabel extends Label {
 		 *
 		 * @param string      $id The receiver id.
 		 * @param ReturnLabel $label The return label
+		 *
+		 * @package Vendidero/Germanized/DHL
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}receiver_id", $id, $this );
 	}

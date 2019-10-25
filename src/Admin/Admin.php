@@ -168,7 +168,7 @@ class Admin {
     }
 
 	public static function sanitize_password_field( $value, $option, $raw_value ) {
-		$value = is_null( $raw_value ) ? '' : $raw_value;
+		$value = is_null( $raw_value ) ? '' : addslashes( $raw_value );
 
 		return trim( $value );
     }

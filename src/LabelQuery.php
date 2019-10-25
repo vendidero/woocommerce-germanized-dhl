@@ -75,6 +75,7 @@ class LabelQuery extends WC_Object_Query {
 	     * @param array $query_vars The query arguments.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         $args    = apply_filters( 'woocommerce_gzd_dhl_label_query_args', $this->get_query_vars() );
         $args    = WC_Data_Store::load( 'dhl-label' )->get_query_args( $args );
@@ -88,6 +89,7 @@ class LabelQuery extends WC_Object_Query {
 	     * @param array                             $args The query arguments.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/DHL
 	     */
         return apply_filters( 'woocommerce_gzd_dhl_label_query', $this->results, $args );
     }
@@ -278,9 +280,11 @@ class LabelQuery extends WC_Object_Query {
              *
              * @since 3.0.0
              *
-             * @param string[]                             $search_columns Array of column names to be searched.
-             * @param string                               $search         Text being searched.
+             * @param string[]   $search_columns Array of column names to be searched.
+             * @param string     $search         Text being searched.
              * @param LabelQuery $this  The current LabelQuery instance.
+             *
+             * @package Vendidero/Germanized/DHL
              */
             $search_columns = apply_filters( 'woocommerce_gzd_dhl_label_search_columns', $search_columns, $search, $this );
 
