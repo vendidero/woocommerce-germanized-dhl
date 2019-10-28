@@ -1,6 +1,6 @@
 <?php
 /**
- * Customer DHL Return Shipment Label (plain text)
+ * Customer DHL return shipment label email (plain-text).
  *
  * This template can be overridden by copying it to yourtheme/woocommerce-germanized/emails/plain/customer-dhl-return-shipment-label.php.
  *
@@ -10,10 +10,10 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @package Germanized/Shipments/Templates/Emails/Plain
+ * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
+ * @package Germanized/DHL/Templates
  * @version 1.0.0
  */
-
 defined( 'ABSPATH' ) || exit;
 
 echo "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";

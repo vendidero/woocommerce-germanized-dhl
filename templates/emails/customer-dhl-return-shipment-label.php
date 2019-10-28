@@ -1,8 +1,8 @@
 <?php
 /**
- * Customer DHL Return Shipment Label
+ * Customer DHL return shipment label email.
  *
- * This template can be overridden by copying it to yourtheme/woocommerce-germanized/emails/customer-dhl-shipment-return-label.php.
+ * This template can be overridden by copying it to yourtheme/woocommerce-germanized/emails/customer-dhl-return-shipment-label.php.
  *
  * HOWEVER, on occasion Germanized will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
@@ -10,10 +10,10 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @package Germanized/DHL/Templates/Emails
+ * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
+ * @package Germanized/DHL/Templates
  * @version 1.0.0
  */
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
