@@ -18,7 +18,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '0.0.1-beta-6';
+    const VERSION = '1.0.0';
 
     public static $upload_dir_suffix = '';
 
@@ -177,8 +177,6 @@ class Package {
 
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
-
-	    add_action( 'init', array( __CLASS__, 'test' ), 120 );
     }
 
 	public static function filter_templates( $path, $template_name ) {
@@ -250,10 +248,6 @@ class Package {
 	public static function install_integration() {
     	self::install();
 	}
-
-	public static function test() {
-
-    }
 
 	public static function is_integration() {
 		return class_exists( 'WooCommerce_Germanized' ) ? true : false;

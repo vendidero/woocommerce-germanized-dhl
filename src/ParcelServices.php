@@ -265,13 +265,6 @@ class ParcelServices {
 		// Preferred options are only for Germany customers
 		if ( self::is_enabled() && 'DE' === $customer_country ) {
 
-			if ( $check_day_transfer ) {
-
-				foreach ( WC()->cart->get_cart() as $cart_item_key => $values ) {
-					// Check products
-				}
-			}
-
 			if ( self::is_preferred_enabled() ) {
 				$display_preferred = true;
 			}
