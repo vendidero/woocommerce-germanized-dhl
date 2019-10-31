@@ -433,9 +433,9 @@ class LabelSoap extends Soap {
                         'shipmentDate'      => date('Y-m-d' ),
                         'ShipmentItem'      => array(
                             'weightInKG' => $label->get_weight(),
-	                        'lengthInCM' => wc_get_dimension( $shipment->get_length(), 'cm' ),
-                            'widthInCM'  => wc_get_dimension( $shipment->get_width(), 'cm' ),
-                            'heightInCM' => wc_get_dimension( $shipment->get_height(), 'cm' ),
+	                        'lengthInCM' => wc_get_dimension( $shipment->get_length(), 'cm', $shipment->get_dimension_unit() ),
+                            'widthInCM'  => wc_get_dimension( $shipment->get_width(), 'cm', $shipment->get_dimension_unit() ),
+                            'heightInCM' => wc_get_dimension( $shipment->get_height(), 'cm', $shipment->get_dimension_unit() ),
                         ),
                         'Service'           => $services,
                         'Notification'      => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
@@ -571,7 +571,7 @@ class LabelSoap extends Soap {
                     'countryCodeOrigin'   => $dhl_product ? $dhl_product->get_manufacture_country() : '',
                     'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
                     'amount'              => intval( $item->get_quantity() ),
-                    'netWeightInKG'       => wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg' ) ), 2 ),
+                    'netWeightInKG'       => wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 ),
                     'customsValue'        => wc_format_decimal( floatval( $item->get_total() ), 2 ),
                 );
 

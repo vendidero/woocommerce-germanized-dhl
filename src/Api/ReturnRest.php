@@ -66,7 +66,7 @@ class ReturnRest extends Rest {
 			),
 			'email'              => Package::get_setting( 'return_address_email' ),
 			'telephoneNumber'    => Package::get_setting( 'return_address_phone' ),
-			"weightInGrams"      => wc_get_weight( $label->get_weight(), 'g' ),
+			"weightInGrams"      => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
 			'value'              => $shipment->get_total(),
 			'returnDocumentType' => 'SHIPMENT_LABEL'
 		);
@@ -84,7 +84,7 @@ class ReturnRest extends Rest {
 				$items[] = array(
 					'positionDescription' => substr( $item->get_name(), 0, 50 ),
 					'count'               => $item->get_quantity(),
-					'weightInGrams'       => intval( wc_get_weight( $item->get_weight(), 'g' ) ),
+					'weightInGrams'       => intval( wc_get_weight( $item->get_weight(), 'g', $shipment->get_weight_unit() ) ),
 					'values'              => wc_format_decimal( floatval( $item->get_total() ), 2 ),
 					'originCountry'       => $dhl_product ? Package::get_country_iso_alpha3( $dhl_product->get_manufacture_country() ) : '',
 					'articleReference'    => '',
