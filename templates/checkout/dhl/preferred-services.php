@@ -88,7 +88,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
 
 		<?php if ( $preferred_location_enabled || $preferred_neighbor_enabled ) : ?>
             <div class="dhl-preferred-service-item dhl-preferred-service-location">
-                <div class="dhl-preferred-service-title"><?php _ex( 'Preferred location or neighbor', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Indicate a preferred time, which suits you best for your parcel delivery by choosing one of the displayed time windows.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
+                <div class="dhl-preferred-service-title"><?php _ex( 'Preferred location or neighbor', 'dhl', 'woocommerce-germanized-dhl' ); ?></div>
 
                 <div class="dhl-preferred-service-data">
                     <ul class="dhl-preferred-location-types">
