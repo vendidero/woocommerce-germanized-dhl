@@ -10,12 +10,13 @@ use Vendidero\Germanized\DHL\Package;
 ?>
 
 <div class="wc-gzd-shipment-dhl-label column column-spaced col-12" data-label="<?php echo ( $dhl_label ? esc_attr( $dhl_label->get_id() ) : '' ); ?>">
-    <h4><?php _ex(  'DHL Label', 'dhl', 'woocommerce-germanized-dhl' ); ?></h4>
+    <h4><?php _ex(  'DHL Label', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo ( $dhl_label ? '<span class="shipment-tracking-number">' . $dhl_label->get_number() . '</span>' : '' ); ?></h4>
 
     <div class="wc-gzd-shipment-dhl-label-content">
         <div class="shipment-dhl-label-actions">
 	        <?php if ( $dhl_label ) : ?>
                 <div class="shipment-dhl-label-actions-wrapper shipment-dhl-label-actions-download">
+
                     <a class="button button-secondary download-shipment-label" href="<?php echo $dhl_label->get_download_url(); ?>" target="_blank"><?php _ex(  'Download', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
 
                     <?php if ( 'return' === $dhl_label->get_type() ) : ?>
