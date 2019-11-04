@@ -475,8 +475,31 @@ class LabelSoap extends Soap {
                             )
                         ),
                         'Communication' => array(
-                            'phone' => $shipment->get_phone(),
-                            'email' => $shipment->get_email()
+	                        /**
+	                         * Choose whether to transfer the phone number to DHL on creating a label.
+	                         * By default the phone number is not transmitted.
+	                         *
+	                         * @param string $phone The phone number.
+	                         * @param Label  $label The label instance.
+	                         *
+	                         * @since 3.0.3
+	                         * @package Vendidero/Germanized/DHL
+	                         */
+                            'phone' => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_phone', '', $label ),
+	                        /**
+	                         * Choose whether to transfer the email to DHL on creating a label.
+	                         * By default the email is only transmitted if the customer opted in.
+	                         *
+	                         * This email address is not used to notify the customer via DHL. It is only
+	                         * meant for communicaton purposes.
+	                         *
+	                         * @param string $email The email.
+	                         * @param Label  $label The label instance.
+	                         *
+	                         * @since 3.0.3
+	                         * @package Vendidero/Germanized/DHL
+	                         */
+                            'email' => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_email', $label->has_email_notification() ? $shipment->get_email() : '', $label ),
                         )
                     )
                 )
