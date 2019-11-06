@@ -135,6 +135,22 @@ if ( ! class_exists( 'WC_GZD_DHL_Email_Customer_Return_Shipment_Label', false ) 
 		}
 
 		/**
+		 * Return content from the additional_content field.
+		 *
+		 * Displayed above the footer.
+		 *
+		 * @since 2.0.4
+		 * @return string
+		 */
+		public function get_additional_content() {
+			if ( is_callable( 'parent::get_additional_content' ) ) {
+				return parent::get_additional_content();
+			}
+
+			return '';
+		}
+
+		/**
 		 * Get content html.
 		 *
 		 * @return string
