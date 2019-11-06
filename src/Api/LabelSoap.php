@@ -461,15 +461,26 @@ class LabelSoap extends Soap {
                             'email' => Package::get_setting( 'shipper_email' )
                         )
                     ),
-                    'Receiver'             => array(
-                        'name1'            => $shipment->get_company() ? $shipment->get_company() : $shipment->get_formatted_full_name(),
-                        'Address'          => array(
-                            'name2'        => $shipment->get_company() ? $shipment->get_formatted_full_name() : '',
-                            'streetName'   => $shipment->get_address_street(),
-                            'streetNumber' => $shipment->get_address_street_number(),
-                            'zip'          => $shipment->get_postcode(),
-                            'city'         => $shipment->get_city(),
-                            'Origin'       => array(
+                    'Receiver'                => array(
+                        'name1'               => $shipment->get_company() ? $shipment->get_company() : $shipment->get_formatted_full_name(),
+                        'Address'             => array(
+                            'name2'           => $shipment->get_company() ? $shipment->get_formatted_full_name() : '',
+	                        /**
+	                         * By default the name3 parameter is used to transmit the additional
+	                         * address field to the DHL API. You may adjust the field value by using this filter.
+	                         *
+	                         * @param string $value The field value.
+	                         * @param Label  $label The label instance.
+	                         *
+	                         * @since 3.0.3
+	                         * @package Vendidero/Germanized/DHL
+	                         */
+                            'name3'           => apply_filters( 'woocommerce_gzd_dhl_label_api_receiver_name3', $shipment->get_address_2(), $label ),
+                            'streetName'      => $shipment->get_address_street(),
+                            'streetNumber'    => $shipment->get_address_street_number(),
+                            'zip'             => $shipment->get_postcode(),
+                            'city'            => $shipment->get_city(),
+                            'Origin'          => array(
                                 'countryISOCode' => $shipment->get_country(),
                                 'state'          => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() )
                             )
