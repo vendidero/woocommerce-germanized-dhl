@@ -23,6 +23,19 @@ class Automation {
 		add_action( 'woocommerce_gzd_new_return_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 1 );
 
 		add_action( 'woocommerce_gzd_dhl_after_create_return_label', array( __CLASS__, 'maybe_send_email' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_after_create_label', array( __CLASS__, 'maybe_adjust_shipment_status' ), 10, 1 );
+	}
+
+	/**
+	 * @param Label $label
+	 */
+	public static function maybe_adjust_shipment_status( $label ) {
+		if ( 'yes' === Package::get_setting( 'label_auto_shipment_status_shipped' ) ) {
+
+			if ( $shipment = $label->get_shipment() ) {
+				$shipment->update_status( 'shipped' );
+			}
+		}
 	}
 
 	public static function maybe_send_email( $label ) {

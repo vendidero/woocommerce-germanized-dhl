@@ -555,6 +555,14 @@ class Settings {
 			),
 
 			array(
+				'title' 	        => _x( 'Shipment Status', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Mark shipment as shipped after label has been created successfully.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_auto_shipment_status_shipped',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
 				'title' 	        => _x( 'Returns', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Automatically create labels for returns.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_return_auto_enable',

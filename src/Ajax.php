@@ -239,6 +239,7 @@ class Ajax {
 				'messages' => $label->get_error_messages(),
 			);
 		} else {
+
 			$response = array(
 				'success'   => true,
 				'label_id'  => $label->get_id(),
@@ -247,6 +248,22 @@ class Ajax {
 					'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-dhl-label' => self::label_download_button_html( $label ),
 				),
 			);
+
+			if ( 'simple' === $shipment->get_type() && 'yes' === Package::get_setting( 'label_auto_shipment_status_shipped' ) ) {
+
+				$is_active = true;
+
+				ob_start();
+				include( \Vendidero\Germanized\Shipments\Package::get_path() . '/includes/admin/views/html-order-shipment.php' );
+				$html = ob_get_clean();
+
+				// Needs refresh
+				$response['fragments']['div#shipment-' . $shipment_id] = $html;
+
+				if ( $order_shipment = wc_gzd_get_shipment_order( $shipment->get_order() ) ) {
+					$response['fragments']['.order-shipping-status'] = '<span class="order-shipping-status status-' . esc_attr( $order_shipment->get_shipping_status() ) . '">' . wc_gzd_get_shipment_order_shipping_status_name( $order_shipment->get_shipping_status() ) . '</span>';
+				}
+			}
 		}
 
 		wp_send_json( $response );
