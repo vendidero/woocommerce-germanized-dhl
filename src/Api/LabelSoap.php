@@ -429,7 +429,7 @@ class LabelSoap extends Soap {
                     'ShipmentDetails' => array(
                         'product'           => $label->get_dhl_product(),
                         'accountNumber'     => self::get_account_number( $label->get_dhl_product() ),
-                        'customerReference' => wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) ),
+                        'customerReference' => wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ),
                         'shipmentDate'      => date('Y-m-d' ),
                         'ShipmentItem'      => array(
                             'weightInKG' => $label->get_weight(),
@@ -552,7 +552,7 @@ class LabelSoap extends Soap {
 
         if ( $label->has_inlay_return() ) {
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
-            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_id() ) );
+            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) );
 
             $dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'] = array(
                 'Name' => array(
