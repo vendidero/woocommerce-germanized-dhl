@@ -306,6 +306,10 @@ class Package {
 		return ( defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG ) || 'yes' === get_option( "woocommerce_gzd_dhl_sandbox_mode" );
 	}
 
+	public static function enable_logging() {
+		return ( defined( 'WC_GZD_DHL_LOG_ENABLE' ) && WC_GZD_DHL_LOG_ENABLE ) || self::is_debug_mode();
+	}
+
     private static function define_constant( $name, $value ) {
         if ( ! defined( $name ) ) {
             define( $name, $value );
@@ -611,7 +615,7 @@ class Package {
 
     public static function log( $message, $type = 'info' ) {
         $logger         = wc_get_logger();
-        $enable_logging = self::is_debug_mode() ? true : false;
+        $enable_logging = self::enable_logging() ? true : false;
 
         if ( ! $logger ) {
             return false;

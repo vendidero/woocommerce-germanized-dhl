@@ -96,6 +96,10 @@ class LabelSoap extends Soap {
             throw $e;
         }
 
+        if ( ! isset( $response_body->Status ) || ! isset( $response_body->CreationState ) ) {
+        	throw new Exception( _x( 'There was an error generating the label. Please check your logs.', 'dhl', 'woocommerce-germanized-dhl' ) );
+        }
+
         return $this->update_label( $label, $response_body->Status, $response_body->CreationState );
     }
 
@@ -429,13 +433,13 @@ class LabelSoap extends Soap {
                     'ShipmentDetails' => array(
                         'product'           => $label->get_dhl_product(),
                         'accountNumber'     => self::get_account_number( $label->get_dhl_product() ),
-                        'customerReference' => wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ),
+                        'customerReference' => wc_gzd_dhl_get_label_customer_reference( $label, $shipment ),
                         'shipmentDate'      => date('Y-m-d' ),
                         'ShipmentItem'      => array(
                             'weightInKG' => $label->get_weight(),
-	                        'lengthInCM' => wc_get_dimension( $shipment->get_length(), 'cm', $shipment->get_dimension_unit() ),
-                            'widthInCM'  => wc_get_dimension( $shipment->get_width(), 'cm', $shipment->get_dimension_unit() ),
-                            'heightInCM' => wc_get_dimension( $shipment->get_height(), 'cm', $shipment->get_dimension_unit() ),
+	                        'lengthInCM' => $shipment->has_dimensions() ? wc_get_dimension( $shipment->get_length(), 'cm', $shipment->get_dimension_unit() ) : '',
+                            'widthInCM'  => $shipment->has_dimensions() ? wc_get_dimension( $shipment->get_width(), 'cm', $shipment->get_dimension_unit() ) : '',
+                            'heightInCM' => $shipment->has_dimensions() ? wc_get_dimension( $shipment->get_height(), 'cm', $shipment->get_dimension_unit() ) : '',
                         ),
                         'Service'           => $services,
                         'Notification'      => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
@@ -457,8 +461,9 @@ class LabelSoap extends Soap {
                             )
                         ),
                         'Communication' => array(
-                            'phone' => Package::get_setting( 'shipper_phone' ),
-                            'email' => Package::get_setting( 'shipper_email' )
+                            'phone'         => Package::get_setting( 'shipper_phone' ),
+                            'email'         => Package::get_setting( 'shipper_email' ),
+	                        'contactPerson' => Package::get_setting( 'shipper_name' ),
                         )
                     ),
                     'Receiver'                => array(
@@ -486,6 +491,17 @@ class LabelSoap extends Soap {
                             )
                         ),
                         'Communication' => array(
+	                        /**
+	                         * Choose whether to transmit the full name of the shipment receiver as contactPerson
+	                         * while creating a label.
+	                         *
+	                         * @param string $name The name of the shipmen receiver.
+	                         * @param Label  $label The label instance.
+	                         *
+	                         * @since 3.0.3
+	                         * @package Vendidero/Germanized/DHL
+	                         */
+	                        'contactPerson' => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_contact_person', $shipment->get_formatted_full_name(), $label ),
 	                        /**
 	                         * Choose whether to transfer the phone number to DHL on creating a label.
 	                         * By default the phone number is not transmitted.
@@ -552,7 +568,7 @@ class LabelSoap extends Soap {
 
         if ( $label->has_inlay_return() ) {
             $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
-            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) );
+            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment );
 
             $dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'] = array(
                 'Name' => array(

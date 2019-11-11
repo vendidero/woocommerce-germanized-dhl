@@ -49,7 +49,7 @@ class ReturnRest extends Rest {
 
 		$request_args = array(
 			'receiverId'        => $label->get_receiver_id(),
-			"customerReference" => wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to shipment #{original_shipment_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{original_shipment_id}' => $parent_shipment->get_id() ) ),
+			"customerReference" => wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment, $parent_shipment ),
 			"shipmentReference" => '',
 			"senderAddress"     => array(
 				'name1'       => $label->get_sender_company() ? $label->get_sender_company() : $label->get_sender_formatted_full_name(),

@@ -97,6 +97,49 @@ function wc_gzd_dhl_get_label_reference( $reference_type, $placeholders = array(
 	return str_replace( array_keys( $placeholders ), array_values( $placeholders ), $text );
 }
 
+function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
+	/**
+	 * Filter to adjust the customer reference field placed on the DHL label.
+	 *
+	 * @param string         $text The customer reference text.
+	 * @param Label          $label The label instance.
+	 * @param SimpleShipment $shipment The shipment instance.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/DHL
+	 */
+	return apply_filters( 'woocommerce_gzd_dhl_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
+}
+
+function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment, $parent_shipment ) {
+	/**
+	 * Filter to adjust the customer reference field placed on the DHL return label.
+	 *
+	 * @param string         $text The customer reference text.
+	 * @param Label          $label The label instance.
+	 * @param ReturnShipment $shipment The shipment instance.
+	 * @param SimpleShipment $parent_shipment The parent shipment instance.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/DHL
+	 */
+	return apply_filters( 'woocommerce_gzd_dhl_return_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to shipment #{original_shipment_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{original_shipment_id}' => $parent_shipment->get_id() ) ), $label, $shipment, $parent_shipment );
+}
+
+function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
+	/**
+	 * Filter to adjust the inlay return reference field placed on the DHL label.
+	 *
+	 * @param string         $text The customer reference text.
+	 * @param Label          $label The label instance.
+	 * @param SimpleShipment $shipment The shipment instance.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/DHL
+	 */
+	return apply_filters( 'woocommerce_gzd_dhl_inlay_return_label_reference', wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
+}
+
 /**
  * Standard way of retrieving shipments based on certain parameters.
  *
