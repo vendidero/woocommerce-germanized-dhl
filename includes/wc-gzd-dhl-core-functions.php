@@ -14,6 +14,7 @@ use Vendidero\Germanized\DHL\Order;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\DHL\ShippingMethod;
+use Vendidero\Germanized\DHL\ShippingMethodPlaceholder;
 use Vendidero\Germanized\DHL\ParcelServices;
 use Vendidero\Germanized\DHL\LabelFactory;
 use Vendidero\Germanized\DHL\SimpleLabel;
@@ -142,23 +143,37 @@ function wc_gzd_dhl_get_services() {
 
 function wc_gzd_dhl_get_shipping_method( $instance_id ) {
 
+	$original_id = $instance_id;
+
 	if ( ! is_numeric( $instance_id ) ) {
 		$expl        = explode( ':', $instance_id );
 		$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : $instance_id );
 	}
 
-	if ( empty( $instance_id ) ) {
-		return false;
+	if ( ! empty( $instance_id ) ) {
+		// Make sure shipping zones are loaded
+		include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
+
+		if ( $method = WC_Shipping_Zones::get_shipping_method( $instance_id ) ) {
+			return new ShippingMethod( $method );
+		}
 	}
 
-	// Make sure shipping zones are loaded
-	include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
+	// Load placeholder
+	$placeholder = new ShippingMethodPlaceholder( $original_id );
 
-	if ( $method = WC_Shipping_Zones::get_shipping_method( $instance_id ) ) {
-		return new ShippingMethod( $method );
-	}
-
-	return false;
+	/**
+	 * Filter to adjust the fallback shipping method to be loaded if no real
+	 * shipping method was able to be constructed (e.g. a custom plugin is being used which
+	 * replaces the default Woo shipping zones integration).
+	 *
+	 * @param ShippingMethod $placeholder The placeholder impl.
+	 * @param string $original_id The shipping method id.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/DHL
+	 */
+	return apply_filters( 'woocommerce_gzd_dhl_shipping_method_fallback', $placeholder, $original_id );
 }
 
 function wc_gzd_dhl_get_preferred_services() {

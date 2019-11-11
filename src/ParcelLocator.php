@@ -483,7 +483,7 @@ class ParcelLocator {
 
 			foreach( $rates as $rate ) {
 
-				if ( $method = wc_gzd_dhl_get_shipping_method( $rate->get_instance_id() ) ) {
+				if ( $method = wc_gzd_dhl_get_shipping_method( $rate->id ) ) {
 					$supports = array();
 
 					foreach( wc_gzd_dhl_get_pickup_types() as $pickup_type => $title ) {
