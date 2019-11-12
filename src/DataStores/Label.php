@@ -119,11 +119,12 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	         * label type e.g. return in case it is not a simple label.
 	         *
 	         * @param integer $label_id The label id.
+	         * @param Label   $label The label instance.
 	         *
 	         * @since 3.0.0
 	         * @package Vendidero/Germanized/DHL
 	         */
-            do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_created", $label_id );
+            do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_created", $label_id, $label );
         }
     }
 
@@ -190,12 +191,13 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	     * label type e.g. return in case it is not a simple label.
 	     *
 	     * @param integer $label_id The label id.
+	     * @param Label   $label The label instance.
 	     * @param array   $changed_props Properties that have been changed.
 	     *
 	     * @since 3.0.0
 	     * @package Vendidero/Germanized/DHL
 	     */
-        do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_updated", $label->get_id(), $changed_props );
+        do_action( "woocommerce_gzd_dhl_{$hook_postfix}label_updated", $label->get_id(), $label, $changed_props );
     }
 
     /**

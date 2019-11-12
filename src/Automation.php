@@ -19,8 +19,8 @@ class Automation {
 		add_action( 'woocommerce_gzd_shipment_before_status_change', array( __CLASS__, 'set_automation' ), 10, 2 );
 
 		// Watch shipment creations - e.g. default status is set to shipped - needs to trigger label generation
-		add_action( 'woocommerce_gzd_new_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 1 );
-		add_action( 'woocommerce_gzd_new_return_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 1 );
+		add_action( 'woocommerce_gzd_new_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 2 );
+		add_action( 'woocommerce_gzd_new_return_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 2 );
 
 		add_action( 'woocommerce_gzd_dhl_after_create_return_label', array( __CLASS__, 'maybe_send_email' ), 10, 1 );
 		add_action( 'woocommerce_gzd_dhl_after_create_label', array( __CLASS__, 'maybe_adjust_shipment_status' ), 10, 1 );
@@ -44,10 +44,8 @@ class Automation {
 		}
 	}
 
-	public static function set_after_create_automation( $shipment_id ) {
-		if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-			self::do_automation( $shipment, false );
-		}
+	public static function set_after_create_automation( $shipment_id, $shipment ) {
+		self::do_automation( $shipment, false );
 	}
 
 	/**
