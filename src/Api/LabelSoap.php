@@ -445,27 +445,6 @@ class LabelSoap extends Soap {
                         'Notification'      => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
                         'BankData'          => array(),
                     ),
-                    'Shipper'       => array(
-                        'Name'      => array(
-                            'name1' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_name' ),
-                            'name2' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_name' ) : '',
-                        ),
-                        'Address'   => array(
-                            'streetName'   => Package::get_setting( 'shipper_street' ),
-                            'streetNumber' => Package::get_setting( 'shipper_street_no' ),
-                            'zip'          => Package::get_setting( 'shipper_postcode' ),
-                            'city'         => Package::get_setting( 'shipper_city' ),
-                            'Origin'       => array(
-                                'countryISOCode' => Package::get_setting( 'shipper_country' ),
-                                'state'          => wc_gzd_dhl_format_label_state( Package::get_setting( 'shipper_state' ), Package::get_setting( 'shipper_country' ) ),
-                            )
-                        ),
-                        'Communication' => array(
-                            'phone'         => Package::get_setting( 'shipper_phone' ),
-                            'email'         => Package::get_setting( 'shipper_email' ),
-	                        'contactPerson' => Package::get_setting( 'shipper_name' ),
-                        )
-                    ),
                     'Receiver'                => array(
                         'name1'               => $shipment->get_company() ? $shipment->get_company() : $shipment->get_formatted_full_name(),
                         'Address'             => array(
@@ -533,6 +512,45 @@ class LabelSoap extends Soap {
             )
         );
 
+	    /**
+	     * This filter allows using a ShipperReference configured in the GKP instead of transmitting
+	     * the shipper data from the DHL settings. Use this filter carefully and make sure that the
+	     * reference exists.
+	     *
+	     * @param string $shipper_reference The shipper reference from the GKP.
+	     * @param Label  $label The label instance.
+	     *
+	     * @since 3.0.3
+	     * @package Vendidero/Germanized/DHL
+	     */
+	    $shipper_reference = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_reference', '', $label );
+
+	    if ( ! empty( $shipper_reference ) ) {
+		    $dhl_label_body['ShipmentOrder']['Shipment']['ShipperReference'] = $shipper_reference;
+	    } else {
+		    $dhl_label_body['ShipmentOrder']['Shipment']['Shipper'] = array(
+			    'Name'      => array(
+				    'name1' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_name' ),
+				    'name2' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_name' ) : '',
+			    ),
+			    'Address'   => array(
+				    'streetName'   => Package::get_setting( 'shipper_street' ),
+				    'streetNumber' => Package::get_setting( 'shipper_street_no' ),
+				    'zip'          => Package::get_setting( 'shipper_postcode' ),
+				    'city'         => Package::get_setting( 'shipper_city' ),
+				    'Origin'       => array(
+					    'countryISOCode' => Package::get_setting( 'shipper_country' ),
+					    'state'          => wc_gzd_dhl_format_label_state( Package::get_setting( 'shipper_state' ), Package::get_setting( 'shipper_country' ) ),
+				    )
+			    ),
+			    'Communication' => array(
+				    'phone'         => Package::get_setting( 'shipper_phone' ),
+				    'email'         => Package::get_setting( 'shipper_email' ),
+				    'contactPerson' => Package::get_setting( 'shipper_name' ),
+			    )
+		    );
+	    }
+
         if ( $shipment->send_to_external_pickup( array_keys( wc_gzd_dhl_get_pickup_types() ) ) ) {
             // Address is NOT needed if using a parcel shop
             unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Address'] );
@@ -586,8 +604,9 @@ class LabelSoap extends Soap {
                     )
                 ),
                 'Communication' => array(
-                    'phone' => $label->get_return_phone(),
-                    'email' => $label->get_return_email()
+                	'contactPerson' => $label->get_return_formatted_full_name(),
+                    'phone'         => $label->get_return_phone(),
+                    'email'         => $label->get_return_email()
                 )
             );
         }
