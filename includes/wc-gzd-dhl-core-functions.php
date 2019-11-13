@@ -586,6 +586,20 @@ function wc_gzd_dhl_validate_inlay_return_label_args( $parent_label, $args = arr
 }
 
 /**
+ * @param Shipment $shipment
+ */
+function wc_gzd_dhl_get_label_shipment_address_addition( $shipment ) {
+	$addition        = $shipment->get_address_2();
+	$street_addition = $shipment->get_address_street_addition();
+
+	if ( ! empty( $street_addition ) ) {
+		$addition = $street_addition . ( ! empty( $addition ) ? ' ' . $addition : '' );
+	}
+
+	return trim( $addition );
+}
+
+/**
  * @param Order $dhl_order
  * @param Shipment $shipment
  */
@@ -608,6 +622,28 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 
 	if ( $dhl_order->has_cod_payment() ) {
 		$defaults['cod_total'] = $shipment->get_total();
+
+		/**
+		 * This check is necessary to make sure only one label per order
+		 * has the additional total (shipping total, fee total) added to the COD amount.
+		 */
+		$shipments              = wc_gzd_get_shipments_by_order( $shipment->get_order_id() );
+		$needs_additional_total = true;
+
+		foreach( $shipments as $shipment ) {
+			if ( $existing_label = wc_gzd_dhl_get_shipment_label( $shipment, 'simple' ) ) {
+
+				if ( $existing_label->cod_includes_additional_total() ) {
+					$needs_additional_total = false;
+					break;
+				}
+			}
+		}
+
+		if ( $needs_additional_total ) {
+			$defaults['cod_total'] += round( $shipment->get_additional_total(), wc_get_price_decimals() );
+			$defaults['cod_includes_additional_total'] = true;
+		}
 	}
 
 	if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
@@ -704,9 +740,10 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 	);
 
 	$defaults['sender_address'] = array_merge( $defaults['sender_address'], array(
-		'name'          => $shipment->get_formatted_sender_full_name(),
-		'street'        => $shipment->get_sender_address_street(),
-		'street_number' => $shipment->get_sender_address_street_number(),
+		'name'            => $shipment->get_formatted_sender_full_name(),
+		'street'          => $shipment->get_sender_address_street(),
+		'street_number'   => $shipment->get_sender_address_street_number(),
+		'street_addition' => $shipment->get_sender_address_street_addition(),
 	) );
 
 	return $defaults;

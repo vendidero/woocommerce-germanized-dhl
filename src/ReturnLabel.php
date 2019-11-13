@@ -118,12 +118,31 @@ class ReturnLabel extends Label {
 		return $value;
 	}
 
+	public function get_sender_address_2( $context = 'view' ) {
+		return $this->get_sender_address_prop( 'address_2', $context );
+	}
+
+	public function get_sender_address_addition() {
+		$addition        = $this->get_sender_address_2();
+		$street_addition = $this->get_sender_street_addition();
+
+		if ( ! empty( $street_addition ) ) {
+			$addition = $street_addition . ( ! empty( $addition ) ? ' ' . $addition : '' );
+		}
+
+		return trim( $addition );
+	}
+
 	public function get_sender_street( $context = 'view' ) {
 		return $this->get_sender_address_prop( 'street', $context );
 	}
 
 	public function get_sender_street_number( $context = 'view' ) {
 		return $this->get_sender_address_prop( 'street_number', $context );
+	}
+
+	public function get_sender_street_addition( $context = 'view' ) {
+		return $this->get_sender_address_prop( 'street_addition', $context );
 	}
 
 	public function get_sender_company( $context = 'view' ) {

@@ -90,6 +90,7 @@
     }
     select, input[type=text], input[type=email] {
       width: 100%;
+      max-width: 100%;
     }
 
     &.form-field-checkbox {

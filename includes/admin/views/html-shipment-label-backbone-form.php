@@ -30,6 +30,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		'description'		=> '',
 		'value'       		=> isset( $default_args['cod_total'] ) ? $default_args['cod_total'] : '',
 	) ); ?>
+
+    <input type="hidden" name="dhl_label_cod_includes_additional_total" value="<?php echo ( isset( $default_args['cod_includes_additional_total'] ) ? $default_args['cod_includes_additional_total'] : '' ); ?>" />
 <?php endif; ?>
 
 <?php if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) : ?>

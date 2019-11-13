@@ -480,7 +480,7 @@ class LabelSoap extends Soap {
 	                         * @since 3.0.3
 	                         * @package Vendidero/Germanized/DHL
 	                         */
-                            'name3'           => apply_filters( 'woocommerce_gzd_dhl_label_api_receiver_name3', $shipment->get_address_2(), $label ),
+                            'name3'           => apply_filters( 'woocommerce_gzd_dhl_label_api_receiver_name3', wc_gzd_dhl_get_label_shipment_address_addition( $shipment ), $label ),
                             'streetName'      => $shipment->get_address_street(),
                             'streetNumber'    => $shipment->get_address_street_number(),
                             'zip'             => $shipment->get_postcode(),

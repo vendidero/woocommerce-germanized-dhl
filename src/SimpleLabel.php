@@ -21,20 +21,21 @@ class SimpleLabel extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'preferred_day'              => '',
-		'preferred_time_start'       => '',
-		'preferred_time_end'         => '',
-		'preferred_location'         => '',
-		'preferred_neighbor'         => '',
-		'ident_date_of_birth'        => '',
-		'ident_min_age'              => '',
-		'visual_min_age'             => '',
-		'email_notification'         => 'no',
-		'has_inlay_return'          => 'no',
-		'codeable_address_only'      => 'no',
-		'duties'                     => '',
-		'return_address'             => array(),
-		'cod_total'                  => 0,
+		'preferred_day'                 => '',
+		'preferred_time_start'          => '',
+		'preferred_time_end'            => '',
+		'preferred_location'            => '',
+		'preferred_neighbor'            => '',
+		'ident_date_of_birth'           => '',
+		'ident_min_age'                 => '',
+		'visual_min_age'                => '',
+		'email_notification'            => 'no',
+		'has_inlay_return'              => 'no',
+		'codeable_address_only'         => 'no',
+		'duties'                        => '',
+		'return_address'                => array(),
+		'cod_total'                     => 0,
+		'cod_includes_additional_total' => 'no',
 	);
 
 	public function get_type() {
@@ -111,6 +112,14 @@ class SimpleLabel extends Label {
 
 	public function get_cod_total( $context = 'view' ) {
 		return $this->get_prop( 'cod_total', $context );
+	}
+
+	public function get_cod_includes_additional_total( $context = 'view' ) {
+		return $this->get_prop( 'cod_includes_additional_total', $context );
+	}
+
+	public function cod_includes_additional_total( $context = 'view' ) {
+		return $this->get_cod_includes_additional_total() ? true : false;
 	}
 
 	public function get_duties( $context = 'view' ) {
@@ -229,6 +238,10 @@ class SimpleLabel extends Label {
 		}
 
 		$this->set_prop( 'cod_total', $value );
+	}
+
+	public function set_cod_includes_additional_total( $value ) {
+		$this->set_prop( 'cod_includes_additional_total', wc_string_to_bool( $value ) );
 	}
 
 	public function set_duties( $duties ) {

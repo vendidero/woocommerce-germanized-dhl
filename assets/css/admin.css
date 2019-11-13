@@ -62,7 +62,8 @@
   margin-bottom: 5px; }
 
 .germanized-create-label p.form-field select, .germanized-create-label p.form-field input[type=text], .germanized-create-label p.form-field input[type=email] {
-  width: 100%; }
+  width: 100%;
+  max-width: 100%; }
 
 .germanized-create-label p.form-field.form-field-checkbox {
   display: flex;

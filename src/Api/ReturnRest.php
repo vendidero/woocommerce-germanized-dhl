@@ -54,6 +54,17 @@ class ReturnRest extends Rest {
 			"senderAddress"     => array(
 				'name1'       => $label->get_sender_company() ? $label->get_sender_company() : $label->get_sender_formatted_full_name(),
 				'name2'       => $label->get_sender_company() ? $label->get_sender_formatted_full_name() : '',
+				/**
+				 * By default the name3 parameter is used to transmit the additional
+				 * address field to the DHL API. You may adjust the field value by using this filter.
+				 *
+				 * @param string      $value The field value.
+				 * @param ReturnLabel $label The label instance.
+				 *
+				 * @since 3.0.3
+				 * @package Vendidero/Germanized/DHL
+				 */
+				'name3'       => apply_filters( 'woocommerce_gzd_dhl_return_label_api_sender_name3', $label->get_sender_address_addition(), $label ),
 				'streetName'  => $label->get_sender_street(),
 				'houseNumber' => $label->get_sender_street_number(),
 				'postCode'    => $label->get_sender_postcode(),
