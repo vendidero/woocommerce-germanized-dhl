@@ -722,6 +722,45 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 	return $defaults;
 }
 
+function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
+	$available = array(
+		'A4',
+		'910-300-700',
+		'910-300-700-oZ',
+		'910-300-600',
+		'910-300-610',
+		'910-300-710',
+	);
+
+	/**
+	 * This filter allows adjusting the default label format (GUI) to a custom format e.g. 910-300-700.
+	 * The following formats are available:
+	 *
+	 * <ul>
+	 * <li>A4</li>
+	 * <li>910-300-700</li>
+	 * <li>910-300-700-oZ</li>
+	 * <li>910-300-600</li>
+	 * <li>910-300-610</li>
+	 * <li>910-300-710</li>
+	 * </ul>
+	 *
+	 * @param string $format The label format.
+	 * @param Label  $label The label instance.
+	 * @param string $type The type e.g. inlay_return.
+	 *
+	 * @since 3.0.5
+	 * @package Vendidero/Germanized/DHL
+	 */
+	$format = apply_filters( 'woocommerce_gzd_dhl_label_custom_format', '', $label, $type );
+
+	if ( ! empty( $format ) && ! in_array( $format, $available ) ) {
+		$format = '';
+	}
+
+	return $format;
+}
+
 /**
  * @param Order $dhl_order
  * @param ReturnShipment $shipment

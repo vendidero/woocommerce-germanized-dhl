@@ -477,7 +477,7 @@ class LabelSoap extends Soap {
 	                         * @param string $name The name of the shipmen receiver.
 	                         * @param Label  $label The label instance.
 	                         *
-	                         * @since 3.0.3
+	                         * @since 3.0.5
 	                         * @package Vendidero/Germanized/DHL
 	                         */
 	                        'contactPerson' => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_contact_person', $shipment->get_formatted_full_name(), $label ),
@@ -520,7 +520,7 @@ class LabelSoap extends Soap {
 	     * @param string $shipper_reference The shipper reference from the GKP.
 	     * @param Label  $label The label instance.
 	     *
-	     * @since 3.0.3
+	     * @since 3.0.5
 	     * @package Vendidero/Germanized/DHL
 	     */
 	    $shipper_reference = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_reference', '', $label );
@@ -549,6 +549,17 @@ class LabelSoap extends Soap {
 				    'contactPerson' => Package::get_setting( 'shipper_name' ),
 			    )
 		    );
+	    }
+
+	    $label_custom_format        = wc_gzd_dhl_get_custom_label_format( $label );
+	    $label_custom_return_format = wc_gzd_dhl_get_custom_label_format( $label, 'inlay_return' );
+
+	    if ( ! empty( $label_custom_format ) ) {
+			$dhl_label_body['labelFormat'] = $label_custom_format;
+	    }
+
+	    if ( ! empty( $label_custom_return_format ) ) {
+		    $dhl_label_body['labelFormatRetoure'] = $label_custom_return_format;
 	    }
 
         if ( $shipment->send_to_external_pickup( array_keys( wc_gzd_dhl_get_pickup_types() ) ) ) {
