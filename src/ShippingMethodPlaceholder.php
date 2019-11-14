@@ -23,15 +23,16 @@ class ShippingMethodPlaceholder extends ShippingMethod {
 	protected $instance_id = '';
 
 	public function __construct( $id ) {
-		$this->id = $id;
 
 		if ( ! is_numeric( $id ) ) {
 			$expl        = explode( ':', $id );
 			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : $id );
+			$id          = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[0] : $id );
 		} else {
 			$instance_id = $id;
 		}
 
+		$this->id = $id;
 		$this->instance_id = $instance_id;
 	}
 
