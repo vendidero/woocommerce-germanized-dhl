@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 use Vendidero\Germanized\DHL\Package;
 ?>
 
-<div class="wc-gzd-shipment-dhl-label column column-spaced col-12" data-label="<?php echo ( $dhl_label ? esc_attr( $dhl_label->get_id() ) : '' ); ?>">
+<div class="wc-gzd-shipment-dhl-label column column-spaced col-12 show-if show-if-provider show-if-provider-dhl" data-label="<?php echo ( $dhl_label ? esc_attr( $dhl_label->get_id() ) : '' ); ?>">
     <h4><?php _ex(  'DHL Label', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo ( $dhl_label ? '<a class="shipment-tracking-number" href="' . $dhl_label->get_tracking_url() . '" target="_blank">' . $dhl_label->get_number() . '</a>' : '' ); ?></h4>
 
     <div class="wc-gzd-shipment-dhl-label-content">

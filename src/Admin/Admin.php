@@ -370,7 +370,6 @@ class Admin {
 		wp_register_script( 'wc-gzd-admin-dhl-backbone', Package::get_assets_url() . '/js/admin-dhl-backbone' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version(), true );
 		wp_register_script( 'wc-gzd-admin-dhl', Package::get_assets_url() . '/js/admin-dhl' . $suffix . '.js', array( 'wc-gzd-admin-shipments', 'wc-gzd-admin-dhl-backbone' ), Package::get_version(), true );
 		wp_register_script( 'wc-gzd-admin-dhl-table', Package::get_assets_url() . '/js/admin-dhl-table' . $suffix . '.js', array( 'wc-gzd-admin-dhl-backbone' ), Package::get_version(), true );
-		wp_register_script( 'wc-gzd-admin-dhl-shipping-method', Package::get_assets_url() . '/js/admin-dhl-shipping-method' . $suffix . '.js', array( 'jquery' ), Package::get_version(), true );
 
 		// Orders.
 		$is_edit_order = in_array( str_replace( 'edit-', '', $screen_id ), wc_get_order_types( 'order-meta-boxes' ) );
@@ -383,17 +382,12 @@ class Admin {
 				'wc-gzd-admin-dhl-backbone',
 				'wc_gzd_admin_dhl_backbone_params',
 				array(
-					'ajax_url'                 => admin_url( 'admin-ajax.php' ),
-					'create_label_form_nonce'  => wp_create_nonce( 'create-dhl-label-form' ),
-					'create_label_nonce'       => wp_create_nonce( 'create-dhl-label' ),
+					'ajax_url'                => admin_url( 'admin-ajax.php' ),
+					'create_label_form_nonce' => wp_create_nonce( 'create-dhl-label-form' ),
+					'create_label_nonce'      => wp_create_nonce( 'create-dhl-label' ),
 				)
 			);
 		}
-
-		// Shipping zone methods
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) {
-			wp_enqueue_script( 'wc-gzd-admin-dhl-shipping-method' );
-        }
 
 		if ( in_array( $screen_id, self::get_table_screen_ids() ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-dhl-table' );

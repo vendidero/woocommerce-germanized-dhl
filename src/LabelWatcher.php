@@ -33,29 +33,23 @@ class LabelWatcher {
 		add_action( 'woocommerce_gzd_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
 		add_action( 'woocommerce_gzd_return_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
 
+		// Delete the label if dhl is no longer the shipping provider selected
+		add_action( 'woocommerce_gzd_shipment_updated', array( __CLASS__, 'maybe_delete_label' ), 10, 2 );
+		add_action( 'woocommerce_gzd_return_shipment_updated', array( __CLASS__, 'maybe_delete_label' ), 10, 2 );
+
 		// Sync shipment items
 		add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
-
-		// Add shipment tracking url
-		add_filter( 'woocommerce_gzd_shipment_get_tracking_url', array( __CLASS__, 'add_tracking_url' ), 10, 2 );
-		add_filter( 'woocommerce_gzd_return_shipment_get_tracking_url', array( __CLASS__, 'add_tracking_url' ), 10, 2 );
-
-		add_action( 'woocommerce_gzd_shipment_synced', array( __CLASS__, 'maybe_set_shipping_provider' ), 10, 3 );
 	}
 
 	/**
+	 * @param $shipment_id
 	 * @param Shipment $shipment
-	 * @param \Vendidero\Germanized\Shipments\Order $order_shipment
-	 * @param array $args
 	 */
-	public static function maybe_set_shipping_provider( $shipment, $order_shipment, $args ) {
-		if ( $shipping_method = $shipment->get_shipping_method() ) {
+	public static function maybe_delete_label( $shipment_id, $shipment ) {
+		if ( 'dhl' !== $shipment->get_shipping_provider() ) {
 
-			if ( $dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method ) ) {
-
-				if ( $dhl_shipping_method->is_dhl_enabled() ) {
-					$shipment->set_shipping_provider( 'dhl' );
-				}
+			if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+				$label->delete( true );
 			}
 		}
 	}

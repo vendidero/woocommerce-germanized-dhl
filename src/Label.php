@@ -152,28 +152,13 @@ abstract class Label extends WC_Data {
     }
 
     public function get_tracking_url() {
-    	$url = '';
 
-    	if ( $this->get_number() ) {
-    		$url = 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc=' . $this->get_number() . '&rfn=&extendedSearch=true';
+    	if ( $shipment = $this->get_shipment() ) {
+    		return $shipment->get_tracking_url();
 	    }
 
-	    /**
-	     * Filter to adjust the tracking URL for a certain DHL label.
-	     *
-	     * The dynamic portion of the hook name, `$this->get_hook_prefix()` constructs an individual
-	     * hook name which uses `woocommerce_gzd_dhl_label_get_` as a prefix.
-	     *
-	     * Example hook name: `woocommerce_gzd_dhl_label_get_tracking_url`
-	     *
-	     * @param string                          $url The tracking URL.
-	     * @param Label $label The label object.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/DHL
-	     */
-    	return apply_filters( "{$this->get_hook_prefix()}tracking_url", $url, $this );
-    }
+    	return '';
+     }
 
     public function get_path( $context = 'view' ) {
         return $this->get_prop( 'path', $context );
