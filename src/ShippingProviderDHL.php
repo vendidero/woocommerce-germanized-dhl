@@ -17,6 +17,13 @@ class ShippingProviderDHL extends ShippingProvider  {
 		return false;
 	}
 
+	public function supports_labels( $label_type ) {
+		return in_array( $label_type, array(
+			'simple',
+			'return'
+		) );
+	}
+
 	public function get_edit_link() {
 		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' );
 	}

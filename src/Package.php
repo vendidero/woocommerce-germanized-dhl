@@ -164,6 +164,7 @@ class Package {
 
 	        Ajax::init();
 	        Emails::init();
+	        ShipmentLabelWatcher::init();
 	        LabelWatcher::init();
 	        Automation::init();
         }

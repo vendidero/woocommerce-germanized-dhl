@@ -21,41 +21,6 @@
 }
 
 .germanized-create-label {
-  .notice-wrapper {
-    .notice {
-      margin: 0;
-      margin-bottom: 1em;
-
-      p {
-        margin: 0.5em 0 !important;
-        padding: 2px !important;
-        font-size: 13px;
-        line-height: 1.5;
-      }
-    }
-  }
-
-  p.form-field {
-    &:first-child, &:last-child {
-      margin-bottom: 5px !important;
-      margin-top: 5px !important;
-    }
-    display: inline-block;
-    width: 100%;
-    margin-bottom: 5px !important;
-    margin-top: 5px !important;
-  }
-
-  .columns {
-    margin-left: -.5rem !important;
-    margin-right: -.5rem !important;
-  }
-
-  .column {
-    padding-left: .5rem !important;
-    padding-right: .5rem !important;
-  }
-
   .show-services-trigger {
     font-weight: bold;
     margin-top: 15px;
@@ -65,86 +30,6 @@
 
     a {
       text-decoration: none;
-    }
-
-    .dashicons {
-
-    }
-  }
-
-  .show-if, .hide-default {
-    display: none;
-  }
-
-  .show-if {
-    label {
-      color: #777;
-    }
-  }
-
-  p.form-field {
-    label {
-      width: 100%;
-      display: block;
-      margin-bottom: 5px;
-    }
-    select, input[type=text], input[type=email] {
-      width: 100%;
-      max-width: 100%;
-    }
-
-    &.form-field-checkbox {
-      display: flex;
-      flex-wrap: wrap;
-      flex-direction: row;
-      justify-content: flex-start;
-      margin-top: 10px !important;
-      margin-bottom: 10px !important;
-      align-items: center;
-
-      label {
-        width: auto;
-        margin-left: .5em;
-        order: 2;
-        margin-bottom: 0;
-      }
-
-      input[type=checkbox] {
-        order: 1;
-      }
-
-      .woocommerce-help-tip {
-        order: 3;
-        margin-left: 3px;
-      }
-
-      .description {
-        width: 100%;
-        margin-top: 5px;
-        color: #777;
-        order: 4;
-        font-style: normal;
-      }
-    }
-  }
-}
-
-.wc-gzd-shipment-dhl-label {
-  h4 {
-    margin-top: 0;
-  }
-
-  .shipment-dhl-label-actions {
-    .shipment-dhl-label-actions-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      margin-bottom: 1em;
-      align-items: center;
-
-      a {
-        margin-right: 1em;
-      }
     }
   }
 }
