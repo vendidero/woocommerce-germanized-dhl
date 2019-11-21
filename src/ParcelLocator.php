@@ -775,7 +775,7 @@ class ParcelLocator {
 	/**
 	 * @param string $sep
 	 * @param bool $plural
-	 * @param bool|ShippingMethod $method
+	 * @param bool|ShippingProviderMethodDHL $method
 	 *
 	 * @return string
 	 */
@@ -860,8 +860,8 @@ class ParcelLocator {
 		 * Filter to adjust the pickup type address label added
 		 * to the address field when a certain pickup type was chosen.
 		 *
-		 * @param string                 $pickup_type_text The pickup type text.
-		 * @param boolean|ShippingMethod $method The shipping method object if available.
+		 * @param string                            $pickup_type_text The pickup type text.
+		 * @param boolean|ShippingProviderMethodDHL $method The shipping method object if available.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL
@@ -874,8 +874,8 @@ class ParcelLocator {
 		 * Filter to adjust the pickup type address placeholder added
 		 * to the address field when a certain pickup type was chosen.
 		 *
-		 * @param string                 $pickup_type_text The pickup type placeholder text.
-		 * @param boolean|ShippingMethod $method The shipping method object if available.
+		 * @param string                            $pickup_type_text The pickup type placeholder text.
+		 * @param boolean|ShippingProviderMethodDHL $method The shipping method object if available.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL

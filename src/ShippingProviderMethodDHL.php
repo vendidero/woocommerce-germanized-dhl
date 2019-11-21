@@ -44,6 +44,11 @@ class ShippingProviderMethodDHL {
 		return $key;
 	}
 
+	public function has_option( $key ) {
+		$dhl_key = $this->maybe_prefix_key( $key );
+
+		return $this->method->has_option( $dhl_key );
+	}
 
 	public function get_option( $key ) {
 		$dhl_key = $this->maybe_prefix_key( $key );

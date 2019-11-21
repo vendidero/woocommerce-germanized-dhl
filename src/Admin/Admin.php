@@ -2,8 +2,8 @@
 
 namespace Vendidero\Germanized\DHL\Admin;
 use Vendidero\Germanized\DHL\Package;
-use Vendidero\Germanized\DHL\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ReturnShipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -24,6 +24,7 @@ class Admin {
 
 		// Label settings
 		add_action( 'woocommerce_gzd_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'label_fields' ), 10, 1 );
+		add_action( 'woocommerce_gzd_return_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'return_label_fields' ), 10, 1 );
 
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
@@ -60,6 +61,23 @@ class Admin {
 
 		include $path;
     }
+
+	/**
+	 * Output label admin settings.
+	 *
+	 * @param ReturnShipment $p_shipment
+	 */
+	public static function return_label_fields( $p_shipment ) {
+		$shipment = $p_shipment;
+
+		if ( ! $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
+			return;
+		}
+
+		$path = Package::get_path() . '/includes/admin/views/html-shipment-return-label-backbone-form.php';
+
+		include $path;
+	}
 
 	public static function save_receiver_ids() {
 		$receiver = array();
@@ -202,24 +220,6 @@ class Admin {
 		return $check;
     }
 
-	/**
-	 * @param BulkLabel $handler
-	 */
-	public static function add_bulk_download( $handler ) {
-		if ( ( $path = $handler->get_file() ) && file_exists( $path ) ) {
-
-			$download_url = add_query_arg( array(
-				'action'   => 'wc-gzd-dhl-download-export-label',
-				'force'    => 'no'
-			), wp_nonce_url( admin_url(), 'dhl-download-export-label' ) );
-			?>
-			<div class="wc-gzd-dhl-bulk-downloads">
-				<a class="button button-primary" href="<?php echo $download_url; ?>" target="_blank"><?php _ex(  'Download labels', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
-			</div>
-			<?php
-		}
-	}
-
 	public static function add_legacy_meta_box() {
 		global $post;
 
@@ -258,16 +258,6 @@ class Admin {
 				) );
 
 				DownloadHandler::download_legacy_label( $order_id, $args );
-			}
-		} elseif( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-export-label' === $_GET['action'] ) {
-			if ( wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-export-label' ) ) {
-
-				$args = wp_parse_args( $_GET, array(
-					'force'  => 'no',
-					'print'  => 'no',
-				) );
-
-				DownloadHandler::download_export( $args );
 			}
 		}
 	}

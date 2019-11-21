@@ -491,22 +491,6 @@ class Package {
         remove_filter( 'upload_dir', array( __CLASS__, "filter_upload_dir" ), 150 );
     }
 
-    public static function create_upload_folder() {
-        $dir = self::get_upload_dir();
-
-        if ( ! @is_dir( $dir['basedir'] ) ) {
-            @mkdir( $dir['basedir'] );
-        }
-
-        if ( ! file_exists( trailingslashit( $dir['basedir'] ) . '.htaccess' ) ) {
-            @file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' );
-        }
-
-        if ( ! file_exists( trailingslashit( $dir['basedir'] ) . 'index.php' ) ) {
-            @touch( trailingslashit( $dir['basedir'] ) . 'index.php' );
-        }
-    }
-
     public static function filter_upload_dir( $args ) {
         $upload_base = trailingslashit( $args['basedir'] );
         $upload_url  = trailingslashit( $args['baseurl'] );
@@ -544,7 +528,7 @@ class Package {
 
 	/**
 	 * @param $name
-	 * @param bool|ShippingMethod $method
+	 * @param bool|ShippingProviderMethodDHL $method
 	 *
 	 * @return mixed|void
 	 */

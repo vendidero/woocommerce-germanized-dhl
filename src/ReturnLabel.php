@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL;
 use DateTimeZone;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -13,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * DHL ReturnLabel class.
  */
-class ReturnLabel extends Label {
+class ReturnLabel extends Label implements ShipmentReturnLabel {
 
 	/**
 	 * Stores product data.

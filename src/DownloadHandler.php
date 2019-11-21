@@ -50,24 +50,6 @@ class DownloadHandler {
 		}
 	}
 
-	public static function download_export( $args = array() ) {
-		$args = self::parse_args( $args );
-
-		if ( current_user_can( 'edit_shop_orders' ) ) {
-			$handler = new BulkLabel();
-
-			if ( $path = $handler->get_file() ) {
-				$filename = $handler->get_filename();
-
-				if ( $args['force'] ) {
-					WC_Download_Handler::download_file_force( $path, $filename );
-				} else {
-					self::embed( $path, $filename );
-				}
-			}
-		}
-	}
-
 	public static function download_legacy_label( $order_id, $args = array() ) {
 		$args = self::parse_args( $args );
 
