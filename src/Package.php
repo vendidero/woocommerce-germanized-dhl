@@ -46,6 +46,9 @@ class Package {
         self::maybe_set_upload_dir();
 
 	    if ( self::is_enabled() ) {
+		    // Add shipping provider
+		    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_provider' ), 10, 1 );
+
 	        self::init_hooks();
         }
 
@@ -161,6 +164,7 @@ class Package {
 
 	        Ajax::init();
 	        Emails::init();
+	        ShipmentLabelWatcher::init();
 	        LabelWatcher::init();
 	        Automation::init();
         }
@@ -169,11 +173,7 @@ class Package {
     public static function init_hooks() {
 	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
 
-	    // Add shipping provider
-	    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_providers' ), 10, 1 );
-
-	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
-	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
+	    add_filter( 'woocommerce_gzd_shipping_provider_method_admin_settings', array( __CLASS__, 'add_shipping_provider_settings' ), 10, 1 );
 
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
@@ -188,14 +188,8 @@ class Package {
 		return $path;
 	}
 
-	public static function set_method_filters( $methods ) {
-
-		foreach ( $methods as $method => $class ) {
-			add_filter( 'woocommerce_shipping_instance_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
-			add_filter( 'woocommerce_shipping_' . $method . '_instance_settings_values', array( __CLASS__, 'filter_method_settings' ), 10, 2 );
-		}
-
-		return $methods;
+	public static function add_shipping_provider_settings( $settings ) {
+		return array_merge( $settings, self::get_method_settings() );
 	}
 
 	protected static function get_method_settings() {
@@ -206,36 +200,8 @@ class Package {
     	return self::$method_settings;
 	}
 
-	public static function filter_method_settings( $p_settings, $method ) {
-		$dhl_settings = self::get_method_settings();
-
-		foreach( $p_settings as $setting => $value ) {
-			if ( array_key_exists( $setting, $dhl_settings ) ) {
-				if ( self::get_setting( $setting ) === $value ) {
-					unset( $p_settings[ $setting ] );
-				}
-			}
-		}
-
-		return $p_settings;
-	}
-
-	public static function add_method_settings( $p_settings ) {
-		$dhl_settings = self::get_method_settings();
-
-		return array_merge( $p_settings, $dhl_settings );
-	}
-
-	public static function load_shipping_methods( $package ) {
-		$shipping = WC_Shipping::instance();
-
-		foreach( $shipping->shipping_methods as $key => $method ) {
-			$dhl_method = new ShippingMethod( $method );
-		}
-	}
-
-	public static function add_shipping_providers( $providers ) {
-		$providers['dhl'] = _x(  'DHL', 'dhl', 'woocommerce-germanized-dhl' );
+	public static function add_shipping_provider( $providers ) {
+		$providers['dhl'] = '\Vendidero\Germanized\DHL\ShippingProviderDHL';
 
 		return $providers;
 	}
@@ -525,22 +491,6 @@ class Package {
         remove_filter( 'upload_dir', array( __CLASS__, "filter_upload_dir" ), 150 );
     }
 
-    public static function create_upload_folder() {
-        $dir = self::get_upload_dir();
-
-        if ( ! @is_dir( $dir['basedir'] ) ) {
-            @mkdir( $dir['basedir'] );
-        }
-
-        if ( ! file_exists( trailingslashit( $dir['basedir'] ) . '.htaccess' ) ) {
-            @file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' );
-        }
-
-        if ( ! file_exists( trailingslashit( $dir['basedir'] ) . 'index.php' ) ) {
-            @touch( trailingslashit( $dir['basedir'] ) . 'index.php' );
-        }
-    }
-
     public static function filter_upload_dir( $args ) {
         $upload_base = trailingslashit( $args['basedir'] );
         $upload_url  = trailingslashit( $args['baseurl'] );
@@ -578,7 +528,7 @@ class Package {
 
 	/**
 	 * @param $name
-	 * @param bool|ShippingMethod $method
+	 * @param bool|ShippingProviderMethodDHL $method
 	 *
 	 * @return mixed|void
 	 */

@@ -2,8 +2,8 @@
 
 namespace Vendidero\Germanized\DHL\Admin;
 use Vendidero\Germanized\DHL\Package;
-use Vendidero\Germanized\DHL\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ReturnShipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,28 +17,14 @@ class Admin {
 	 */
 	public static function init() {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_styles' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_scripts' ) );
-
 		add_action( 'admin_init', array( __CLASS__, 'download_label' ) );
-		add_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', array( 'Vendidero\Germanized\DHL\Admin\MetaBox', 'output' ), 10, 1 );
 
 		// Legacy meta box
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_legacy_meta_box' ), 20 );
 
-		// Shipments
-		add_filter( 'woocommerce_gzd_shipments_table_actions', array( __CLASS__, 'table_label_download' ), 10, 2 );
-		add_action( 'woocommerce_gzd_shipments_table_actions_end', array( __CLASS__, 'table_label_generate' ), 10, 1 );
-		add_filter( 'woocommerce_gzd_shipments_table_bulk_actions', array( __CLASS__, 'table_bulk_actions' ), 10, 1 );
-
-		// Returns
-		add_filter( 'woocommerce_gzd_return_shipments_table_actions', array( __CLASS__, 'table_label_download' ), 10, 2 );
-		add_action( 'woocommerce_gzd_return_shipments_table_actions_end', array( __CLASS__, 'table_label_generate' ), 10, 1 );
-		add_filter( 'woocommerce_gzd_return_shipments_table_bulk_actions', array( __CLASS__, 'table_bulk_actions' ), 10, 1 );
-
-		// Bulk Labels
-		add_filter( 'woocommerce_gzd_shipments_table_bulk_action_handlers', array( __CLASS__, 'register_bulk_handler' ) );
-		add_action( 'woocommerce_gzd_shipments_table_bulk_action_labels_handled', array( __CLASS__, 'add_bulk_download' ), 10, 1 );
-		add_action( 'woocommerce_gzd_return_shipments_table_bulk_action_labels_handled', array( __CLASS__, 'add_bulk_download' ), 10, 1 );
+		// Label settings
+		add_action( 'woocommerce_gzd_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'label_fields' ), 10, 1 );
+		add_action( 'woocommerce_gzd_return_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'return_label_fields' ), 10, 1 );
 
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
@@ -57,6 +43,40 @@ class Admin {
 		// Reveiver ID options
         add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ) );
         add_action( 'woocommerce_gzd_admin_settings_after_save_dhl_labels', array( __CLASS__, 'save_receiver_ids' ) );
+	}
+
+	/**
+     * Output label admin settings.
+     *
+	 * @param Shipment $p_shipment
+	 */
+	public static function label_fields( $p_shipment ) {
+	    $shipment = $p_shipment;
+
+		if ( ! $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
+			return;
+		}
+
+		$path = Package::get_path() . '/includes/admin/views/html-shipment-label-backbone-form.php';
+
+		include $path;
+    }
+
+	/**
+	 * Output label admin settings.
+	 *
+	 * @param ReturnShipment $p_shipment
+	 */
+	public static function return_label_fields( $p_shipment ) {
+		$shipment = $p_shipment;
+
+		if ( ! $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
+			return;
+		}
+
+		$path = Package::get_path() . '/includes/admin/views/html-shipment-return-label-backbone-form.php';
+
+		include $path;
 	}
 
 	public static function save_receiver_ids() {
@@ -200,74 +220,6 @@ class Admin {
 		return $check;
     }
 
-	/**
-	 * @param BulkLabel $handler
-	 */
-	public static function add_bulk_download( $handler ) {
-		if ( ( $path = $handler->get_file() ) && file_exists( $path ) ) {
-
-			$download_url = add_query_arg( array(
-				'action'   => 'wc-gzd-dhl-download-export-label',
-				'force'    => 'no'
-			), wp_nonce_url( admin_url(), 'dhl-download-export-label' ) );
-			?>
-			<div class="wc-gzd-dhl-bulk-downloads">
-				<a class="button button-primary" href="<?php echo $download_url; ?>" target="_blank"><?php _ex(  'Download labels', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
-			</div>
-			<?php
-		}
-	}
-
-	public static function table_bulk_actions( $actions ) {
-		$actions['labels'] = _x( 'Generate and download labels', 'dhl', 'woocommerce-germanized-dhl' );
-
-		return $actions;
-	}
-
-	public static function register_bulk_handler( $handlers ) {
-		$handlers['labels'] = '\Vendidero\Germanized\DHL\Admin\BulkLabel';
-
-		return $handlers;
-	}
-
-	public static function table_label_generate( $shipment ) {
-
-		if ( wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
-			include Package::get_path() . '/includes/admin/views/html-shipment-label-backbone.php';
-		}
-	}
-
-	/**
-	 * @param array $actions
-	 * @param Shipment $shipment
-	 */
-	public static function table_label_download( $actions, $shipment ) {
-		if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
-			$actions['download_dhl_label'] = array(
-				'url'    => $label->get_download_url(),
-				'name'   => _x( 'Download DHL label', 'dhl', 'woocommerce-germanized-dhl' ),
-				'action' => 'download-dhl-label download',
-				'target' => '_blank'
-			);
-
-			if ( 'return' === $label->get_type() ) {
-				$actions['email_dhl_label'] = array(
-					'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_dhl_email_return_label&label_id=' . $label->get_id() ), 'email-dhl-label' ),
-					'name'   => _x( 'Send DHL label to customer', 'dhl', 'woocommerce-germanized-dhl' ),
-					'action' => 'email-send-dhl-label email',
-				);
-            }
-		} elseif ( wc_gzd_dhl_shipment_needs_label( $shipment ) ) {
-			$actions['generate_dhl_label'] = array(
-				'url'    => '#',
-				'name'   => _x( 'Generate DHL label', 'dhl', 'woocommerce-germanized-dhl' ),
-				'action' => 'generate-dhl-label generate',
-			);
-		}
-
-		return $actions;
-	}
-
 	public static function add_legacy_meta_box() {
 		global $post;
 
@@ -296,19 +248,7 @@ class Admin {
 	}
 
 	public static function download_label() {
-		if ( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-label' === $_GET['action'] ) {
-			if ( isset( $_GET['label_id'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-label' ) ) {
-
-				$label_id = absint( $_GET['label_id'] );
-				$args     = wp_parse_args( $_GET, array(
-					'force'  => 'no',
-					'print'  => 'no',
-					'path'   => '',
-				) );
-
-				DownloadHandler::download_label( $label_id, $args );
-			}
-		} elseif( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-legacy-label' === $_GET['action'] ) {
+		if( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-legacy-label' === $_GET['action'] ) {
 			if ( isset( $_GET['order_id'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-legacy-label' ) ) {
 
 				$order_id = absint( $_GET['order_id'] );
@@ -318,16 +258,6 @@ class Admin {
 				) );
 
 				DownloadHandler::download_legacy_label( $order_id, $args );
-			}
-		} elseif( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-export-label' === $_GET['action'] ) {
-			if ( wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-export-label' ) ) {
-
-				$args = wp_parse_args( $_GET, array(
-					'force'  => 'no',
-					'print'  => 'no',
-				) );
-
-				DownloadHandler::download_export( $args );
 			}
 		}
 	}
@@ -359,64 +289,6 @@ class Admin {
             'woocommerce_page_wc-gzd-return-shipments'
         );
     }
-
-	public static function admin_scripts() {
-		global $post;
-
-		$screen    = get_current_screen();
-		$screen_id = $screen ? $screen->id : '';
-		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-
-		wp_register_script( 'wc-gzd-admin-dhl-backbone', Package::get_assets_url() . '/js/admin-dhl-backbone' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version(), true );
-		wp_register_script( 'wc-gzd-admin-dhl', Package::get_assets_url() . '/js/admin-dhl' . $suffix . '.js', array( 'wc-gzd-admin-shipments', 'wc-gzd-admin-dhl-backbone' ), Package::get_version(), true );
-		wp_register_script( 'wc-gzd-admin-dhl-table', Package::get_assets_url() . '/js/admin-dhl-table' . $suffix . '.js', array( 'wc-gzd-admin-dhl-backbone' ), Package::get_version(), true );
-		wp_register_script( 'wc-gzd-admin-dhl-shipping-method', Package::get_assets_url() . '/js/admin-dhl-shipping-method' . $suffix . '.js', array( 'jquery' ), Package::get_version(), true );
-
-		// Orders.
-		$is_edit_order = in_array( str_replace( 'edit-', '', $screen_id ), wc_get_order_types( 'order-meta-boxes' ) );
-
-		// Table
-		if ( $is_edit_order || in_array(  $screen_id, self::get_table_screen_ids() ) ) {
-			wp_enqueue_script( 'wc-gzd-admin-dhl-backbone' );
-
-			wp_localize_script(
-				'wc-gzd-admin-dhl-backbone',
-				'wc_gzd_admin_dhl_backbone_params',
-				array(
-					'ajax_url'                 => admin_url( 'admin-ajax.php' ),
-					'create_label_form_nonce'  => wp_create_nonce( 'create-dhl-label-form' ),
-					'create_label_nonce'       => wp_create_nonce( 'create-dhl-label' ),
-				)
-			);
-		}
-
-		// Shipping zone methods
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) {
-			wp_enqueue_script( 'wc-gzd-admin-dhl-shipping-method' );
-        }
-
-		if ( in_array( $screen_id, self::get_table_screen_ids() ) ) {
-			wp_enqueue_script( 'wc-gzd-admin-dhl-table' );
-		}
-
-		if ( $is_edit_order ) {
-			wp_enqueue_script( 'wc-gzd-admin-dhl' );
-
-			wp_localize_script(
-				'wc-gzd-admin-dhl',
-				'wc_gzd_admin_dhl_params',
-				array(
-					'ajax_url'                   => admin_url( 'admin-ajax.php' ),
-					'remove_label_nonce'         => wp_create_nonce( 'remove-dhl-label' ),
-					'edit_label_nonce'           => wp_create_nonce( 'edit-dhl-label' ),
-					'send_label_nonce'           => wp_create_nonce( 'email-dhl-label' ),
-					'i18n_remove_label_notice'   => _x( 'Do you really want to delete the label?', 'dhl', 'woocommerce-germanized-dhl' ),
-					'i18n_create_label_enabled'  => _x( 'Create new DHL label', 'dhl', 'woocommerce-germanized-dhl' ),
-					'i18n_create_label_disabled' => _x( 'Please save the shipment before creating a new label', 'dhl', 'woocommerce-germanized-dhl' ),
-				)
-			);
-		}
-	}
 
 	public static function get_screen_ids() {
 		$screen_ids = self::get_table_screen_ids();

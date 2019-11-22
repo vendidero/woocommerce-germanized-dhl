@@ -2,7 +2,10 @@
 
 namespace Vendidero\Germanized\DHL;
 use DateTimeZone;
+use Vendidero\Germanized\DHL\Admin\DownloadHandler;
+use Vendidero\Germanized\Shipments\PDFMerger;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -13,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * DHL Shipment class.
  */
-abstract class Label extends WC_Data {
+abstract class Label extends WC_Data implements ShipmentLabel {
 
     /**
      * This is the name of this object type.
@@ -147,33 +150,24 @@ abstract class Label extends WC_Data {
         return $this->get_prop( 'number', $context );
     }
 
-    public function get_weight( $context = 'view' ) {
+    public function has_number() {
+	    $number = $this->get_number();
+
+	    return empty( $number ) ? false : true;
+    }
+
+	public function get_weight( $context = 'view' ) {
     	return $this->get_prop( 'weight', $context );
     }
 
     public function get_tracking_url() {
-    	$url = '';
 
-    	if ( $this->get_number() ) {
-    		$url = 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc=' . $this->get_number() . '&rfn=&extendedSearch=true';
+    	if ( $shipment = $this->get_shipment() ) {
+    		return $shipment->get_tracking_url();
 	    }
 
-	    /**
-	     * Filter to adjust the tracking URL for a certain DHL label.
-	     *
-	     * The dynamic portion of the hook name, `$this->get_hook_prefix()` constructs an individual
-	     * hook name which uses `woocommerce_gzd_dhl_label_get_` as a prefix.
-	     *
-	     * Example hook name: `woocommerce_gzd_dhl_label_get_tracking_url`
-	     *
-	     * @param string                          $url The tracking URL.
-	     * @param Label $label The label object.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/DHL
-	     */
-    	return apply_filters( "{$this->get_hook_prefix()}tracking_url", $url, $this );
-    }
+    	return '';
+     }
 
     public function get_path( $context = 'view' ) {
         return $this->get_prop( 'path', $context );
@@ -182,16 +176,6 @@ abstract class Label extends WC_Data {
 	public function get_default_path( $context = 'view' ) {
 		return $this->get_prop( 'default_path', $context );
 	}
-
-	/**
-	 * @param bool   $force Whether to force file download or show stream in browser
-	 * @param string $path E.g. default or export
-	 *
-	 * @return string
-	 */
-    public function get_download_url( $force = false, $path = '' ) {
-    	return add_query_arg( array( 'action' => 'wc-gzd-dhl-download-label', 'label_id' => $this->get_id(), 'path' => $path, 'force' => wc_bool_to_string( $force ) ), wp_nonce_url( admin_url(), 'dhl-download-label' ) );
-    }
 
     public function get_export_path( $context = 'view' ) {
         return $this->get_prop( 'export_path', $context );
@@ -416,5 +400,21 @@ abstract class Label extends WC_Data {
 		$this->shipment = $shipment;
 
 		$this->set_prop( 'shipment_id', absint( $shipment->get_id() ) );
+	}
+
+	public function download( $args = array() ) {
+		DownloadHandler::download_label( $this->get_id(), $args );
+	}
+
+	public function merge( PDFMerger &$pdf ) {
+		$file = $this->get_file();
+
+		if ( ! $file || ! file_exists( $file ) ) {
+			return;
+		}
+
+		if ( $file ) {
+			$pdf->add( $file );
+		}
 	}
 }

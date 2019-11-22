@@ -1,6 +1,8 @@
 <?php
 
 namespace Vendidero\Germanized\DHL;
+
+use Vendidero\Germanized\Shipments\ShippingProviderMethod;
 use Exception;
 use WC_Order;
 use WC_Customer;
@@ -16,52 +18,22 @@ defined( 'ABSPATH' ) || exit;
  * @version		1.0.0
  * @author 		Vendidero
  */
-class ShippingMethod {
+class ShippingProviderMethodDHL {
 
 	/**
-	 * The actual method object
-	 *
-	 * @var WC_Shipping_Method
+	 * @var ShippingProviderMethod|null
 	 */
-	protected $method;
-
-	protected $instance_form_fields = array();
+	protected $method = null;
 
 	protected $preferred_services = null;
 
 	/**
-	 * @param WC_Customer $customer
+	 * ShippingProviderMethodDHL constructor.
+	 *
+	 * @param ShippingProviderMethod $method
 	 */
 	public function __construct( $method ) {
 		$this->method = $method;
-
-		$this->init();
-	}
-
-	protected function init() {
-		$this->instance_form_fields = include Package::get_path() . '/includes/admin/views/settings-shipping-method.php';
-
-		$this->get_method()->instance_form_fields = array_merge( $this->get_method()->instance_form_fields, $this->instance_form_fields );
-	}
-
-	/**
-	 * Returns the Woo WC_Shipping_Method original object
-	 *
-	 * @return object|WC_Shipping_Method
-	 */
-	public function get_method() {
-		return $this->method;
-	}
-
-	public function get_id() {
-		return $this->method->id;
-	}
-
-	public function has_option( $key ) {
-		$fields = $this->instance_form_fields;
-		$key    = $this->maybe_prefix_key( $key );
-
-		return array_key_exists( $key, $fields ) ? true : false;
 	}
 
 	protected function maybe_prefix_key( $key ) {
@@ -72,33 +44,44 @@ class ShippingMethod {
 		return $key;
 	}
 
-	public function get_option( $key ) {
-		$key          = $this->maybe_prefix_key( $key );
-		$option_value = $this->method->get_option( $key );
+	public function has_option( $key ) {
+		$dhl_key = $this->maybe_prefix_key( $key );
 
-		if ( strpos( $key, 'enable' ) !== false ) {
-			if ( 'yes' === $option_value && ! $this->is_dhl_enabled() ) {
-				$option_value = 'no';
+		return $this->method->has_option( $dhl_key );
+	}
+
+	public function get_option( $key ) {
+		$dhl_key = $this->maybe_prefix_key( $key );
+
+		if ( $this->method->has_option( $dhl_key ) ) {
+			$option_value = $this->method->get_option( $dhl_key );
+
+			if ( strpos( $key, 'enable' ) !== false ) {
+				if ( 'yes' === $option_value && ! $this->is_dhl_enabled() ) {
+					$option_value = 'no';
+				}
 			}
+		} else {
+			$option_value = $this->method->get_option( $key );
 		}
 
 		return $option_value;
 	}
 
+	public function is_dhl_enabled() {
+		return $this->method->is_enabled( 'dhl' );
+	}
+
 	public function is_packstation_enabled() {
-		return $this->get_option( 'parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
+		return $this->method->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
 	}
 
 	public function is_postoffice_enabled() {
-		return $this->get_option( 'parcel_pickup_postoffice_enable' ) === 'yes' ? true : false;
+		return $this->method->get_option( 'dhl_parcel_pickup_postoffice_enable' ) === 'yes' ? true : false;
 	}
 
 	public function is_parcelshop_enabled() {
-		return $this->get_option( 'parcel_pickup_parcelshop_enable' ) === 'yes' ? true : false;
-	}
-
-	public function is_dhl_enabled() {
-		return $this->method->get_option( 'dhl_enable' ) === 'yes' ? true : false;
+		return $this->method->get_option( 'dhl_parcel_pickup_parcelshop_enable' ) === 'yes' ? true : false;
 	}
 
 	public function get_enabled_preferred_services() {
@@ -112,7 +95,7 @@ class ShippingMethod {
 					continue;
 				}
 
-				if ( $this->get_option( $service . '_enable' ) === 'yes' ) {
+				if ( $this->method->get_option( 'dhl_' . $service . '_enable' ) === 'yes' ) {
 					$this->preferred_services[] = $service;
 				}
 			}

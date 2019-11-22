@@ -11,20 +11,6 @@ use \Vendidero\Germanized\DHL\Admin\Settings;
 use \Vendidero\Germanized\DHL\ParcelLocator;
 
 $settings = array(
-	'dhl_title' => array(
-		'title'       => _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' ),
-		'type'        => 'title',
-		'default'     => '',
-		/* translators: %s: URL for link. */
-		'description' => sprintf( _x( 'Adjust DHL settings accordingly. <a href="%s">Global settings</a> will be used as fallback.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' ) ),
-	),
-	'dhl_enable' => array(
-		'title'       => _x( 'Ship via DHL', 'dhl', 'woocommerce-germanized-dhl' ),
-		'type'        => 'checkbox',
-		'description' => _x( 'Enables DHL features.', 'dhl', 'woocommerce-germanized-dhl' ),
-		'default'     => 'yes',
-		'desc_tip'    => true,
-	),
 	'dhl_label_title' => array(
 		'title'       => _x( 'DHL Labels', 'dhl', 'woocommerce-germanized-dhl' ),
 		'type'        => 'title',

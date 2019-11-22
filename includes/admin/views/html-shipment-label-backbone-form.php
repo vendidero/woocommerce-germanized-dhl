@@ -11,7 +11,7 @@ use Vendidero\Germanized\DHL\Package;
 $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 ?>
 
-<form action="" method="post" class="wc-gzd-dhl-create-label-form">
+<form action="" method="post" class="wc-gzd-create-shipment-label-form">
 
 <?php woocommerce_wp_select( array(
 	'id'          		=> 'dhl_label_dhl_product',
