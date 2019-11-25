@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\DHL;
 
+use DateTime;
+use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Api\Paket;
 use WC_Shipping;
@@ -75,6 +77,30 @@ class Package {
 		}
 
 		return false;
+    }
+
+    public static function get_date_de_timezone( $format = 'Y-m-d', $reset_timezone = true ) {
+    	try {
+		    // Get existing timezone to reset afterwards
+		    $current_timzone = date_default_timezone_get();
+
+		    // Always set and get DE timezone and check against it.
+		    date_default_timezone_set( 'Europe/Berlin' );
+
+		    $tz_obj       = new DateTimeZone(  'Europe/Berlin' );
+		    $current_date = new DateTime( "now", $tz_obj );
+
+		    $date_formatted = $current_date->format( $format );
+
+		    if ( $reset_timezone ) {
+			    // Reset timezone to not affect any other plugins
+			    date_default_timezone_set( $current_timzone );
+		    }
+
+		    return $date_formatted;
+	    } catch( Exception $e ) {
+    		return date( $format );
+	    }
     }
 
 	public static function get_holidays( $country = 'DE' ) {

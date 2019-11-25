@@ -434,7 +434,7 @@ class LabelSoap extends Soap {
                         'product'           => $label->get_dhl_product(),
                         'accountNumber'     => self::get_account_number( $label->get_dhl_product() ),
                         'customerReference' => wc_gzd_dhl_get_label_customer_reference( $label, $shipment ),
-                        'shipmentDate'      => date('Y-m-d' ),
+                        'shipmentDate'      => Package::get_date_de_timezone( 'Y-m-d' ),
                         'ShipmentItem'      => array(
                             'weightInKG' => $label->get_weight(),
 	                        'lengthInCM' => $shipment->has_dimensions() ? wc_get_dimension( $shipment->get_length(), 'cm', $shipment->get_dimension_unit() ) : '',
