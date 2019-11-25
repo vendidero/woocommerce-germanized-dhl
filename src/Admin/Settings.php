@@ -403,6 +403,17 @@ class Settings {
 				'css'               => 'max-width: 60px;',
 				'class'             => 'wc_input_decimal',
 			),
+
+			array(
+				'title'             => _x( 'Minimum weight', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => _x( 'Choose a minimum weight to be used for labels e.g. to prevent low shipment weight errors.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => true,
+				'id' 		        => 'woocommerce_gzd_dhl_label_minimum_shipment_weight',
+				'default'           => '0.5',
+				'css'               => 'max-width: 60px;',
+				'class'             => 'wc_input_decimal',
+			),
 		);
 
 		if ( Package::base_country_supports( 'returns' ) ) {

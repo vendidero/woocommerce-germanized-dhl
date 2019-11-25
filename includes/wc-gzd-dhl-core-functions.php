@@ -583,7 +583,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 		'dhl_product'           => wc_gzd_dhl_get_default_product( $shipment->get_country(), $dhl_shipping_method ),
 		'services'              => array(),
 		'codeable_address_only' => Package::get_setting( 'label_address_codeable_only', $dhl_shipping_method ),
-		'weight'                => empty( $shipment_weight ) ? Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ) : wc_get_weight( $shipment_weight, 'kg', $shipment->get_weight_unit() ),
+		'weight'                => wc_gzd_dhl_get_shipment_weight( $shipment ),
 	);
 
 	if ( $dhl_order->supports_email_notification() ) {
@@ -732,6 +732,26 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 }
 
 /**
+ * @param Shipment $shipment
+ * @param string $unit
+ *
+ * @return float
+ */
+function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg' ) {
+	$shipping_method     = $shipment->get_shipping_method();
+	$shipment_weight     = $shipment->get_weight();
+	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
+	$min_weight          = wc_get_weight( Package::get_setting( 'label_minimum_shipment_weight', $dhl_shipping_method ), $unit, 'kg' );
+	$weight              = empty( $shipment_weight ) ? wc_get_weight( Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ), $unit, 'kg' ) : wc_get_weight( $shipment_weight, $unit, $shipment->get_weight_unit() );
+
+	if ( $weight < $min_weight ) {
+		$weight = $min_weight;
+	}
+
+	return $weight;
+}
+
+/**
  * @param Order $dhl_order
  * @param ReturnShipment $shipment
  */
@@ -739,12 +759,11 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 
 	$shipping_method     = $shipment->get_shipping_method();
 	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
-	$shipment_weight     = $shipment->get_weight();
 
 	$defaults = array(
 		'services'       => array(),
 		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country(), $dhl_shipping_method ),
-		'weight'         => empty( $shipment_weight ) ? Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ) : wc_get_weight( $shipment_weight, 'kg', $shipment->get_weight_unit() ),
+		'weight'         => wc_gzd_dhl_get_shipment_weight( $shipment ),
 		'sender_address' => $shipment->get_sender_address(),
 	);
 

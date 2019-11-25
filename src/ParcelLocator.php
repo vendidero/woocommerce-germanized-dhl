@@ -33,6 +33,9 @@ class ParcelLocator {
 		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'validate_checkout' ), 20 );
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'maybe_remove_order_data' ), 10, 2 );
 		add_filter( 'woocommerce_get_order_address', array( __CLASS__, 'add_order_address_data' ), 10, 3 );
+		add_filter( 'woocommerce_update_order_review_fragments', array( __CLASS__, 'refresh_shipping_data_session' ), 10 );
+		add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_refresh_shipping_data', array( __CLASS__, 'ajax_refresh_shipping_data' ) );
+		add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_refresh_shipping_data', array( __CLASS__, 'ajax_refresh_shipping_data' ) );
 
 		// Shipment Pickup
 		add_filter( 'woocommerce_gzd_shipment_send_to_external_pickup', array( __CLASS__, 'shipment_has_pickup' ), 10, 3 );
@@ -67,6 +70,12 @@ class ParcelLocator {
 			add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
 			add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
 		}
+	}
+
+	public static function refresh_shipping_data_session( $fragments ) {
+		self::get_shipping_method_data();
+
+		return $fragments;
 	}
 
 	public static function admin_profile_fields( $fields ) {
@@ -474,7 +483,16 @@ class ParcelLocator {
 		return $fields;
 	}
 
-	protected static function get_shipping_method_data() {
+	public static function get_shipping_method_data( $from_session = false ) {
+
+		if ( $from_session ) {
+			return WC()->session->get( 'dhl_shipping_method_data', array() );
+		}
+
+		if ( WC()->session ) {
+			unset( WC()->session->dhl_shipping_method_data );
+		}
+
 		$packages = WC()->shipping()->get_packages();
 		$data     = array();
 
@@ -501,6 +519,10 @@ class ParcelLocator {
 					);
 				}
 			}
+		}
+
+		if ( WC()->session ) {
+			WC()->session->set( 'dhl_shipping_method_data', $data );
 		}
 
 		return $data;
@@ -641,14 +663,15 @@ class ParcelLocator {
 			self::$localized_scripts[] = 'wc-gzd-parcel-locator-dhl';
 
 			wp_localize_script( 'wc-gzd-parcel-locator-dhl', 'wc_gzd_dhl_parcel_locator_params', array(
-				'ajax_url'             => admin_url( 'admin-ajax.php' ),
-				'parcel_locator_nonce' => wp_create_nonce('dhl-parcel-locator' ),
-				'supported_countries'  => self::get_supported_countries(),
-				'methods'              => is_checkout() ? self::get_shipping_method_data() : array(),
-				'is_checkout'          => is_checkout(),
-				'pickup_types'         => wc_gzd_dhl_get_pickup_types(),
-				'i18n'                 => array_merge( wc_gzd_dhl_get_pickup_types(), array() ),
-				'wrapper'              => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
+				'ajax_url'                  => admin_url( 'admin-ajax.php' ),
+				'parcel_locator_nonce'      => wp_create_nonce('dhl-parcel-locator' ),
+				'parcel_locator_data_nonce' => wp_create_nonce('dhl-parcel-locator-shipping-data' ),
+				'supported_countries'       => self::get_supported_countries(),
+				'methods'                   => is_checkout() ? self::get_shipping_method_data() : array(),
+				'is_checkout'               => is_checkout(),
+				'pickup_types'              => wc_gzd_dhl_get_pickup_types(),
+				'i18n'                      => array_merge( wc_gzd_dhl_get_pickup_types(), array() ),
+				'wrapper'                   => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
 			) );
 		}
 
@@ -927,6 +950,15 @@ class ParcelLocator {
 		);
 
 		wc_get_template( 'checkout/dhl/parcel-finder.php', $args, Package::get_template_path(), Package::get_path() . '/templates/' );
+	}
+
+	public static function ajax_refresh_shipping_data() {
+		check_ajax_referer( 'dhl-parcel-locator-shipping-data', 'security' );
+
+		wp_send_json( array(
+			'methods' => self::get_shipping_method_data( true ),
+			'success' => true,
+		) );
 	}
 
 	public static function ajax_validate_address() {

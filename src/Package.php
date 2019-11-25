@@ -6,7 +6,6 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Api\Paket;
-use WC_Shipping;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,7 +19,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.0.5';
+    const VERSION = '1.1.0';
 
     public static $upload_dir_suffix = '';
 
@@ -200,6 +199,7 @@ class Package {
 	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
 
 	    add_filter( 'woocommerce_gzd_shipping_provider_method_admin_settings', array( __CLASS__, 'add_shipping_provider_settings' ), 10, 1 );
+		add_filter( 'woocommerce_gzd_shipping_provider_method_clean_settings', array( __CLASS__, 'clean_shipping_provider_settings' ), 10, 2 );
 
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
@@ -216,6 +216,21 @@ class Package {
 
 	public static function add_shipping_provider_settings( $settings ) {
 		return array_merge( $settings, self::get_method_settings() );
+	}
+
+	public static function clean_shipping_provider_settings( $p_settings, $method ) {
+		$shipping_provider_settings = self::get_method_settings();
+
+		foreach( $p_settings as $setting => $value ) {
+
+			if ( array_key_exists( $setting, $shipping_provider_settings ) ) {
+				if ( self::get_setting( $setting ) === $value ) {
+					unset( $p_settings[ $setting ] );
+				}
+			}
+		}
+
+		return $p_settings;
 	}
 
 	protected static function get_method_settings() {

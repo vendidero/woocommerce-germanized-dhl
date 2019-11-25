@@ -39,7 +39,25 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
         afterRefreshCheckout: function() {
             var self = germanized.dhl_parcel_locator;
 
-            self.refreshAvailability();
+            var params = {
+                'security': self.params.parcel_locator_data_nonce,
+                'action'  : 'woocommerce_gzd_dhl_parcel_locator_refresh_shipping_data'
+            };
+
+            $.ajax({
+                type: "POST",
+                url:  self.params.ajax_url,
+                data: params,
+                success: function( data ) {
+                    // Update shipping method data from session
+                    self.params['methods'] = data.methods;
+                    self.refreshAvailability();
+                },
+                error: function( data ) {
+                    self.refreshAvailability();
+                },
+                dataType: 'json'
+            });
         },
 
         refreshAvailability: function() {
