@@ -172,8 +172,14 @@ class Paket {
 	 */
     public function get_preferred_day_time( $postcode, $cutoff_time = '' ) {
 	    $exclude_working_days  = wc_gzd_dhl_get_excluded_working_days();
+
 	    // Always exclude Sunday
 	    $exclude_working_days  = array_merge( $exclude_working_days, array( 'sun' ) );
+
+	    // Check if every day is excluded -> prevent infinite loops
+	    if ( sizeof( $exclude_working_days ) >= 7 ) {
+	    	return array();
+	    }
 
 	    $preparation_days      = ParcelServices::get_preferred_day_preparation_days();
 	    $cutoff_time           = empty( $cutoff_time ) ? ParcelServices::get_preferred_day_cutoff_time() : $cutoff_time;
