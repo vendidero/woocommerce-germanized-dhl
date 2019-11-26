@@ -76,6 +76,16 @@ function wc_gzd_dhl_get_duties() {
 	return $duties;
 }
 
+function wc_gzd_dhl_is_valid_visual_min_age( $min_age ) {
+	$ages = wc_gzd_dhl_get_visual_min_ages();
+
+	if ( empty( $min_age ) || ( ! array_key_exists( $min_age, $ages ) && ! in_array( $min_age, $ages ) ) ) {
+		return false;
+	}
+
+	return true;
+}
+
 function wc_gzd_dhl_get_visual_min_ages() {
 	$visual_age = array(
 		'0'   => _x( 'None', 'age context', 'woocommerce-germanized-dhl' ),
@@ -390,10 +400,10 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$args['services'] = array_diff( $args['services'], array( 'PreferredNeighbour' ) );
 	}
 
-	if ( ! empty( $args['visual_min_age'] ) && array_key_exists( $args['visual_min_age'], wc_gzd_dhl_get_visual_min_ages() ) ) {
+	if ( ! empty( $args['visual_min_age'] ) && wc_gzd_dhl_is_valid_visual_min_age( $args['visual_min_age'] ) ) {
 		$args['services']       = array_merge( $args['services'], array( 'VisualCheckOfAge' ) );
 	} else {
-		if ( ! empty( $args['visual_min_age'] ) && ! array_key_exists( $args['visual_min_age'], wc_gzd_dhl_get_visual_min_ages() ) ) {
+		if ( ! empty( $args['visual_min_age'] ) && ! wc_gzd_dhl_is_valid_visual_min_age( $args['visual_min_age'] ) ) {
 			$error->add( 500, _x( 'The visual min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
@@ -644,7 +654,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 
 			$visual_min_age = Package::get_setting( 'label_visual_min_age', $dhl_shipping_method );
 
-			if ( ! empty( $visual_min_age ) ) {
+			if ( wc_gzd_dhl_is_valid_visual_min_age( $visual_min_age ) ) {
 				$defaults['services'][]     = 'VisualCheckOfAge';
 				$defaults['visual_min_age'] = $visual_min_age;
 			}

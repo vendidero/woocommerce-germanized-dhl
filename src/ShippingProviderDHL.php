@@ -7,7 +7,6 @@
 namespace Vendidero\Germanized\DHL;
 
 use Vendidero\Germanized\Shipments\ShippingProvider;
-use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,7 +40,7 @@ class ShippingProviderDHL extends ShippingProvider  {
 	}
 
 	public function get_description( $context = 'view' ) {
-		return '';
+		return _x( 'Complete DHL integration supporting labels, preferred services and packstation delivery.', 'dhl', 'woocommerce-germanized-dhl' );
 	}
 
 	public function get_tracking_url_placeholder( $context = 'view' ) {

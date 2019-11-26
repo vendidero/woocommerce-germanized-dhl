@@ -498,7 +498,7 @@ class Settings {
 				'title' 	        => _x( 'Visual minimum age', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id'          		=> 'woocommerce_gzd_dhl_label_visual_min_age',
 				'type' 		        => 'select',
-				'default'           => 'none',
+				'default'           => '0',
 				'options'			=> wc_gzd_dhl_get_visual_min_ages(),
 				'desc_tip'          => _x( 'Choose this option if you want to let DHL check your customer\'s age.', 'dhl', 'woocommerce-germanized-dhl' ),
 			),
