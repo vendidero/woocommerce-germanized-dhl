@@ -443,7 +443,7 @@ class LabelSoap extends Soap {
                         ),
                         'Service'           => $services,
                         'Notification'      => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
-                        'BankData'          => array(),
+                        'BankData'          => $bank_data,
                     ),
                     'Receiver'                => array(
                         'name1'               => $shipment->get_company() ? $shipment->get_company() : $shipment->get_formatted_full_name(),
