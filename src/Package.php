@@ -46,10 +46,10 @@ class Package {
         self::define_tables();
         self::maybe_set_upload_dir();
 
-	    if ( self::is_enabled() ) {
-		    // Add shipping provider
-		    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_provider' ), 10, 1 );
+	    // Add shipping provider
+	    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_provider' ), 10, 1 );
 
+	    if ( self::is_enabled() ) {
 	        self::init_hooks();
         }
 
