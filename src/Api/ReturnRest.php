@@ -66,7 +66,7 @@ class ReturnRest extends Rest {
 				 */
 				'name3'       => apply_filters( 'woocommerce_gzd_dhl_return_label_api_sender_name3', $label->get_sender_address_addition(), $label ),
 				'streetName'  => $label->get_sender_street(),
-				'houseNumber' => $label->get_sender_street_number(),
+				'houseNumber' => wc_gzd_dhl_get_return_label_sender_street_number( $label ),
 				'postCode'    => $label->get_sender_postcode(),
 				'city'        => $label->get_sender_city(),
 				'country'     => array(

@@ -63,11 +63,13 @@ abstract class Soap {
 
     protected function walk_recursive_remove( array $array ) {
         foreach ( $array as $k => $v ) {
+
             if ( is_array( $v ) ) {
                 $array[ $k ] = $this->walk_recursive_remove( $v );
             }
 
-            if ( empty( $v ) && 'minorRelease' !== $k ) {
+            // Explicitly allow street_number fields to equal 0
+            if ( empty( $v ) && ( ! in_array( $k, array( 'minorRelease', 'streetNumber', 'houseNumber' ) ) ) ) {
                 unset( $array[ $k ] );
             }
         }
