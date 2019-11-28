@@ -473,7 +473,7 @@ class LabelSoap extends Soap {
 	                         */
                             'name3'           => apply_filters( 'woocommerce_gzd_dhl_label_api_receiver_name3', wc_gzd_dhl_get_label_shipment_address_addition( $shipment ), $label ),
                             'streetName'      => $shipment->get_address_street(),
-                            'streetNumber'    => $shipment->get_address_street_number(),
+                            'streetNumber'    => wc_gzd_dhl_get_label_shipment_street_number( $shipment ),
                             'zip'             => $shipment->get_postcode(),
                             'city'            => $shipment->get_city(),
                             'Origin'          => array(

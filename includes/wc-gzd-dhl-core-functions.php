@@ -586,6 +586,52 @@ function wc_gzd_dhl_get_label_shipment_address_addition( $shipment ) {
 }
 
 /**
+ * @param Shipment $shipment
+ *
+ * @return mixed
+ */
+function wc_gzd_dhl_get_label_shipment_street_number( $shipment ) {
+	$street_number = $shipment->get_address_street_number();
+
+	if ( ! Package::is_shipping_domestic( $shipment->get_country() ) ) {
+
+		if ( empty( $street_number ) ) {
+			/**
+			 * Filter to adjust the placeholder used as street number for the DHL API in case
+			 * the shipment is not domestic (inner Germnany) and a street number was not provided.
+			 *
+			 * @param string $placeholder The placeholder to use - default 0 as advised by DHL support.
+			 *
+			 * @since 3.1.0
+			 * @package Vendidero/Germanized/DHL
+			 */
+			$street_number = apply_filters( 'woocommerce_gzd_dhl_label_shipment_street_number_placeholder', '0' );
+		}
+	}
+
+	return $street_number;
+}
+
+/**
+ * @param ReturnLabel $label
+ */
+function wc_gzd_dhl_get_return_label_sender_street_number( $label ) {
+	$street_number = $label->get_sender_street_number();
+
+	if ( ! Package::is_shipping_domestic( $label->get_sender_country() ) ) {
+
+		if ( empty( $street_number ) ) {
+			/**
+			 * This filter is documented in includes/wc-gzd-dhl-core-functions.php
+			 */
+			$street_number = apply_filters( 'woocommerce_gzd_dhl_label_shipment_street_number_placeholder', '0' );
+		}
+	}
+
+	return $street_number;
+}
+
+/**
  * @param Order $dhl_order
  * @param Shipment $shipment
  */
