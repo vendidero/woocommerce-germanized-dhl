@@ -276,6 +276,21 @@ function wc_gzd_dhl_get_pickup_type( $type ) {
 	}
 }
 
+/**
+ * @param WP_Error $error
+ *
+ * @return bool
+ */
+function wc_gzd_dhl_wp_error_has_errors( $error ) {
+	if ( is_callable( array( $error, 'has_errors' ) ) ) {
+		return $error->has_errors();
+	} else {
+		$errors = $error->errors;
+
+		return ( ! empty( $errors ) ? true : false );
+	}
+}
+
 function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 
 	$args = wp_parse_args( $args, array(
@@ -290,7 +305,7 @@ function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 		$error->add( 500, _x( 'Receiver is missing or does not exist.', 'dhl', 'woocommerce-germanized-dhl' ) );
 	}
 
-	if ( wc_gzd_wp_error_has_errors( $error ) ) {
+	if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
 		return $error;
 	}
 
@@ -454,7 +469,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$error->add( 500, sprintf( _x( '%s duties element does not exist.', 'dhl', 'woocommerce-germanized-dhl' ), $args['duties'] ) );
 	}
 
-	if ( wc_gzd_wp_error_has_errors( $error ) ) {
+	if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
 		return $error;
 	}
 
