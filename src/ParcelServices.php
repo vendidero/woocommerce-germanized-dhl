@@ -92,7 +92,7 @@ class ParcelServices {
 		if ( self::is_preferred_available() ) {
 			$data = self::get_data( $posted_data );
 
-			if ( ! $data['errors']->has_errors() ) {
+			if ( ! wc_gzd_wp_error_has_errors( $data['errors'] ) ) {
 				$dhl_order = new Order( $order );
 
 				if ( ! empty( $data['preferred_day'] ) ) {
@@ -120,7 +120,7 @@ class ParcelServices {
 		if ( self::is_preferred_available() ) {
 			$data = self::get_data( $posted_data );
 
-			if ( $data['errors']->has_errors() ) {
+			if ( wc_gzd_wp_error_has_errors( $data['errors'] ) ) {
 				foreach( $data['errors']->get_error_messages() as $message ) {
 					$errors->add( 'validation', $message );
 				}
