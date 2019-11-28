@@ -575,7 +575,7 @@ class ParcelLocator {
 			}
 		}
 
-		if ( $errors->has_errors() ) {
+		if ( wc_gzd_wp_error_has_errors( $errors ) ) {
 			foreach( $errors->get_error_messages() as $message ) {
 				wc_add_notice( $message, 'error' );
 			}
@@ -646,7 +646,7 @@ class ParcelLocator {
 			}
 		}
 
-		return $error->has_errors() ? $error : true;
+		return wc_gzd_wp_error_has_errors( $error ) ? $error : true;
 	}
 
 	public static function add_inline_styles() {
@@ -1020,7 +1020,7 @@ class ParcelLocator {
 				$error->add( 404, _x( 'No DHL locations found', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 
-			if ( ! $error->has_errors() ) {
+			if ( ! wc_gzd_wp_error_has_errors( $error ) ) {
 				wp_send_json( array(
 					'parcel_shops' => $parcel_res,
 					'success'      => true,

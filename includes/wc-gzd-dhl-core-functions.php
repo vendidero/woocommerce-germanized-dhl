@@ -290,7 +290,7 @@ function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 		$error->add( 500, _x( 'Receiver is missing or does not exist.', 'dhl', 'woocommerce-germanized-dhl' ) );
 	}
 
-	if ( $error->has_errors() ) {
+	if ( wc_gzd_wp_error_has_errors( $error ) ) {
 		return $error;
 	}
 
@@ -454,7 +454,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$error->add( 500, sprintf( _x( '%s duties element does not exist.', 'dhl', 'woocommerce-germanized-dhl' ), $args['duties'] ) );
 	}
 
-	if ( $error->has_errors() ) {
+	if ( wc_gzd_wp_error_has_errors( $error ) ) {
 		return $error;
 	}
 
