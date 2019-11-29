@@ -29,44 +29,8 @@ class LabelWatcher {
 		// Delete label
 		add_action( 'woocommerce_gzd_dhl_label_deleted', array( __CLASS__, 'delete_label' ), 10, 2 );
 
-		// Delete the label if parent shipment has been deleted
-		add_action( 'woocommerce_gzd_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
-		add_action( 'woocommerce_gzd_return_shipment_deleted', array( __CLASS__, 'deleted_shipment' ), 10, 2 );
-
-		// Delete the label if dhl is no longer the shipping provider selected
-		add_action( 'woocommerce_gzd_shipment_updated', array( __CLASS__, 'maybe_delete_label' ), 10, 2 );
-		add_action( 'woocommerce_gzd_return_shipment_updated', array( __CLASS__, 'maybe_delete_label' ), 10, 2 );
-
 		// Sync shipment items
 		add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
-	}
-
-	/**
-	 * @param $shipment_id
-	 * @param Shipment $shipment
-	 */
-	public static function maybe_delete_label( $shipment_id, $shipment ) {
-		if ( 'dhl' !== $shipment->get_shipping_provider() ) {
-
-			if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
-				$label->delete( true );
-			}
-		}
-	}
-
-	/**
-	 * @param string $url
-	 * @param Shipment $shipment
-	 *
-	 * @return string
-	 */
-	public static function add_tracking_url( $url, $shipment ) {
-
-		if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
-			return $label->get_tracking_url();
-		}
-
-		return $url;
 	}
 
 	/**
@@ -86,7 +50,6 @@ class LabelWatcher {
 	public static function create_label( $label ) {
 		try {
 			Package::get_api()->get_label( $label );
-			self::maybe_update_shipment_tracking( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
 		}
@@ -95,24 +58,14 @@ class LabelWatcher {
 	public static function create_return_label( $label ) {
 		try {
 			Package::get_api()->get_return_label( $label );
-			self::maybe_update_shipment_tracking( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
-		}
-	}
-
-	protected static function maybe_update_shipment_tracking( $label ) {
-		// Add tracking id to shipment
-		if ( ( $shipment = $label->get_shipment() ) && $label->get_number() ) {
-			$shipment->set_tracking_id( $label->get_number() );
-			$shipment->save();
 		}
 	}
 
 	public static function update_label( $label ) {
 		try {
 			Package::get_api()->get_label( $label );
-			self::maybe_update_shipment_tracking( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
 		}
@@ -121,7 +74,6 @@ class LabelWatcher {
 	public static function update_return_label( $label ) {
 		try {
 			Package::get_api()->get_return_label( $label );
-			self::maybe_update_shipment_tracking( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
 		}
@@ -130,21 +82,6 @@ class LabelWatcher {
 	public static function delete_label( $label_id, $label ) {
 		try {
 			Package::get_api()->delete_label( $label );
-			self::delete_shipment_tracking( $label );
 		} catch( Exception $e ) {}
-	}
-
-	protected static function delete_shipment_tracking( $label ) {
-		// Remove shipment data
-		if ( ( $shipment = $label->get_shipment() ) ) {
-			$shipment->set_tracking_id( '' );
-			$shipment->save();
-		}
-	}
-
-	public static function deleted_shipment( $shipment_id, $shipment ) {
-		if ( $label = wc_gzd_dhl_get_shipment_label( $shipment_id ) ) {
-			$label->delete( true );
-		}
 	}
 }

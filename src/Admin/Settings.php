@@ -561,7 +561,7 @@ class Settings {
 	}
 
 	public static function get_automation_settings( $for_shipping_method = false ) {
-		$shipment_statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_fill_keys( array( 'gzd-draft', 'gzd-delivered', 'gzd-returned' ), '' ) );
+		$shipment_statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_fill_keys( array( 'gzd-draft', 'gzd-delivered', 'gzd-returned', 'gzd-requested' ), '' ) );
 
 		$settings = array(
 			array(

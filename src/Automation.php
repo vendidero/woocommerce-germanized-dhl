@@ -104,10 +104,11 @@ class Automation {
 
 	public static function maybe_create_label( $shipment_id ) {
 		if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-			if ( ! wc_gzd_dhl_get_shipment_label( $shipment ) ) {
-				$label = wc_gzd_dhl_create_label( $shipment );
 
-				if ( ! is_wp_error( $label ) ) {}
+			if ( ! wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+				$result = $shipment->create_label();
+
+				if ( ! is_wp_error( $result ) ) {}
 			}
 		}
 	}
