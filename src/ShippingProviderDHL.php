@@ -17,10 +17,13 @@ class ShippingProviderDHL extends ShippingProvider  {
 	}
 
 	public function supports_labels( $label_type ) {
-		return in_array( $label_type, array(
-			'simple',
-			'return'
-		) );
+		$label_types = array( 'simple' );
+
+		if ( 'yes' === Package::get_setting( 'dhl_label_retoure_enable' ) ) {
+			$label_types[] = 'return';
+		}
+
+		return in_array( $label_type, $label_types );
 	}
 
 	public function get_edit_link() {
@@ -49,6 +52,18 @@ class ShippingProviderDHL extends ShippingProvider  {
 
 	public function get_tracking_desc_placeholder( $context = 'view' ) {
 		return Package::get_setting( 'label_tracking_desc' );
+	}
+
+	public function get_supports_customer_returns( $context = 'view' ) {
+		return Package::get_setting( 'label_retoure_enable' ) === 'yes' && Package::get_setting( 'label_supports_customer_returns' ) === 'yes';
+	}
+
+	public function get_return_manual_confirmation( $context = 'view' ) {
+		return Package::get_setting( 'label_return_manual_confirmation' ) === 'yes';
+	}
+
+	public function get_return_instructions( $context = 'view' ) {
+		return Package::get_setting( 'label_return_instructions' );
 	}
 
 	public function deactivate() {

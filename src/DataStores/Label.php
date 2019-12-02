@@ -62,7 +62,6 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	    '_weight',
 	    '_created_via',
 	    '_receiver_slug',
-	    '_is_email_sent'
     );
 
     /*
@@ -397,7 +396,6 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	            case "email_notification":
 	            case "has_inlay_return":
 	            case "codeable_address_only":
-	            case "is_email_sent":
 	            case "cod_includes_additional_total":
 		            $value = wc_bool_to_string( $value );
 		            break;

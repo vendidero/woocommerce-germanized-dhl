@@ -529,14 +529,12 @@ function wc_gzd_dhl_shipment_needs_label( $shipment, $check_status = true ) {
 	}
 
 	// In case it is a return shipment - make sure that retoures are enabled
-	if ( 'return' === $shipment->get_type() ) {
-		if ( 'no' === Package::get_setting( 'label_retoure_enable' ) ) {
-			$needs_label = false;
-		}
+	if ( ! $shipment->supports_label() ) {
+		$needs_label = false;
 	}
 
 	// If label already exists
-	if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+	if ( $label = $shipment->get_label() ) {
 		$needs_label = false;
 	}
 

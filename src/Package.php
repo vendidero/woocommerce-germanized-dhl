@@ -187,8 +187,6 @@ class Package {
 	        	ParcelServices::init();
 	        }
 
-	        Ajax::init();
-	        Emails::init();
 	        ShipmentLabelWatcher::init();
 	        LabelWatcher::init();
 	        Automation::init();
@@ -201,7 +199,7 @@ class Package {
 	    add_filter( 'woocommerce_gzd_shipping_provider_method_admin_settings', array( __CLASS__, 'add_shipping_provider_settings' ), 10, 1 );
 		add_filter( 'woocommerce_gzd_shipping_provider_method_clean_settings', array( __CLASS__, 'clean_shipping_provider_settings' ), 10, 2 );
 
-	    // Filter email templates
+	    // Filter templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
     }
 
