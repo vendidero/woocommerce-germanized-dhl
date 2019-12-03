@@ -92,37 +92,45 @@ class ShipmentLabelWatcher {
 	 * @param array $raw_data
 	 */
 	public static function create_shipment_label( $data, $error, $shipment, $raw_data ) {
-		$services = array();
-		$props    = array(
-			'has_inlay_return'      => 'no',
-			'codeable_address_only' => 'no',
-		);
+		$props = array();
 
-		foreach( $data as $key => $value ) {
-			// Check if it is a service
-			if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
-				$new_key = substr( $key, ( strlen( 'service_' ) ) );
+		/**
+		 * Do only parse post data if raw_data was passed which indicates that the label creation request is
+		 * a manual user based request - in other cases - use defaults instead to prevent argument overrides.
+		 */
+		if ( ! empty( $raw_data ) ) {
+			$services = array();
+			$props    = array(
+				'has_inlay_return'      => 'no',
+				'codeable_address_only' => 'no',
+			);
 
-				if ( 'yes' === $value && in_array( $new_key, wc_gzd_dhl_get_services() ) ) {
-					$services[] = $new_key;
+			foreach( $data as $key => $value ) {
+				// Check if it is a service
+				if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
+					$new_key = substr( $key, ( strlen( 'service_' ) ) );
+
+					if ( 'yes' === $value && in_array( $new_key, wc_gzd_dhl_get_services() ) ) {
+						$services[] = $new_key;
+					}
+				} else {
+					$props[ $key ] = $value;
 				}
-			} else {
-				$props[ $key ] = $value;
-			}
-		}
-
-		if ( isset( $props['preferred_time'] ) && ! empty( $props['preferred_time'] ) ) {
-			$preferred_time = explode( '-', wc_clean( wp_unslash( $props['preferred_time'] ) ) );
-
-			if ( sizeof( $preferred_time ) === 2 ) {
-				$props['preferred_time_start'] = $preferred_time[0];
-				$props['preferred_time_end']   = $preferred_time[1];
 			}
 
-			unset( $props['preferred_time'] );
-		}
+			if ( isset( $props['preferred_time'] ) && ! empty( $props['preferred_time'] ) ) {
+				$preferred_time = explode( '-', wc_clean( wp_unslash( $props['preferred_time'] ) ) );
 
-		$props['services'] = $services;
+				if ( sizeof( $preferred_time ) === 2 ) {
+					$props['preferred_time_start'] = $preferred_time[0];
+					$props['preferred_time_end']   = $preferred_time[1];
+				}
+
+				unset( $props['preferred_time'] );
+			}
+
+			$props['services'] = $services;
+		}
 
 		$label = wc_gzd_dhl_create_label( $shipment, $props );
 

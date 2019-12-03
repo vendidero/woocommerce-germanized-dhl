@@ -27,6 +27,8 @@ class ShippingProviderMethodDHL {
 
 	protected $preferred_services = null;
 
+	protected $is_placeholder = false;
+
 	/**
 	 * ShippingProviderMethodDHL constructor.
 	 *
@@ -34,6 +36,10 @@ class ShippingProviderMethodDHL {
 	 */
 	public function __construct( $method ) {
 		$this->method = $method;
+
+		if ( is_a( $this->method, '\Vendidero\Germanized\Shipments\ShippingProviderMethodPlaceholder' ) ) {
+			$this->is_placeholder = true;
+		}
 	}
 
 	protected function maybe_prefix_key( $key ) {
@@ -44,17 +50,37 @@ class ShippingProviderMethodDHL {
 		return $key;
 	}
 
+	protected function is_placeholder() {
+		return $this->is_placeholder;
+	}
+
 	public function has_option( $key ) {
 		$dhl_key = $this->maybe_prefix_key( $key );
 
-		return $this->method->has_option( $dhl_key );
+		if ( ! $this->is_placeholder() ) {
+			return $this->method->has_option( $dhl_key );
+		} else {
+			// Check if option exists within method instance settings array
+			$method_settings = array_keys( Package::get_method_settings() );
+
+			if ( in_array( $dhl_key, $method_settings ) ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
 	}
 
 	public function get_option( $key ) {
 		$dhl_key = $this->maybe_prefix_key( $key );
 
-		if ( $this->method->has_option( $dhl_key ) ) {
-			$option_value = $this->method->get_option( $dhl_key );
+		if ( $this->has_option( $key ) ) {
+
+			if ( ! $this->is_placeholder() ) {
+				$option_value = $this->method->get_option( $dhl_key );
+			} else {
+				$option_value = Package::get_setting( $dhl_key );
+			}
 
 			if ( strpos( $key, 'enable' ) !== false ) {
 				if ( 'yes' === $option_value && ! $this->is_dhl_enabled() ) {
@@ -73,15 +99,15 @@ class ShippingProviderMethodDHL {
 	}
 
 	public function is_packstation_enabled() {
-		return $this->method->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
+		return $this->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
 	}
 
 	public function is_postoffice_enabled() {
-		return $this->method->get_option( 'dhl_parcel_pickup_postoffice_enable' ) === 'yes' ? true : false;
+		return $this->get_option( 'dhl_parcel_pickup_postoffice_enable' ) === 'yes' ? true : false;
 	}
 
 	public function is_parcelshop_enabled() {
-		return $this->method->get_option( 'dhl_parcel_pickup_parcelshop_enable' ) === 'yes' ? true : false;
+		return $this->get_option( 'dhl_parcel_pickup_parcelshop_enable' ) === 'yes' ? true : false;
 	}
 
 	public function get_enabled_preferred_services() {
@@ -95,7 +121,7 @@ class ShippingProviderMethodDHL {
 					continue;
 				}
 
-				if ( $this->method->get_option( 'dhl_' . $service . '_enable' ) === 'yes' ) {
+				if ( $this->get_option( 'dhl_' . $service . '_enable' ) === 'yes' ) {
 					$this->preferred_services[] = $service;
 				}
 			}

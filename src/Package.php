@@ -19,7 +19,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.1.0';
+    const VERSION = '1.1.1';
 
     public static $upload_dir_suffix = '';
 
@@ -233,7 +233,7 @@ class Package {
 		return $p_settings;
 	}
 
-	protected static function get_method_settings() {
+	public static function get_method_settings() {
     	if ( is_null( self::$method_settings ) ) {
     		self::$method_settings = include Package::get_path() . '/includes/admin/views/settings-shipping-method.php';
 	    }
