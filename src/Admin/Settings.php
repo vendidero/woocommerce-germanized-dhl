@@ -437,6 +437,14 @@ class Settings {
 
 			$settings = array_merge( $settings, array(
 				array(
+					'title' 	        => _x( 'Street number', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc' 		        => _x( 'Force existence of a street number within the first address field during checkout for EU countries.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip'          => _x( 'Enabling this option will force a street number to be provided during checkout within the first address field to prevent missing or wrong data sets.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id' 		        => 'woocommerce_gzd_dhl_label_checkout_validate_street_number_address',
+					'default'	        => 'yes',
+					'type' 		        => 'gzd_toggle',
+				),
+				array(
 					'title' 	        => _x( 'Tracking', 'dhl', 'woocommerce-germanized-dhl' ),
 					'desc' 		        => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the default instructions used to inform your customers about tracking a DHL shipment. You may use one of the following placeholders: %s', 'dhl', 'woocommerce-germanized-dhl' ), '<code>' . implode( ', ', array_keys( $placeholders ) ) . '</code>' ) . '</div>',
 					'id' 		        => 'woocommerce_gzd_dhl_label_tracking_desc',

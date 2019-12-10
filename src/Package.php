@@ -6,6 +6,7 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Api\Paket;
+use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -203,6 +204,31 @@ class Package {
 
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+
+	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
+    }
+
+	/**
+	 * @param array     $data
+	 * @param WP_Error $errors
+	 */
+    public static function maybe_force_street_number( $data, $errors ) {
+    	if ( 'yes' === self::get_setting( 'label_checkout_validate_street_number_address' ) ) {
+		    if ( function_exists( 'wc_gzd_split_shipment_street' ) && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
+			    if ( $method->is_dhl_enabled() ) {
+				    if ( isset( $data['shipping_country'], $data['shipping_address_1'] ) && ! empty( $data['shipping_country'] ) ) {
+					    // Do only check street numbers for inner EU.
+					    if ( ! self::is_crossborder_shipment( $data['shipping_country'] ) ) {
+						    $parts = wc_gzd_split_shipment_street( $data['shipping_address_1'] );
+
+						    if ( empty( $parts['number'] ) ) {
+							    $errors->add( 'shipping', _x( 'Please check the street field and make sure to provide a valid street number.', 'dhl', 'woocommerce-germanized-dhl' ) );
+						    }
+					    }
+				    }
+			    }
+		    }
+	    }
     }
 
 	public static function filter_templates( $path, $template_name ) {

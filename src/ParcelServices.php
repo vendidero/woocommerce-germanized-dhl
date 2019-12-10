@@ -72,20 +72,6 @@ class ParcelServices {
 		return $total_rows;
 	}
 
-	public static function test() {
-		/*$order = new Order( wc_get_order( 23804 ) );
-
-		$order->set_preferred_day( '2019-10-10' );
-		$order->set_preferred_time_start( '10:00' );
-		$order->set_preferred_time_end( '12:00' );
-
-		var_dump($order->get_preferred_day());
-		var_dump($order->get_preferred_time_start());
-		var_dump($order->get_preferred_time_end());
-		exit();
-		*/
-	}
-
 	public static function create_order( $order ) {
 		$posted_data = $_POST;
 
