@@ -93,12 +93,24 @@ class LabelSoap extends Soap {
 
         } catch ( Exception $e ) {
             Package::log( 'Response Error: ' . $e->getMessage() );
+
+            switch( $e->getMessage() ) {
+	            case "Unauthorized":
+	            	throw new Exception( _x( 'Your DHL API credentials seem to be invalid. Please check your DHL settings.', 'dhl', 'woocommerce-germanized-dhl' ) );
+                break;
+            }
+
             throw $e;
         }
 
-        if ( ! isset( $response_body->Status ) || ! isset( $response_body->CreationState ) ) {
-        	throw new Exception( _x( 'There was an error generating the label. Please check your logs.', 'dhl', 'woocommerce-germanized-dhl' ) );
-        }
+	    if ( ! isset( $response_body->Status ) || ! isset( $response_body->CreationState ) ) {
+
+		    if ( isset( $response_body->Status ) && ! empty( $response_body->Status->statusText ) ) {
+			    throw new Exception( sprintf( _x( 'There was an error contacting the DHL API: %s.', 'dhl', 'woocommerce-germanized-dhl' ), $response_body->Status->statusText ) );
+		    }
+
+		    throw new Exception( _x( 'An error ocurred while contacting the DHL API. Please consider enabling the sandbox mode.', 'dhl', 'woocommerce-germanized-dhl' ) );
+	    }
 
         return $this->update_label( $label, $response_body->Status, $response_body->CreationState );
     }
@@ -119,7 +131,7 @@ class LabelSoap extends Soap {
 
 			    throw new Exception( $messages );
 		    } else {
-			    throw new Exception( _x( 'There was an error generating the label. Please check your logs.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			    throw new Exception( _x( 'There was an error generating the label. Please try again or consider switching to sandbox mode.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		    }
 	    } else {
 		    // Give the server 1 second to create the PDF before downloading it
