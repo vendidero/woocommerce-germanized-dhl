@@ -10,7 +10,7 @@ use Vendidero\Germanized\Shipments\ShippingProvider;
 
 defined( 'ABSPATH' ) || exit;
 
-class ShippingProviderDHL extends ShippingProvider  {
+class ShippingProviderDHL extends ShippingProvider {
 
 	public function is_manual_integration() {
 		return false;
@@ -21,10 +21,6 @@ class ShippingProviderDHL extends ShippingProvider  {
 			'simple',
 			'return'
 		) );
-	}
-
-	public function get_edit_link() {
-		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' );
 	}
 
 	public function is_activated() {
@@ -43,12 +39,28 @@ class ShippingProviderDHL extends ShippingProvider  {
 		return _x( 'Complete DHL integration supporting labels, preferred services and packstation delivery.', 'dhl', 'woocommerce-germanized-dhl' );
 	}
 
+	public function get_additional_options_url() {
+		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' );
+	}
+
 	public function get_tracking_url_placeholder( $context = 'view' ) {
-		return 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc={tracking_id}&rfn=&extendedSearch=true';
+		$data = parent::get_tracking_url_placeholder();
+
+		if ( empty( $data ) ) {
+			$data = 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc={tracking_id}&rfn=&extendedSearch=true';
+		}
+
+		return $data;
 	}
 
 	public function get_tracking_desc_placeholder( $context = 'view' ) {
-		return Package::get_setting( 'label_tracking_desc' );
+		$data = parent::get_tracking_desc_placeholder();
+
+		if ( empty( $data ) ) {
+			$data = _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'dhl', 'woocommerce-germanized-dhl' );
+		}
+
+		return $data;
 	}
 
 	public function deactivate() {

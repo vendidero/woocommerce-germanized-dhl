@@ -48,7 +48,7 @@ class Package {
         self::maybe_set_upload_dir();
 
 	    // Add shipping provider
-	    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_provider' ), 10, 1 );
+	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
 
 	    if ( self::is_enabled() ) {
 	        self::init_hooks();
@@ -267,10 +267,10 @@ class Package {
     	return self::$method_settings;
 	}
 
-	public static function add_shipping_provider( $providers ) {
-		$providers['dhl'] = '\Vendidero\Germanized\DHL\ShippingProviderDHL';
+	public static function add_shipping_provider_class_name( $class_names ) {
+		$class_names['dhl'] = '\Vendidero\Germanized\DHL\ShippingProviderDHL';
 
-		return $providers;
+		return $class_names;
 	}
 
     public static function install() {
