@@ -49,6 +49,7 @@ class Package {
 
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
+	    add_action( 'woocommerce_gzd_admin_settings_before_save_dhl', array( __CLASS__, 'before_update_settings' ) );
 
 	    if ( self::is_enabled() ) {
 	        self::init_hooks();
@@ -722,6 +723,33 @@ class Package {
 			}
 		} else {
 			return true;
+		}
+	}
+
+	public static function before_update_settings( $settings ) {
+		$currently_enabled = self::get_setting( 'enable' ) === 'yes';
+
+		if ( ! $currently_enabled && isset( $_POST['woocommerce_gzd_dhl_enable'] ) && ! empty( $_POST['woocommerce_gzd_dhl_enable'] ) ) {
+
+			if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
+				$default_provider = wc_gzd_get_default_shipping_provider();
+
+				if ( empty( $default_provider ) ) {
+					update_option( 'woocommerce_gzd_shipments_default_shipping_provider', 'dhl' );
+				}
+
+				/**
+				 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
+				 */
+				do_action( 'woocommerce_gzd_shipping_provider_activated', $provider );
+			}
+		} elseif ( $currently_enabled && ! isset( $_POST['woocommerce_gzd_dhl_enable'] ) ) {
+			if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
+				/**
+				 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
+				 */
+				do_action( 'woocommerce_gzd_shipping_provider_deactivated', $provider );
+			}
 		}
 	}
 }

@@ -67,9 +67,19 @@ class ShippingProviderDHL extends ShippingProvider {
 
 	public function deactivate() {
 		update_option( 'woocommerce_gzd_dhl_enable', 'no' );
+
+		/**
+		 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
+		 */
+		do_action( 'woocommerce_gzd_shipping_provider_activated', $this );
 	}
 
 	public function activate() {
 		update_option( 'woocommerce_gzd_dhl_enable', 'yes' );
+
+		/**
+		 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
+		 */
+		do_action( 'woocommerce_gzd_shipping_provider_deactivated', $this );
 	}
 }
