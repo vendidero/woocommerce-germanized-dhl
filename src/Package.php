@@ -51,6 +51,10 @@ class Package {
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
 	    add_action( 'woocommerce_gzd_admin_settings_before_save_dhl', array( __CLASS__, 'before_update_settings' ) );
 
+	    // Password Settings
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
+
 	    if ( self::is_enabled() ) {
 	        self::init_hooks();
         }
@@ -206,8 +210,15 @@ class Package {
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
+	    // Maybe force street number during checkout
 	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
     }
+
+	public static function sanitize_password_field( $value, $option, $raw_value ) {
+		$value = is_null( $raw_value ) ? '' : addslashes( $raw_value );
+
+		return trim( $value );
+	}
 
 	/**
 	 * @param array     $data
