@@ -497,6 +497,13 @@ class Settings {
 				'desc_tip'          => _x( 'Choose this option if you want to let DHL check your customer\'s age.', 'dhl', 'woocommerce-germanized-dhl' ),
 			),
 			array(
+				'title' 	        => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Enable the GoGreen Service by default.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_service_GoGreen',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+			array(
 				'title' 	        => _x( 'Additional Insurance', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Add an additional insurance to labels.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_service_AdditionalInsurance',

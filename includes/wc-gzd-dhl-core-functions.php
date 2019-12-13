@@ -195,7 +195,8 @@ function wc_gzd_dhl_get_services() {
         'BulkyGoods',
         'IdentCheck',
         'CashOnDelivery',
-	    'ParcelOutletRouting'
+	    'ParcelOutletRouting',
+	    'GoGreen'
     );
 }
 
