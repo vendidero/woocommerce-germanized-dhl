@@ -210,8 +210,9 @@ class Settings {
 		return $pointers;
 	}
 
-	public static function get_setup_settings() {
-		return array(
+	public static function get_setup_settings( $is_settings_page = false ) {
+
+		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_general_options' ),
 
 			array(
@@ -282,6 +283,27 @@ class Settings {
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_api_options' ),
 		);
+
+		if ( ! $is_settings_page ) {
+			$domestic = wc_gzd_dhl_get_products_domestic();
+
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options' ),
+
+				array(
+					'title'             => $domestic['V01PAK'],
+					'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Please enter your participation number to the corresponding product. You can add other participation numbers later %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' ) . '" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
+					'type'              => 'text',
+					'default'           => '01',
+					'id'                => 'woocommerce_gzd_dhl_participation_V01PAK',
+					'custom_attributes'	=> array( 'maxlength' => '2' ),
+				),
+
+				array( 'type' => 'sectionend', 'id' => 'dhl_product_options' ),
+			) );
+		}
+
+		return $settings;
 	}
 
 	protected static function get_general_settings() {
@@ -297,7 +319,7 @@ class Settings {
 			);
 		}
 
-		$settings = self::get_setup_settings();
+		$settings = self::get_setup_settings( true );
 
 		$settings = array_merge( $settings, array(
 			array( 'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options', 'desc' => sprintf( _x(  'For each DHL product that you would like to use, please enter your participation number here. The participation number consists of the last two characters of the respective accounting number, which you will find in your %s (e.g.: 01).', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target="_blank">' . _x(  'contract data', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
