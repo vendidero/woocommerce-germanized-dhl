@@ -295,6 +295,7 @@ class Settings {
 					'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Please enter your participation number to the corresponding product. You can add other participation numbers later %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' ) . '" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
 					'type'              => 'text',
 					'default'           => '01',
+					'placeholder'       => '01',
 					'id'                => 'woocommerce_gzd_dhl_participation_V01PAK',
 					'custom_attributes'	=> array( 'maxlength' => '2' ),
 				),
