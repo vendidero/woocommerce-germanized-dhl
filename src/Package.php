@@ -6,6 +6,7 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Api\Paket;
+use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,7 +20,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.1.0';
+    const VERSION = '1.1.2';
 
     public static $upload_dir_suffix = '';
 
@@ -47,7 +48,12 @@ class Package {
         self::maybe_set_upload_dir();
 
 	    // Add shipping provider
-	    add_filter( 'woocommerce_gzd_shipping_providers', array( __CLASS__, 'add_shipping_provider' ), 10, 1 );
+	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
+	    add_action( 'woocommerce_gzd_admin_settings_before_save_dhl', array( __CLASS__, 'before_update_settings' ) );
+
+	    // Password Settings
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
 
 	    if ( self::is_enabled() ) {
 	        self::init_hooks();
@@ -201,6 +207,38 @@ class Package {
 
 	    // Filter templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+
+	    // Maybe force street number during checkout
+	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
+    }
+
+	public static function sanitize_password_field( $value, $option, $raw_value ) {
+		$value = is_null( $raw_value ) ? '' : addslashes( $raw_value );
+
+		return trim( $value );
+	}
+
+	/**
+	 * @param array     $data
+	 * @param WP_Error $errors
+	 */
+    public static function maybe_force_street_number( $data, $errors ) {
+    	if ( 'yes' === self::get_setting( 'label_checkout_validate_street_number_address' ) ) {
+		    if ( function_exists( 'wc_gzd_split_shipment_street' ) && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
+			    if ( $method->is_dhl_enabled() ) {
+				    if ( isset( $data['shipping_country'], $data['shipping_address_1'] ) && ! empty( $data['shipping_country'] ) ) {
+					    // Do only check street numbers for inner EU.
+					    if ( ! self::is_crossborder_shipment( $data['shipping_country'] ) ) {
+						    $parts = wc_gzd_split_shipment_street( $data['shipping_address_1'] );
+
+						    if ( empty( $parts['number'] ) ) {
+							    $errors->add( 'shipping', _x( 'Please check the street field and make sure to provide a valid street number.', 'dhl', 'woocommerce-germanized-dhl' ) );
+						    }
+					    }
+				    }
+			    }
+		    }
+	    }
     }
 
 	public static function filter_templates( $path, $template_name ) {
@@ -231,7 +269,7 @@ class Package {
 		return $p_settings;
 	}
 
-	protected static function get_method_settings() {
+	public static function get_method_settings() {
     	if ( is_null( self::$method_settings ) ) {
     		self::$method_settings = include Package::get_path() . '/includes/admin/views/settings-shipping-method.php';
 	    }
@@ -239,10 +277,10 @@ class Package {
     	return self::$method_settings;
 	}
 
-	public static function add_shipping_provider( $providers ) {
-		$providers['dhl'] = '\Vendidero\Germanized\DHL\ShippingProviderDHL';
+	public static function add_shipping_provider_class_name( $class_names ) {
+		$class_names['dhl'] = '\Vendidero\Germanized\DHL\ShippingProviderDHL';
 
-		return $providers;
+		return $class_names;
 	}
 
     public static function install() {
@@ -694,6 +732,33 @@ class Package {
 			}
 		} else {
 			return true;
+		}
+	}
+
+	public static function before_update_settings( $settings ) {
+		$currently_enabled = self::get_setting( 'enable' ) === 'yes';
+
+		if ( ! $currently_enabled && isset( $_POST['woocommerce_gzd_dhl_enable'] ) && ! empty( $_POST['woocommerce_gzd_dhl_enable'] ) ) {
+
+			if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
+				$default_provider = wc_gzd_get_default_shipping_provider();
+
+				if ( empty( $default_provider ) ) {
+					update_option( 'woocommerce_gzd_shipments_default_shipping_provider', 'dhl' );
+				}
+
+				/**
+				 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
+				 */
+				do_action( 'woocommerce_gzd_shipping_provider_activated', $provider );
+			}
+		} elseif ( $currently_enabled && ! isset( $_POST['woocommerce_gzd_dhl_enable'] ) ) {
+			if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
+				/**
+				 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
+				 */
+				do_action( 'woocommerce_gzd_shipping_provider_deactivated', $provider );
+			}
 		}
 	}
 }

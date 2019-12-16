@@ -405,16 +405,4 @@ abstract class Label extends WC_Data implements ShipmentLabel {
 	public function download( $args = array() ) {
 		DownloadHandler::download_label( $this->get_id(), $args );
 	}
-
-	public function merge( PDFMerger &$pdf ) {
-		$file = $this->get_file();
-
-		if ( ! $file || ! file_exists( $file ) ) {
-			return;
-		}
-
-		if ( $file ) {
-			$pdf->add( $file );
-		}
-	}
 }

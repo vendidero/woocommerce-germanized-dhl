@@ -32,10 +32,6 @@ class Admin {
 		// Check upload folder
         add_action( 'admin_notices', array( __CLASS__, 'check_upload_dir' ) );
 
-        // Password Settings
-        add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
-		add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
-
 	    // Product Options
 		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ) );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
@@ -185,12 +181,6 @@ class Admin {
 	    $dhl_product = wc_gzd_dhl_get_product( $product );
 	    $dhl_product->set_hs_code( $hs_code );
 	    $dhl_product->set_manufacture_country( $country );
-    }
-
-	public static function sanitize_password_field( $value, $option, $raw_value ) {
-		$value = is_null( $raw_value ) ? '' : addslashes( $raw_value );
-
-		return trim( $value );
     }
 
 	public static function check_upload_dir() {

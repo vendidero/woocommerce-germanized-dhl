@@ -210,8 +210,9 @@ class Settings {
 		return $pointers;
 	}
 
-	public static function get_setup_settings() {
-		return array(
+	public static function get_setup_settings( $is_settings_page = false ) {
+
+		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_general_options' ),
 
 			array(
@@ -282,6 +283,28 @@ class Settings {
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_api_options' ),
 		);
+
+		if ( ! $is_settings_page ) {
+			$domestic = wc_gzd_dhl_get_products_domestic();
+
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options' ),
+
+				array(
+					'title'             => $domestic['V01PAK'],
+					'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Please enter your participation number to the corresponding product. You can add other participation numbers later %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' ) . '" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
+					'type'              => 'text',
+					'default'           => '01',
+					'placeholder'       => '01',
+					'id'                => 'woocommerce_gzd_dhl_participation_V01PAK',
+					'custom_attributes'	=> array( 'maxlength' => '2' ),
+				),
+
+				array( 'type' => 'sectionend', 'id' => 'dhl_product_options' ),
+			) );
+		}
+
+		return $settings;
 	}
 
 	protected static function get_general_settings() {
@@ -297,7 +320,7 @@ class Settings {
 			);
 		}
 
-		$settings = self::get_setup_settings();
+		$settings = self::get_setup_settings( true );
 
 		$settings = array_merge( $settings, array(
 			array( 'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options', 'desc' => sprintf( _x(  'For each DHL product that you would like to use, please enter your participation number here. The participation number consists of the last two characters of the respective accounting number, which you will find in your %s (e.g.: 01).', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target="_blank">' . _x(  'contract data', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
@@ -416,6 +439,19 @@ class Settings {
 			),
 		);
 
+		if ( ! $for_shipping_method ) {
+			$settings = array_merge( $settings, array(
+				array(
+					'title' 	        => _x( 'Street number', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc' 		        => _x( 'Force existence of a street number within the first address field during checkout for EU countries.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip'          => _x( 'Enabling this option will force a street number to be provided during checkout within the first address field to prevent missing or wrong data sets.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id' 		        => 'woocommerce_gzd_dhl_label_checkout_validate_street_number_address',
+					'default'	        => 'no',
+					'type' 		        => 'gzd_toggle',
+				),
+			) );
+		}
+
 		if ( Package::base_country_supports( 'returns' ) ) {
 			$settings = array_merge( $settings, array(
 				array(
@@ -424,25 +460,6 @@ class Settings {
 					'id' 		        => 'woocommerce_gzd_dhl_label_auto_inlay_return_label',
 					'default'	        => 'no',
 					'type' 		        => 'gzd_toggle',
-				),
-			) );
-		}
-
-		if ( ! $for_shipping_method ) {
-			$placeholders = array();
-
-			if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
-				$placeholders = $provider->get_tracking_placeholders();
-			}
-
-			$settings = array_merge( $settings, array(
-				array(
-					'title' 	        => _x( 'Tracking', 'dhl', 'woocommerce-germanized-dhl' ),
-					'desc' 		        => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the default instructions used to inform your customers about tracking a DHL shipment. You may use one of the following placeholders: %s', 'dhl', 'woocommerce-germanized-dhl' ), '<code>' . implode( ', ', array_keys( $placeholders ) ) . '</code>' ) . '</div>',
-					'id' 		        => 'woocommerce_gzd_dhl_label_tracking_desc',
-					'default'	        => _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type' 		        => 'textarea',
-					'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
 				),
 			) );
 		}
@@ -501,6 +518,13 @@ class Settings {
 				'default'           => '0',
 				'options'			=> wc_gzd_dhl_get_visual_min_ages(),
 				'desc_tip'          => _x( 'Choose this option if you want to let DHL check your customer\'s age.', 'dhl', 'woocommerce-germanized-dhl' ),
+			),
+			array(
+				'title' 	        => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Enable the GoGreen Service by default.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_service_GoGreen',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
 			),
 			array(
 				'title' 	        => _x( 'Additional Insurance', 'dhl', 'woocommerce-germanized-dhl' ),
