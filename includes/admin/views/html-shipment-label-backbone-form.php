@@ -240,10 +240,10 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
         <?php if ( $dhl_order->supports_email_notification() ) : ?>
 
             <?php woocommerce_wp_checkbox( array(
-                'id'          		=> 'dhl_label_service_ParcelOutletDelivery',
+                'id'          		=> 'dhl_label_service_ParcelOutletRouting',
                 'label'       		=> _x( 'Retail outlet routing', 'dhl', 'woocommerce-germanized-dhl' ),
                 'description'       => '',
-                'value'		        => in_array( 'ParcelOutletDelivery', $default_args['services'] ) ? 'yes' : 'no',
+                'value'		        => in_array( 'ParcelOutletRouting', $default_args['services'] ) ? 'yes' : 'no',
                 'wrapper_class'     => 'form-field-checkbox'
             ) ); ?>
 
