@@ -923,38 +923,6 @@ class Settings {
 			array(
 				'type' => 'dhl_receiver_ids',
 			),
-			array(
-				'title' 	        => _x( 'Customer returns', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'This option will allow your customers to submit return requests to existing shipments. Return requests will be visible within your return dashboard.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'id' 		        => 'woocommerce_gzd_dhl_label_supports_customer_returns',
-				'default'	        => 'no',
-				'type' 		        => 'gzd_toggle',
-				'custom_attributes' => array(
-					'data-show_if_woocommerce_gzd_dhl_label_retoure_enable' => '',
-				),
-			),
-			array(
-				'title' 	        => _x( 'Manual confirmation', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'              => _x( 'Return requests need manual confirmation.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to process returns which by default are added with the status "request" after a customer submitted a return request. If you choose to disable this option, returns will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'id' 		        => 'woocommerce_gzd_dhl_label_return_manual_confirmation',
-				'default'	        => 'yes',
-				'type' 		        => 'gzd_toggle',
-				'custom_attributes' => array(
-					'data-show_if_woocommerce_gzd_dhl_label_supports_customer_returns' => '',
-				),
-			),
-
-			array(
-				'title' 	        => _x( 'Return instructions', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Provide your customer with instructions on how to return the shipment after a return request has been confirmed e.g. explain how to prepare the return for shipment.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'id' 		        => 'woocommerce_gzd_dhl_label_return_instructions',
-				'default'	        => _x( 'Please print the label and paste it on top of your return parcel. After that, please drop the parcel at a DHL parcel shop or packstation.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type' 		        => 'textarea',
-				'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
-				'custom_attributes' => array(
-					'data-show_if_woocommerce_gzd_dhl_label_supports_customer_returns' => '',
-				),
-			),
 		);
 
 		if ( $for_shipping_method ) {

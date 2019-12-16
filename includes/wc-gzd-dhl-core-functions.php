@@ -133,8 +133,7 @@ function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/DHL
 	 */
-
-	$ref = apply_filters( 'woocommerce_gzd_dhl_return_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to shipment #{original_shipment_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{original_shipment_id}' => $parent_shipment->get_id() ) ), $label, $shipment, $parent_shipment );
+	$ref = apply_filters( 'woocommerce_gzd_dhl_return_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
 
 	return substr( $ref, 0, 30 );
 }
