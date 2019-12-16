@@ -22,7 +22,6 @@ class Automation {
 		add_action( 'woocommerce_gzd_new_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 2 );
 		add_action( 'woocommerce_gzd_new_return_shipment', array( __CLASS__, 'set_after_create_automation' ), 10, 2 );
 
-		add_action( 'woocommerce_gzd_dhl_after_create_return_label', array( __CLASS__, 'maybe_send_email' ), 10, 1 );
 		add_action( 'woocommerce_gzd_dhl_after_create_label', array( __CLASS__, 'maybe_adjust_shipment_status' ), 10, 1 );
 	}
 
@@ -35,12 +34,6 @@ class Automation {
 			if ( $shipment = $label->get_shipment() ) {
 				$shipment->update_status( 'shipped' );
 			}
-		}
-	}
-
-	public static function maybe_send_email( $label ) {
-		if ( 'yes' === Package::get_setting( 'label_return_auto_email' ) ) {
-			$label->send_to_customer();
 		}
 	}
 
@@ -86,9 +79,9 @@ class Automation {
 				$status = str_replace( 'gzd-', '', $status );
 
 				if ( $is_hook ) {
-					add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 10, 1 );
+					add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 10, 2 );
 				} elseif( $shipment->has_status( $status ) ) {
-					self::maybe_create_label( $shipment->get_id() );
+					self::maybe_create_label( $shipment->get_id(), $shipment );
 				}
 			}
 		}
@@ -102,13 +95,32 @@ class Automation {
 		self::do_automation( $shipment, true );
 	}
 
-	public static function maybe_create_label( $shipment_id ) {
-		if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-			if ( ! wc_gzd_dhl_get_shipment_label( $shipment ) ) {
-				$label = wc_gzd_dhl_create_label( $shipment );
+	public static function create_label( $shipment_id, $shipment = false ) {
+		if ( ! $shipment ) {
+			$shipment = wc_gzd_get_shipment( $shipment_id );
 
-				if ( ! is_wp_error( $label ) ) {}
+			if ( ! $shipment ) {
+				return;
 			}
+		}
+
+		if ( ! $shipment->has_label() ) {
+			$result = $shipment->create_label();
+
+			if ( ! is_wp_error( $result ) ) {}
+		}
+	}
+
+	private static function is_admin_edit_order_request() {
+		return ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] );
+	}
+
+	public static function maybe_create_label( $shipment_id, $shipment = false ) {
+		// Make sure that MetaBox is saved before we process automation
+		if ( self::is_admin_edit_order_request() ) {
+			add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'create_label' ), 70 );
+		} else {
+			self::create_label( $shipment_id, $shipment );
 		}
 	}
 }

@@ -34,12 +34,7 @@ class ReturnRest extends Rest {
 			throw new Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
-		if ( ! $parent_shipment = $shipment->get_parent() ) {
-			throw new Exception( sprintf( _x( 'Could not fetch parent shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_parent_id() ) );
-		}
-
-		$parent_label = wc_gzd_dhl_get_label( $parent_shipment );
-		$order        = $shipment->get_order();
+		$order = $shipment->get_order();
 
 		if ( isset( $countries[ $country_name ] ) ) {
 			$country_name = $countries[ $country_name ];
@@ -49,7 +44,7 @@ class ReturnRest extends Rest {
 
 		$request_args = array(
 			'receiverId'        => $label->get_receiver_id(),
-			"customerReference" => wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment, $parent_shipment ),
+			"customerReference" => wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ),
 			"shipmentReference" => '',
 			"senderAddress"     => array(
 				'name1'       => $label->get_sender_company() ? $label->get_sender_company() : $label->get_sender_formatted_full_name(),
@@ -105,10 +100,8 @@ class ReturnRest extends Rest {
 
 			$request_args['customsDocument'] = array(
 				'currency'               => $order ? $order->get_currency() : 'EUR',
-				'originalShipmentNumber' => $parent_label ? $parent_label->get_number() : '',
-				'originalOperator'       => $parent_shipment->get_shipping_provider(),
-				'originalInvoiceNumber'  => $parent_shipment->get_id(),
-				'originalInvoiceDate'    => $parent_shipment->get_date_created()->format( 'Y-m-d' ),
+				'originalShipmentNumber' => $shipment->get_order_number(),
+				'originalOperator'       => $shipment->get_shipping_provider(),
 				'positions'              => $items,
 			);
 		}

@@ -122,18 +122,18 @@ function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	return substr( $ref, 0, 35 );
 }
 
-function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment, $parent_shipment ) {
+function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
 	/**
 	 * Filter to adjust the customer reference field placed on the DHL return label. Maximum characeter length: 30.
 	 *
 	 * @param string         $text The customer reference text.
 	 * @param Label          $label The label instance.
 	 * @param ReturnShipment $shipment The shipment instance.
-	 * @param SimpleShipment $parent_shipment The parent shipment instance.
 	 *
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/DHL
 	 */
+
 	$ref = apply_filters( 'woocommerce_gzd_dhl_return_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to shipment #{original_shipment_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{original_shipment_id}' => $parent_shipment->get_id() ) ), $label, $shipment, $parent_shipment );
 
 	return substr( $ref, 0, 30 );
@@ -536,14 +536,12 @@ function wc_gzd_dhl_shipment_needs_label( $shipment, $check_status = true ) {
 	}
 
 	// In case it is a return shipment - make sure that retoures are enabled
-	if ( 'return' === $shipment->get_type() ) {
-		if ( 'no' === Package::get_setting( 'label_retoure_enable' ) ) {
-			$needs_label = false;
-		}
+	if ( ! $shipment->supports_label() ) {
+		$needs_label = false;
 	}
 
 	// If label already exists
-	if ( $label = wc_gzd_dhl_get_shipment_label( $shipment ) ) {
+	if ( $label = $shipment->get_label() ) {
 		$needs_label = false;
 	}
 
