@@ -68,18 +68,6 @@ class ShippingProviderDHL extends ShippingProvider {
 		return $data;
 	}
 
-	public function get_supports_customer_returns( $context = 'view' ) {
-		return Package::get_setting( 'label_retoure_enable' ) === 'yes' && Package::get_setting( 'label_supports_customer_returns' ) === 'yes';
-	}
-
-	public function get_return_manual_confirmation( $context = 'view' ) {
-		return Package::get_setting( 'label_return_manual_confirmation' ) === 'yes';
-	}
-
-	public function get_return_instructions( $context = 'view' ) {
-		return Package::get_setting( 'label_return_instructions' );
-	}
-
 	public function deactivate() {
 		update_option( 'woocommerce_gzd_dhl_enable', 'no' );
 
