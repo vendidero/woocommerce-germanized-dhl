@@ -100,10 +100,8 @@ function wc_gzd_dhl_get_ident_min_ages() {
 	return wc_gzd_dhl_get_visual_min_ages();
 }
 
-function wc_gzd_dhl_get_label_reference( $reference_type, $placeholders = array() ) {
-	$text = $reference_type;
-
-	return str_replace( array_keys( $placeholders ), array_values( $placeholders ), $text );
+function wc_gzd_dhl_get_label_reference( $reference_text, $placeholders = array() ) {
+	return str_replace( array_keys( $placeholders ), array_values( $placeholders ), $reference_text );
 }
 
 function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
@@ -119,7 +117,7 @@ function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	 */
 	$ref = apply_filters( 'woocommerce_gzd_dhl_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
 
-	return substr( $ref, 0, 35 );
+	return sanitize_text_field( substr( $ref, 0, 35 ) );
 }
 
 function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
@@ -135,7 +133,7 @@ function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
 	 */
 	$ref = apply_filters( 'woocommerce_gzd_dhl_return_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
 
-	return substr( $ref, 0, 30 );
+	return sanitize_text_field( substr( $ref, 0, 30 ) );
 }
 
 function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
@@ -151,7 +149,7 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
 	 */
 	$ref = apply_filters( 'woocommerce_gzd_dhl_inlay_return_label_reference', wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
 
-	return substr( $ref, 0, 35 );
+	return sanitize_text_field( substr( $ref, 0, 35 ) );
 }
 
 /**
