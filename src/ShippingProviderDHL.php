@@ -31,7 +31,7 @@ class ShippingProviderDHL extends ShippingProvider {
 	}
 
 	public function get_title( $context = 'view' ) {
-		return __( 'DHL', 'dhl', 'woocommerce-germanized-dhl' );
+		return _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' );
 	}
 
 	public function get_name( $context = 'view' ) {
