@@ -502,7 +502,7 @@ class ParcelLocator {
 
 			foreach( $rates as $rate ) {
 
-				if ( $method = wc_gzd_dhl_get_shipping_method( $rate->id ) ) {
+				if ( $method = wc_gzd_dhl_get_shipping_method( $rate ) ) {
 					$supports = array();
 
 					foreach( wc_gzd_dhl_get_pickup_types() as $pickup_type => $title ) {
@@ -660,7 +660,11 @@ class ParcelLocator {
 	}
 
 	public static function localize_printed_scripts() {
-		if ( ! in_array( 'wc-gzd-parcel-locator-dhl', self::$localized_scripts, true ) && wp_script_is( 'wc-gzd-parcel-locator-dhl' ) ) {
+		/**
+		 * Do not check for localized script as this script needs to be loadeed in footer to make sure
+		 * that shipping method data (packages etc.) exist. This may lead to duplicate localizations (which is not a bug).
+		 */
+		if ( wp_script_is( 'wc-gzd-parcel-locator-dhl' ) ) {
 			self::$localized_scripts[] = 'wc-gzd-parcel-locator-dhl';
 
 			wp_localize_script( 'wc-gzd-parcel-locator-dhl', 'wc_gzd_dhl_parcel_locator_params', array(

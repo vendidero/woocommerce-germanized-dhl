@@ -346,6 +346,15 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                         current = currentParts[0];
                     }
                 }
+            } else {
+                // In case an instance id is needed but missing - assume 0 as instance id
+                if ( 'undefined' !== typeof current && current.length > 0 ) {
+                    var currentParts = current.split(':');
+
+                    if ( currentParts.length <= 1 ) {
+                        current = current + ':0';
+                    }
+                }
             }
 
             return current;
