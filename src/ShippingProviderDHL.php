@@ -46,12 +46,16 @@ class ShippingProviderDHL extends ShippingProvider {
 		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' );
 	}
 
+	public function get_default_tracking_url_placeholder() {
+		return 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc={tracking_id}&rfn=&extendedSearch=true';
+	}
+
 	public function get_tracking_url_placeholder( $context = 'view' ) {
 		$data = parent::get_tracking_url_placeholder( $context );
 
 		// In case the option value is not stored in DB yet
 		if ( 'view' === $context && empty( $data ) ) {
-			$data = 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc={tracking_id}&rfn=&extendedSearch=true';
+			$data = $this->get_default_tracking_url_placeholder();
 		}
 
 		return $data;
@@ -62,7 +66,7 @@ class ShippingProviderDHL extends ShippingProvider {
 
 		// In case the option value is not stored in DB yet
 		if ( 'view' === $context && empty( $data ) ) {
-			$data = _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'dhl', 'woocommerce-germanized-dhl' );
+			$data = $this->get_default_tracking_desc_placeholder();
 		}
 
 		return $data;
