@@ -63,7 +63,7 @@ class Package {
     }
 
     public static function has_dependencies() {
-    	return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && self::base_country_is_supported() );
+    	return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && self::base_country_is_supported() && apply_filters( 'woocommerce_gzd_dhl_enabled', true ) );
     }
 
     public static function base_country_is_supported() {
