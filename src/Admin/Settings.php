@@ -320,6 +320,14 @@ class Settings {
 			);
 		}
 
+		$dhl_products[] = array(
+			'title'             => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ),
+			'type'              => 'text',
+			'default'           => '',
+			'id'                => 'woocommerce_gzd_dhl_participation_return',
+			'custom_attributes'	=> array( 'maxlength' => '2' ),
+		);
+
 		$settings = self::get_setup_settings( true );
 
 		$settings = array_merge( $settings, array(
