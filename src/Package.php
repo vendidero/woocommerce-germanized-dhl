@@ -20,7 +20,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.2.0';
+    const VERSION = '1.2.1';
 
     public static $upload_dir_suffix = '';
 
@@ -49,7 +49,7 @@ class Package {
 
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
-	    add_action( 'woocommerce_gzd_admin_settings_before_save_dhl', array( __CLASS__, 'before_update_settings' ) );
+	    add_action( 'woocommerce_gzd_admin_settings_before_save_dhl', array( __CLASS__, 'before_update_settings' ), 10, 2 );
 
 	    // Password Settings
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
@@ -735,7 +735,12 @@ class Package {
 		}
 	}
 
-	public static function before_update_settings( $settings ) {
+	public static function before_update_settings( $settings, $current_section = '' ) {
+
+		if ( ! empty( $current_section ) ) {
+			return;
+		}
+
 		$currently_enabled = self::get_setting( 'enable' ) === 'yes';
 
 		if ( ! $currently_enabled && isset( $_POST['woocommerce_gzd_dhl_enable'] ) && ! empty( $_POST['woocommerce_gzd_dhl_enable'] ) ) {
