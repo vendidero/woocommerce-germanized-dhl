@@ -30,7 +30,7 @@ class AuthSoap {
      * constructor.
      */
     public function __construct( $wsdl_link ) {
-        $this->wsdl_link = $wsdl_link;
+        $this->wsdl_link = Package::get_wsdl_file( $wsdl_link );
     }
 
     public function get_access_token( $client_id = '', $client_secret = '' ) {

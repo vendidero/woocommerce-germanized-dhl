@@ -210,6 +210,15 @@ class Package {
 
 	    // Maybe force street number during checkout
 	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
+
+	    // add_action( 'admin_init', array( __CLASS__, 'test' ) );
+    }
+
+    public static function test() {
+    	$label = wc_gzd_dhl_get_label( 289 );
+
+    	$api = self::get_api()->get_label( $label );
+    	exit();
     }
 
 	public static function sanitize_password_field( $value, $option, $raw_value ) {
@@ -562,6 +571,143 @@ class Package {
 
     public static function set_upload_dir_filter() {
         add_filter( 'upload_dir', array( __CLASS__, "filter_upload_dir" ), 150, 1 );
+    }
+
+    public static function get_file_by_path( $file ) {
+	    // If the file is relative, prepend upload dir.
+	    if ( $file && 0 !== strpos( $file, '/' ) && ( ( $uploads = Package::get_upload_dir() ) && false === $uploads['error'] ) ) {
+		    $file = $uploads['basedir'] . "/$file";
+
+		    return $file;
+	    } else {
+		    return $file;
+	    }
+    }
+
+    public static function get_wsdl_file( $wsdl_link ) {
+	    $main_file       = basename( $wsdl_link );
+	    $required_files  = array( $main_file );
+
+	    // Some WSDLs may require multiple files
+	    if ( 'geschaeftskundenversand-api-3.0.wsdl' === $main_file ) {
+		    $required_files = array(
+			    $main_file,
+			    str_replace( '.wsdl', '-schema-cis_base.xsd', $main_file ),
+			    str_replace( '.wsdl', '-schema-bcs_base.xsd', $main_file ),
+		    );
+	    }
+
+	    $file_link       = $wsdl_link;
+	    $transient       = 'wc_gzd_dhl_wsdl_' . sanitize_key( $main_file );
+	    $new_file_name   = $main_file;
+	    $files_exist     = true;
+	    $is_zip          = false;
+	    $transient_valid = DAY_IN_SECONDS;
+
+	    if ( sizeof( $required_files ) > 1 ) {
+	    	$file_link     = str_replace( '.wsdl', '.zip', $file_link );
+	    	$new_file_name = str_replace( '.wsdl', '.zip', $new_file_name );
+	    	$is_zip        = true;
+	    }
+
+	    /**
+	     * Check if all required files exist locally
+	     */
+	    foreach( $required_files as $file ) {
+		    $transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $file );
+
+		    if ( ( $file_path = get_transient( $transient ) ) && file_exists( $file_path ) ) {
+
+		    } else {
+		    	$files_exist = false;
+		    }
+	    }
+
+	    $file_path = get_transient( $transient );
+
+	    /**
+	     * This filter may be used to force loading an alternate (local) WSDL file
+	     * for a certain API endpoint. By default we are trying to locally store necessary files
+	     * to reduce API calls. Transients/files are renewed once per day.
+	     *
+	     * @param boolean|string $alternate_file In case an alternate file should be used this must be the absolute path.
+	     * @param string         $wsdl_link The link to the original WSDL file.
+	     *
+	     * @since 3.1.2
+	     * @package Vendidero/Germanized/DHL
+	     */
+	    $alternate_file = apply_filters( 'woocommerce_gzd_dhl_alternate_wsdl_file', false, $wsdl_link );
+
+	    if ( ( $files_exist && $file_path ) || $alternate_file ) {
+		    $wsdl_link = $alternate_file ? $alternate_file : self::get_file_by_path( $file_path );
+	    } else {
+
+	    	if ( ! function_exists( 'download_url' ) ) {
+				include_once( ABSPATH . 'wp-admin/includes/file.php' );
+		    }
+
+		    if ( function_exists( 'download_url' ) && function_exists( 'unzip_file' ) ) {
+			    $tmp_file = download_url( $file_link );
+
+			    if ( ! is_wp_error( $tmp_file ) ) {
+
+				    $uploads    = Package::get_upload_dir();
+				    $new_file   = $uploads['path'] . "/$new_file_name";
+				    $has_copied = @copy( $tmp_file, $new_file );
+
+				    if ( $has_copied ) {
+
+				    	if ( $is_zip ) {
+						    global $wp_filesystem;
+
+						    if ( ! $wp_filesystem ) {
+							    WP_Filesystem();
+						    }
+
+						    $unzipfile = unzip_file( $new_file, $uploads['path'] );
+
+						    if ( ! is_wp_error( $unzipfile ) ) {
+							    $files_exist   = true;
+							    $new_wsdl_link = false;
+
+							    foreach( $required_files as $file ) {
+								    $transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $file );
+								    $file_path = $uploads['path'] . "/$file";
+
+								    if ( file_exists( $file_path ) ) {
+									    set_transient( $transient, self::get_relative_upload_dir( $file_path ), $transient_valid );
+
+									    if ( $file === $main_file ) {
+										    $new_wsdl_link = $file_path;
+									    }
+								    } else {
+									    $files_exist = false;
+								    }
+							    }
+
+							    if ( $files_exist && $new_wsdl_link ) {
+								    $wsdl_link = $new_wsdl_link;
+							    }
+						    }
+
+						    @unlink( $new_file );
+					    } else {
+						    $transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $main_file );
+						    $file_path = $uploads['path'] . "/$main_file";
+
+						    if ( file_exists( $file_path ) ) {
+							    set_transient( $transient, self::get_relative_upload_dir( $file_path ), $transient_valid );
+							    $wsdl_link = $file_path;
+						    }
+					    }
+
+					    @unlink( $tmp_file );
+				    }
+			    }
+		    }
+	    }
+
+	    return $wsdl_link;
     }
 
     public static function unset_upload_dir_filter() {
