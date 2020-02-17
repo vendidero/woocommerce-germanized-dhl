@@ -589,7 +589,7 @@ class Package {
 	    $required_files  = array( $main_file );
 
 	    // Some WSDLs may require multiple files
-	    if ( 'geschaeftskundenversand-api-3.0.wsdl' === $main_file ) {
+	    if ( strpos( $wsdl_link, 'geschaeftskundenversand-api' ) !== false ) {
 		    $required_files = array(
 			    $main_file,
 			    str_replace( '.wsdl', '-schema-cis_base.xsd', $main_file ),
@@ -602,7 +602,9 @@ class Package {
 	    $new_file_name   = $main_file;
 	    $files_exist     = true;
 	    $is_zip          = false;
-	    $transient_valid = DAY_IN_SECONDS;
+
+	    // Renew files every 14 days
+	    $transient_valid = DAY_IN_SECONDS * 14;
 
 	    if ( sizeof( $required_files ) > 1 ) {
 	    	$file_link     = str_replace( '.wsdl', '.zip', $file_link );
