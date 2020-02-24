@@ -609,6 +609,15 @@ class ParcelLocator {
 			'country'    => '',
 		) );
 
+		$has_postnumber = false;
+
+		if ( ! empty( $args['postnumber'] ) ) {
+			$has_postnumber = true;
+
+			// Do only allow numeric input
+			$args['postnumber'] = preg_replace( "/[^0-9]/", "", $args['postnumber'] );
+		}
+
 		$error          = new WP_Error();
 		$is_packstation = false;
 
@@ -636,14 +645,14 @@ class ParcelLocator {
 			}
 		}
 
-		if ( $is_packstation ) {
+		if ( $has_postnumber && ! empty( $args['postnumber'] ) ) {
 			$post_number_len = strlen( $args['postnumber'] );
 
-			if ( empty( $args['postnumber'] ) ) {
-				$error->add( 'validation', _x( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			} elseif( $post_number_len < 6 || $post_number_len > 12 ) {
+			if ( $post_number_len < 6 || $post_number_len > 12 ) {
 				$error->add( 'validation', _x( 'Your DHL customer number (Post number) is not valid. Please check your number.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
+		} elseif( ( $is_packstation || $has_postnumber ) && empty( $args['postnumber'] ) ) {
+			$error->add( 'validation', _x( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return wc_gzd_dhl_wp_error_has_errors( $error ) ? $error : true;
