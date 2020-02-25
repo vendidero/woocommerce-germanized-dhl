@@ -55,6 +55,10 @@ class Package {
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
 
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
+
+
 	    if ( self::is_enabled() ) {
 	        self::init_hooks();
         }
@@ -227,6 +231,10 @@ class Package {
 		return trim( $value );
 	}
 
+	public static function sanitize_user_field( $value, $option, $raw_value ) {
+		return strtolower( wc_clean( $value ) );
+	}
+
 	/**
 	 * @param array     $data
 	 * @param WP_Error $errors
@@ -387,6 +395,7 @@ class Package {
 	 */
     public static function get_cig_user() {
     	$debug_user = defined( 'WC_GZD_DHL_SANDBOX_USER' ) ? WC_GZD_DHL_SANDBOX_USER : self::get_setting( 'api_sandbox_username' );
+		$debug_user = strtolower( $debug_user );
 
         return self::is_debug_mode() ? $debug_user : self::get_app_id();
     }
@@ -408,7 +417,9 @@ class Package {
 	 * @return mixed|string|void
 	 */
     public static function get_gk_api_user() {
-	    return self::is_debug_mode() ? '2222222222_01' : self::get_setting( 'api_username' );
+	    $user = self::is_debug_mode() ? '2222222222_01' : self::get_setting( 'api_username' );
+
+	    return strtolower( $user );
     }
 
 	/**
@@ -426,7 +437,9 @@ class Package {
 	 * @return mixed|string|void
 	 */
 	public static function get_retoure_api_user() {
-		return self::is_debug_mode() ? '2222222222_Customer' : self::get_setting( 'api_username' );
+		$user = self::is_debug_mode() ? '2222222222_Customer' : self::get_setting( 'api_username' );
+
+		return strtolower( $user );
 	}
 
 	public static function get_return_receivers() {
