@@ -663,8 +663,8 @@ class LabelSoap extends Soap {
                     'countryCodeOrigin'   => $dhl_product ? $dhl_product->get_manufacture_country() : '',
                     'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
                     'amount'              => intval( $item->get_quantity() ),
-                    'netWeightInKG'       => wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 ),
-                    'customsValue'        => wc_format_decimal( floatval( $item->get_total() ), 2 ),
+                    'netWeightInKG'       => wc_format_decimal( floatval( wc_get_weight( ( $item->get_weight() / $item->get_quantity() ), 'kg', $shipment->get_weight_unit() ) ), 2 ),
+                    'customsValue'        => wc_format_decimal( floatval( ( $item->get_total() / $item->get_quantity() ) ), 2 ),
                 );
 
                 array_push($customsDetails, $json_item );
