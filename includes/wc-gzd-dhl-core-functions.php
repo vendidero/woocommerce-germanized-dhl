@@ -177,6 +177,13 @@ function wc_gzd_dhl_get_current_shipping_method() {
 	return false;
 }
 
+function wc_gzd_dhl_get_international_services() {
+	return array(
+		'Premium',
+		'GoGreen'
+	);
+}
+
 function wc_gzd_dhl_get_services() {
     return array(
         'PreferredTime',
@@ -760,6 +767,18 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				$defaults['has_inlay_return'] = 'yes';
 			}
 		}
+	}
+
+	if( ! Package::is_shipping_domestic( $shipment->get_country() ) ) {
+
+		foreach( wc_gzd_dhl_get_international_services() as $service ) {
+			if ( 'yes' === Package::get_setting( 'label_service_' . $service, $dhl_shipping_method ) ) {
+				$defaults['services'][] = $service;
+			}
+		}
+
+		// Demove duplicates
+		$defaults['services'] = array_unique( $defaults['services'] );
 	}
 
 	return $defaults;
