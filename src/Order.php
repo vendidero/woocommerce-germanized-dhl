@@ -155,8 +155,26 @@ class Order {
 		return $prop_data;
 	}
 
+	/**
+	 * @TODO: Add setting to override checkbox check.
+	 *
+	 * @return bool
+	 */
 	public function supports_email_notification() {
-		return wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() );
+		$has_email_notification = wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() );
+
+		/**
+		 * Filter to adjust whether customer data (email address) should be handed over to DHL to provide
+		 * with services such as email notification or parcel outlet routing. By default this may only work
+		 * if the customer has opted-in via checkbox during checkout.
+		 *
+		 * @param boolean $has_email_notification Whether the order supports email notification (handing over customer data to DHL).
+		 * @param Order   $order The order instance.
+		 *
+		 * @since 3.1.6
+		 * @package Vendidero/Germanized/DHL
+		 */
+		return apply_filters( 'woocommerce_gzd_dhl_order_supports_email_notification', $has_email_notification, $this );
 	}
 
 	public function get_min_age() {

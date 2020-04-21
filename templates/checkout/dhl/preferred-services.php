@@ -33,7 +33,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
             </div>
         </div>
 
-		<?php if ( ! empty( $preferred_day_time_options ) && isset( $preferred_day_time_options['preferred_day'] ) && ! empty( $preferred_day_time_options['preferred_day'] ) && $preferred_day_enabled ) : ?>
+		<?php if ( ! empty( $preferred_day_options ) && $preferred_day_enabled ) : ?>
             <div class="dhl-preferred-service-item dhl-preferred-service-day">
                 <div class="dhl-preferred-service-title"><?php _ex( 'Preferred day: Delivery at your preferred day.', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Choose one of the displayed days as your preferred day for your parcel delivery. Other days are not possible due to delivery processes.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
 
@@ -45,7 +45,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
 
                 <div class="dhl-preferred-service-data">
                     <ul class="dhl-preferred-service-times dhl-preferred-service-days">
-		                <?php foreach( $preferred_day_time_options['preferred_day'] as $key => $value ) :
+		                <?php foreach( $preferred_day_options as $key => $value ) :
                             $key          = empty( $key ) ? '' : $key;
 			                $week_day_num = empty( $key ) ? '-' : date('j', strtotime( $key ) );
 			                $is_selected  = $preferred_day === $key ? 'checked="checked"' : '';
@@ -59,32 +59,6 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
                 </div>
             </div>
         <?php endif; ?>
-
-		<?php if ( ! empty( $preferred_day_time_options ) && isset( $preferred_day_time_options['preferred_time'] ) && ! empty( $preferred_day_time_options['preferred_time'] ) && $preferred_time_enabled ) : ?>
-            <div class="dhl-preferred-service-item dhl-preferred-service-time">
-                <div class="dhl-preferred-service-title"><?php _ex( 'Preferred time: Delivery during your preferred time slot.', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Indicate a preferred time, which suits you best for your parcel delivery by choosing one of the displayed time windows.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
-
-				<?php if ( ! empty( $preferred_time_cost ) ) : ?>
-                    <div class="dhl-preferred-service-cost">
-						<?php printf( _x( 'There is a surcharge of %s incl. VAT for this service.*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_time_cost ) ); ?>
-                    </div>
-				<?php endif; ?>
-
-                <div class="dhl-preferred-service-data">
-                    <ul class="dhl-preferred-service-times dhl-preferred-service-time">
-						<?php foreach( $preferred_day_time_options['preferred_time'] as $key => $value ) :
-							$key          = empty( $key ) ? '' : $key;
-							$is_selected  = $preferred_time === $key ? 'checked="checked"' : '';
-							?>
-                            <li>
-                                <input type="radio" name="dhl_preferred_time" class="dhl-preferred-time-option" id="dhl-preferred-time-<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $key ); ?>" <?php echo $is_selected; ?> />
-                                <label for="dhl-preferred-time-<?php echo $key; ?>"><span class="dhl-preferred-time-title"><?php echo ( empty( $key ) ? _x( 'None', 'dhl time context', 'woocommerce-germanized-dhl' ) : $key ); ?></span></label>
-                            </li>
-						<?php endforeach; ?>
-                    </ul>
-                </div>
-            </div>
-		<?php endif; ?>
 
 		<?php if ( $preferred_location_enabled || $preferred_neighbor_enabled ) : ?>
             <div class="dhl-preferred-service-item dhl-preferred-service-location">
@@ -129,12 +103,6 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
                         </div>
 	                <?php endif; ?>
                 </div>
-            </div>
-		<?php endif; ?>
-
-		<?php if ( $preferred_day_enabled && $preferred_time_enabled && ! empty( $preferred_day_time_cost ) ) : ?>
-            <div class="dhl-preferred-service-cost">
-                <?php printf( _x( '* For a booking of preferred day and preferred time in combination there is a surcharge of %s incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_day_time_cost ) ); ?>
             </div>
 		<?php endif; ?>
     </td>

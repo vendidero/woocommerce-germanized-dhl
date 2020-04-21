@@ -963,38 +963,6 @@ class Settings {
 			),
 
 			array(
-				'title' 	        => _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc' 		        => _x( 'Enable preferred time delivery.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x(  'Enabling this option will display options for the user to select their preferred time of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'id' 		        => 'woocommerce_gzd_dhl_PreferredTime_enable',
-				'default'	        => 'yes',
-				'type' 		        => 'gzd_toggle',
-			),
-
-			array(
-				'title'             => _x( 'Fee', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'text',
-				'desc'              => _x( 'Insert gross value as surcharge for preferred time delivery. Insert 0 to offer service for free.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip'          => true,
-				'id' 		        => 'woocommerce_gzd_dhl_PreferredTime_cost',
-				'default'           => '4.8',
-				'css'               => 'max-width: 60px;',
-				'class'             => 'wc_input_decimal',
-				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_PreferredTime_enable' => '' )
-			),
-
-			array(
-				'title'             => _x( 'Combined Fee', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'text',
-				'desc'              => _x( 'Insert gross value as surcharge for the combination of preferred day and time. Insert 0 to offer service for free.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip'          => true,
-				'id' 		        => 'woocommerce_gzd_dhl_PreferredDay_combined_cost',
-				'default'           => '4.8',
-				'css'               => 'max-width: 60px;',
-				'class'             => 'wc_input_decimal',
-				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_PreferredTime_enable' => '', 'data-show_if_woocommerce_gzd_dhl_PreferredDay_enable' => '' )
-			),
-
-			array(
 				'title' 	        => _x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Enable preferred location delivery.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x(  'Enabling this option will display options for the user to select their preferred delivery location during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_PreferredLocation_enable',

@@ -27,7 +27,7 @@ use Vendidero\Germanized\Shipments\ShipmentFactory;
 
 defined( 'ABSPATH' ) || exit;
 
-function wc_gzd_dhl_aformat_preferred_api_time( $time ) {
+function wc_gzd_dhl_format_preferred_api_time( $time ) {
 	return str_replace( array( ':', '-' ), '', $time );
 }
 

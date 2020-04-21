@@ -50,17 +50,16 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	$preferred_times    = array();
 
 	try {
-		$preferred_day_time = Package::get_api()->get_preferred_day_time( $shipment->get_postcode() );
+		$preferred_day_options = Package::get_api()->get_preferred_available_days( $shipment->get_postcode() );
 
-		if ( $preferred_day_time ) {
-			$preferred_days  = $preferred_day_time['preferred_day'];
-			$preferred_times = $preferred_day_time['preferred_time'];
+		if ( $preferred_day_options ) {
+			$preferred_days  = $preferred_day_options;
 		}
 	} catch( Exception $e ) {}
 	?>
 
 	<div class="columns">
-		<div class="column col-6">
+		<div class="column <?php echo ( isset( $default_args['preferred_time'] ) ) ? 'col-6' : 'col-12'; ?>">
 			<?php woocommerce_wp_select( array(
 				'id'          		=> 'dhl_label_preferred_day',
 				'label'       		=> _x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -69,15 +68,17 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 				'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, ( isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '' ) ),
 			) ); ?>
 		</div>
-		<div class="column col-6">
-			<?php woocommerce_wp_select( array(
-				'id'          		=> 'dhl_label_preferred_time',
-				'label'       		=> _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'		=> '',
-				'value'       		=> isset( $default_args['preferred_time'] ) ? $default_args['preferred_time'] : '',
-				'options'			=> wc_gzd_dhl_get_preferred_times_select_options( $preferred_times ),
-			) ); ?>
-		</div>
+		<?php if ( isset( $default_args['preferred_time'] ) ) : ?>
+			<div class="column col-6">
+				<?php woocommerce_wp_select( array(
+					'id'          		=> 'dhl_label_preferred_time',
+					'label'       		=> _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
+					'description'		=> '',
+					'value'       		=> $default_args['preferred_time'],
+					'options'			=> wc_gzd_dhl_get_preferred_times_select_options( array( $default_args['preferred_time'] => $default_args['preferred_time'] ) ),
+				) ); ?>
+			</div>
+		<?php endif; ?>
 	</div>
 
 	<?php if ( $dhl_order->has_preferred_location() ) : ?>

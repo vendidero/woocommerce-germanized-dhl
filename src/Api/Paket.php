@@ -170,7 +170,7 @@ class Paket {
 	 * @return array
 	 * @throws Exception
 	 */
-    public function get_preferred_day_time( $postcode, $cutoff_time = '' ) {
+    public function get_preferred_available_days( $postcode, $cutoff_time = '' ) {
 	    $exclude_working_days  = wc_gzd_dhl_get_excluded_working_days();
 
 	    // Always exclude Sunday
@@ -229,12 +229,11 @@ class Paket {
 	    $args['account_num'] = $account_num;
 	    $args['start_date']  = $starting_date->format( 'Y-m-d' );
 
-	    $preferred_day_time  = array();
+	    $preferred_days  = array();
 
 	    try {
-		    $preferred_services                   = $this->get_parcel_api()->get_services( $args );
-		    $preferred_day_time['preferred_day']  = $this->get_preferred_day( $preferred_services );
-		    $preferred_day_time['preferred_time'] = $this->get_preferred_time( $preferred_services );
+		    $preferred_services = $this->get_parcel_api()->get_services( $args );
+		    $preferred_days     = $this->get_preferred_days( $preferred_services );
 	    } catch( Exception $e ) {
 		    throw $e;
 	    }
@@ -242,10 +241,10 @@ class Paket {
 	    // Reset timezone to not affect any other plugins
 	    date_default_timezone_set( $current_timzone );
 
-	    return $preferred_day_time;
+	    return $preferred_days;
     }
 
-    protected function get_preferred_day( $preferred_services ) {
+    protected function get_preferred_days( $preferred_services ) {
 
         $day_of_week_arr = array(
             '1' => _x( 'Mon', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -274,26 +273,5 @@ class Paket {
         }
 
         return $preferred_days;
-    }
-
-    protected function get_preferred_time( $preferred_services ) {
-        $preferred_times = array();
-
-        if ( isset( $preferred_services->preferredTime->available ) && $preferred_services->preferredTime->available && isset( $preferred_services->preferredTime->timeframes ) ) {
-
-            // Add none option
-            $preferred_times[0] = _x( 'None', 'dhl time context', 'woocommerce-germanized-dhl' );
-
-            foreach ( $preferred_services->preferredTime->timeframes as $time_key => $time_value ) {
-                $temp_day_time      = str_replace( ':00', '', $time_value->start );
-                $temp_day_time     .= '-';
-                $temp_day_time     .= str_replace( ':00', '', $time_value->end );
-                $temp_day_time_key  = $time_value->start . '-' . $time_value->end;
-
-                $preferred_times[ $temp_day_time_key ] = $temp_day_time;
-            }
-        }
-
-        return $preferred_times;
     }
 }

@@ -416,7 +416,7 @@ class LabelSoap extends Soap {
                     $services[ $service ]['details'] = $label->get_preferred_day() ? $label->get_preferred_day()->date( 'Y-m-d' ) : '';
                     break;
                 case 'PreferredTime':
-                    $services[ $service ]['type'] = wc_gzd_dhl_aformat_preferred_api_time( $label->get_preferred_time() );
+                    $services[ $service ]['type'] = wc_gzd_dhl_format_preferred_api_time( $label->get_preferred_time() );
                     break;
                 case 'VisualCheckOfAge':
                     $services[ $service ]['type'] = $label->get_visual_min_age();

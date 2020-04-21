@@ -130,15 +130,7 @@ class ParcelServices {
 			$data = self::get_data( $post_data );
 
 			try {
-				if ( ! empty( $data['preferred_time'] ) && ! empty( $data['preferred_day'] ) ) {
-					if ( ! empty( $data['preferred_day_time_cost'] ) ) {
-						$cart->add_fee( _x( 'DHL Preferred Day & Time', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_day_time_cost'] );
-					}
-				} elseif ( ! empty( $data['preferred_time'] ) ) {
-					if ( ! empty( $data['preferred_time_cost'] ) ) {
-						$cart->add_fee( _x( 'DHL Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_time_cost'] );
-					}
-				} elseif ( ! empty( $data['preferred_day'] ) ) {
+				if ( ! empty( $data['preferred_day'] ) ) {
 					if ( ! empty( $data['preferred_day_cost'] ) ) {
 						$cart->add_fee( _x( 'DHL Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_day_cost'] );
 					}
@@ -219,28 +211,8 @@ class ParcelServices {
 		return $days;
 	}
 
-	protected static function get_preferred_time_cost() {
-		$cost = self::get_setting( 'PreferredTime_cost' );
-
-		if ( empty( $cost ) ) {
-			$cost = 0;
-		}
-
-		return $cost;
-	}
-
-	protected static function get_preferred_day_time_cost() {
-		$cost = self::get_setting( 'PreferredDay_combined_cost' );
-
-		if ( empty( $cost ) ) {
-			$cost = 0;
-		}
-
-		return $cost;
-	}
-
 	protected static function is_preferred_enabled() {
-		return self::is_preferred_day_enabled() || self::is_preferred_time_enabled() || self::is_preferred_location_enabled() || self::is_preferred_neighbor_enabled();
+		return self::is_preferred_day_enabled() || self::is_preferred_location_enabled() || self::is_preferred_neighbor_enabled();
 	}
 
 	protected static function is_preferred_available( $check_day_transfer = false ) {
@@ -269,26 +241,22 @@ class ParcelServices {
 	protected static function get_data( $post_data ) {
 		$data = array(
 			'preferred_day_enabled'               => false,
-			'preferred_time_enabled'              => false,
 			'preferred_location_enabled'          => false,
 			'preferred_neighbor_enabled'          => false,
 			'preferred_day'                       => '',
-			'preferred_time'                      => '',
 			'preferred_location_type'             => 'none',
 			'preferred_location'                  => '',
 			'preferred_location_neighbor_name'    => '',
 			'preferred_location_neighbor_address' => '',
-			'preferred_day_time_options'          => WC()->session->get( 'dhl_preferred_day_time_options' ),
+			'preferred_day_options'               => WC()->session->get( 'dhl_preferred_day_options' ),
 			'preferred_day_cost'                  => self::get_preferred_day_cost(),
-			'preferred_time_cost'                 => self::get_preferred_time_cost(),
-			'preferred_day_time_cost'             => self::get_preferred_day_time_cost(),
 		);
 
 		$data['errors'] = new WP_Error();
 
-		if ( is_null( $data['preferred_day_time_options'] ) ) {
-			self::refresh_day_time_session();
-			$data['preferred_day_time_options'] = WC()->session->get( 'dhl_preferred_day_time_options' );
+		if ( is_null( $data['preferred_day_options'] ) ) {
+			self::refresh_day_session();
+			$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
 		}
 
 		try {
@@ -299,8 +267,8 @@ class ParcelServices {
 					$day = wc_clean( $post_data['dhl_preferred_day'] );
 
 					if ( wc_gzd_dhl_is_valid_datetime( $day, 'Y-m-d' ) ) {
-						if ( ! empty( $data['preferred_day_time_options']['preferred_day'] ) ) {
-							if ( array_key_exists( $day, $data['preferred_day_time_options']['preferred_day'] ) ) {
+						if ( ! empty( $data['preferred_day_options'] ) ) {
+							if ( array_key_exists( $day, $data['preferred_day_options'] ) ) {
 								$data['preferred_day'] = $day;
 							}
 						}
@@ -308,34 +276,6 @@ class ParcelServices {
 
 					if ( empty( $data['preferred_day'] ) ) {
 						$data['errors']->add( 'validation', _x( 'Sorry, but the preferred day you have chosen is no longer available.', 'dhl', 'woocommerce-germanized-dhl' ) );
-					}
-				}
-			}
-
-			if ( self::is_preferred_time_enabled() ) {
-				$data['preferred_time_enabled'] = true;
-
-				if ( isset( $post_data['dhl_preferred_time'] ) && ! empty( $post_data['dhl_preferred_time'] ) ) {
-					$preferred_org_time = wc_clean( $post_data['dhl_preferred_time'] );
-					$preferred_time     = explode( '-', $preferred_org_time );
-
-					if ( sizeof( $preferred_time ) === 2 ) {
-						$time_start = $preferred_time[0];
-						$time_end   = $preferred_time[1];
-
-						if ( wc_gzd_dhl_is_valid_datetime( $time_start, 'H:i' ) && wc_gzd_dhl_is_valid_datetime( $time_end, 'H:i' ) ) {
-							if ( ! empty( $data['preferred_day_time_options']['preferred_time'] ) ) {
-								if ( array_key_exists( $preferred_org_time, $data['preferred_day_time_options']['preferred_time'] ) ) {
-									$data['preferred_time']       = $preferred_org_time;
-									$data['preferred_time_start'] = $time_start;
-									$data['preferred_time_end']   = $time_end;
-								}
-							}
-						}
-					}
-
-					if ( empty( $data['preferred_time'] ) ) {
-						$data['errors']->add( 'validation', _x( 'Sorry, but the preferred time you have chosen is no longer available.', 'dhl', 'woocommerce-germanized-dhl' ) );
 					}
 				}
 			}
@@ -382,15 +322,15 @@ class ParcelServices {
 		}
 	}
 
-	protected static function refresh_day_time_session() {
-		WC()->session->set( 'dhl_preferred_day_time_options', array() );
+	protected static function refresh_day_session() {
+		WC()->session->set( 'dhl_preferred_day_options', array() );
 
-		if ( self::is_preferred_day_enabled() || self::is_preferred_time_enabled() ) {
+		if ( self::is_preferred_day_enabled() ) {
 			$shipping_postcode = WC()->customer->get_shipping_postcode();
 
 			try {
 				if ( ! empty( $shipping_postcode ) ) {
-					WC()->session->set( 'dhl_preferred_day_time_options', Package::get_api()->get_preferred_day_time( $shipping_postcode ) );
+					WC()->session->set( 'dhl_preferred_day_options', Package::get_api()->get_preferred_available_days( $shipping_postcode ) );
 				}
 
 			} catch( Exception $e ) {}
@@ -407,10 +347,10 @@ class ParcelServices {
 		if ( self::is_preferred_available( true ) ) {
 			$data = self::get_data( $post_data );
 
-			self::refresh_day_time_session();
+			self::refresh_day_session();
 
-			$data['preferred_day_time_options'] = WC()->session->get( 'dhl_preferred_day_time_options' );
-			$data['logo_url']                   = Package::get_assets_url() . '/img/dhl-official.png';
+			$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
+			$data['logo_url']              = Package::get_assets_url() . '/img/dhl-official.png';
 
 			wc_get_template( 'checkout/dhl/preferred-services.php', $data, Package::get_template_path(), Package::get_path() . '/templates/' );
 		}
