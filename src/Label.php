@@ -27,12 +27,11 @@ abstract class Label extends WC_Data implements ShipmentLabel {
     protected $object_type = 'dhl_label';
 
     /**
-     * Contains a reference to the data store for this class.
+     * Contains the data store name.
      *
-     * @since 3.0.0
-     * @var object
+     * @var string
      */
-    protected $data_store = 'dhl-label';
+    protected $data_store_name = 'dhl-label';
 
     /**
      * Stores meta in cache for future reads.
@@ -75,7 +74,7 @@ abstract class Label extends WC_Data implements ShipmentLabel {
             $this->set_id( $data );
         }
 
-        $this->data_store = WC_Data_Store::load( 'dhl-label' );
+        $this->data_store = WC_Data_Store::load( $this->data_store_name );
 
         // If we have an ID, load the user from the DB.
         if ( $this->get_id() ) {
