@@ -98,7 +98,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'label'       		=> _x( 'Preferred Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
 			'placeholder' 		=> '',
 			'description'		=> '',
-			'value'       		=> isset( $default_args['preferred_location_neighbor'] ) ? $default_args['preferred_location_neighbor'] : '',
+			'value'       		=> isset( $default_args['preferred_neighbor'] ) ? $default_args['preferred_neighbor'] : '',
 			'custom_attributes'	=> array( 'maxlength' => '80' )
 		) ); ?>
 	<?php endif; ?>
