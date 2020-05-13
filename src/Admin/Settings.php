@@ -425,7 +425,7 @@ class Settings {
 			),
 
 			array(
-				'title'             => _x( 'Default weight', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Default weight (kg)', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
 				'desc'              => _x( 'Choose a default shipment weight to be used for labels if no weight has been applied to the shipment.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc_tip'          => true,
@@ -436,7 +436,7 @@ class Settings {
 			),
 
 			array(
-				'title'             => _x( 'Minimum weight', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Minimum weight (kg)', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
 				'desc'              => _x( 'Choose a minimum weight to be used for labels e.g. to prevent low shipment weight errors.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc_tip'          => true,
