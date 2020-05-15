@@ -656,11 +656,11 @@ class LabelSoap extends Soap {
 	            $per_item_weight = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
 
 	            /**
-	             * Set min weight to 0.02 to prevent missing weight error messages
+	             * Set min weight to 0.01 to prevent missing weight error messages
 	             * for really small product weights.
 	             */
 	            if ( $per_item_weight <= 0 ) {
-	            	$per_item_weight = '0.02';
+	            	$per_item_weight = '0.01';
 	            }
 
                 $dhl_product = false;
