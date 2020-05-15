@@ -652,8 +652,18 @@ class LabelSoap extends Soap {
                 $item_description .= ! empty( $item_description ) ? ', ' : '';
                 $item_description .= $item->get_name();
 
-	            $product_total = floatval( ( $item->get_total() / $item->get_quantity() ) );
-                $dhl_product   = false;
+	            $product_total   = floatval( ( $item->get_total() / $item->get_quantity() ) );
+	            $per_item_weight = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
+
+	            /**
+	             * Set min weight to 0.02 to prevent missing weight error messages
+	             * for really small product weights.
+	             */
+	            if ( $per_item_weight <= 0 ) {
+	            	$per_item_weight = '0.02';
+	            }
+
+                $dhl_product = false;
 
                 if ( $product = $item->get_product() ) {
                 	$dhl_product = wc_gzd_dhl_get_product( $product );
@@ -664,8 +674,8 @@ class LabelSoap extends Soap {
                     'countryCodeOrigin'   => $dhl_product ? $dhl_product->get_manufacture_country() : '',
                     'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
                     'amount'              => intval( $item->get_quantity() ),
-                    'netWeightInKG'       => wc_format_decimal( floatval( wc_get_weight( ( $item->get_weight() / $item->get_quantity() ), 'kg', $shipment->get_weight_unit() ) ), 2 ),
-                    'customsValue'        => wc_format_decimal( $product_total ),
+                    'netWeightInKG'       => wc_format_decimal( $per_item_weight, 2 ),
+                    'customsValue'        => wc_format_decimal( $product_total, 2 ),
                 );
 
                 array_push($customsDetails, $json_item );
