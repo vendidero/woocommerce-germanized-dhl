@@ -484,6 +484,14 @@ class ParcelLocator {
 		return $fields;
 	}
 
+	protected static function get_rate_with_instance_id( $rate_id ) {
+		if ( strpos( $rate_id, ':' ) === false ) {
+			$rate_id = $rate_id . ':0';
+		}
+
+		return $rate_id;
+	}
+
 	public static function get_shipping_method_data( $from_session = false ) {
 
 		if ( $from_session ) {
@@ -511,7 +519,7 @@ class ParcelLocator {
 						}
 					}
 
-					$data[ $method->get_id() . ':' . $method->get_instance_id() ] = array(
+					$data[ self::get_rate_with_instance_id( $rate->id ) ] = array(
 						'supports'             => $supports,
 						'address_type_options' => self::get_address_types( $method ),
 						'finder_button'        => self::get_button( $method ),
@@ -746,10 +754,10 @@ class ParcelLocator {
 		return $disable_method_check;
 	}
 
-	protected static function get_setting( $key ) {
+	protected static function get_setting( $key, $check_method = true ) {
 		$option_key = 'parcel_pickup_' . $key;
 
-		if ( $method = wc_gzd_dhl_get_current_shipping_method() ) {
+		if ( $check_method && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
 			if ( $method->has_option( $option_key ) && ! self::disable_method_setting() ) {
 				return $method->get_option( $option_key );
 			}
@@ -764,20 +772,20 @@ class ParcelLocator {
 		return Package::base_country_supports( 'pickup' );
 	}
 
-	public static function is_available() {
-		return self::is_packstation_enabled() || self::is_parcelshop_enabled() || self::is_postoffice_enabled();
+	public static function is_available( $check_shipping_method = true ) {
+		return self::is_packstation_enabled( $check_shipping_method ) || self::is_parcelshop_enabled( $check_shipping_method ) || self::is_postoffice_enabled( $check_shipping_method );
 	}
 
-	public static function is_postoffice_enabled() {
-		return 'yes' === self::get_setting( 'postoffice_enable' );
+	public static function is_postoffice_enabled( $check_shipping_method = true ) {
+		return 'yes' === self::get_setting( 'postoffice_enable', $check_shipping_method );
 	}
 
-	public static function is_packstation_enabled() {
-		return 'yes' === self::get_setting( 'packstation_enable' );
+	public static function is_packstation_enabled( $check_shipping_method = true ) {
+		return 'yes' === self::get_setting( 'packstation_enable', $check_shipping_method );
 	}
 
-	public static function is_parcelshop_enabled() {
-		return 'yes' === self::get_setting( 'parcelshop_enable' );
+	public static function is_parcelshop_enabled( $check_shipping_method = true ) {
+		return 'yes' === self::get_setting( 'parcelshop_enable', $check_shipping_method );
 	}
 
 	public static function has_map() {
@@ -860,7 +868,11 @@ class ParcelLocator {
 	}
 
 	public static function add_shipping_fields( $fields ) {
-		if ( self::is_available() ) {
+		/**
+		 * On initial render make sure to not check the actual shipping method options for availability.
+		 * Otherwise if the initial shipping method does not support DHL the fields are not even added to the checkout form.
+		 */
+		if ( self::is_available( false ) ) {
 			$fields['shipping_address_type'] = array(
 				'label'        => _x( 'Address Type', 'dhl', 'woocommerce-germanized-dhl' ),
 				'required'     => true,
