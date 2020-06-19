@@ -875,7 +875,7 @@ class ParcelLocator {
 		if ( self::is_available( false ) ) {
 			$fields['shipping_address_type'] = array(
 				'label'        => _x( 'Address Type', 'dhl', 'woocommerce-germanized-dhl' ),
-				'required'     => true,
+				'required'     => false,
 				'type'         => 'select',
 				'class'        => array( 'shipping-dhl-address-type' ),
 				'clear'        => true,
