@@ -220,6 +220,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'description'		=> '',
 			'value'       		=> isset( $default_args['visual_min_age'] ) ? $default_args['visual_min_age'] : '',
 			'options'			=> wc_gzd_dhl_get_visual_min_ages(),
+            'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'VisualCheckOfAge' )
 		) ); ?>
 
 		<?php woocommerce_wp_checkbox( array(
@@ -227,7 +228,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'label'       		=> _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'value'       		=> in_array( 'GoGreen', $default_args['services'] ) ? 'yes' : 'no',
-			'wrapper_class'     => 'form-field-checkbox'
+			'wrapper_class'     => 'form-field-checkbox',
+			'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'GoGreen' )
 		) ); ?>
 
 		<?php woocommerce_wp_checkbox( array(
@@ -235,7 +237,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'label'       		=> _x( 'Additional insurance', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'       => '',
 			'value'		        => in_array( 'AdditionalInsurance', $default_args['services'] ) ? 'yes' : 'no',
-			'wrapper_class'     => 'form-field-checkbox'
+			'wrapper_class'     => 'form-field-checkbox',
+			'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'AdditionalInsurance' )
 		) ); ?>
 
         <?php if ( $dhl_order->supports_email_notification() ) : ?>
@@ -245,8 +248,9 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
                 'label'       		=> _x( 'Retail outlet routing', 'dhl', 'woocommerce-germanized-dhl' ),
                 'description'       => '',
                 'value'		        => in_array( 'ParcelOutletRouting', $default_args['services'] ) ? 'yes' : 'no',
-                'wrapper_class'     => 'form-field-checkbox'
-            ) ); ?>
+                'wrapper_class'     => 'form-field-checkbox',
+                'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'ParcelOutletRouting' )
+	        ) ); ?>
 
         <?php endif; ?>
 
@@ -257,8 +261,9 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
                 'label'       		=> _x( 'No neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
                 'description'       => '',
                 'value'		        => in_array( 'NoNeighbourDelivery', $default_args['services'] ) ? 'yes' : 'no',
-                'wrapper_class'     => 'form-field-checkbox'
-            ) ); ?>
+                'wrapper_class'     => 'form-field-checkbox',
+                'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'NoNeighbourDelivery' )
+	        ) ); ?>
 
         <?php endif; ?>
 
@@ -267,7 +272,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'label'       		=> _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'value'		        => in_array( 'NamedPersonOnly', $default_args['services'] ) ? 'yes' : 'no',
-			'wrapper_class'     => 'form-field-checkbox'
+			'wrapper_class'     => 'form-field-checkbox',
+			'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'NamedPersonOnly' )
 		) ); ?>
 
 		<?php woocommerce_wp_checkbox( array(
@@ -275,7 +281,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'label'       		=> _x( 'Bulky goods', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'		=> '',
 			'value'		        => in_array( 'BulkyGoods', $default_args['services'] ) ? 'yes' : 'no',
-			'wrapper_class'     => 'form-field-checkbox'
+			'wrapper_class'     => 'form-field-checkbox',
+			'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'BulkyGoods' )
 		) ); ?>
 
 		<?php woocommerce_wp_checkbox( array(
@@ -284,8 +291,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'description'		=> '',
 			'class'             => 'checkbox show-if-trigger',
 			'value'		        => in_array( 'IdentCheck', $default_args['services'] ) ? 'yes' : 'no',
-			'custom_attributes' => array( 'data-show-if' => '.show-if-ident-check' ),
-			'wrapper_class'     => 'form-field-checkbox'
+			'custom_attributes' => array_merge( array( 'data-show-if' => '.show-if-ident-check' ), wc_gzd_dhl_get_service_product_attributes( 'IdentCheck' ) ),
+			'wrapper_class'     => 'form-field-checkbox',
 		) ); ?>
 
 		<div class="show-if show-if-ident-check">
@@ -315,7 +322,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		'label'       		=> _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
 		'description'		=> '',
 		'value'		        => in_array( 'Premium', $default_args['services'] ) ? 'yes' : 'no',
-		'wrapper_class'     => 'form-field-checkbox'
+		'wrapper_class'     => 'form-field-checkbox',
+		'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Premium' )
 	) ); ?>
 
 	<?php woocommerce_wp_checkbox( array(
@@ -323,7 +331,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		'label'       		=> _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
 		'description'		=> '',
 		'value'       		=> in_array( 'GoGreen', $default_args['services'] ) ? 'yes' : 'no',
-		'wrapper_class'     => 'form-field-checkbox'
+		'wrapper_class'     => 'form-field-checkbox',
+		'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'GoGreen' )
 	) ); ?>
 
 <?php endif; ?>

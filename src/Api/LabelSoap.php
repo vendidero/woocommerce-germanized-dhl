@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 
 class LabelSoap extends Soap {
 
-    const DHL_MAX_ITEMS = '6';
+    const DHL_MAX_ITEMS = '99';
 
     const DHL_RETURN_PRODUCT = '07';
 
@@ -48,7 +48,7 @@ class LabelSoap extends Soap {
 			$soap_request = array(
 				'Version'            => array(
 					'majorRelease'   => '3',
-					'minorRelease'   => '0'
+					'minorRelease'   => '1'
 				),
 				'shipmentNumber'     => $label->get_number(),
 				'labelResponseType'  => 'B64',
@@ -250,7 +250,7 @@ class LabelSoap extends Soap {
         $soap_request =	array(
             'Version'          => array(
                 'majorRelease' => '3',
-                'minorRelease' => '0'
+                'minorRelease' => '1'
             ),
             'shipmentNumber'   => $label->get_number()
         );
@@ -436,7 +436,7 @@ class LabelSoap extends Soap {
         $dhl_label_body = array(
             'Version'            => array(
                 'majorRelease'   => '3',
-                'minorRelease'   => '0'
+                'minorRelease'   => '1'
             ),
             'labelResponseType'  => 'B64',
             'ShipmentOrder'      => array (

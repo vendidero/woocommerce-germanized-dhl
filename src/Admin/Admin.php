@@ -17,6 +17,8 @@ class Admin {
 	 */
 	public static function init() {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_scripts' ), 30 );
+
 		add_action( 'admin_init', array( __CLASS__, 'download_label' ) );
 
 		// Legacy meta box
@@ -249,6 +251,20 @@ class Admin {
 
 				DownloadHandler::download_legacy_label( $order_id, $args );
 			}
+		}
+	}
+
+	public static function admin_scripts() {
+		global $post;
+
+		$screen    = get_current_screen();
+		$screen_id = $screen ? $screen->id : '';
+		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+
+		wp_register_script( 'wc-gzd-admin-dhl-label', Package::get_assets_url() . '/js/admin-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() );
+
+		if ( wp_script_is( 'wc-gzd-admin-shipment-label-backbone', 'enqueued' ) ) {
+		    wp_enqueue_script( 'wc-gzd-admin-dhl-label' );
 		}
 	}
 
