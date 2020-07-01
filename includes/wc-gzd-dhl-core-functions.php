@@ -1277,7 +1277,8 @@ function wc_gzd_dhl_get_products_domestic() {
 	$germany_dom = array(
 		'V01PAK'  => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V01PRIO' => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
-		'V06PAK'  => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' )
+		'V06PAK'  => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V62WP'   => _x( 'Warenpost', 'dhl', 'woocommerce-germanized-dhl' )
 	);
 
 	$dhl_prod_dom = array();
