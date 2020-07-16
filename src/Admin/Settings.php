@@ -1111,7 +1111,7 @@ class Settings {
 				'type'              => 'text',
 				'id' 		        => 'woocommerce_gzd_dhl_parcel_pickup_map_api_key',
 				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_dhl_parcel_pickup_map_enable' => '' ),
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To integrate a map within your checkout you\'ll need a valid API key for Google Maps. You may %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="" target="_blank">' . _x(  'retrieve a new one', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To integrate a map within your checkout you\'ll need a valid API key for Google Maps. You may %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">' . _x(  'retrieve a new one', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'default'           => ''
 			),
 
