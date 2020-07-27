@@ -685,7 +685,7 @@ class LabelSoap extends Soap {
 
             $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = array(
                 'invoiceNumber'         => $shipment->get_id(),
-                'exportType'            => 'OTHER',
+                'exportType'            => 'COMMERCIAL_GOODS',
                 'exportTypeDescription' => $item_description,
                 'termsOfTrade'          => $label->get_duties(),
                 'placeOfCommital'       => $shipment->get_country(),
