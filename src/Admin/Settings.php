@@ -445,6 +445,14 @@ class Settings {
 				'css'               => 'max-width: 60px;',
 				'class'             => 'wc_input_decimal',
 			),
+
+			array(
+				'title' 	        => _x( 'Force email', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Force transferring customer email to DHL.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default the customer email address is only transferred in case explicit consent has been given via a checkbox during checkout. You may force to transfer the customer email address during label creation to make sure your customers receive email notifications by DHL. Make sure to check your privacy policy and seek advice by a lawyer in case of doubt.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_dhl_label_force_email_transfer',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
 		);
 
 		if ( ! $for_shipping_method ) {

@@ -164,6 +164,13 @@ class Order {
 		$has_email_notification = wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() );
 
 		/**
+		 * Allow global setting to override email notification support.
+		 */
+		if ( false === $has_email_notification && 'yes' === Package::get_setting( 'label_force_email_transfer' ) ) {
+			$has_email_notification = true;
+		}
+
+		/**
 		 * Filter to adjust whether customer data (email address) should be handed over to DHL to provide
 		 * with services such as email notification or parcel outlet routing. By default this may only work
 		 * if the customer has opted-in via checkbox during checkout.
