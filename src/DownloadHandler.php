@@ -13,8 +13,9 @@ class DownloadHandler {
 
 	protected static function parse_args( $args = array() ) {
 		$args = wp_parse_args( $args, array(
-			'force' => false,
-			'path'  => '',
+			'force'             => false,
+			'path'              => '',
+			'check_permissions' => true,
 		) );
 
 		$args['force'] = wc_string_to_bool( $args['force'] );
@@ -23,9 +24,14 @@ class DownloadHandler {
 	}
 
 	public static function download_label( $label_id, $args = array() ) {
-		$args = self::parse_args( $args );
+		$args           = self::parse_args( $args );
+		$has_permission = current_user_can( 'edit_shop_orders' );
 
-		if ( current_user_can( 'edit_shop_orders' ) ) {
+		if ( ! $args['check_permissions'] ) {
+			$has_permission = true;
+		}
+
+		if ( $has_permission ) {
 			if ( $label = wc_gzd_dhl_get_label( $label_id ) ) {
 
 				if ( 'export' === $args['path'] ) {
