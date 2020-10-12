@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\DHL;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Vendidero\Germanized\DHL\Api\ImProductsSoap;
 use Vendidero\Germanized\DHL\Api\Paket;
 use WP_Error;
 
@@ -54,9 +55,11 @@ class Package {
 	    // Password Settings
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_im_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
 
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
+	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_im_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
 
 
 	    if ( self::is_enabled() ) {
@@ -143,8 +146,9 @@ class Package {
 
         // List of tables without prefixes.
         $tables = array(
-            'gzd_dhl_labelmeta' => 'woocommerce_gzd_dhl_labelmeta',
-            'gzd_dhl_labels'    => 'woocommerce_gzd_dhl_labels',
+            'gzd_dhl_labelmeta'   => 'woocommerce_gzd_dhl_labelmeta',
+            'gzd_dhl_labels'      => 'woocommerce_gzd_dhl_labels',
+            'gzd_dhl_im_products' => 'woocommerce_gzd_dhl_im_products',
         );
 
         foreach ( $tables as $name => $table ) {
@@ -219,10 +223,12 @@ class Package {
     }
 
     public static function test() {
-    	$label = wc_gzd_dhl_get_label( 289 );
+    	$list = new ImProductList();
+    	$list->update();
 
-    	$api = self::get_api()->get_label( $label );
     	exit();
+
+    	// $im = new \Vendidero\Germanized\DHL\Internetmarke();
     }
 
 	public static function sanitize_password_field( $value, $option, $raw_value ) {
@@ -292,6 +298,14 @@ class Package {
 	    }
 
     	return self::$method_settings;
+	}
+
+	public static function eur_to_cents( $price ) {
+		return round( $price * 100 );
+	}
+
+	public static function cents_to_eur( $price ) {
+		return $price > 0 ? $price / 100 : 0;
 	}
 
 	public static function add_shipping_provider_class_name( $class_names ) {
@@ -387,6 +401,46 @@ class Package {
     public static function get_geschaeftskunden_portal_url() {
     	return 'https://www.dhl-geschaeftskundenportal.de';
     }
+
+    public static function get_internetmarke_partner_id() {
+    	return 'AVHGE';
+    }
+
+    public static function get_internetmarke_token() {
+    	return 'l4e0TNkqpGKd0YIhyuz3m4vzEek1iZY4';
+    }
+
+    public static function get_internetmarke_key_phase() {
+    	return 1;
+    }
+
+    public static function get_internetmarke_product_username() {
+    	return '';
+    }
+
+	public static function get_internetmarke_product_password() {
+		return '';
+	}
+
+	public static function get_internetmarke_product_mandant_id() {
+		return '';
+	}
+
+	public static function get_internetmarke_username() {
+		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_SANDBOX_USER' ) ) {
+			return WC_GZD_DHL_IM_SANDBOX_USER;
+		} else {
+			return self::get_setting( 'im_api_username' );
+		}
+	}
+
+	public static function get_internetmarke_password() {
+		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_SANDBOX_PASSWORD' ) ) {
+			return WC_GZD_DHL_IM_SANDBOX_PASSWORD;
+		} else {
+			return self::get_setting( 'im_api_password' );
+		}
+	}
 
 	/**
 	 * CIG Authentication (basic auth) user. In Sandbox mode use Developer ID and password of entwickler.dhl.de

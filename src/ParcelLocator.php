@@ -881,6 +881,7 @@ class ParcelLocator {
 				'clear'        => true,
 				'priority'     => 5,
 				'options'	   => self::get_address_types(),
+				'default'      => 'regular',
 			);
 
 			$fields['shipping_dhl_postnumber'] = array(

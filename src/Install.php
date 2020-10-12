@@ -65,6 +65,33 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labels (
   KEY label_shipment_id (label_shipment_id),
   KEY label_parent_id (label_parent_id)
 ) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_im_products (
+  product_id BIGINT UNSIGNED NOT NULL auto_increment,
+  product_im_id BIGINT UNSIGNED NOT NULL,
+  product_code INT(16) NOT NULL,
+  product_name varchar(150) NOT NULL DEFAULT '',
+  product_version INT(5) NOT NULL DEFAULT 1,
+  product_annotation varchar(500) NOT NULL DEFAULT '',
+  product_description varchar(500) NOT NULL DEFAULT '',
+  product_information_text TEXT NOT NULL DEFAULT '',
+  product_type varchar(50) NOT NULL DEFAULT 'sales',
+  product_destination varchar(20) NOT NULL DEFAULT 'national',
+  product_price INT(8) NOT NULL,
+  product_length_min INT(8) NULL,
+  product_length_max INT(8) NULL,
+  product_length_unit VARCHAR(8) NULL,
+  product_width_min INT(8) NULL,
+  product_width_max INT(8) NULL,
+  product_width_unit VARCHAR(8) NULL,
+  product_height_min INT(8) NULL,
+  product_height_max INT(8) NULL,
+  product_height_unit VARCHAR(8) NULL,
+  product_weight_min INT(8) NULL,
+  product_weight_max INT(8) NULL,
+  product_weight_unit VARCHAR(8) NULL,
+  PRIMARY KEY  (product_id),
+  KEY product_im_id (product_im_id)
+) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labelmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,
   gzd_dhl_label_id BIGINT UNSIGNED NOT NULL,
