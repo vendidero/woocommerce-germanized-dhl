@@ -20,6 +20,8 @@
   margin-top: 15px;
   margin-bottom: 0;
   display: block;
-  text-align: right; }
+  text-align: right;
+  vertical-align: middle;
+  line-height: 20px; }
   .germanized-create-label .show-services-trigger a {
     text-decoration: none; }

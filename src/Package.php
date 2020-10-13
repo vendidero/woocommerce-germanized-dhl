@@ -32,6 +32,8 @@ class Package {
 
 	protected static $api = null;
 
+	protected static $im_api = null;
+
 	protected static $method_settings = null;
 	
 	protected static $iso = null;
@@ -309,7 +311,8 @@ class Package {
 	}
 
 	public static function add_shipping_provider_class_name( $class_names ) {
-		$class_names['dhl'] = '\Vendidero\Germanized\DHL\ShippingProviderDHL';
+		$class_names['dhl']           = '\Vendidero\Germanized\DHL\ShippingProvider\DHL';
+		$class_names['deutsche_post'] = '\Vendidero\Germanized\DHL\ShippingProvider\DeutschePost';
 
 		return $class_names;
 	}
@@ -340,6 +343,14 @@ class Package {
 
 		return self::$api;
     }
+
+	public static function get_internetmarke_api() {
+		if ( is_null( self::$im_api ) && self::is_internetmarke_enabled() ) {
+			self::$im_api = new Internetmarke();
+		}
+
+		return self::$im_api;
+	}
 
     /**
      * Return the version of the package.
@@ -415,15 +426,19 @@ class Package {
     }
 
     public static function get_internetmarke_product_username() {
-    	return '';
+    	return 'vendidero';
     }
 
 	public static function get_internetmarke_product_password() {
-		return '';
+		return 'A&5%bk?dx8';
 	}
 
 	public static function get_internetmarke_product_mandant_id() {
-		return '';
+		return 'VENDIDERO';
+	}
+
+	public static function is_internetmarke_enabled() {
+    	return 'yes' === self::get_setting( 'internetmarke_enable' );
 	}
 
 	public static function get_internetmarke_username() {

@@ -1202,6 +1202,12 @@ function wc_gzd_dhl_get_return_products_domestic() {
 	return $retoure;
 }
 
+function wc_gzd_dhl_get_im_product_title( $product_name ) {
+	$title = sprintf( _x( 'Internetmarke %s', 'dhl', 'woocommerce-germanized-dhl' ), $product_name );
+
+	return $title;
+}
+
 function wc_gzd_dhl_get_products_international() {
 
 	$country = Package::get_base_country();
@@ -1271,14 +1277,13 @@ function wc_gzd_dhl_get_default_product( $country, $method = false ) {
 }
 
 function wc_gzd_dhl_get_products_domestic() {
-
 	$country = Package::get_base_country();
 
 	$germany_dom = array(
 		'V01PAK'  => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V01PRIO' => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V06PAK'  => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
-		'V62WP'   => _x( 'Warenpost', 'dhl', 'woocommerce-germanized-dhl' )
+		'V62WP'   => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized-dhl' )
 	);
 
 	$dhl_prod_dom = array();

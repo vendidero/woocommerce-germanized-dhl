@@ -1,6 +1,8 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Admin;
+use Vendidero\Germanized\DHL\ImProductList;
+use Vendidero\Germanized\DHL\Internetmarke;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -331,7 +333,7 @@ class Settings {
 		$settings = self::get_setup_settings( true );
 
 		$settings = array_merge( $settings, array(
-			array( 'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options', 'desc' => sprintf( _x(  'For each DHL product that you would like to use, please enter your participation number here. The participation number consists of the last two characters of the respective accounting number, which you will find in your %s (e.g.: 01).', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target="_blank">' . _x(  'contract data', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
+			array( 'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_product_options', 'desc' => sprintf( _x( 'For each DHL product that you would like to use, please enter your participation number here. The participation number consists of the last two characters of the respective accounting number, which you will find in your %s (e.g.: 01).', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target="_blank">' . _x(  'contract data', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
 		) );
 
 		$settings = array_merge( $settings, $dhl_products );
@@ -1138,6 +1140,127 @@ class Settings {
 		return $settings;
 	}
 
+	protected static function get_internetmarke_settings() {
+		$settings = array(
+			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_internetmarke_options' ),
+
+			array(
+				'title' 	        => _x( 'Enable', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Enable Internetmarke integration.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_internetmarke_enable',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title'             => _x( 'Username', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your credentials for the <a href="%s" target="_blank">Portokasse</a>. Please test your credentials before connecting.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://portokasse.deutschepost.de/portokasse/#!/' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_dhl_im_api_username',
+				'default'           => '',
+				'custom_attributes'	=> array( 'autocomplete' => 'new-password' )
+			),
+
+			array(
+				'title'             => _x( 'Password', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'password',
+				'id' 		        => 'woocommerce_gzd_dhl_im_api_password',
+				'default'           => '',
+				'custom_attributes'	=> array( 'autocomplete' => 'new-password' )
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_options' )
+		);
+
+		if ( Package::is_internetmarke_enabled() && ( $api = Package::get_internetmarke_api() ) && $api->is_available() ) {
+			$balance      = $api->get_balance( true );
+			$settings_url = self::get_settings_url();
+
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'Portokasse', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_internetmarke_portokasse_options' ),
+
+				array(
+					'title'          => _x( 'Balance', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'           => 'html',
+					'id' 		     => 'woocommerce_gzd_dhl_im_portokasse_balance',
+					'html'           => wc_price( Package::cents_to_eur( $balance ), array( 'currency' => 'EUR' ) ),
+				),
+
+				array(
+					'title'          => _x( 'Charge (€)', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'           => 'html',
+					'id' 		     => 'woocommerce_gzd_dhl_im_portokasse_charge',
+					'html'           => self::get_portokasse_charge_button(),
+				),
+
+				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_portokasse_options' )
+			) );
+
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'Products', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_internetmarke_product_options' ),
+
+				array(
+					'title'    => _x( 'Available Products', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'       => 'woocommerce_gzd_dhl_im_available_products',
+					'class'    => 'wc-enhanced-select',
+					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s" target="_blank">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ) ), 'wc-gzd-dhl-refresh-im-products' ) . '</div>',
+					'type'     => 'multiselect',
+					'options'  => self::get_products(),
+					'default'  => array(),
+				),
+
+				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_product_options' )
+			) );
+
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_internetmarke_print_options' ),
+
+				array(
+					'title'    => _x( 'Default Format', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'       => 'woocommerce_gzd_dhl_im_default_page_format',
+					'class'    => 'wc-enhanced-select',
+					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s" target="_blank">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ) ), 'wc-gzd-dhl-refresh-im-page-formats' ) . '</div>',
+					'type'     => 'select',
+					'options'  => Package::get_internetmarke_api()->get_page_format_list(),
+					'default'  => 1,
+				),
+
+				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_print_options' )
+			) );
+		}
+
+		return $settings;
+	}
+
+	protected static function get_settings_url() {
+		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' );
+	}
+
+	protected static function get_products() {
+		$products = Package::get_internetmarke_api()->get_products();
+		$options  = Package::get_internetmarke_api()->get_product_list( $products );
+
+		return $options;
+	}
+
+	protected static function get_portokasse_charge_button() {
+		if ( ! Package::get_internetmarke_api()->get_user() ) {
+			return '';
+		}
+
+		$balance      = Package::get_internetmarke_api()->get_balance();
+		$user_token   = Package::get_internetmarke_api()->get_user()->getUserToken();
+		$settings_url = self::get_settings_url();
+
+		$html = '
+			<input type="text" placeholder="10.00" style="max-width: 150px; margin-right: 10px;" class="wc-input-price short" name="woocommerce_gzd_dhl_im_portokasse_charge_amount" id="woocommerce_gzd_dhl_im_portokasse_charge_amount" />
+			<a id="woocommerce_gzd_dhl_im_portokasse_charge" class="button button-secondary" data-url="https://portokasse.deutschepost.de/portokasse/marketplace/enter-app-payment" data-success_url="' . esc_url( add_query_arg( array( 'wallet-charge-success' => 'yes' ), $settings_url ) ) . '" data-cancel_url="' . esc_url( add_query_arg( array( 'wallet-charge-success' => 'no' ), $settings_url ) ) . '" data-partner_id="' . esc_attr( Package::get_internetmarke_partner_id() ) . '" data-key_phase="' . esc_attr( Package::get_internetmarke_key_phase() ) . '" data-user_token="' . esc_attr( $user_token ) .  '" data-schluessel_dpwn_partner="' . esc_attr( Package::get_internetmarke_token() ) .  '" data-wallet="' . esc_attr( $balance ) . '">' . _x( 'Charge Portokasse', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>
+			<p class="description">' . sprintf( _x( 'The minimum amount is %s', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( 10, array( 'currency' => 'EUR' ) ) ) .  '</p>
+		';
+
+		return $html;
+	}
+
 	public static function get_settings( $current_section = '' ) {
 		$settings = array();
 
@@ -1149,6 +1272,8 @@ class Settings {
 			$settings = self::get_service_settings();
 		} elseif( 'pickup' === $current_section && Package::base_country_supports( 'pickup' ) ) {
 			$settings = self::get_pickup_settings();
+		} elseif( 'internetmarke' === $current_section ) {
+			$settings = self::get_internetmarke_settings();
 		}
 
 		return $settings;
@@ -1156,10 +1281,11 @@ class Settings {
 
 	public static function get_sections() {
 		$sections = array(
-			''          => _x( 'General', 'dhl', 'woocommerce-germanized-dhl' ),
-			'labels'    => _x( 'Labels', 'dhl', 'woocommerce-germanized-dhl' ),
-			'services'  => _x( 'Preferred Services', 'dhl', 'woocommerce-germanized-dhl' ),
-			'pickup'    => _x( 'Parcel Pickup', 'dhl', 'woocommerce-germanized-dhl' ),
+			''              => _x( 'General', 'dhl', 'woocommerce-germanized-dhl' ),
+			'labels'        => _x( 'Labels', 'dhl', 'woocommerce-germanized-dhl' ),
+			'internetmarke' => _x( 'Internetmarke', 'dhl', 'woocommerce-germanized-dhl' ),
+			'services'      => _x( 'Preferred Services', 'dhl', 'woocommerce-germanized-dhl' ),
+			'pickup'        => _x( 'Parcel Pickup', 'dhl', 'woocommerce-germanized-dhl' ),
 		);
 
 		if ( ! Package::base_country_supports( 'services' ) ) {

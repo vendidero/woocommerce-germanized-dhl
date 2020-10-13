@@ -15,16 +15,28 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 <?php woocommerce_wp_select( array(
 	'id'          		=> 'dhl_label_dhl_product',
-	'label'       		=> _x( 'DHL Product', 'dhl', 'woocommerce-germanized-dhl' ),
+	'label'       		=> _x( 'Product', 'dhl', 'woocommerce-germanized-dhl' ),
 	'description'		=> '',
 	'options'			=> wc_gzd_dhl_get_products( $shipment->get_country() ),
 	'value'             => isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : '',
 ) ); ?>
 
+<?php if ( Package::is_internetmarke_enabled() ) : ?>
+    <div class="show_if_internetmarke hide-default">
+        <?php woocommerce_wp_select( array(
+            'id'          		=> 'dhl_label_im_page_format',
+            'label'       		=> _x( 'Page Format', 'dhl', 'woocommerce-germanized-dhl' ),
+            'description'		=> '',
+            'options'			=> Package::get_internetmarke_api()->get_page_format_list(),
+            'value'             => isset( $default_args['im_page_format'] ) ? $default_args['im_page_format'] : '',
+        ) ); ?>
+    </div>
+<?php endif; ?>
+
 <?php if ( $dhl_order->has_cod_payment() ) : ?>
 	<?php woocommerce_wp_text_input( array(
 		'id'          		=> 'dhl_label_cod_total',
-		'class'          	=> 'wc_input_decimal',
+		'class'          	=> 'wc_input_decimal show_if_dhl hide-default',
 		'label'       		=> _x( 'COD Amount', 'dhl', 'woocommerce-germanized-dhl' ),
 		'placeholder' 		=> '',
 		'description'		=> '',
@@ -46,8 +58,8 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 <?php if ( Package::base_country_supports( 'services' ) && Package::is_shipping_domestic( $shipment->get_country() ) ) :
 
-	$preferred_days     = array();
-	$preferred_times    = array();
+	$preferred_days  = array();
+	$preferred_times = array();
 
 	try {
 		$preferred_day_options = Package::get_api()->get_preferred_available_days( $shipment->get_postcode() );
@@ -58,141 +70,143 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	} catch( Exception $e ) {}
 	?>
 
-	<div class="columns">
-		<div class="column <?php echo ( isset( $default_args['preferred_time'] ) ) ? 'col-6' : 'col-12'; ?>">
-			<?php woocommerce_wp_select( array(
-				'id'          		=> 'dhl_label_preferred_day',
-				'label'       		=> _x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'		=> '',
-				'value'       		=> isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '',
-				'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, ( isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '' ) ),
-			) ); ?>
-		</div>
-		<?php if ( isset( $default_args['preferred_time'] ) ) : ?>
-			<div class="column col-6">
-				<?php woocommerce_wp_select( array(
-					'id'          		=> 'dhl_label_preferred_time',
-					'label'       		=> _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
-					'description'		=> '',
-					'value'       		=> $default_args['preferred_time'],
-					'options'			=> wc_gzd_dhl_get_preferred_times_select_options( array( $default_args['preferred_time'] => $default_args['preferred_time'] ) ),
-				) ); ?>
-			</div>
-		<?php endif; ?>
-	</div>
+    <div class="show_if_dhl hide-default">
+        <div class="columns">
+            <div class="column <?php echo ( isset( $default_args['preferred_time'] ) ) ? 'col-6' : 'col-12'; ?>">
+			    <?php woocommerce_wp_select( array(
+				    'id'          		=> 'dhl_label_preferred_day',
+				    'label'       		=> _x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ),
+				    'description'		=> '',
+				    'value'       		=> isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '',
+				    'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, ( isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '' ) ),
+			    ) ); ?>
+            </div>
+		    <?php if ( isset( $default_args['preferred_time'] ) ) : ?>
+                <div class="column col-6">
+				    <?php woocommerce_wp_select( array(
+					    'id'          		=> 'dhl_label_preferred_time',
+					    'label'       		=> _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'description'		=> '',
+					    'value'       		=> $default_args['preferred_time'],
+					    'options'			=> wc_gzd_dhl_get_preferred_times_select_options( array( $default_args['preferred_time'] => $default_args['preferred_time'] ) ),
+				    ) ); ?>
+                </div>
+		    <?php endif; ?>
+        </div>
 
-	<?php if ( $dhl_order->has_preferred_location() ) : ?>
-		<?php woocommerce_wp_text_input( array(
-			'id'          		=> 'dhl_label_preferred_location',
-			'label'       		=> _x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ),
-			'placeholder' 		=> '',
-			'description'		=> '',
-			'value'       		=> isset( $default_args['preferred_location'] ) ? $default_args['preferred_location'] : '',
-			'custom_attributes'	=> array( 'maxlength' => '80' )
-		) ); ?>
-	<?php endif; ?>
+	    <?php if ( $dhl_order->has_preferred_location() ) : ?>
+		    <?php woocommerce_wp_text_input( array(
+			    'id'          		=> 'dhl_label_preferred_location',
+			    'label'       		=> _x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ),
+			    'placeholder' 		=> '',
+			    'description'		=> '',
+			    'value'       		=> isset( $default_args['preferred_location'] ) ? $default_args['preferred_location'] : '',
+			    'custom_attributes'	=> array( 'maxlength' => '80' )
+		    ) ); ?>
+	    <?php endif; ?>
 
-	<?php if ( $dhl_order->has_preferred_neighbor() ) : ?>
-		<?php woocommerce_wp_text_input( array(
-			'id'          		=> 'dhl_label_preferred_neighbor',
-			'label'       		=> _x( 'Preferred Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
-			'placeholder' 		=> '',
-			'description'		=> '',
-			'value'       		=> isset( $default_args['preferred_neighbor'] ) ? $default_args['preferred_neighbor'] : '',
-			'custom_attributes'	=> array( 'maxlength' => '80' )
-		) ); ?>
-	<?php endif; ?>
+	    <?php if ( $dhl_order->has_preferred_neighbor() ) : ?>
+		    <?php woocommerce_wp_text_input( array(
+			    'id'          		=> 'dhl_label_preferred_neighbor',
+			    'label'       		=> _x( 'Preferred Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
+			    'placeholder' 		=> '',
+			    'description'		=> '',
+			    'value'       		=> isset( $default_args['preferred_neighbor'] ) ? $default_args['preferred_neighbor'] : '',
+			    'custom_attributes'	=> array( 'maxlength' => '80' )
+		    ) ); ?>
+	    <?php endif; ?>
 
-	<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_has_inlay_return',
-		'label'       		=> _x( 'Create inlay return label', 'dhl', 'woocommerce-germanized-dhl' ),
-		'class'             => 'checkbox show-if-trigger',
-		'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
-		'desc_tip'          => true,
-		'value'             => isset( $default_args['has_inlay_return'] ) ? wc_bool_to_string( $default_args['has_inlay_return'] ) : 'no',
-		'wrapper_class'     => 'form-field-checkbox'
-	) ); ?>
+	    <?php woocommerce_wp_checkbox( array(
+		    'id'          		=> 'dhl_label_has_inlay_return',
+		    'label'       		=> _x( 'Create inlay return label', 'dhl', 'woocommerce-germanized-dhl' ),
+		    'class'             => 'checkbox show-if-trigger',
+		    'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
+		    'desc_tip'          => true,
+		    'value'             => isset( $default_args['has_inlay_return'] ) ? wc_bool_to_string( $default_args['has_inlay_return'] ) : 'no',
+		    'wrapper_class'     => 'form-field-checkbox'
+	    ) ); ?>
 
-	<div class="show-if show-if-has-return">
-		<div class="columns">
-			<div class="column col-12">
-				<?php woocommerce_wp_text_input( array(
-					'id'          		=> 'dhl_label_return_address[name]',
-					'label'       		=> _x( 'Name', 'dhl', 'woocommerce-germanized-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'             => isset( $default_args['return_address']['name'] ) ? $default_args['return_address']['name'] : '',
-				) ); ?>
-			</div>
-		</div>
-		<?php woocommerce_wp_text_input( array(
-			'id'          		=> 'dhl_label_return_address[company]',
-			'label'       		=> _x( 'Company', 'dhl', 'woocommerce-germanized-dhl' ),
-			'placeholder' 		=> '',
-			'description'		=> '',
-			'value'             => isset( $default_args['return_address']['company'] ) ? $default_args['return_address']['company'] : '',
-		) ); ?>
-		<div class="columns">
-			<div class="column col-9">
-				<?php woocommerce_wp_text_input( array(
-					'id'          		=> 'dhl_label_return_address[street]',
-					'label'       		=> _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'             => isset( $default_args['return_address']['street'] ) ? $default_args['return_address']['street'] : '',
-				) ); ?>
-			</div>
-			<div class="column col-3">
-				<?php woocommerce_wp_text_input( array(
-					'id'          		=> 'dhl_label_return_address[street_number]',
-					'label'       		=> _x( 'Street No', 'dhl', 'woocommerce-germanized-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'             => isset( $default_args['return_address']['street_number'] ) ? $default_args['return_address']['street_number'] : '',
-				) ); ?>
-			</div>
-		</div>
-		<div class="columns">
-			<div class="column col-6">
-				<?php woocommerce_wp_text_input( array(
-					'id'          		=> 'dhl_label_return_address[postcode]',
-					'label'       		=> _x( 'Postcode', 'dhl', 'woocommerce-germanized-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'             => isset( $default_args['return_address']['postcode'] ) ? $default_args['return_address']['postcode'] : '',
-				) ); ?>
-			</div>
-			<div class="column col-6">
-				<?php woocommerce_wp_text_input( array(
-					'id'          		=> 'dhl_label_return_address[city]',
-					'label'       		=> _x( 'City', 'dhl', 'woocommerce-germanized-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'             => isset( $default_args['return_address']['city'] ) ? $default_args['return_address']['city'] : '',
-				) ); ?>
-			</div>
-		</div>
-		<div class="columns">
-			<div class="column col-6">
-				<?php woocommerce_wp_text_input( array(
-					'id'          		=> 'dhl_label_return_address[phone]',
-					'label'       		=> _x( 'Phone', 'dhl', 'woocommerce-germanized-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'             => isset( $default_args['return_address']['phone'] ) ? $default_args['return_address']['phone'] : '',
-				) ); ?>
-			</div>
-			<div class="column col-6">
-				<?php woocommerce_wp_text_input( array(
-					'id'          		=> 'dhl_label_return_address[email]',
-					'label'       		=> _x( 'Email', 'dhl', 'woocommerce-germanized-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'             => isset( $default_args['return_address']['email'] ) ? $default_args['return_address']['email'] : '',
-				) ); ?>
-			</div>
-		</div>
-	</div>
+        <div class="show-if show-if-has-return">
+            <div class="columns">
+                <div class="column col-12">
+				    <?php woocommerce_wp_text_input( array(
+					    'id'          		=> 'dhl_label_return_address[name]',
+					    'label'       		=> _x( 'Name', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'placeholder' 		=> '',
+					    'description'		=> '',
+					    'value'             => isset( $default_args['return_address']['name'] ) ? $default_args['return_address']['name'] : '',
+				    ) ); ?>
+                </div>
+            </div>
+		    <?php woocommerce_wp_text_input( array(
+			    'id'          		=> 'dhl_label_return_address[company]',
+			    'label'       		=> _x( 'Company', 'dhl', 'woocommerce-germanized-dhl' ),
+			    'placeholder' 		=> '',
+			    'description'		=> '',
+			    'value'             => isset( $default_args['return_address']['company'] ) ? $default_args['return_address']['company'] : '',
+		    ) ); ?>
+            <div class="columns">
+                <div class="column col-9">
+				    <?php woocommerce_wp_text_input( array(
+					    'id'          		=> 'dhl_label_return_address[street]',
+					    'label'       		=> _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'placeholder' 		=> '',
+					    'description'		=> '',
+					    'value'             => isset( $default_args['return_address']['street'] ) ? $default_args['return_address']['street'] : '',
+				    ) ); ?>
+                </div>
+                <div class="column col-3">
+				    <?php woocommerce_wp_text_input( array(
+					    'id'          		=> 'dhl_label_return_address[street_number]',
+					    'label'       		=> _x( 'Street No', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'placeholder' 		=> '',
+					    'description'		=> '',
+					    'value'             => isset( $default_args['return_address']['street_number'] ) ? $default_args['return_address']['street_number'] : '',
+				    ) ); ?>
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column col-6">
+				    <?php woocommerce_wp_text_input( array(
+					    'id'          		=> 'dhl_label_return_address[postcode]',
+					    'label'       		=> _x( 'Postcode', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'placeholder' 		=> '',
+					    'description'		=> '',
+					    'value'             => isset( $default_args['return_address']['postcode'] ) ? $default_args['return_address']['postcode'] : '',
+				    ) ); ?>
+                </div>
+                <div class="column col-6">
+				    <?php woocommerce_wp_text_input( array(
+					    'id'          		=> 'dhl_label_return_address[city]',
+					    'label'       		=> _x( 'City', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'placeholder' 		=> '',
+					    'description'		=> '',
+					    'value'             => isset( $default_args['return_address']['city'] ) ? $default_args['return_address']['city'] : '',
+				    ) ); ?>
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column col-6">
+				    <?php woocommerce_wp_text_input( array(
+					    'id'          		=> 'dhl_label_return_address[phone]',
+					    'label'       		=> _x( 'Phone', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'placeholder' 		=> '',
+					    'description'		=> '',
+					    'value'             => isset( $default_args['return_address']['phone'] ) ? $default_args['return_address']['phone'] : '',
+				    ) ); ?>
+                </div>
+                <div class="column col-6">
+				    <?php woocommerce_wp_text_input( array(
+					    'id'          		=> 'dhl_label_return_address[email]',
+					    'label'       		=> _x( 'Email', 'dhl', 'woocommerce-germanized-dhl' ),
+					    'placeholder' 		=> '',
+					    'description'		=> '',
+					    'value'             => isset( $default_args['return_address']['email'] ) ? $default_args['return_address']['email'] : '',
+				    ) ); ?>
+                </div>
+            </div>
+        </div>
+    </div>
 
 	<?php woocommerce_wp_checkbox( array(
 		'id'          		=> 'dhl_label_codeable_address_only',
@@ -203,7 +217,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		'wrapper_class'     => 'form-field-checkbox'
 	) ); ?>
 
-	<p class="show-services-trigger">
+	<p class="show-services-trigger show_if_dhl hide-default">
 		<a href="#" class="show-further-services <?php echo ( ! empty( $default_args['services'] ) ? 'hide-default' : '' ); ?>">
 			<span class="dashicons dashicons-plus"></span> <?php _ex(  'More services', 'dhl', 'woocommerce-germanized-dhl' ); ?>
 		</a>
@@ -212,7 +226,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		</a>
 	</p>
 
-	<div class="<?php echo ( empty( $default_args['services'] ) ? 'hide-default' : '' ); ?> show-if-further-services">
+	<div class="<?php echo ( empty( $default_args['services'] ) ? 'hide-default' : '' ); ?> show-if-further-services show_if_dhl hide-default">
 
 		<?php woocommerce_wp_select( array(
 			'id'          		=> 'dhl_label_visual_min_age',
@@ -317,23 +331,25 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 	</div>
 <?php elseif( Package::is_crossborder_shipment( $shipment->get_country ) ) : ?>
 
-	<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_service_Premium',
-		'label'       		=> _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
-		'description'		=> '',
-		'value'		        => in_array( 'Premium', $default_args['services'] ) ? 'yes' : 'no',
-		'wrapper_class'     => 'form-field-checkbox',
-		'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Premium' )
-	) ); ?>
+    <div class="show_if_dhl hide-default">
+	    <?php woocommerce_wp_checkbox( array(
+		    'id'          		=> 'dhl_label_service_Premium',
+		    'label'       		=> _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
+		    'description'		=> '',
+		    'value'		        => in_array( 'Premium', $default_args['services'] ) ? 'yes' : 'no',
+		    'wrapper_class'     => 'form-field-checkbox',
+		    'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Premium' )
+	    ) ); ?>
 
-	<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_service_GoGreen',
-		'label'       		=> _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
-		'description'		=> '',
-		'value'       		=> in_array( 'GoGreen', $default_args['services'] ) ? 'yes' : 'no',
-		'wrapper_class'     => 'form-field-checkbox',
-		'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'GoGreen' )
-	) ); ?>
+	    <?php woocommerce_wp_checkbox( array(
+		    'id'          		=> 'dhl_label_service_GoGreen',
+		    'label'       		=> _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
+		    'description'		=> '',
+		    'value'       		=> in_array( 'GoGreen', $default_args['services'] ) ? 'yes' : 'no',
+		    'wrapper_class'     => 'form-field-checkbox',
+		    'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'GoGreen' )
+	    ) ); ?>
+    </div>
 
 <?php endif; ?>
 

@@ -4,13 +4,14 @@
  *
  * @package WooCommerce/Blocks
  */
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\ShippingProvider;
 
+use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\ShippingProvider;
 
 defined( 'ABSPATH' ) || exit;
 
-class ShippingProviderDHL extends ShippingProvider {
+class DeutschePost extends ShippingProvider {
 
 	public function is_manual_integration() {
 		return false;
@@ -19,31 +20,27 @@ class ShippingProviderDHL extends ShippingProvider {
 	public function supports_labels( $label_type ) {
 		$label_types = array( 'simple' );
 
-		if ( 'yes' === Package::get_setting( 'dhl_label_retoure_enable' ) ) {
-			$label_types[] = 'return';
-		}
-
 		return in_array( $label_type, $label_types );
 	}
 
 	public function is_activated() {
-		return Package::is_enabled();
+		return Package::is_internetmarke_enabled();
 	}
 
 	public function get_title( $context = 'view' ) {
-		return _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' );
+		return _x( 'Deutsche Post', 'dhl', 'woocommerce-germanized-dhl' );
 	}
 
 	public function get_name( $context = 'view' ) {
-		return 'dhl';
+		return 'deutsche_post';
 	}
 
 	public function get_description( $context = 'view' ) {
-		return _x( 'Complete DHL integration supporting labels, preferred services and packstation delivery.', 'dhl', 'woocommerce-germanized-dhl' );
+		return _x( 'Integration for products of the Deutsche Post through Internetmarke.', 'dhl', 'woocommerce-germanized-dhl' );
 	}
 
 	public function get_additional_options_url() {
-		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl' );
+		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' );
 	}
 
 	public function get_default_tracking_url_placeholder() {
@@ -73,7 +70,7 @@ class ShippingProviderDHL extends ShippingProvider {
 	}
 
 	public function deactivate() {
-		update_option( 'woocommerce_gzd_dhl_enable', 'no' );
+		update_option( 'woocommerce_gzd_dhl_internetmarke_enable', 'no' );
 
 		/**
 		 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
@@ -82,7 +79,7 @@ class ShippingProviderDHL extends ShippingProvider {
 	}
 
 	public function activate() {
-		update_option( 'woocommerce_gzd_dhl_enable', 'yes' );
+		update_option( 'woocommerce_gzd_dhl_internetmarke_enable', 'yes' );
 
 		/**
 		 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php

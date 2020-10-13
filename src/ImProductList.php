@@ -30,7 +30,7 @@ class ImProductList {
 	protected function load_products() {
 		global $wpdb;
 
-		$products = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products}" ) );
+		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products}" );
 
 		$this->products = $products;
 	}
@@ -50,7 +50,9 @@ class ImProductList {
 			return "'" . esc_sql( $p ) . "'";
 		}, $available_products );
 
-		$products = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE im_product_in IN ($available_products)" ) );
+		$available_products = implode( ',', $available_products );
+
+		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_im_id IN ($available_products)" );
 
 		$this->available_products = $products;
 	}
