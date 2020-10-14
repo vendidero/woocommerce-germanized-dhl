@@ -207,7 +207,7 @@ function wc_gzd_dhl_get_services() {
 function wc_gzd_dhl_get_shipping_method( $instance_id ) {
 	$method = wc_gzd_get_shipping_provider_method( $instance_id );
 
-	return new ShippingProviderMethodDHL( $method );
+	return new \Vendidero\Germanized\DHL\ShippingProvider\MethodDHL( $method );
 }
 
 function wc_gzd_dhl_get_preferred_services() {
@@ -309,6 +309,27 @@ function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 	if ( empty( $args['receiver_slug'] ) ) {
 		$error->add( 500, _x( 'Receiver is missing or does not exist.', 'dhl', 'woocommerce-germanized-dhl' ) );
 	}
+
+	if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
+		return $error;
+	}
+
+	return $args;
+}
+
+function wc_gzd_dhl_validate_post_label_args( $shipment, $args = array() ) {
+	$args = wp_parse_args( $args, array(
+		'page_format' => '',
+		'dhl_product' => '',
+	) );
+
+	$error = new WP_Error();
+
+	if ( ! $shipment_order = $shipment->get_order() ) {
+		$error->add( 500, sprintf( _x( 'Shipment order #%s does not exist', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_order_id() ) );
+	}
+
+	$dhl_order = wc_gzd_dhl_get_order( $shipment_order );
 
 	if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
 		return $error;
@@ -713,6 +734,62 @@ function wc_gzd_dhl_get_service_product_attributes( $service ) {
 	);
 }
 
+function wc_gzd_dhl_get_post_label_default_args( $dhl_order, $shipment ) {
+	$defaults = array();
+
+	return $defaults;
+}
+
+function wc_gzd_dhl_get_post_products( $shipping_country ) {
+	if ( Package::is_shipping_domestic( $shipping_country ) ) {
+		return wc_gzd_dhl_get_post_products_domestic();
+	} else {
+		return wc_gzd_dhl_get_post_products_international();
+	}
+}
+
+function wc_gzd_dhl_get_post_products_domestic() {
+	$country      = Package::get_base_country();
+	$germany_dom  = Package::get_internetmarke_api()->get_available_products( array( 'product_destination' => 'national' ) );
+	$dhl_prod_dom = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_dom = $germany_dom;
+			break;
+		default:
+			break;
+	}
+
+	return wc_gzd_dhl_im_get_product_list( $dhl_prod_dom );
+}
+
+function wc_gzd_dhl_im_get_product_list( $products ) {
+	$list = array();
+
+	foreach( $products as $product ) {
+		$list[ $product->product_code ] = wc_gzd_dhl_get_im_product_title( $product->product_name );
+	}
+
+	return $list;
+}
+
+function wc_gzd_dhl_get_post_products_international() {
+	$country      = Package::get_base_country();
+	$germany_int  = Package::get_internetmarke_api()->get_available_products( array( 'product_destination' => 'international' ) );
+	$dhl_prod_int = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_int = $germany_int;
+			break;
+		default:
+			break;
+	}
+
+	return wc_gzd_dhl_im_get_product_list( $dhl_prod_int );
+}
+
 /**
  * @param Order $dhl_order
  * @param Shipment $shipment
@@ -960,12 +1037,21 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 
 		$dhl_order     = wc_gzd_dhl_get_order( $order );
 		$shipment_type = $shipment->get_type();
+		$provider      = $shipment->get_shipping_provider();
 		$label_type    = 'return' === $shipment_type ? 'return' : 'simple';
+
+		if ( 'deutsche_post' === $provider ) {
+			$label_type = 'post';
+		}
+
 		$hook_suffix   = 'simple' === $label_type ? '' : $label_type . '_';
 
 		if ( 'return' === $label_type ) {
 			$args = wp_parse_args( $args, wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) );
 			$args = wc_gzd_dhl_validate_return_label_args( $shipment, $args );
+		} elseif ( 'post' === $label_type ) {
+			$args = wp_parse_args( $args, wc_gzd_dhl_get_post_label_default_args( $dhl_order, $shipment ) );
+			$args = wc_gzd_dhl_validate_post_label_args( $shipment, $args );
 		} else {
 			$args = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) );
 			$args = wc_gzd_dhl_validate_label_args( $shipment, $args );
@@ -1394,6 +1480,9 @@ function wc_gzd_dhl_get_label_type_data( $type = false ) {
 		),
 		'return' => array(
 			'class_name' => '\Vendidero\Germanized\DHL\ReturnLabel'
+		),
+		'post' => array(
+			'class_name' => '\Vendidero\Germanized\DHL\PostLabel'
 		),
 	);
 

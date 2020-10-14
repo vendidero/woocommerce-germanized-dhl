@@ -1,13 +1,9 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\ShippingProvider;
 
+use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\ShippingProviderMethod;
-use Exception;
-use WC_Order;
-use WC_Customer;
-use WC_DateTime;
-use WC_Shipping_Method;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  * @version		1.0.0
  * @author 		Vendidero
  */
-class ShippingProviderMethodDHL {
+class MethodDHL {
 
 	/**
 	 * @var ShippingProviderMethod|null
@@ -78,8 +74,8 @@ class ShippingProviderMethodDHL {
 		 * Filter that allows adjusting whether this method supports DHL custom settings or not.
 		 * By default only shipping methods supporting instance-settings and instance-settings-modal are supported.
 		 *
-		 * @param boolean                   $supports_settings Whether or not the method supports custom DHL settings.
-		 * @param ShippingProviderMethodDHL $method The method instance.
+		 * @param boolean   $supports_settings Whether or not the method supports custom DHL settings.
+		 * @param MethodDHL $method The method instance.
 		 *
 		 * @since 3.1.1
 		 * @package Vendidero/Germanized/DHL

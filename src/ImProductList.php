@@ -52,17 +52,27 @@ class ImProductList {
 
 		$available_products = implode( ',', $available_products );
 
-		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_im_id IN ($available_products)" );
+		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code IN ($available_products)" );
 
 		$this->available_products = $products;
 	}
 
-	public function get_available_products() {
+	public function get_available_products( $filters = array() ) {
 		if ( is_null( $this->available_products ) ) {
 			$this->load_available_products();
 		}
 
-		return $this->available_products;
+		$products = $this->available_products;
+
+		return wp_list_filter( $products, $filters );
+	}
+
+	public function get_product_data( $product_id ) {
+		global $wpdb;
+
+		$product = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code = %s", $product_id ) );
+
+		return $product;
 	}
 
 	private function get_information_text( $stamp_type ) {
@@ -124,9 +134,13 @@ class ImProductList {
 					$extended_identifier = $product->extendedIdentifier;
 					$extern_identifier   = property_exists( $extended_identifier, 'externIdentifier' ) ? $extended_identifier->externIdentifier[0] : new \stdClass();
 
+					if ( ! property_exists( $extern_identifier, 'id' ) || empty( $extern_identifier->id ) ) {
+						continue;
+					}
+
 					$to_insert = array(
 						'product_im_id'            => $extended_identifier->{'ProdWS-ID'},
-						'product_code'             => property_exists( $extern_identifier, 'id' ) ? $extern_identifier->id : '',
+						'product_code'             => property_exists( $extern_identifier, 'id' ) ? $extern_identifier->id : $extended_identifier->{'ProdWS-ID'},
 						'product_name'             => property_exists( $extern_identifier, 'name' ) ? $extern_identifier->name : $extended_identifier->name,
 						'product_type'             => $product_type,
 						'product_annotation'       => property_exists( $extended_identifier, 'annotation' ) ? $extended_identifier->annotation : '',

@@ -7,6 +7,7 @@ use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Api\ImProductsSoap;
 use Vendidero\Germanized\DHL\Api\Paket;
+use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
 use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
@@ -835,7 +836,7 @@ class Package {
 
 	/**
 	 * @param $name
-	 * @param bool|ShippingProviderMethodDHL $method
+	 * @param bool|MethodDHL $method
 	 *
 	 * @return mixed|void
 	 */

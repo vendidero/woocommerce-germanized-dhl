@@ -24,7 +24,11 @@ class LabelWatcher {
 
 		// Create labels if they do not yet exist
 		add_action( 'woocommerce_gzd_dhl_before_create_return_label', array( __CLASS__, 'create_return_label' ), 10, 1 );
-		add_action( 'woocommerce_gzd_dhl_before_update_reutrn_label', array( __CLASS__, 'update_return_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_before_update_return_label', array( __CLASS__, 'update_return_label' ), 10, 1 );
+
+		// Create post labels if they do not yet exist
+		add_action( 'woocommerce_gzd_dhl_before_create_post_label', array( __CLASS__, 'create_post_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_before_update_post_label', array( __CLASS__, 'update_post_label' ), 10, 1 );
 
 		// Delete label
 		add_action( 'woocommerce_gzd_dhl_label_deleted', array( __CLASS__, 'delete_label' ), 10, 2 );
@@ -63,6 +67,14 @@ class LabelWatcher {
 		}
 	}
 
+	public static function create_post_label( $label ) {
+		try {
+			Package::get_internetmarke_api()->get_label( $label );
+		} catch( Exception $e ) {
+			throw new Exception( nl2br( $e->getMessage() ) );
+		}
+	}
+
 	public static function update_label( $label ) {
 		try {
 			Package::get_api()->get_label( $label );
@@ -74,6 +86,14 @@ class LabelWatcher {
 	public static function update_return_label( $label ) {
 		try {
 			Package::get_api()->get_return_label( $label );
+		} catch( Exception $e ) {
+			throw new Exception( nl2br( $e->getMessage() ) );
+		}
+	}
+
+	public static function update_post_label( $label ) {
+		try {
+			//
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
 		}

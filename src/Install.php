@@ -90,7 +90,8 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_im_products (
   product_weight_max INT(8) NULL,
   product_weight_unit VARCHAR(8) NULL,
   PRIMARY KEY  (product_id),
-  KEY product_im_id (product_im_id)
+  KEY product_im_id (product_im_id),
+  KEY product_code (product_code)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labelmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,

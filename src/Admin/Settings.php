@@ -1174,7 +1174,7 @@ class Settings {
 
 		if ( Package::is_internetmarke_enabled() && ( $api = Package::get_internetmarke_api() ) && $api->is_available() ) {
 			$balance      = $api->get_balance( true );
-			$settings_url = self::get_settings_url();
+			$settings_url = self::get_settings_url( 'internetmarke' );
 
 			$settings = array_merge( $settings, array(
 				array( 'title' => _x( 'Portokasse', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_internetmarke_portokasse_options' ),
@@ -1203,7 +1203,7 @@ class Settings {
 					'title'    => _x( 'Available Products', 'dhl', 'woocommerce-germanized-dhl' ),
 					'id'       => 'woocommerce_gzd_dhl_im_available_products',
 					'class'    => 'wc-enhanced-select',
-					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s" target="_blank">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ) ), 'wc-gzd-dhl-refresh-im-products' ) . '</div>',
+					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) . '</div>',
 					'type'     => 'multiselect',
 					'options'  => self::get_products(),
 					'default'  => array(),
@@ -1219,7 +1219,7 @@ class Settings {
 					'title'    => _x( 'Default Format', 'dhl', 'woocommerce-germanized-dhl' ),
 					'id'       => 'woocommerce_gzd_dhl_im_default_page_format',
 					'class'    => 'wc-enhanced-select',
-					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s" target="_blank">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ) ), 'wc-gzd-dhl-refresh-im-page-formats' ) . '</div>',
+					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) . '</div>',
 					'type'     => 'select',
 					'options'  => Package::get_internetmarke_api()->get_page_format_list(),
 					'default'  => 1,
@@ -1232,13 +1232,13 @@ class Settings {
 		return $settings;
 	}
 
-	protected static function get_settings_url() {
-		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' );
+	public static function get_settings_url( $section = '' ) {
+		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=' . $section );
 	}
 
 	protected static function get_products() {
 		$products = Package::get_internetmarke_api()->get_products();
-		$options  = Package::get_internetmarke_api()->get_product_list( $products );
+		$options  = wc_gzd_dhl_im_get_product_list( $products );
 
 		return $options;
 	}
@@ -1250,7 +1250,7 @@ class Settings {
 
 		$balance      = Package::get_internetmarke_api()->get_balance();
 		$user_token   = Package::get_internetmarke_api()->get_user()->getUserToken();
-		$settings_url = self::get_settings_url();
+		$settings_url = self::get_settings_url( 'internetmarke' );
 
 		$html = '
 			<input type="text" placeholder="10.00" style="max-width: 150px; margin-right: 10px;" class="wc-input-price short" name="woocommerce_gzd_dhl_im_portokasse_charge_amount" id="woocommerce_gzd_dhl_im_portokasse_charge_amount" />
