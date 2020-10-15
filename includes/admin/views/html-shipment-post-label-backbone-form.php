@@ -36,12 +36,12 @@ $variations_attr = function_exists( 'wc_esc_json' ) ? wc_esc_json( $variations_j
     </div>
     <div class="column col-3 col-dimensions">
         <p class="wc-gzd-dhl-im-product-dimensions data-placeholder hide-default" data-replace="dimensions_formatted"></p>
-        <p class="wc-gzd-dhl-im-product-description data-placeholder hide-default" data-replace="description_formatted"></p>
     </div>
     <div class="column col-5 col-preview">
         <div class="image-preview"></div>
     </div>
     <div class="column col-12">
+        <p class="wc-gzd-dhl-im-product-description data-placeholder hide-default" data-replace="description_formatted"></p>
         <p class="wc-gzd-dhl-im-product-information-text data-placeholder hide-default" data-replace="information_text_formatted"></p>
     </div>
 </div>
