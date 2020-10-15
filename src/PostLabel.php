@@ -18,9 +18,9 @@ class PostLabel extends Label {
 		'page_format'   => '',
 		'shop_order_id' => '',
 		'stamp_total'   => 0,
-		'tracking_id'   => '',
+		'voucher_id'    => '',
 		'original_url'  => '',
-		'manifest_url'  => '',
+		'manifest_url'  => ''
 	);
 
 	public function get_type() {
@@ -29,10 +29,6 @@ class PostLabel extends Label {
 
 	public function get_number( $context = 'view' ) {
 		$number = parent::get_number( $context );
-
-		if ( 'view' === $context && $this->is_trackable() ) {
-			$number = $this->get_tracking_id();
-		}
 
 		return $number;
 	}
@@ -65,12 +61,12 @@ class PostLabel extends Label {
 		$this->set_prop( 'dhl_product', $product );
 	}
 
-	public function get_tracking_id( $context = 'view' ) {
-		return $this->get_prop( 'tracking_id', $context );
+	public function get_voucher_id( $context = 'view' ) {
+		return $this->get_prop( 'voucher_id', $context );
 	}
 
-	public function set_tracking_id( $value ) {
-		$this->set_prop( 'tracking_id', $value );
+	public function set_voucher_id( $value ) {
+		$this->set_prop( 'voucher_id', $value );
 	}
 
 	public function get_original_url( $context = 'view' ) {
@@ -90,9 +86,9 @@ class PostLabel extends Label {
 	}
 
 	public function is_trackable() {
-		$tracking_id = $this->get_tracking_id();
+		$voucher_id = $this->get_voucher_id();
 
-		if ( ! empty( $tracking_id ) ) {
+		if ( ! empty( $voucher_id ) && $voucher_id !== $this->get_number() ) {
 			return true;
 		} elseif( in_array( $this->get_dhl_product(), [ 232, 233, 234, 238, 1007, 195, 1017, 196, 1027, 197, 1037, 198, 1047, 199, 1057, 200 ] ) ) {
 			return true;

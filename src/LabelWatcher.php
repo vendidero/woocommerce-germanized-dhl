@@ -32,6 +32,7 @@ class LabelWatcher {
 
 		// Delete label
 		add_action( 'woocommerce_gzd_dhl_label_deleted', array( __CLASS__, 'delete_label' ), 10, 2 );
+		add_action( 'woocommerce_gzd_dhl_post_label_deleted', array( __CLASS__, 'delete_post_label' ), 10, 2 );
 
 		// Sync shipment items
 		add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
@@ -93,10 +94,16 @@ class LabelWatcher {
 
 	public static function update_post_label( $label ) {
 		try {
-			//
+			Package::get_internetmarke_api()->get_label( $label );
 		} catch( Exception $e ) {
 			throw new Exception( nl2br( $e->getMessage() ) );
 		}
+	}
+
+	public static function delete_post_label( $label_id, $label ) {
+		try {
+			Package::get_internetmarke_api()->delete_label( $label );
+		} catch( Exception $e ) {}
 	}
 
 	public static function delete_label( $label_id, $label ) {

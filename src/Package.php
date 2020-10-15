@@ -222,16 +222,11 @@ class Package {
 	    // Maybe force street number during checkout
 	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
 
-	    // add_action( 'admin_init', array( __CLASS__, 'test' ) );
+	    //  add_action( 'admin_init', array( __CLASS__, 'test' ) );
     }
 
     public static function test() {
-    	$list = new ImProductList();
-    	$list->update();
 
-    	exit();
-
-    	// $im = new \Vendidero\Germanized\DHL\Internetmarke();
     }
 
 	public static function sanitize_password_field( $value, $option, $raw_value ) {

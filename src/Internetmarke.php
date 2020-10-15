@@ -10,6 +10,7 @@ use baltpeter\Internetmarke\PartnerInformation;
 use baltpeter\Internetmarke\PersonName;
 use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
+use Vendidero\Germanized\DHL\Api\ImRefundSoap;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,14 +42,24 @@ class Internetmarke {
 	protected $products = null;
 
 	/**
+	 * @var ImRefundSoap|null
+	 */
+	protected $refund_api = null;
+
+	/**
 	 * @var null|PageFormat[]
 	 */
 	protected $page_formats = null;
 
 	public function __construct() {
-		$this->partner  = new PartnerInformation( Package::get_internetmarke_partner_id(), Package::get_internetmarke_key_phase(), Package::get_internetmarke_token() );
-		$this->api      = new Service( $this->partner );
-		$this->errors   = new \WP_Error();
+		$this->partner = new PartnerInformation( Package::get_internetmarke_partner_id(), Package::get_internetmarke_key_phase(), Package::get_internetmarke_token() );
+		$this->errors  = new \WP_Error();
+
+		try {
+			$this->api = new Service( $this->partner, array(), Package::get_wsdl_file( 'https://internetmarke.deutschepost.de/OneClickForAppV3?wsdl' ) );
+		} catch( \Exception $e ) {
+			$this->errors->add( 'startup', _x( 'Error while instantiating main Internetmarke API.', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
 
 		if ( ! Package::is_internetmarke_enabled() ) {
 			$this->errors->add( 'startup', _x( 'Internetmarke is disabled. Please enable Internetmarke.', 'dhl', 'woocommerce-germanized-dhl' ) );
@@ -297,6 +308,95 @@ class Internetmarke {
 		}
 	}
 
+	public function get_refund_api() {
+		if ( is_null( $this->refund_api ) ) {
+			$this->refund_api = new ImRefundSoap( $this->partner, array(), Package::get_wsdl_file( 'https://internetmarke.deutschepost.de/OneClickForRefund?wsdl' ) );
+		}
+
+		return $this->refund_api;
+	}
+
+	/**
+	 * @param PostLabel $label
+	 *
+	 * @return false|int
+	 * @throws \Exception
+	 */
+	public function refund_label( $label ) {
+		try {
+			$refund = $this->get_refund_api();
+
+			if ( ! $refund ) {
+				throw new \Exception( _x( 'Refund API could not be instantiated', 'dhl', 'woocommerce-germanized-dhl' ) );
+			}
+
+			$refund_id = $refund->createRetoureId();
+
+			if ( $refund_id ) {
+				$user = $refund->authenticateUser( Package::get_internetmarke_username(), Package::get_internetmarke_password() );
+
+				if ( $user ) {
+					$transaction_id = $refund->retoureVouchers( $user->getUserToken(), $refund_id, $label->get_shop_order_id() );
+				}
+
+				Package::log( sprintf( 'Refunded DP label %s: %s', $label->get_number(), $transaction_id ) );
+
+				return $transaction_id;
+			}
+		} catch( \Exception $e ) {
+			throw new \Exception( sprintf( _x( 'Could not refund post label: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param PostLabel $label
+	 *
+	 * @return mixed
+	 */
+	public function delete_label( &$label ) {
+		if ( ! empty( $label->get_shop_order_id() ) ) {
+			$transaction_id = $this->refund_label( $label );
+
+			/**
+			 * Action fires before deleting a Deutsche Post PDF label through an API call.
+			 *
+			 * @param PostLabel $label The label object.
+			 *
+			 * @since 3.2.0
+			 * @package Vendidero/Germanized/DHL
+			 */
+			do_action( 'woocommerce_gzd_dhl_post_label_api_before_delete', $label );
+
+			$label->set_number( '' );
+
+			if ( $file = $label->get_file() ) {
+				wp_delete_file( $file );
+			}
+
+			$label->set_path( '' );
+
+			if ( $file = $label->get_default_file() ) {
+				wp_delete_file( $file );
+			}
+
+			/**
+			 * Action fires after deleting a Deutsche Post PDF label through an API call.
+			 *
+			 * @param PostLabel $label The label object.
+			 *
+			 * @since 3.2.0
+			 * @package Vendidero/Germanized/DHL
+			 */
+			do_action( 'woocommerce_gzd_dhl_post_label_api_deleted', $label );
+
+			return $label;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @param PostLabel $label
 	 */
@@ -308,8 +408,10 @@ class Internetmarke {
 		}
 
 		$sender_name       = explode( " ", Package::get_setting( 'shipper_name' ) );
-		$sender_first_name = array_splice( $sender_name, 0, ( sizeof( $sender_name ) - 2 ) );
+		$sender_name_first = $sender_name;
+		$sender_first_name = array_splice( $sender_name_first, 0, ( sizeof( $sender_name ) - 1 ) );
 		$sender_last_name  = $sender_name[ sizeof( $sender_name ) - 1 ];
+
 		$person_name       = new PersonName( '', '', implode( ' ', $sender_first_name ), $sender_last_name );
 		$sender_country    = Package::get_country_iso_alpha3( Package::get_setting( 'shipper_country' ) );
 
@@ -365,7 +467,27 @@ class Internetmarke {
 	 */
 	protected function update_label( &$label, $stamp ) {
 		if ( isset( $stamp->link ) ) {
+
 			$label->set_original_url( $stamp->link );
+			$voucher_list = $stamp->shoppingCart->voucherList;
+
+			if ( ! empty( $voucher_list->voucher ) ) {
+				foreach ( $voucher_list->voucher as $i => $voucher ) {
+
+					if ( isset( $voucher->trackId ) ) {
+						$label->set_number( $voucher->trackId );
+					} else {
+						$label->set_number( $voucher->voucherId );
+					}
+
+					$label->set_voucher_id( $voucher->voucherId );
+				}
+			}
+
+			if ( isset( $stamp->manifestLink ) ) {
+				$label->set_manifest_url( $stamp->manifestLink );
+			}
+
 			$label->save();
 
 			$timeout_seconds = 5;
@@ -405,24 +527,7 @@ class Internetmarke {
 				throw new \Exception( _x( 'Error while downloading the PDF stamp.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 
-			$voucher_list = $stamp->shoppingCart->voucherList;
-
-			if ( ! empty( $voucher_list ) ) {
-				foreach ( $voucher_list as $i => $voucher ) {
-					if ( isset( $voucher->trackId ) ) {
-						$label->set_tracking_id( $voucher->trackId );
-					}
-
-					$label->set_number( $voucher->voucherId );
-				}
-			}
-
-			if ( isset( $stamp->manifestLink ) ) {
-				$label->set_manifest_url( $stamp->manifestLink );
-			}
-
 			$label->save();
-
 			$this->invalidate_balance();
 
 			return $label;

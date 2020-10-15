@@ -31,6 +31,26 @@ class ShipmentLabelWatcher {
 
 		// Legacy ShippingProviderMethod hook support
 		add_filter( 'woocommerce_gzd_shipping_provider_method_provider', array( __CLASS__, 'legacy_provider_hook_support' ), 10, 3 );
+
+		add_filter( 'woocommerce_gzd_shipment_get_tracking_url', array( __CLASS__, 'filter_tracking_url' ), 10, 2 );
+	}
+
+	/**
+	 * In case the label is not trackable (e.g. Brief), do not return a tracking url for the shipment.
+	 *
+	 * @param $tracking_url
+	 * @param Shipment $shipment
+	 */
+	public static function filter_tracking_url( $tracking_url, $shipment ) {
+		if ( 'deutsche_post' === $shipment->get_shipping_provider() ) {
+			if ( $label = $shipment->get_label() ) {
+				if ( is_callable( array( $label, 'is_trackable' ) ) && ! $label->is_trackable() ) {
+					return '';
+				}
+			}
+		}
+
+		return $tracking_url;
 	}
 
 	public static function legacy_provider_hook_support( $provider, $method_id, $shipping_provider_method ) {

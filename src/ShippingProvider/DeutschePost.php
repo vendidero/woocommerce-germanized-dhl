@@ -44,7 +44,7 @@ class DeutschePost extends ShippingProvider {
 	}
 
 	public function get_default_tracking_url_placeholder() {
-		return 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc={tracking_id}&rfn=&extendedSearch=true';
+		return 'https://www.deutschepost.de/sendung/simpleQueryResult.html?form.sendungsnummer={tracking_id}&form.einlieferungsdatum_tag={label_date_day}&form.einlieferungsdatum_monat={label_date_month}&form.einlieferungsdatum_jahr={label_date_year}';
 	}
 
 	public function get_tracking_url_placeholder( $context = 'view' ) {

@@ -65,7 +65,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	    '_page_format',
 	    '_shop_order_id',
 	    '_stamp_total',
-	    '_tracking_id',
+	    '_voucher_id',
 	    '_original_url',
 	    '_manifest_url'
     );
