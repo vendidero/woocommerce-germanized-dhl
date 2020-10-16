@@ -12,7 +12,7 @@ window.germanized.admin = window.germanized.admin || {};
 
         init: function () {
             var self    = admin.dhl_post_label;
-            self.params = wc_gzd_admin_post_label_params;
+            self.params = wc_gzd_admin_deutsche_post_label_params;
 
             $( document ).on( 'change', '#deutsche_post_label_dhl_product', self.onChangeProductId );
             $( document.body ).on( 'wc_gzd_shipment_label_after_init', self.onInit );

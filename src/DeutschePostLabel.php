@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Deutsche Post Label class.
  */
-class PostLabel extends Label {
+class DeutschePostLabel extends Label {
 
 	/**
 	 * Stores product data.
@@ -24,7 +24,7 @@ class PostLabel extends Label {
 	);
 
 	public function get_type() {
-		return 'post';
+		return 'deutsche_post';
 	}
 
 	public function get_number( $context = 'view' ) {

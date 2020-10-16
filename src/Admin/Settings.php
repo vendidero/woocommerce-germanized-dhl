@@ -16,6 +16,10 @@ class Settings {
 		return '';
 	}
 
+	protected static function after_disable() {
+
+	}
+
 	public static function get_pointers( $section ) {
 		$pointers = array();
 
@@ -664,7 +668,9 @@ class Settings {
 
 		foreach( $settings as $setting ) {
 			$new_setting            = array();
-			$new_setting['id']      = str_replace( 'woocommerce_gzd_dhl_', 'dhl_', $setting['id'] );
+			$new_setting['id']      = str_replace( 'woocommerce_gzd_deutsche_post_', 'deutsche_post_', $setting['id'] );
+			$new_setting['id']      = str_replace( 'woocommerce_gzd_dhl_', 'dhl_', $new_setting['id'] );
+
 			$new_setting['type']    = str_replace( 'gzd_toggle', 'checkbox', $setting['type'] );
 			$new_setting['default'] = Package::get_setting( $new_setting['id'] );
 
@@ -1140,6 +1146,58 @@ class Settings {
 		return $settings;
 	}
 
+	public static function get_internetmarke_default_settings( $for_shipping_method = false ) {
+		$settings = array(
+			array(
+				'title'             => _x( 'Domestic Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'select',
+				'default'           => '',
+				'id'                => 'woocommerce_gzd_deutsche_post_label_default_product_dom',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default Deutsche Post shipping service for domestic shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'options'           => wc_gzd_dhl_get_deutsche_post_products_domestic(),
+				'class'             => 'wc-enhanced-select',
+			),
+
+			array(
+				'title'             => _x( 'Int. Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'select',
+				'default'           => '',
+				'id'                => 'woocommerce_gzd_deutsche_post_label_default_product_int',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default Deutsche Post shipping service for cross-border shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'options'           => wc_gzd_dhl_get_deutsche_post_products_international(),
+				'class'             => 'wc-enhanced-select',
+			),
+		);
+
+		if ( $for_shipping_method ) {
+			$settings = self::convert_for_shipping_method( $settings );
+		}
+
+		return $settings;
+	}
+
+	public static function get_internetmarke_printing_settings( $for_shipping_method = false ) {
+		$settings_url = self::get_settings_url( 'internetmarke' );
+
+		$settings = array(
+			array(
+				'title'    => _x( 'Default Format', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'       => 'woocommerce_gzd_deutsche_post_label_default_page_format',
+				'class'    => 'wc-enhanced-select',
+				'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) . '</div>',
+				'type'     => 'select',
+				'options'  => Package::get_internetmarke_api()->get_page_format_list(),
+				'default'  => 1,
+			),
+		);
+
+		if ( $for_shipping_method ) {
+			$settings = self::convert_for_shipping_method( $settings );
+		}
+
+		return $settings;
+	}
+
 	protected static function get_internetmarke_settings() {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_internetmarke_options' ),
@@ -1208,23 +1266,22 @@ class Settings {
 					'options'  => self::get_products(),
 					'default'  => array(),
 				),
-
-				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_product_options' )
 			) );
 
+			$products = wc_gzd_dhl_get_deutsche_post_products_domestic();
+
+			if ( ! empty( $products ) ) {
+				$settings = array_merge( $settings, self::get_internetmarke_default_settings() );
+			}
+
 			$settings = array_merge( $settings, array(
+				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_product_options' ),
 				array( 'title' => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_internetmarke_print_options' ),
+			) );
 
-				array(
-					'title'    => _x( 'Default Format', 'dhl', 'woocommerce-germanized-dhl' ),
-					'id'       => 'woocommerce_gzd_dhl_im_default_page_format',
-					'class'    => 'wc-enhanced-select',
-					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) . '</div>',
-					'type'     => 'select',
-					'options'  => Package::get_internetmarke_api()->get_page_format_list(),
-					'default'  => 1,
-				),
+			$settings = array_merge( $settings, self::get_internetmarke_printing_settings() );
 
+			$settings = array_merge( $settings, array(
 				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_print_options' )
 			) );
 		}

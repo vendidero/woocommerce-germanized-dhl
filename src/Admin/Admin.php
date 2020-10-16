@@ -149,7 +149,7 @@ class Admin {
 			return;
 		}
 
-		$path = Package::get_path() . '/includes/admin/views/html-shipment-post-label-backbone-form.php';
+		$path = Package::get_path() . '/includes/admin/views/html-shipment-deutsche-post-label-backbone-form.php';
 
 		include $path;
 	}
@@ -357,15 +357,15 @@ class Admin {
 
 		wp_register_script( 'wc-gzd-admin-dhl-label', Package::get_assets_url() . '/js/admin-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() );
 		wp_register_script( 'wc-gzd-admin-dhl-internetmarke', Package::get_assets_url() . '/js/admin-internetmarke' . $suffix . '.js', array( 'jquery' ), Package::get_version() );
-		wp_register_script( 'wc-gzd-admin-post-label', Package::get_assets_url() . '/js/admin-post-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() );
+		wp_register_script( 'wc-gzd-admin-deutsche-post-label', Package::get_assets_url() . '/js/admin-deutsche-post-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() );
 
 		if ( wp_script_is( 'wc-gzd-admin-shipment-label-backbone', 'enqueued' ) ) {
 		    wp_enqueue_script( 'wc-gzd-admin-dhl-label' );
-			wp_enqueue_script( 'wc-gzd-admin-post-label' );
+			wp_enqueue_script( 'wc-gzd-admin-deutsche-post-label' );
 
 			wp_localize_script(
-				'wc-gzd-admin-post-label',
-				'wc_gzd_admin_post_label_params',
+				'wc-gzd-admin-deutsche-post-label',
+				'wc_gzd_admin_deutsche_post_label_params',
 				array(
 					'preview_nonce' => wp_create_nonce( 'wc-gzd-dhl-preview-stamp' ),
 				)

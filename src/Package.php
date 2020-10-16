@@ -7,6 +7,7 @@ use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Api\ImProductsSoap;
 use Vendidero\Germanized\DHL\Api\Paket;
+use Vendidero\Germanized\DHL\ShippingProvider\MethodDeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
 use WP_Error;
 
@@ -36,6 +37,8 @@ class Package {
 	protected static $im_api = null;
 
 	protected static $method_settings = null;
+
+	protected static $dp_method_settings = null;
 	
 	protected static $iso = null;
 
@@ -63,7 +66,6 @@ class Package {
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_im_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
-
 
 	    if ( self::is_enabled() ) {
 	        self::init_hooks();
@@ -171,8 +173,12 @@ class Package {
     }
 
     public static function is_enabled() {
-    	return 'yes' === self::get_setting( 'enable' );
+    	return ( self::is_dhl_enabled() || self::is_internetmarke_enabled() );
     }
+
+	public static function is_dhl_enabled() {
+		return ( 'yes' === self::get_setting( 'enable' ) );
+	}
     
     public static function get_country_iso_alpha3( $country_code ) {
 	    if ( empty( self::$iso ) ) {
@@ -246,7 +252,7 @@ class Package {
     public static function maybe_force_street_number( $data, $errors ) {
     	if ( 'yes' === self::get_setting( 'label_checkout_validate_street_number_address' ) ) {
 		    if ( function_exists( 'wc_gzd_split_shipment_street' ) && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
-			    if ( $method->is_dhl_enabled() ) {
+			    if ( $method->is_dhl_enabled() || $method->is_deutsche_post_enabled() ) {
 				    if ( isset( $data['shipping_country'], $data['shipping_address_1'] ) && ! empty( $data['shipping_country'] ) ) {
 					    // Do only check street numbers for inner EU.
 					    if ( ! self::is_crossborder_shipment( $data['shipping_country'] ) ) {
@@ -277,11 +283,13 @@ class Package {
 
 	public static function clean_shipping_provider_settings( $p_settings, $method ) {
 		$shipping_provider_settings = self::get_method_settings();
+		$shipping_provider          = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
 
 		foreach( $p_settings as $setting => $value ) {
-
 			if ( array_key_exists( $setting, $shipping_provider_settings ) ) {
-				if ( self::get_setting( $setting ) === $value ) {
+				if ( substr( $setting, 0, strlen( $shipping_provider ) + 1 ) !== $shipping_provider . '_' ) {
+					unset( $p_settings[ $setting ] );
+				} elseif ( self::get_setting( $setting ) === $value ) {
 					unset( $p_settings[ $setting ] );
 				}
 			}
@@ -831,14 +839,18 @@ class Package {
 
 	/**
 	 * @param $name
-	 * @param bool|MethodDHL $method
+	 * @param bool|MethodDHL|MethodDeutschePost $method
 	 *
 	 * @return mixed|void
 	 */
     public static function get_setting( $name, $method = false ) {
+	    $is_dp = false;
 
     	if ( substr( $name, 0, 4 ) === 'dhl_' ) {
     		$name = substr( $name, 4 );
+	    } elseif( substr( $name, 0, 14 ) === 'deutsche_post_' ) {
+		    $name  = substr( $name, 14 );
+    		$is_dp = true;
 	    }
 
     	if ( self::is_debug_mode() ) {
@@ -857,7 +869,11 @@ class Package {
 		    }
 	    }
 
-		$value = get_option( "woocommerce_gzd_dhl_{$name}" );
+    	if ( ! $is_dp ) {
+		    $value = get_option( "woocommerce_gzd_dhl_{$name}" );
+	    } else {
+		    $value = get_option( "woocommerce_gzd_deutsche_post_{$name}" );
+	    }
 
     	if ( ! empty( $value ) && strpos( $name, 'password' ) !== false ) {
     		return stripslashes( $value );

@@ -10,6 +10,7 @@ use baltpeter\Internetmarke\PartnerInformation;
 use baltpeter\Internetmarke\PersonName;
 use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
+use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Api\ImRefundSoap;
 
 defined( 'ABSPATH' ) || exit;
@@ -146,6 +147,21 @@ class Internetmarke {
 		if ( is_null( $this->products ) ) {
 			$this->products = new ImProductList();
 		}
+
+		$transient = get_transient( 'wc_gzd_dhl_im_products_expire' );
+
+		if ( ! $transient ) {
+			$result = $this->products->update();
+
+			if ( is_wp_error( $result ) ) {
+				Package::log( 'Error while refreshing Internetmarke product data: ' . $result->get_error_message() );
+			}
+
+			/**
+			 * Refresh product data once per day.
+			 */
+			set_transient( 'wc_gzd_dhl_im_products_expire', DAY_IN_SECONDS );
+		}
 	}
 
 	public function get_products( $filters = array() ) {
@@ -246,7 +262,7 @@ class Internetmarke {
 
 					set_transient( 'wc_gzd_dhl_im_page_formats', $this->page_formats, DAY_IN_SECONDS );
 				} catch( \Exception $e ) {
-					// Log
+					Package::log( 'Error while refreshing Internetmarke page formats: ' . $e->getMessage() );
 				}
 
 				$page_formats = $this->page_formats;
@@ -286,7 +302,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param PostLabel $label
+	 * @param DeutschePostLabel $label
 	 *
 	 * @return mixed
 	 */
@@ -317,7 +333,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param PostLabel $label
+	 * @param DeutschePostLabel $label
 	 *
 	 * @return false|int
 	 * @throws \Exception
@@ -351,7 +367,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param PostLabel $label
+	 * @param DeutschePostLabel $label
 	 *
 	 * @return mixed
 	 */
@@ -362,12 +378,12 @@ class Internetmarke {
 			/**
 			 * Action fires before deleting a Deutsche Post PDF label through an API call.
 			 *
-			 * @param PostLabel $label The label object.
+			 * @param DeutschePostLabel $label The label object.
 			 *
 			 * @since 3.2.0
 			 * @package Vendidero/Germanized/DHL
 			 */
-			do_action( 'woocommerce_gzd_dhl_post_label_api_before_delete', $label );
+			do_action( 'woocommerce_gzd_dhl_deutsche_post_label_api_before_delete', $label );
 
 			$label->set_number( '' );
 
@@ -384,12 +400,12 @@ class Internetmarke {
 			/**
 			 * Action fires after deleting a Deutsche Post PDF label through an API call.
 			 *
-			 * @param PostLabel $label The label object.
+			 * @param DeutschePostLabel $label The label object.
 			 *
 			 * @since 3.2.0
 			 * @package Vendidero/Germanized/DHL
 			 */
-			do_action( 'woocommerce_gzd_dhl_post_label_api_deleted', $label );
+			do_action( 'woocommerce_gzd_dhl_deutsche_post_label_api_deleted', $label );
 
 			return $label;
 		}
@@ -398,7 +414,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param PostLabel $label
+	 * @param DeutschePostLabel $label
 	 */
 	protected function create_label( &$label ) {
 		$shipment = $label->get_shipment();
@@ -454,12 +470,12 @@ class Internetmarke {
 
 			return $this->update_label( $label, $stamp );
 		} catch( \Exception $e ) {
-			throw $e;
+			throw new \Exception( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), Settings::get_settings_url( 'internetmarke' ) ) );
 		}
 	}
 
 	/**
-	 * @param PostLabel $label
+	 * @param DeutschePostLabel $label
 	 * @param \stdClass $stamp
 	 *
 	 * @return mixed
@@ -500,7 +516,7 @@ class Internetmarke {
 			}
 
 			$file = [
-				'name'     => wc_gzd_dhl_generate_label_filename( $label, 'post-label' ),
+				'name'     => wc_gzd_dhl_generate_label_filename( $label, 'dp-label' ),
 				'type'     => 'application/pdf',
 				'tmp_name' => $temp_file,
 				'error'    => 0,

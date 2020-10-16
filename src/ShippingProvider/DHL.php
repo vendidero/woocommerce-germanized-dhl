@@ -28,7 +28,7 @@ class DHL extends ShippingProvider {
 	}
 
 	public function is_activated() {
-		return Package::is_enabled();
+		return Package::is_dhl_enabled();
 	}
 
 	public function get_title( $context = 'view' ) {

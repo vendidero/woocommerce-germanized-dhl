@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
 
 use Vendidero\Germanized\DHL\Package;
 
-$default_args    = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
+$default_args    = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
 $variations_json = wp_json_encode( Package::get_internetmarke_api()->get_available_products_printable() );
 $variations_attr = function_exists( 'wc_esc_json' ) ? wc_esc_json( $variations_json ) : _wp_specialchars( $variations_json, ENT_QUOTES, 'UTF-8', true );
 ?>
@@ -17,8 +17,8 @@ $variations_attr = function_exists( 'wc_esc_json' ) ? wc_esc_json( $variations_j
         'id'          		=> 'deutsche_post_label_dhl_product',
         'label'       		=> _x( 'Product', 'dhl', 'woocommerce-germanized-dhl' ),
         'description'		=> '',
-        'options'			=> wc_gzd_dhl_get_post_products( $shipment->get_country() ),
-        'value'             => isset( $default_args['post_product'] ) ? $default_args['post_product'] : '',
+        'options'			=> wc_gzd_dhl_get_deutsche_post_products( $shipment->get_country() ),
+        'value'             => isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : '',
     ) ); ?>
 
     <?php woocommerce_wp_select( array(

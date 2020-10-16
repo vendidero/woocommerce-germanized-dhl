@@ -130,10 +130,6 @@ class ShipmentLabelWatcher {
 			}
 		}
 
-		if ( isset( $props['dhl_product'] ) ) {
-			$props['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $props['dhl_product'] );
-		}
-
 		$label = wc_gzd_dhl_create_label( $shipment, $props );
 
 		if ( is_wp_error( $label ) ) {

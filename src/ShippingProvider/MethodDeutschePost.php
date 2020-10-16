@@ -14,14 +14,12 @@ defined( 'ABSPATH' ) || exit;
  * @version		1.0.0
  * @author 		Vendidero
  */
-class MethodDHL {
+class MethodDeutschePost {
 
 	/**
 	 * @var ShippingProviderMethod|null
 	 */
 	protected $method = null;
-
-	protected $preferred_services = null;
 
 	protected $is_placeholder = false;
 
@@ -39,8 +37,8 @@ class MethodDHL {
 	}
 
 	protected function maybe_prefix_key( $key ) {
-		if ( substr( $key, 0, 4 ) !== 'dhl_' ) {
-			$key = 'dhl_' . $key;
+		if ( substr( $key, 0, 14 ) !== 'deutsche_post_' ) {
+			$key = 'deutsche_post_' . $key;
 		}
 
 		return $key;
@@ -71,7 +69,7 @@ class MethodDHL {
 		$supports_settings = ( $this->method->supports( 'instance-settings' ) && $this->method->supports( 'instance-settings-modal' ) ) ? true : false;
 
 		/**
-		 * Filter that allows adjusting whether this method supports DHL custom settings or not.
+		 * Filter that allows adjusting whether this method supports Deutsche Post custom settings or not.
 		 * By default only shipping methods supporting instance-settings and instance-settings-modal are supported.
 		 *
 		 * @param boolean   $supports_settings Whether or not the method supports custom DHL settings.
@@ -80,7 +78,7 @@ class MethodDHL {
 		 * @since 3.1.1
 		 * @package Vendidero/Germanized/DHL
 		 */
-		return apply_filters( 'woocommerce_gzd_dhl_shipping_provider_method_supports_settings', $supports_settings, $this );
+		return apply_filters( 'woocommerce_gzd_deutsche_post_shipping_provider_method_supports_settings', $supports_settings, $this );
 	}
 
 	public function get_option( $key ) {
@@ -96,7 +94,7 @@ class MethodDHL {
 			}
 
 			if ( strpos( $key, 'enable' ) !== false ) {
-				if ( 'yes' === $option_value && ! $this->is_dhl_enabled() ) {
+				if ( 'yes' === $option_value && ! $this->is_deutsche_post_enabled() ) {
 					$option_value = 'no';
 				}
 			}
@@ -107,50 +105,8 @@ class MethodDHL {
 		return $option_value;
 	}
 
-	public function is_dhl_enabled() {
-		return $this->method->is_enabled( 'dhl' );
-	}
-
 	public function is_deutsche_post_enabled() {
 		return $this->method->is_enabled( 'deutsche_post' );
-	}
-
-	public function is_packstation_enabled() {
-		return $this->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
-	}
-
-	public function is_postoffice_enabled() {
-		return $this->get_option( 'dhl_parcel_pickup_postoffice_enable' ) === 'yes' ? true : false;
-	}
-
-	public function is_parcelshop_enabled() {
-		return $this->get_option( 'dhl_parcel_pickup_parcelshop_enable' ) === 'yes' ? true : false;
-	}
-
-	public function get_enabled_preferred_services() {
-		if ( is_null( $this->preferred_services ) ) {
-			$services                 = wc_gzd_dhl_get_services();
-			$this->preferred_services = array();
-
-			foreach ( $services as $service ) {
-
-				if ( strpos( $service, 'Preferred' ) === false ) {
-					continue;
-				}
-
-				if ( $this->get_option( 'dhl_' . $service . '_enable' ) === 'yes' ) {
-					$this->preferred_services[] = $service;
-				}
-			}
-		}
-
-		return $this->preferred_services;
-	}
-
-	public function is_preferred_service_enabled( $service ) {
-		$services = $this->get_enabled_preferred_services();
-
-		return in_array( $service, $services ) && $this->is_dhl_enabled();
 	}
 
 	/**
@@ -162,7 +118,6 @@ class MethodDHL {
 	 * @return bool|mixed
 	 */
 	public function __call( $method, $args ) {
-
 		if ( method_exists( $this->method, $method ) ) {
 			return call_user_func_array( array( $this->method, $method ), $args );
 		}

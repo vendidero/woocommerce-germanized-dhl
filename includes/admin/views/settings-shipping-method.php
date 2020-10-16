@@ -38,7 +38,7 @@ if ( Package::base_country_supports( 'services' ) ) {
 
 $settings = array_merge( $settings, array(
 	'dhl_label_auto_title' => array(
-		'title'       => _x( 'DHL Label Automation', 'dhl', 'woocommerce-germanized-dhl' ),
+		'title'       => _x( 'Label Automation', 'dhl', 'woocommerce-germanized-dhl' ),
 		'type'        => 'title',
 		'default'     => '',
 		'description' => sprintf( _x( 'Adjust label automation settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=labels' ) ),
@@ -72,5 +72,23 @@ if ( ParcelLocator::is_enabled() ) {
 	$service_settings = Settings::get_parcel_pickup_type_settings( true );
 	$settings         = array_merge( $settings, $service_settings );
 }
+
+/**
+ * Deutsche Post
+ */
+$settings = array_merge( $settings, array(
+	'deutsche_post_label_title' => array(
+		'title'       => _x( 'Deutsche Post Labels', 'dhl', 'woocommerce-germanized-dhl' ),
+		'type'        => 'title',
+		'default'     => '',
+		'description' => sprintf( _x( 'Adjust Deutsche Post label settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
+	),
+) );
+
+$label_settings = Settings::get_internetmarke_default_settings( true );
+$settings       = array_merge( $settings, $label_settings );
+
+$label_settings = Settings::get_internetmarke_printing_settings( true );
+$settings       = array_merge( $settings, $label_settings );
 
 return $settings;

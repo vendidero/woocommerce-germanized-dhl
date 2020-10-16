@@ -65,7 +65,12 @@ class Automation {
 			return;
 		}
 
-		$shipping_method = wc_gzd_dhl_get_shipping_method( $shipment->get_shipping_method() );
+		if ( 'deutsche_post' === $shipment->get_shipping_provider() ) {
+			$shipping_method = wc_gzd_dhl_get_deutsche_post_shipping_method( $shipment->get_shipping_method() );
+		} else {
+			$shipping_method = wc_gzd_dhl_get_shipping_method( $shipment->get_shipping_method() );
+		}
+
 		$setting         = 'return' === $shipment->get_type() ? 'label_return_auto_enable' : 'label_auto_enable';
 		$setting_status  = 'return' === $shipment->get_type() ? 'label_return_auto_shipment_status' : 'label_auto_shipment_status';
 		$hook_prefix     = 'woocommerce_gzd_' . ( 'return' === $shipment->get_type() ? 'return_' : '' ) . 'shipment_status_';
