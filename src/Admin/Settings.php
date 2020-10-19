@@ -1176,6 +1176,45 @@ class Settings {
 		return $settings;
 	}
 
+	public static function get_internetmarke_automation_settings( $for_shipping_method = false ) {
+		$shipment_statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_fill_keys( array( 'gzd-draft', 'gzd-delivered', 'gzd-returned', 'gzd-requested' ), '' ) );
+
+		$settings = array(
+			array(
+				'title' 	        => _x( 'Labels', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Automatically create labels for shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_deutsche_post_label_auto_enable',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title'             => _x( 'Status', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'select',
+				'default'           => 'gzd-processing',
+				'id'                => 'woocommerce_gzd_deutsche_post_label_auto_shipment_status',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Choose a shipment status which should trigger generation of a label.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'options'           => $shipment_statuses,
+				'class'             => 'wc-enhanced-select',
+				'custom_attributes'	=> array( 'data-show_if_woocommerce_gzd_deutsche_post_label_auto_enable' => '' )
+			),
+
+			array(
+				'title' 	        => _x( 'Shipment Status', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Mark shipment as shipped after label has been created successfully.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_deutsche_post_label_auto_shipment_status_shipped',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			)
+		);
+
+		if ( $for_shipping_method ) {
+			$settings = self::convert_for_shipping_method( $settings );
+		}
+
+		return $settings;
+	}
+
 	public static function get_internetmarke_printing_settings( $for_shipping_method = false ) {
 		$settings_url = self::get_settings_url( 'internetmarke' );
 
@@ -1264,7 +1303,7 @@ class Settings {
 					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) . '</div>',
 					'type'     => 'multiselect',
 					'options'  => self::get_products(),
-					'default'  => array(),
+					'default'  => self::get_internetmarke_default_available_products(),
 				),
 			) );
 
@@ -1286,11 +1325,42 @@ class Settings {
 			) );
 		}
 
+		$settings = array_merge( $settings, array(
+			array( 'title' => _x( 'Automation', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_internetmarke_auto_options' ),
+		) );
+
+		$settings = array_merge( $settings, self::get_internetmarke_automation_settings() );
+
+		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_auto_options' )
+		) );
+
 		return $settings;
 	}
 
 	public static function get_settings_url( $section = '' ) {
 		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=' . $section );
+	}
+
+	protected static function get_internetmarke_default_available_products() {
+		return array(
+			'11',
+			'21',
+			'31',
+			'232',
+			'233',
+			'234',
+			'282',
+			'290',
+			'10246',
+			'10247',
+			'10248',
+			'10252',
+			'10253',
+			'10254',
+			'10257',
+			'10261',
+		);
 	}
 
 	protected static function get_products() {

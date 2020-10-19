@@ -68,14 +68,30 @@ class Package {
 	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_im_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
 
 	    if ( self::is_enabled() ) {
-	        self::init_hooks();
+	        if ( self::has_load_dependencies() ) {
+		        self::init_hooks();
+            } else {
+	            add_action( 'admin_notices', array( __CLASS__, 'load_dependencies_notice' ) );
+            }
         }
 
         self::includes();
     }
 
+    public static function load_dependencies_notice() {
+    	?>
+	    <div class="notice notice-error error">
+		    <p><?php printf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ); ?></p>
+	    </div>
+	    <?php
+    }
+
     public static function has_dependencies() {
     	return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && self::base_country_is_supported() && apply_filters( 'woocommerce_gzd_dhl_enabled', true ) );
+    }
+
+    public static function has_load_dependencies() {
+    	return ( ! class_exists( 'SoapClient' ) ? false : true );
     }
 
     public static function base_country_is_supported() {
