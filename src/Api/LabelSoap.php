@@ -389,8 +389,8 @@ class LabelSoap extends Soap {
                     $services[ $service ]['insuranceAmount'] = $shipment->get_total();
                     break;
                 case 'IdentCheck':
-                    $services[ $service ]['Ident']['surname']     = $shipment->get_first_name();
-                    $services[ $service ]['Ident']['givenName']   = $shipment->get_last_name();
+                    $services[ $service ]['Ident']['surname']     = $shipment->get_last_name();
+                    $services[ $service ]['Ident']['givenName']   = $shipment->get_first_name();
                     $services[ $service ]['Ident']['dateOfBirth'] = $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->date( 'Y-m-d' ) : '';
                     $services[ $service ]['Ident']['minimumAge']  = $label->get_ident_min_age();
                     break;
