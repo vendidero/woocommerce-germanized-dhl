@@ -359,7 +359,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
         $props = array();
 
         foreach( $this->internal_meta_keys as $meta_key ) {
-            $props[ substr( $meta_key, 1 ) ] = get_metadata( 'gzd_dhl_label', $label->get_id(), $meta_key, true );
+            $props[ substr( $meta_key, 1 ) ] = get_metadata( $this->meta_type, $label->get_id(), $meta_key, true );
         }
 
         $label->set_props( $props );
@@ -379,7 +379,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             $meta_key_to_props[ $meta_key ] = $prop_name;
         }
 
-        $props_to_update = $this->get_props_to_update( $label, $meta_key_to_props, 'gzd_dhl_label' );
+        $props_to_update = $this->get_props_to_update( $label, $meta_key_to_props, $this->meta_type );
 
         foreach ( $props_to_update as $meta_key => $prop ) {
 
@@ -445,9 +445,9 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
      */
     protected function update_or_delete_meta( $object, $meta_key, $meta_value ) {
         if ( in_array( $meta_value, array( array(), '' ), true ) && ! in_array( $meta_key, $this->must_exist_meta_keys, true ) ) {
-            $updated = delete_metadata( 'gzd_dhl_label', $object->get_id(), $meta_key );
+            $updated = delete_metadata( $this->meta_type, $object->get_id(), $meta_key );
         } else {
-            $updated = update_metadata( 'gzd_dhl_label', $object->get_id(), $meta_key, $meta_value );
+            $updated = update_metadata( $this->meta_type, $object->get_id(), $meta_key, $meta_value );
         }
 
         return (bool) $updated;
