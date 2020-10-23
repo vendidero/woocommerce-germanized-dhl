@@ -79,10 +79,18 @@ if [ "$(echo "${PROCEED:-n}" | tr "[:upper:]" "[:lower:]")" != "y" ]; then
   exit 1
 fi
 
-output 2 "Starting release to GitHub..."
+CURRENTBRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+composer install --no-dev || exit "$?"
+composer dump-autoload
+output 2 "Committing version change..."
 echo
 
-CURRENTBRANCH="$(git rev-parse --abbrev-ref HEAD)"
+git commit -am "Bumping version strings to new version." --no-verify
+git push origin $CURRENTBRANCH
+
+output 2 "Prepping release for GitHub..."
+echo
 
 # Create a release branch.
 BRANCH="build/${VERSION}"
@@ -106,5 +114,7 @@ fi
 git checkout $CURRENTBRANCH
 git branch -D $BRANCH
 git push origin --delete $BRANCH
+
+composer install || exit "$?"s
 
 output 2 "GitHub release complete."
