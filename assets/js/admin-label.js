@@ -33,7 +33,6 @@ window.germanized.admin = window.germanized.admin || {};
 
         showOrHideServices: function( productId ) {
             var $services = $( '.show-if-further-services' ).find( 'p.form-field' );
-            console.log($services);
 
             $services.each( function() {
                 var $service      = $( this ),
