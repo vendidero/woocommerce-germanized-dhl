@@ -53,6 +53,26 @@ class Product {
 		return $this->get_forced_parent_product()->get_meta( '_dhl_manufacture_country', true );
 	}
 
+	public function get_main_category() {
+		$ids       = $this->get_forced_parent_product()->get_category_ids();
+		$term_name = '';
+
+		if ( ! empty( $ids ) ) {
+			foreach ( $ids as $term_id ) {
+				$term = get_term( $term_id, 'product_cat' );
+
+				if ( empty( $term->slug ) ) {
+					continue;
+				}
+
+				$term_name = $term->name;
+				break;
+			}
+		}
+
+		return $term_name;
+	}
+
 	public function set_hs_code( $code ) {
 		$this->product->update_meta_data( '_dhl_hs_code', $code );
 	}
