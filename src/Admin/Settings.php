@@ -527,14 +527,6 @@ class Settings {
 
 		$settings = array(
 			array(
-				'title' 	        => _x( 'Visual minimum age', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'          		=> 'woocommerce_gzd_dhl_label_visual_min_age',
-				'type' 		        => 'select',
-				'default'           => '0',
-				'options'			=> wc_gzd_dhl_get_visual_min_ages(),
-				'desc_tip'          => _x( 'Choose this option if you want to let DHL check your customer\'s age.', 'dhl', 'woocommerce-germanized-dhl' ),
-			),
-			array(
 				'title' 	        => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Enable the GoGreen Service by default.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'woocommerce_gzd_dhl_label_service_GoGreen',
@@ -577,10 +569,33 @@ class Settings {
 				'type' 		        => 'gzd_toggle',
 			),
 			array(
-				'title' 	        => _x( 'Age Verification', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc' 		        => _x( 'Verify ages if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x(  'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the visual age check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'title' 	        => _x( 'Minimum age (Visual check)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'          		=> 'woocommerce_gzd_dhl_label_visual_min_age',
+				'type' 		        => 'select',
+				'default'           => '0',
+				'options'			=> wc_gzd_dhl_get_visual_min_ages(),
+				'desc_tip'          => _x( 'Choose this option if you want to let DHL check your customer\'s age.', 'dhl', 'woocommerce-germanized-dhl' ),
+			),
+			array(
+				'title' 	        => _x( 'Sync (Visual Check)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Visually verify age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x(  'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the visual age check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_dhl_label_auto_age_check_sync',
 				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+			),
+			array(
+				'title' 	        => _x( 'Minimum age (Ident check)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'          		=> 'woocommerce_gzd_dhl_label_ident_min_age',
+				'type' 		        => 'select',
+				'default'           => '0',
+				'options'			=> wc_gzd_dhl_get_ident_min_ages(),
+				'desc_tip'          => _x( 'Choose this option if you want to let DHL check your customer\'s identity and age.', 'dhl', 'woocommerce-germanized-dhl' ),
+			),
+			array(
+				'title' 	        => _x( 'Sync (Ident Check)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Verify identity and age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x(  'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the identity check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_dhl_label_auto_age_check_ident_sync',
+				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
 			array(

@@ -86,6 +86,16 @@ function wc_gzd_dhl_is_valid_visual_min_age( $min_age ) {
 	return true;
 }
 
+function wc_gzd_dhl_is_valid_ident_min_age( $min_age ) {
+	$ages = wc_gzd_dhl_get_ident_min_ages();
+
+	if ( empty( $min_age ) || ( ! array_key_exists( $min_age, $ages ) && ! in_array( $min_age, $ages ) ) ) {
+		return false;
+	}
+
+	return true;
+}
+
 function wc_gzd_dhl_get_visual_min_ages() {
 	$visual_age = array(
 		'0'   => _x( 'None', 'age context', 'woocommerce-germanized-dhl' ),
@@ -440,7 +450,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 
 	if ( wc_gzd_dhl_product_supports_service( $args['dhl_product'], 'VisualCheckOfAge' ) ) {
 		if ( ! empty( $args['visual_min_age'] ) && wc_gzd_dhl_is_valid_visual_min_age( $args['visual_min_age'] ) ) {
-			$args['services']       = array_merge( $args['services'], array( 'VisualCheckOfAge' ) );
+			$args['services'] = array_merge( $args['services'], array( 'VisualCheckOfAge' ) );
 		} else {
 			if ( ! empty( $args['visual_min_age'] ) && ! wc_gzd_dhl_is_valid_visual_min_age( $args['visual_min_age'] ) ) {
 				$error->add( 500, _x( 'The visual min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
@@ -460,21 +470,27 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		}
 	}
 
-	if ( in_array( 'IdentCheck', $args['services'] ) ) {
-		if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
-			$error->add( 500, _x( 'The ident min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
-
-			$args['ident_min_age'] = '';
+	if ( wc_gzd_dhl_product_supports_service( $args['dhl_product'], 'IdentCheck' ) ) {
+		if ( ! empty( $args['ident_min_age'] ) && wc_gzd_dhl_is_valid_ident_min_age( $args['ident_min_age'] ) ) {
+			$args['services'] = array_merge( $args['services'], array( 'IdentCheck' ) );
 		}
 
-		if ( ! empty( $args['ident_date_of_birth'] ) ) {
-			if ( ! wc_gzd_dhl_is_valid_datetime( $args['ident_date_of_birth'], 'Y-m-d' ) ) {
-				$error->add( 500, _x( 'There was an error parsing the date of birth for the identity check.', 'dhl', 'woocommerce-germanized-dhl' ) );
+		if ( in_array( 'IdentCheck', $args['services'] ) ) {
+			if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
+				$error->add( 500, _x( 'The ident min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
+
+				$args['ident_min_age'] = '';
 			}
-		}
 
-		if ( empty( $args['ident_date_of_birth'] ) && empty( $args['ident_min_age'] ) ) {
-			$error->add( 500, _x( 'Either a minimum age or a date of birth must be added to the ident check.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			if ( ! empty( $args['ident_date_of_birth'] ) ) {
+				if ( ! wc_gzd_dhl_is_valid_datetime( $args['ident_date_of_birth'], 'Y-m-d' ) ) {
+					$error->add( 500, _x( 'There was an error parsing the date of birth for the identity check.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				}
+			}
+
+			if ( empty( $args['ident_date_of_birth'] ) && empty( $args['ident_min_age'] ) ) {
+				$error->add( 500, _x( 'Either a minimum age or a date of birth must be added to the ident check.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			}
 		}
 	} else {
 		$args['ident_min_age']       = '';
@@ -797,6 +813,25 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				if ( $dhl_order->needs_age_verification() && 'yes' === Package::get_setting( 'label_auto_age_check_sync', $dhl_shipping_method ) ) {
 					$defaults['services'][]     = 'VisualCheckOfAge';
 					$defaults['visual_min_age'] = $dhl_order->get_min_age();
+				}
+			}
+
+			if ( wc_gzd_dhl_product_supports_service( $defaults['dhl_product'], 'IdentCheck' ) ) {
+				$ident_min_age = Package::get_setting( 'label_ident_min_age', $dhl_shipping_method );
+
+				if ( wc_gzd_dhl_is_valid_ident_min_age( $ident_min_age ) ) {
+					$defaults['services'][]    = 'IdentCheck';
+					$defaults['ident_min_age'] = $ident_min_age;
+				}
+
+				/**
+				 * Sync with order data but only in case no visual age has been synced already.
+				 */
+				if ( ! in_array( 'VisualCheckOfAge', $defaults['services'] ) ) {
+					if ( $dhl_order->needs_age_verification() && 'yes' === Package::get_setting( 'label_auto_age_check_ident_sync', $dhl_shipping_method ) ) {
+						$defaults['services'][]     = 'IdentCheck';
+						$defaults['visual_min_age'] = $dhl_order->get_min_age();
+					}
 				}
 			}
 
