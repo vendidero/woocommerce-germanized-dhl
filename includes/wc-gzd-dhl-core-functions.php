@@ -829,8 +829,8 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				 */
 				if ( ! in_array( 'VisualCheckOfAge', $defaults['services'] ) ) {
 					if ( $dhl_order->needs_age_verification() && 'yes' === Package::get_setting( 'label_auto_age_check_ident_sync', $dhl_shipping_method ) ) {
-						$defaults['services'][]     = 'IdentCheck';
-						$defaults['visual_min_age'] = $dhl_order->get_min_age();
+						$defaults['services'][]    = 'IdentCheck';
+						$defaults['ident_min_age'] = $dhl_order->get_min_age();
 					}
 				}
 			}
@@ -842,7 +842,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				}
 
 				// Combination is not available
-				if ( ! empty( $defaults['visual_min_age'] ) && 'NamedPersonOnly' === $service ) {
+				if ( ( ! empty( $defaults['visual_min_age'] ) || ! empty( $defaults['ident_min_age'] ) ) && 'NamedPersonOnly' === $service ) {
 					continue;
 				}
 
@@ -874,7 +874,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 		}
 	}
 
-	if( ! Package::is_shipping_domestic( $shipment->get_country() ) ) {
+	if ( ! Package::is_shipping_domestic( $shipment->get_country() ) ) {
 
 		foreach( wc_gzd_dhl_get_international_services() as $service ) {
 
