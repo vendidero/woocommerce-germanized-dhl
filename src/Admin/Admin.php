@@ -4,6 +4,7 @@ namespace Vendidero\Germanized\DHL\Admin;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
+use Vendidero\Germanized\DHL\DownloadHandler;
 
 defined( 'ABSPATH' ) || exit;
 
