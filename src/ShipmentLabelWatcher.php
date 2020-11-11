@@ -22,12 +22,14 @@ class ShipmentLabelWatcher {
 		add_action( 'woocommerce_gzd_return_shipment_create_dhl_label', array( __CLASS__, 'create_return_shipment_label' ), 10, 4 );
 
 		add_action( 'woocommerce_gzd_shipment_create_deutsche_post_label', array( __CLASS__, 'create_shipment_post_label' ), 10, 4 );
+		add_action( 'woocommerce_gzd_return_shipment_create_deutsche_post_label', array( __CLASS__, 'create_return_shipment_post_label' ), 10, 4 );
 
 		// Return the DHL label for a shipment if available
 		add_filter( 'woocommerce_gzd_shipment_get_dhl_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_return_shipment_get_dhl_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
 
 		add_filter( 'woocommerce_gzd_shipment_get_deutsche_post_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
+		add_filter( 'woocommerce_gzd_return_shipment_get_deutsche_post_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
 
 		// Legacy ShippingProviderMethod hook support
 		add_filter( 'woocommerce_gzd_shipping_provider_method_provider', array( __CLASS__, 'legacy_provider_hook_support' ), 10, 3 );
@@ -100,13 +102,17 @@ class ShipmentLabelWatcher {
 	 * @param array $raw_data
 	 */
 	public static function create_return_shipment_label( $data, $error, $shipment, $raw_data ) {
-		$label = wc_gzd_dhl_create_label( $shipment, $data );
+		self::create_shipment_label( $data, $error, $shipment, $raw_data );
+	}
 
-		if ( is_wp_error( $label ) ) {
-			foreach( $label->get_error_messages() as $message ) {
-				$error->add( 'error', $message );
-			}
-		}
+	/**
+	 * @param array $data
+	 * @param WP_Error $error
+	 * @param ReturnShipment $shipment
+	 * @param array $raw_data
+	 */
+	public static function create_return_shipment_post_label( $data, $error, $shipment, $raw_data ) {
+		self::create_shipment_post_label( $data, $error, $shipment, $raw_data );
 	}
 
 	/**

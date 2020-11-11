@@ -30,9 +30,14 @@ class LabelWatcher {
 		add_action( 'woocommerce_gzd_dhl_before_create_deutsche_post_label', array( __CLASS__, 'create_post_label' ), 10, 1 );
 		add_action( 'woocommerce_gzd_dhl_before_update_deutsche_post_label', array( __CLASS__, 'update_post_label' ), 10, 1 );
 
+		// Create post return labels if they do not yet exist
+		add_action( 'woocommerce_gzd_dhl_before_create_deutsche_post_return_label', array( __CLASS__, 'create_post_label' ), 10, 1 );
+		add_action( 'woocommerce_gzd_dhl_before_update_deutsche_post_return_label', array( __CLASS__, 'update_post_label' ), 10, 1 );
+
 		// Delete label
 		add_action( 'woocommerce_gzd_dhl_label_deleted', array( __CLASS__, 'delete_label' ), 10, 2 );
 		add_action( 'woocommerce_gzd_dhl_deutsche_post_label_deleted', array( __CLASS__, 'delete_post_label' ), 10, 2 );
+		add_action( 'woocommerce_gzd_dhl_deutsche_post_return_label_deleted', array( __CLASS__, 'delete_post_label' ), 10, 2 );
 
 		// Sync shipment items
 		add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );

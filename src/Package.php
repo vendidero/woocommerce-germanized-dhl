@@ -23,7 +23,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.3.0';
+    const VERSION = '1.4.0';
 
     public static $upload_dir_suffix = '';
 
@@ -243,12 +243,6 @@ class Package {
 
 	    // Maybe force street number during checkout
 	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
-
-	    //  add_action( 'admin_init', array( __CLASS__, 'test' ) );
-    }
-
-    public static function test() {
-
     }
 
 	public static function sanitize_password_field( $value, $option, $raw_value ) {

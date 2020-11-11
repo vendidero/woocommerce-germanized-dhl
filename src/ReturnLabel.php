@@ -1,13 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL;
-use DateTimeZone;
-use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
-use WC_Data;
-use WC_Data_Store;
-use Exception;
-use WC_DateTime;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,9 +16,14 @@ class ReturnLabel extends Label implements ShipmentReturnLabel {
 	 * @var array
 	 */
 	protected $extra_data = array(
+		'page_format'    => '',
+		'shop_order_id'  => '',
+		'stamp_total'    => 0,
+		'voucher_id'     => '',
+		'original_url'   => '',
+		'manifest_url'   => '',
 		'parent_id'      => 0,
-		'sender_address' => array(),
-		'receiver_slug'  => '',
+		'sender_address' => array()
 	);
 
 	protected function get_hook_prefix() {

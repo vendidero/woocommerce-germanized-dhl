@@ -1058,7 +1058,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		$label_type    = 'return' === $shipment_type ? 'return' : 'simple';
 
 		if ( 'deutsche_post' === $provider ) {
-			$label_type = 'deutsche_post';
+			$label_type = 'return' === $shipment_type ? 'deutsche_post_return' : 'deutsche_post';
 		}
 
 		$hook_suffix   = 'simple' === $label_type ? '' : $label_type . '_';
@@ -1066,7 +1066,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 		if ( 'return' === $label_type ) {
 			$args = wp_parse_args( $args, wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) );
 			$args = wc_gzd_dhl_validate_return_label_args( $shipment, $args );
-		} elseif ( 'deutsche_post' === $label_type ) {
+		} elseif ( in_array( $label_type, array( 'deutsche_post', 'deutsche_post_return' ) ) ) {
 			$args = wp_parse_args( $args, wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment ) );
 			$args = wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args );
 		} else {
@@ -1508,6 +1508,9 @@ function wc_gzd_dhl_get_label_type_data( $type = false ) {
 		),
 		'deutsche_post' => array(
 			'class_name' => '\Vendidero\Germanized\DHL\DeutschePostLabel'
+		),
+		'deutsche_post_return' => array(
+			'class_name' => '\Vendidero\Germanized\DHL\DeutschePostReturnLabel'
 		),
 	);
 

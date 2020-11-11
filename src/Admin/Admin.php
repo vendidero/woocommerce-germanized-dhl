@@ -27,7 +27,9 @@ class Admin {
 		// Label settings
 		add_action( 'woocommerce_gzd_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'label_fields' ), 10, 1 );
 		add_action( 'woocommerce_gzd_return_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'return_label_fields' ), 10, 1 );
+
 		add_action( 'woocommerce_gzd_shipment_print_deutsche_post_label_admin_fields', array( __CLASS__, 'post_label_fields' ), 10, 1 );
+		add_action( 'woocommerce_gzd_return_shipment_print_deutsche_post_label_admin_fields', array( __CLASS__, 'post_label_fields' ), 10, 1 );
 
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );

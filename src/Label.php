@@ -2,7 +2,6 @@
 
 namespace Vendidero\Germanized\DHL;
 use DateTimeZone;
-use Vendidero\Germanized\DHL\Admin\DownloadHandler;
 use Vendidero\Germanized\Shipments\PDFMerger;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
