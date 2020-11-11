@@ -26,6 +26,10 @@ class ShippingProviderDHL extends ShippingProvider {
 		return in_array( $label_type, $label_types );
 	}
 
+	public function supports_customer_return_requests() {
+		return ( 'yes' === Package::get_setting( 'dhl_label_retoure_enable' ) ? true : false );
+	}
+
 	public function is_activated() {
 		return Package::is_enabled();
 	}
