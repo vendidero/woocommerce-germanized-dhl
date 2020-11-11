@@ -18,7 +18,7 @@ class DeutschePost extends ShippingProvider {
 	}
 
 	public function supports_labels( $label_type ) {
-		$label_types = array( 'simple' );
+		$label_types = array( 'simple', 'return' );
 
 		return in_array( $label_type, $label_types );
 	}
