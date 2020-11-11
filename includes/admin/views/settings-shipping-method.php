@@ -85,31 +85,33 @@ $settings = array_merge( $settings, array(
 	),
 ) );
 
-$label_settings = Settings::get_internetmarke_default_settings( true );
-$settings       = array_merge( $settings, $label_settings );
+if ( Package::is_internetmarke_enabled() ) {
+	$label_settings = Settings::get_internetmarke_default_settings( true );
+	$settings       = array_merge( $settings, $label_settings );
 
-$settings = array_merge( $settings, array(
-	'deutsche_post_label_print_title' => array(
-		'title'       => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ),
-		'type'        => 'title',
-		'default'     => '',
-		'description' => sprintf( _x( 'Adjust label printing settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
-	),
-) );
+	$settings = array_merge( $settings, array(
+		'deutsche_post_label_print_title' => array(
+			'title'       => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ),
+			'type'        => 'title',
+			'default'     => '',
+			'description' => sprintf( _x( 'Adjust label printing settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
+		),
+	) );
 
-$label_settings = Settings::get_internetmarke_printing_settings( true );
-$settings       = array_merge( $settings, $label_settings );
+	$label_settings = Settings::get_internetmarke_printing_settings( true );
+	$settings       = array_merge( $settings, $label_settings );
 
-$settings = array_merge( $settings, array(
-	'deutsche_post_label_auto_title' => array(
-		'title'       => _x( 'Label Automation', 'dhl', 'woocommerce-germanized-dhl' ),
-		'type'        => 'title',
-		'default'     => '',
-		'description' => sprintf( _x( 'Adjust label automation settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
-	),
-) );
+	$settings = array_merge( $settings, array(
+		'deutsche_post_label_auto_title' => array(
+			'title'       => _x( 'Label Automation', 'dhl', 'woocommerce-germanized-dhl' ),
+			'type'        => 'title',
+			'default'     => '',
+			'description' => sprintf( _x( 'Adjust label automation settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
+		),
+	) );
 
-$label_settings = Settings::get_internetmarke_automation_settings( true );
-$settings       = array_merge( $settings, $label_settings );
+	$label_settings = Settings::get_internetmarke_automation_settings( true );
+	$settings       = array_merge( $settings, $label_settings );
+}
 
 return $settings;
