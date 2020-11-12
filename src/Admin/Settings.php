@@ -1,8 +1,6 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Admin;
-use Vendidero\Germanized\DHL\ImProductList;
-use Vendidero\Germanized\DHL\Internetmarke;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -1364,7 +1362,7 @@ class Settings {
 	}
 
 	protected static function get_products() {
-		$products = Package::get_internetmarke_api()->get_products();
+		$products = Package::get_internetmarke_api()->get_base_products();
 		$options  = wc_gzd_dhl_im_get_product_list( $products );
 
 		return $options;

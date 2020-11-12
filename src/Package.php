@@ -5,10 +5,10 @@ namespace Vendidero\Germanized\DHL;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use Vendidero\Germanized\DHL\Api\ImProductsSoap;
 use Vendidero\Germanized\DHL\Api\Paket;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
+use Vendidero\Germanized\DHL\Internetmarke\Internetmarke;
 use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
@@ -167,9 +167,10 @@ class Package {
 
         // List of tables without prefixes.
         $tables = array(
-            'gzd_dhl_labelmeta'   => 'woocommerce_gzd_dhl_labelmeta',
-            'gzd_dhl_labels'      => 'woocommerce_gzd_dhl_labels',
-            'gzd_dhl_im_products' => 'woocommerce_gzd_dhl_im_products',
+            'gzd_dhl_labelmeta'           => 'woocommerce_gzd_dhl_labelmeta',
+            'gzd_dhl_labels'              => 'woocommerce_gzd_dhl_labels',
+            'gzd_dhl_im_products'         => 'woocommerce_gzd_dhl_im_products',
+            'gzd_dhl_im_product_services' => 'woocommerce_gzd_dhl_im_product_services',
         );
 
         foreach ( $tables as $name => $table ) {

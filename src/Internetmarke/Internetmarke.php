@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\Internetmarke;
 
 use baltpeter\Internetmarke\Address;
 use baltpeter\Internetmarke\CompanyName;
@@ -12,6 +12,7 @@ use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
 use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Api\ImRefundSoap;
+use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -38,7 +39,7 @@ class Internetmarke {
 	protected $errors = null;
 
 	/**
-	 * @var ImProductList|null
+	 * @var ProductList|null
 	 */
 	protected $products = null;
 
@@ -145,7 +146,7 @@ class Internetmarke {
 
 	protected function load_products() {
 		if ( is_null( $this->products ) ) {
-			$this->products = new ImProductList();
+			$this->products = new ProductList();
 		}
 
 		$transient = get_transient( 'wc_gzd_dhl_im_products_expire' );
@@ -168,6 +169,12 @@ class Internetmarke {
 		$this->load_products();
 
 		return $this->products->get_products( $filters );
+	}
+
+	public function get_base_products() {
+		$this->load_products();
+
+		return $this->products->get_base_products();
 	}
 
 	public function get_available_products( $filters = array() ) {

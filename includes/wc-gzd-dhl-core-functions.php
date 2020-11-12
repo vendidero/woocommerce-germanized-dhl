@@ -326,13 +326,22 @@ function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array() ) {
 	$args = wp_parse_args( $args, array(
 		'page_format' => '',
-		'dhl_product' => '',
+		'dhl_product' => ''
 	) );
 
 	$error = new WP_Error();
 
 	if ( ! $shipment_order = $shipment->get_order() ) {
 		$error->add( 500, sprintf( _x( 'Shipment order #%s does not exist', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_order_id() ) );
+	}
+
+	/**
+	 * Refresh stamp total based on actual product.
+	 */
+	if ( ! empty( $args['dhl_product'] ) ) {
+		$args['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $args['dhl_product'] );
+	} else {
+		$error->add( 500, sprintf( _x( 'Deutsche Post product is missing for %s.', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_id() ) );
 	}
 
 	$dhl_order = wc_gzd_dhl_get_order( $shipment_order );
@@ -752,7 +761,6 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
 	if ( ! empty( $defaults['dhl_product'] ) ) {
 		$defaults['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $defaults['dhl_product'] );
 	}
-
 
 	return $defaults;
 }
