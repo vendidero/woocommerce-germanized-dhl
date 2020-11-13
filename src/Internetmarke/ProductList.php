@@ -58,10 +58,26 @@ class ProductList {
 		$this->available_products = $products;
 	}
 
+	public function get_product_services( $product_id ) {
+		global $wpdb;
+
+		$services = array();
+		$results  = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_product_services} WHERE product_service_product_id = %d", $product_id ) );
+
+		if ( ! empty( $results ) ) {
+			foreach( $results as $result ) {
+				$services[] = $result->product_service_slug;
+			}
+		}
+
+		return $services;
+	}
+
 	/**
 	 * Returns available service slugs for a certain (parent) product.
-	 * In case additional services chosen are supplied, dependent services (e.g. Zusatzentgelt MBf which is only available if EINSCHREIBEN has been selected)
-	 * might be added to the list as well.
+	 *
+	 * In case additional services chosen are supplied, only those services (e.g. Zusatzentgelt MBf which is only available if EINSCHREIBEN has been selected)
+	 * are added which are compatible with the current selection.
 	 *
 	 * @param $parent_id
 	 * @param array $services
@@ -77,12 +93,11 @@ class ProductList {
 		if ( empty( $services ) ) {
 			$query .= " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id";
 		} else {
-			$all_services = array_map( function( $p ) {
-				return "'" . esc_sql( $p ) . "'";
-			}, $services );
+			foreach( $services as $service ) {
+				$count++;
 
-			$all_services = implode( ',', $all_services );
-			$query       .= " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug IN ({$all_services})";
+				$query .= $wpdb->prepare( " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug = %s", $service );
+			}
 		}
 
 		$query .= $wpdb->prepare(" WHERE {$wpdb->gzd_dhl_im_products}.product_parent_id = %d", $parent_id );
@@ -91,8 +106,8 @@ class ProductList {
 			$query .= $wpdb->prepare(" AND {$wpdb->gzd_dhl_im_products}.product_service_count = %d", 1 );
 		}
 
-		$results  = $wpdb->get_results( $query );
-		$services = array();
+		$results            = $wpdb->get_results( $query );
+		$available_services = array();
 
 		if ( ! empty( $results ) ) {
 			foreach( $results as $result ) {
@@ -103,15 +118,15 @@ class ProductList {
 					foreach( $product_services as $product_service ) {
 						$service_slug = $product_service->product_service_slug;
 
-						if ( ! in_array( $service_slug, $services ) ) {
-							$services[] = $service_slug;
+						if ( ! in_array( $service_slug, $available_services ) ) {
+							$available_services[] = $service_slug;
 						}
 					}
 				}
 			}
  		}
 
-		return $services;
+		return $available_services;
 	}
 
 	/**
@@ -121,12 +136,18 @@ class ProductList {
 	 * @param $parent_id
 	 * @param $services
 	 *
-	 * @return string|false
+	 * @return object|false
 	 */
-	public function get_product_id_by_services( $parent_id, $services = array() ) {
+	public function get_product_data_by_services( $parent_id, $services = array() ) {
 		global $wpdb;
 
-		$query = "SELECT product_id FROM {$wpdb->gzd_dhl_im_products}";
+		$product_data = $this->get_product_data( $parent_id );
+
+		if ( empty( $product_data ) && $product_data->product_parent_id > 0 ) {
+			$parent_id = $product_data->product_parent_id;
+		}
+
+		$query = "SELECT * FROM {$wpdb->gzd_dhl_im_products}";
 		$count = 0;
 
 		if ( ! empty( $services ) ) {
@@ -151,7 +172,7 @@ class ProductList {
 		$result = $wpdb->get_row( $query );
 
 		if ( ! empty( $result ) ) {
-			return $result->product_id;
+			return $result;
 		} else {
 			return false;
 		}
@@ -168,13 +189,21 @@ class ProductList {
 	}
 
 	public function get_base_products() {
-		return self::get_products( array( 'product_is_additional_service' => 0 ) );
+		return self::get_products( array( 'product_parent_id' => 0 ) );
+	}
+
+	public function get_product_data_by_code( $product_code ) {
+		global $wpdb;
+
+		$product = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code = %s", $product_code ) );
+
+		return $product;
 	}
 
 	public function get_product_data( $product_id ) {
 		global $wpdb;
 
-		$product = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code = %s", $product_id ) );
+		$product = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_id = %d", $product_id ) );
 
 		return $product;
 	}
@@ -227,6 +256,12 @@ class ProductList {
 			'USFT' => _x( 'Unterschrift', 'dhl', 'woocommerce-germanized-dhl' ),
 			'TRCK' => _x( 'Tracked', 'dhl', 'woocommerce-germanized-dhl' ),
 		);
+	}
+
+	public function get_additional_service_title( $service ) {
+		$services = $this->get_additional_services();
+
+		return array_key_exists( $service, $services ) ? $services[ $service ] : '';
 	}
 
 	protected function get_additional_service_identifiers() {
@@ -329,6 +364,16 @@ class ProductList {
 						'product_price'                 => property_exists( $product->priceDefinition, 'price' ) ? Package::eur_to_cents( $product->priceDefinition->price->calculatedGrossPrice->value ) : Package::eur_to_cents( $product->priceDefinition->grossPrice->value ),
 						'product_information_text'      => property_exists( $product, 'stampTypeList' ) ? $this->get_information_text( (array) $product->stampTypeList->stampType ) : '',
 					);
+
+					$product_slug = $this->sanitize_product_slug( $to_insert['product_name'] );
+
+					/**
+					 * Exclude national Warenpost as this service won't be available
+					 * in the future (only via DHL).
+					 */
+					if ( strpos( $product_slug, 'warenpost' ) !== false && 'international' !== $to_insert['product_destination'] ) {
+						continue;
+					}
 
 					if ( property_exists( $product, 'dimensionList' ) ) {
 						$dimensions = $product->dimensionList;

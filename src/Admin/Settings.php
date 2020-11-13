@@ -1268,6 +1268,8 @@ class Settings {
 		);
 
 		if ( Package::is_internetmarke_enabled() && ( $api = Package::get_internetmarke_api() ) && $api->is_available() ) {
+			$api->reload_products();
+
 			$balance      = $api->get_balance( true );
 			$settings_url = self::get_settings_url( 'internetmarke' );
 
@@ -1345,24 +1347,23 @@ class Settings {
 			'11',
 			'21',
 			'31',
-			'232',
-			'233',
-			'234',
 			'282',
 			'290',
+			'10272',
+			'10249',
+			'10257',
+			'10254',
+			'10255',
+			'10270',
+			'10256',
 			'10246',
 			'10247',
 			'10248',
-			'10252',
-			'10253',
-			'10254',
-			'10257',
-			'10261',
 		);
 	}
 
 	protected static function get_products() {
-		$products = Package::get_internetmarke_api()->get_base_products();
+		$products = Package::get_internetmarke_api()->get_products();
 		$options  = wc_gzd_dhl_im_get_product_list( $products );
 
 		return $options;

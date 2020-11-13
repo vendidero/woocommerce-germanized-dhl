@@ -227,6 +227,7 @@ class Package {
 	        	ParcelServices::init();
 	        }
 
+	        Ajax::init();
 	        ShipmentLabelWatcher::init();
 	        LabelWatcher::init();
 	        Automation::init();

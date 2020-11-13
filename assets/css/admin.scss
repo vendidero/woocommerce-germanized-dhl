@@ -21,8 +21,19 @@
 }
 
 .germanized-create-label {
+  .wc-gzd-shipment-im-additional-services {
+    p.label {
+      margin-top: 10px;
+      width: 100%;
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+  }
+
   .wc-gzd-dhl-im-product-data {
     margin-top: 2em;
+    min-width: 700px;
     margin-left: -1rem !important;
     margin-right: -1rem !important;
 
@@ -58,8 +69,8 @@
     .col-preview {
       .image-preview {
         img {
-          width: 100%;
           height: auto;
+          max-height: 140px;
         }
       }
     }

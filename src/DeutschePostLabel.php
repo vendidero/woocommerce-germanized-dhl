@@ -15,12 +15,13 @@ class DeutschePostLabel extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'page_format'   => '',
-		'shop_order_id' => '',
-		'stamp_total'   => 0,
-		'voucher_id'    => '',
-		'original_url'  => '',
-		'manifest_url'  => ''
+		'page_format'         => '',
+		'shop_order_id'       => '',
+		'stamp_total'         => 0,
+		'voucher_id'          => '',
+		'original_url'        => '',
+		'manifest_url'        => '',
+		'additional_services' => array(),
 	);
 
 	public function get_type() {
@@ -35,6 +36,14 @@ class DeutschePostLabel extends Label {
 
 	public function get_page_format( $context = 'view' ) {
 		return $this->get_prop( 'page_format', $context );
+	}
+
+	public function get_additional_services( $context = 'view' ) {
+		return $this->get_prop( 'additional_services', $context );
+	}
+
+	public function set_additional_services( $value ) {
+		$this->set_prop( 'additional_services', (array) $value );
 	}
 
 	public function set_page_format( $value ) {

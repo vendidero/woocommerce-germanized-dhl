@@ -8,18 +8,32 @@ defined( 'ABSPATH' ) || exit;
 
 use Vendidero\Germanized\DHL\Package;
 
-$default_args    = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
-$variations_json = wp_json_encode( Package::get_internetmarke_api()->get_available_products_printable() );
-$variations_attr = function_exists( 'wc_esc_json' ) ? wc_esc_json( $variations_json ) : _wp_specialchars( $variations_json, ENT_QUOTES, 'UTF-8', true );
+$default_args        = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
+$im_products         = wc_gzd_dhl_get_deutsche_post_products( $shipment->get_country() );
+$selected_product    = isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : array_key_first( $im_products );
+$selected_product_id = 0;
+
+if ( ! empty( $selected_product ) ) {
+    $selected_product_id = Package::get_internetmarke_api()->get_product_id( $selected_product );
+}
 ?>
-<form action="" method="post" class="wc-gzd-create-shipment-label-form" data-products="<?php echo $variations_attr; // WPCS: XSS ok. ?>">
+<form action="" method="post" class="wc-gzd-create-shipment-label-form">
     <?php woocommerce_wp_select( array(
         'id'          		=> 'deutsche_post_label_dhl_product',
         'label'       		=> _x( 'Product', 'dhl', 'woocommerce-germanized-dhl' ),
         'description'		=> '',
-        'options'			=> wc_gzd_dhl_get_deutsche_post_products( $shipment->get_country() ),
+        'options'			=> $im_products,
         'value'             => isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : '',
     ) ); ?>
+
+    <div class="wc-gzd-shipment-im-additional-services">
+        <?php
+            $product_id        = $selected_product_id;
+            $selected_services = isset( $default_args['additional_services'] ) ? $default_args['additional_services'] : array();
+
+            include( Package::get_path() . '/includes/admin/views/html-deutsche-post-additional-services.php' );
+        ?>
+    </div>
 
     <?php woocommerce_wp_select( array(
         'id'          		=> 'deutsche_post_label_page_format',

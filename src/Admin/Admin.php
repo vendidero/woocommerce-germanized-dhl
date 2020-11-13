@@ -46,8 +46,6 @@ class Admin {
         add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ) );
         add_action( 'woocommerce_gzd_admin_settings_after_save_dhl_labels', array( __CLASS__, 'save_receiver_ids' ) );
 
-		add_action( 'wp_ajax_woocommerce_gzd_dhl_preview_stamp', array( __CLASS__, 'preview_stamp' ) );
-
 		add_action( 'admin_init', array( __CLASS__, 'refresh_im_data' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'refresh_im_notices' ) );
 	}
@@ -89,37 +87,6 @@ class Admin {
 				wp_safe_redirect( $settings_url );
 				exit();
 			}
-		}
-    }
-
-	public static function preview_stamp() {
-		if ( current_user_can( 'edit_shop_orders' ) && isset( $_POST['product_id'] ) ) {
-            if ( check_ajax_referer( 'wc-gzd-dhl-preview-stamp', 'security' ) ) {
-                $product_id = wc_clean( $_POST['product_id'] );
-
-                if ( ! empty( $product_id ) ) {
-                    $product = Package::get_internetmarke_api()->get_product_data( $product_id );
-
-                    if ( $product ) {
-	                    $preview_url = Package::get_internetmarke_api()->preview_stamp( $product_id );
-
-	                    if ( $preview_url ) {
-		                    wp_send_json( array(
-			                    'success'     => true,
-			                    'messages'    => array(),
-			                    'preview_url' => $preview_url
-		                    ) );
-                        }
-                    }
-                }
-
-	            wp_send_json( array(
-		            'success'  => false,
-		            'messages' => array(
-                        _x( 'Error while fetching stamp preview', 'dhl', 'woocommerce-germanized-dhl' )
-                    ),
-	            ) );
-            }
 		}
     }
 
@@ -370,7 +337,7 @@ class Admin {
 				'wc-gzd-admin-deutsche-post-label',
 				'wc_gzd_admin_deutsche_post_label_params',
 				array(
-					'preview_nonce' => wp_create_nonce( 'wc-gzd-dhl-preview-stamp' ),
+					'refresh_label_preview_nonce' => wp_create_nonce( 'wc-gzd-dhl-refresh-deutsche-post-label-preview' ),
 				)
 			);
 		}

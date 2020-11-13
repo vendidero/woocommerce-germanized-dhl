@@ -15,8 +15,16 @@
   font-size: 13px;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1); }
 
+.germanized-create-label .wc-gzd-shipment-im-additional-services p.label {
+  margin-top: 10px;
+  width: 100%;
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold; }
+
 .germanized-create-label .wc-gzd-dhl-im-product-data {
   margin-top: 2em;
+  min-width: 700px;
   margin-left: -1rem !important;
   margin-right: -1rem !important; }
   .germanized-create-label .wc-gzd-dhl-im-product-data .column {
@@ -38,8 +46,8 @@
   .germanized-create-label .wc-gzd-dhl-im-product-data .col-dimensions {
     color: #999; }
   .germanized-create-label .wc-gzd-dhl-im-product-data .col-preview .image-preview img {
-    width: 100%;
-    height: auto; }
+    height: auto;
+    max-height: 140px; }
   .germanized-create-label .wc-gzd-dhl-im-product-data .wc-gzd-dhl-im-product-information-text, .germanized-create-label .wc-gzd-dhl-im-product-data .wc-gzd-dhl-im-product-description {
     font-size: 11px;
     color: #999;

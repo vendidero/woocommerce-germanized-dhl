@@ -144,6 +144,10 @@ class Internetmarke {
 		delete_transient( 'wc_gzd_dhl_portokasse_balance' );
 	}
 
+	public function reload_products() {
+		$this->products = null;
+	}
+
 	protected function load_products() {
 		if ( is_null( $this->products ) ) {
 			$this->products = new ProductList();
@@ -183,6 +187,12 @@ class Internetmarke {
 		return $this->products->get_available_products( $filters );
 	}
 
+	public function get_product_list() {
+		$this->load_products();
+
+		return $this->products;
+	}
+
 	protected function format_dimensions( $product, $type = 'length' ) {
 		$dimension = '';
 
@@ -203,16 +213,44 @@ class Internetmarke {
 		return $dimension;
 	}
 
-	public function get_product_data( $product_code ) {
+	public function get_product_data_by_code( $im_product_id ) {
 		$this->load_products();
 
-		return $this->products->get_product_data( $product_code );
+		return $this->products->get_product_data_by_code( $im_product_id );
+	}
+
+	public function get_product_data( $product_id ) {
+		$this->load_products();
+
+		return $this->products->get_product_data( $product_id );
+	}
+
+	public function get_product_id( $im_product_id ) {
+		$this->load_products();
+		$data = $this->products->get_product_data_by_code( $im_product_id );
+
+		return ( ! empty( $data ) ? $data->product_id : 0 );
+	}
+
+	public function get_product_parent_code( $im_product_id ) {
+		$this->load_products();
+		$data = $this->products->get_product_data_by_code( $im_product_id );
+
+		if ( ! empty( $data ) ) {
+			if ( $data->product_parent_id > 0 ) {
+				$im_product_data = $this->get_product_data( $data->product_parent_id );
+
+				$im_product_id = $im_product_data->product_code;
+			}
+		}
+
+		return $im_product_id;
 	}
 
 	public function get_product_total( $product_code ) {
 		$total = 0;
 
-		if ( $data = $this->get_product_data( $product_code ) ) {
+		if ( $data = $this->get_product_data_by_code( $product_code ) ) {
 			$total = $data->product_price;
 		}
 
@@ -223,38 +261,57 @@ class Internetmarke {
 		$printable = array();
 
 		foreach( $this->get_available_products() as $product ) {
-			$dimensions       = array();
-			$formatted_length = $this->format_dimensions( $product, 'length' );
-			$formatted_width  = $this->format_dimensions( $product, 'width' );
-			$formatted_height = $this->format_dimensions( $product, 'height' );
-			$formatted_weight = $this->format_dimensions( $product, 'weight' );
-
-			if ( ! empty( $formatted_length ) ) {
-				$dimensions[] = sprintf( _x( 'Length: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_length );
-			}
-
-			if ( ! empty( $formatted_width ) ) {
-				$dimensions[] = sprintf( _x( 'Width: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_width );
-			}
-
-			if ( ! empty( $formatted_height ) ) {
-				$dimensions[] = sprintf( _x( 'Height: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_height );
-			}
-
-			if ( ! empty( $formatted_weight ) ) {
-				$dimensions[] = sprintf( _x( 'Weight: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_weight );
-			}
-
-			$printable[ $product->product_code ] = array_merge( (array) $product, array(
-				'title_formatted'             => wc_gzd_dhl_get_im_product_title( $product->product_name ),
-				'price_formatted'             => wc_price( Package::cents_to_eur( $product->product_price ), array( 'currency' => 'EUR' ) ) . ' <span class="price-suffix">' . _x( 'Total', 'dhl', 'woocommerce-germanized-dhl' ) . '</span>',
-				'description_formatted'       => ! empty( $product->product_annotation ) ? $product->product_annotation : $product->product_description,
-				'information_text_formatted'  => $product->product_information_text,
-				'dimensions_formatted'        => implode( '<br/>', $dimensions ),
-			) );
+			$printable[ $product->product_code ] = $this->get_product_preview_data( $product );
 		}
 
 		return $printable;
+	}
+
+	public function get_product_preview_data( $im_product_id ) {
+		$product           = is_numeric( $im_product_id ) ? $this->get_product_data_by_code( $im_product_id ) : $im_product_id;
+		$formatted         = array(
+			'title_formatted'             => '',
+			'price_formatted'             => '',
+			'description_formatted'       => '',
+			'information_text_formatted'  => '',
+			'dimensions_formatted'        => '',
+		);
+
+		if ( ! $product || ! isset( $product->product_id ) ) {
+			return $formatted;
+		}
+
+		$dimensions       = array();
+		$formatted_length = $this->format_dimensions( $product, 'length' );
+		$formatted_width  = $this->format_dimensions( $product, 'width' );
+		$formatted_height = $this->format_dimensions( $product, 'height' );
+		$formatted_weight = $this->format_dimensions( $product, 'weight' );
+
+		if ( ! empty( $formatted_length ) ) {
+			$dimensions[] = sprintf( _x( 'Length: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_length );
+		}
+
+		if ( ! empty( $formatted_width ) ) {
+			$dimensions[] = sprintf( _x( 'Width: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_width );
+		}
+
+		if ( ! empty( $formatted_height ) ) {
+			$dimensions[] = sprintf( _x( 'Height: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_height );
+		}
+
+		if ( ! empty( $formatted_weight ) ) {
+			$dimensions[] = sprintf( _x( 'Weight: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_weight );
+		}
+
+		$formatted = array_merge( (array) $product, array(
+			'title_formatted'             => wc_gzd_dhl_get_im_product_title( $product->product_name ),
+			'price_formatted'             => wc_price( Package::cents_to_eur( $product->product_price ), array( 'currency' => 'EUR' ) ) . ' <span class="price-suffix">' . _x( 'Total', 'dhl', 'woocommerce-germanized-dhl' ) . '</span>',
+			'description_formatted'       => ! empty( $product->product_annotation ) ? $product->product_annotation : $product->product_description,
+			'information_text_formatted'  => $product->product_information_text,
+			'dimensions_formatted'        => implode( '<br/>', $dimensions ),
+		) );
+
+		return $formatted;
 	}
 
 	public function get_page_formats( $force_refresh = false ) {
@@ -296,6 +353,36 @@ class Internetmarke {
 		}
 
 		return $options;
+	}
+
+	public function get_product_services( $im_product_id ) {
+		$this->load_products();
+
+		$product_id = $this->get_product_id( $im_product_id );
+
+		if ( $product_id ) {
+			return $this->products->get_product_services( $product_id );
+		}
+
+		return array();
+	}
+
+	public function get_product_code( $maybe_parent_product_code, $services = array() ) {
+		$this->load_products();
+
+		$product_id = $this->get_product_id( $maybe_parent_product_code );
+
+		if ( $product_id ) {
+			$new_product_data = $this->products->get_product_data_by_services( $product_id, $services );
+
+			if ( $new_product_data ) {
+				return $new_product_data->product_code;
+			} else {
+				return false;
+			}
+		}
+
+		return $maybe_parent_product_code;
 	}
 
 	public function preview_stamp( $product_id, $address_type = 'FrankingZone', $image_id = null ) {

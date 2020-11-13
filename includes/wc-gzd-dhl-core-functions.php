@@ -335,6 +335,20 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 		$error->add( 500, sprintf( _x( 'Shipment order #%s does not exist', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_order_id() ) );
 	}
 
+	if ( ! empty( $args['additional_services'] ) ) {
+		/**
+		 * Additional services are requested. Lets check whether the actual product exists and
+		 * refresh the product code (to the child product code).
+		 */
+		$im_product_code = Package::get_internetmarke_api()->get_product_code( $args['dhl_product'], $args['additional_services'] );
+
+		if ( false === $im_product_code ) {
+			$error->add( 500, _x( 'The services chosen are not available for the current product.', 'dhl', 'woocommerce-germanized-dhl' ) );
+		} else {
+			$args['dhl_product'] = $im_product_code;
+		}
+	}
+
 	/**
 	 * Refresh stamp total based on actual product.
 	 */
@@ -343,8 +357,6 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 	} else {
 		$error->add( 500, sprintf( _x( 'Deutsche Post product is missing for %s.', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_id() ) );
 	}
-
-	$dhl_order = wc_gzd_dhl_get_order( $shipment_order );
 
 	if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
 		return $error;
@@ -754,9 +766,23 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
 	$dp_shipping_method = wc_gzd_dhl_get_deutsche_post_shipping_method( $shipping_method );
 
 	$defaults = array(
-		'dhl_product' => wc_gzd_dhl_get_deutsche_post_default_product( $shipment->get_country(), $dp_shipping_method ),
-		'page_format' => Package::get_setting( 'deutsche_post_label_default_page_format', $dp_shipping_method ),
+		'dhl_product'         => wc_gzd_dhl_get_deutsche_post_default_product( $shipment->get_country(), $dp_shipping_method ),
+		'page_format'         => Package::get_setting( 'deutsche_post_label_default_page_format', $dp_shipping_method ),
+		'stamp_total'         => 0,
+		'additional_services' => array(),
 	);
+
+	if ( ! empty( $defaults['dhl_product'] ) ) {
+		/**
+		 * Get current services from the selected product.
+		 */
+		$defaults['additional_services'] = Package::get_internetmarke_api()->get_product_services( $defaults['dhl_product'] );
+
+		/**
+		 * Force parent product by default to allow manually selecting services.
+		 */
+		$defaults['dhl_product'] = Package::get_internetmarke_api()->get_product_parent_code( $defaults['dhl_product'] );
+ 	}
 
 	if ( ! empty( $defaults['dhl_product'] ) ) {
 		$defaults['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $defaults['dhl_product'] );
