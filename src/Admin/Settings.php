@@ -1153,6 +1153,12 @@ class Settings {
 		return $settings;
 	}
 
+	public static function get_new_customer_label() {
+		$label = '<a href="https://www.dhl.de/de/geschaeftskunden/paket/kunde-werden/angebot-dhl-geschaeftskunden-online.html" class="page-title-action" target="_blank">' . _x( 'Not yet a customer?', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>';
+
+		return $label;
+	}
+
 	public static function get_settings( $current_section = '' ) {
 		$settings = array();
 
