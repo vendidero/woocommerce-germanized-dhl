@@ -97,7 +97,11 @@ class LabelSoap extends Soap {
             switch( $e->getMessage() ) {
 	            case "Unauthorized":
 	            	throw new Exception( _x( 'Your DHL API credentials seem to be invalid. Please check your DHL settings.', 'dhl', 'woocommerce-germanized-dhl' ) );
-                break;
+                    break;
+	            case "SOAP-ERROR: Encoding: object has no 'customsTariffNumber' property":
+	            case "SOAP-ERROR: Encoding: object has no 'countryCodeOrigin' property":
+		            throw new Exception( _x( 'Your products are missing data relevant for custom declarations. Please provide missing DHL fields (country of origin, HS code) in your product data > shipping tab.', 'dhl', 'woocommerce-germanized-dhl' ) );
+		            break;
             }
 
             throw $e;
@@ -646,24 +650,78 @@ class LabelSoap extends Soap {
 
             $customsDetails   = array();
             $item_description = '';
+            $total_weight     = $label->get_weight();
+            $item_weights     = array();
+
+	        foreach ( $shipment->get_items() as $key => $item ) {
+		        $per_item_weight = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
+
+		        /**
+		         * Set min weight to 0.01 to prevent missing weight error messages
+		         * for really small product weights.
+		         */
+		        if ( $per_item_weight <= 0 ) {
+			        $per_item_weight = '0.01';
+		        }
+
+		        $item_weights[ $key ] = $per_item_weight;
+	        }
+
+	        $item_total_weight = wc_format_decimal( array_sum( $item_weights ), 2 );
+	        $item_count        = sizeof( $item_total_weight );
+
+	        /**
+	         * Discrepancies detected between item weights an total shipment weight.
+	         * Try to distribute the mismatch between items.
+	         */
+	        if ( $item_total_weight != $total_weight ) {
+				$diff     = wc_format_decimal( $total_weight - $item_total_weight, 2 );
+				$diff_abs = abs( $diff );
+
+				if ( $diff_abs > 0 ) {
+					$per_item_diff         = $diff / $item_count;
+					$per_item_diff_rounded = wc_format_decimal( $per_item_diff, 2 );
+					$diff_applied          = 0;
+
+					if ( $per_item_diff_rounded > 0 ) {
+						foreach( $item_weights as $key => $weight ) {
+							$item_weights[ $key ] += $per_item_diff_rounded;
+
+							$diff_applied += $per_item_diff;
+						}
+					}
+
+					$diff_left = wc_format_decimal( ( ( $per_item_diff_rounded * $item_count ) - $diff_applied ), 2 );
+
+					if ( abs( $diff_left ) > 0 ) {
+						foreach( $item_weights as $key => $weight ) {
+							if ( $diff_left > 0 ) {
+								/**
+								 * Add the diff left to the first item and stop.
+								 */
+								$item_weights[ $key ] += $diff_left;
+								break;
+							} else {
+								/**
+								 * Remove the diff left from the first item with a weight greater than 0.01 to prevent 0 weights.
+								 */
+								if ( $weight > 0.01 ) {
+									$item_weights[ $key ] += $diff_left;
+									break;
+								}
+							}
+						}
+					}
+				}
+	        }
 
             foreach ( $shipment->get_items() as $key => $item ) {
 
                 $item_description .= ! empty( $item_description ) ? ', ' : '';
                 $item_description .= $item->get_name();
 
-	            $product_total   = floatval( ( $item->get_total() / $item->get_quantity() ) );
-	            $per_item_weight = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
-
-	            /**
-	             * Set min weight to 0.01 to prevent missing weight error messages
-	             * for really small product weights.
-	             */
-	            if ( $per_item_weight <= 0 ) {
-	            	$per_item_weight = '0.01';
-	            }
-
-                $dhl_product = false;
+	            $product_total = floatval( ( $item->get_total() / $item->get_quantity() ) );
+                $dhl_product   = false;
 
                 if ( $product = $item->get_product() ) {
                 	$dhl_product = wc_gzd_dhl_get_product( $product );
@@ -671,11 +729,11 @@ class LabelSoap extends Soap {
 
                 $json_item = array(
                     'description'         => substr( $item->get_name(), 0, 255 ),
-                    'countryCodeOrigin'   => $dhl_product ? $dhl_product->get_manufacture_country() : '',
+                    'countryCodeOrigin'   => ( $dhl_product && $dhl_product->get_manufacture_country() ) ? $dhl_product->get_manufacture_country() : Package::get_base_country(),
                     'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
                     'amount'              => intval( $item->get_quantity() ),
-                    'netWeightInKG'       => wc_format_decimal( $per_item_weight, 2 ),
-                    'customsValue'        => wc_format_decimal( $product_total, 2 ),
+                    'netWeightInKG'       => wc_format_decimal( $item_weights[ $key ], 2 ),
+                    'customsValue'        => wc_format_decimal( $product_total, 2 )
                 );
 
                 array_push($customsDetails, $json_item );
@@ -684,12 +742,30 @@ class LabelSoap extends Soap {
             $item_description = substr( $item_description, 0, 255 );
 
             $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = array(
-                'invoiceNumber'         => $shipment->get_id(),
-                'exportType'            => 'COMMERCIAL_GOODS',
-                'exportTypeDescription' => $item_description,
-                'termsOfTrade'          => $label->get_duties(),
-                'placeOfCommital'       => $shipment->get_country(),
-                'ExportDocPosition'     => $customsDetails
+                'invoiceNumber'              => $shipment->get_id(),
+                'additionalFee'              => wc_format_decimal( $shipment->get_additional_total(), 2 ),
+	            /**
+	             * Filter to allow adjusting the export type of a DHL label (for customs). Could be:
+	             * <ul>
+	             * <li>OTHER</li>
+	             * <li>PRESENT</li>
+	             * <li>COMMERCIAL_SAMPLE</li>
+	             * <li>DOCUMENT</li>
+	             * <li>RETURN_OF_GOODS</li>
+	             * <li>COMMERCIAL_GOODS</li>
+	             * </ul>
+	             *
+	             * @param string $export_type The export type.
+	             * @param Label  $label The label instance.
+	             *
+	             * @since 3.3.0
+	             * @package Vendidero/Germanized/DHL
+	             */
+                'exportType'                 => strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', 'COMMERCIAL_GOODS', $label ) ),
+                'exportTypeDescription'      => $item_description,
+                'termsOfTrade'               => $label->get_duties(),
+                'placeOfCommital'            => $shipment->get_country(),
+                'ExportDocPosition'          => $customsDetails
             );
         }
 
@@ -697,7 +773,7 @@ class LabelSoap extends Soap {
         $this->body_request = $this->walk_recursive_remove( $dhl_label_body );
 
         // Ensure Export Document is set before adding additional fee
-        if ( isset( $this->body_request['ShipmentOrder']['Shipment']['ExportDocument'] ) ) {
+        if ( isset( $this->body_request['ShipmentOrder']['Shipment']['ExportDocument'] ) && ! isset( $this->body_request['ShipmentOrder']['Shipment']['ExportDocument']['additionalFee'] ) ) {
             // Additional fees, required and 0 so place after check
             $this->body_request['ShipmentOrder']['Shipment']['ExportDocument']['additionalFee'] = 0;
         }
