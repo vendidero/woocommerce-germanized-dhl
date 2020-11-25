@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\DHL\Admin;
+namespace Vendidero\Germanized\DHL\Admin\Importer;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * WC_Admin class.
  */
-class Importer {
+class DHL {
 
 	public static function is_available() {
 		$options  = get_option( 'woocommerce_pr_dhl_paket_settings' );
