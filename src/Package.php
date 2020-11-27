@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\DHL;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Vendidero\Germanized\DHL\Api\ImWarenpostIntRest;
 use Vendidero\Germanized\DHL\Api\Paket;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
@@ -465,9 +466,41 @@ class Package {
 		}
 	}
 
+	public static function get_internetmarke_warenpost_int_ekp() {
+		$ekp = self::get_setting( 'internetmarke_warenpost_int_ekp' );
+
+		if ( empty( $ekp ) ) {
+			$ekp = '0000012207';
+		}
+
+		return $ekp;
+	}
+
+	/**
+     * The Warenpost International API (necessary for customs forms)
+     * needs separate Sandbox credentials. In live mode the Portokasse credentials are being used.
+     *
+	 * @return string
+	 */
+	public static function get_internetmarke_warenpost_int_username() {
+		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_WP_SANDBOX_USER' ) ) {
+			return WC_GZD_DHL_IM_WP_SANDBOX_USER;
+		} else {
+			return self::get_setting( 'im_api_username' );
+		}
+	}
+
 	public static function get_internetmarke_password() {
 		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_SANDBOX_PASSWORD' ) ) {
 			return WC_GZD_DHL_IM_SANDBOX_PASSWORD;
+		} else {
+			return self::get_setting( 'im_api_password' );
+		}
+	}
+
+	public static function get_internetmarke_warenpost_int_password() {
+		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_WP_SANDBOX_PASSWORD' ) ) {
+			return WC_GZD_DHL_IM_WP_SANDBOX_PASSWORD;
 		} else {
 			return self::get_setting( 'im_api_password' );
 		}

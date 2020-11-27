@@ -22,6 +22,8 @@ class DeutschePostLabel extends Label {
 		'original_url'        => '',
 		'manifest_url'        => '',
 		'additional_services' => array(),
+		'wp_int_awb'          => '',
+		'wp_int_barcode'      => '',
 	);
 
 	public function get_type() {
@@ -38,6 +40,14 @@ class DeutschePostLabel extends Label {
 		return $this->get_prop( 'page_format', $context );
 	}
 
+	public function get_wp_int_awb( $context = 'view' ) {
+		return $this->get_prop( 'wp_int_awb', $context );
+	}
+
+	public function get_wp_int_barcode( $context = 'view' ) {
+		return $this->get_prop( 'wp_int_barcode', $context );
+	}
+
 	public function get_additional_services( $context = 'view' ) {
 		return $this->get_prop( 'additional_services', $context );
 	}
@@ -48,6 +58,14 @@ class DeutschePostLabel extends Label {
 
 	public function set_page_format( $value ) {
 		$this->set_prop( 'page_format', $value );
+	}
+
+	public function set_wp_int_awb( $value ) {
+		$this->set_prop( 'wp_int_awb', $value );
+	}
+
+	public function set_wp_int_barcode( $value ) {
+		$this->set_prop( 'wp_int_barcode', $value );
 	}
 
 	public function get_stamp_total( $context = 'view' ) {

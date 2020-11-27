@@ -644,53 +644,29 @@ class LabelSoap extends Soap {
                 throw new Exception( sprintf( _x( 'Only %s shipment items can be processed, your shipment has %s items.', 'dhl', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, sizeof( $shipment->get_items() ) ) );
             }
 
-            $customsDetails   = array();
-            $item_description = '';
+            $customs_data = wc_gzd_dhl_get_shipment_customs_data( $label );
+            $customs_data['termsOfTrade'] = $label->get_duties();
 
-            foreach ( $shipment->get_items() as $key => $item ) {
+            /**
+	         * Filter to allow adjusting the export type of a DHL label (for customs). Could be:
+	         * <ul>
+	         * <li>OTHER</li>
+	         * <li>PRESENT</li>
+	         * <li>COMMERCIAL_SAMPLE</li>
+	         * <li>DOCUMENT</li>
+	         * <li>RETURN_OF_GOODS</li>
+	         * <li>COMMERCIAL_GOODS</li>
+	         * </ul>
+	         *
+	         * @param string $export_type The export type.
+	         * @param Label  $label The label instance.
+	         *
+	         * @since 3.3.0
+	         * @package Vendidero/Germanized/DHL
+	         */
+	        $customs_data['exportType'] = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', 'COMMERCIAL_GOODS', $label ) );
 
-                $item_description .= ! empty( $item_description ) ? ', ' : '';
-                $item_description .= $item->get_name();
-
-	            $product_total   = floatval( ( $item->get_total() / $item->get_quantity() ) );
-	            $per_item_weight = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
-
-	            /**
-	             * Set min weight to 0.01 to prevent missing weight error messages
-	             * for really small product weights.
-	             */
-	            if ( $per_item_weight <= 0 ) {
-	            	$per_item_weight = '0.01';
-	            }
-
-                $dhl_product = false;
-
-                if ( $product = $item->get_product() ) {
-                	$dhl_product = wc_gzd_dhl_get_product( $product );
-                }
-
-                $json_item = array(
-                    'description'         => substr( $item->get_name(), 0, 255 ),
-                    'countryCodeOrigin'   => $dhl_product ? $dhl_product->get_manufacture_country() : '',
-                    'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
-                    'amount'              => intval( $item->get_quantity() ),
-                    'netWeightInKG'       => wc_format_decimal( $per_item_weight, 2 ),
-                    'customsValue'        => wc_format_decimal( $product_total, 2 ),
-                );
-
-                array_push($customsDetails, $json_item );
-            }
-
-            $item_description = substr( $item_description, 0, 255 );
-
-            $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = array(
-                'invoiceNumber'         => $shipment->get_id(),
-                'exportType'            => 'COMMERCIAL_GOODS',
-                'exportTypeDescription' => $item_description,
-                'termsOfTrade'          => $label->get_duties(),
-                'placeOfCommital'       => $shipment->get_country(),
-                'ExportDocPosition'     => $customsDetails
-            );
+            $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = $customs_data;
         }
 
         // Unset/remove any items that are empty strings or 0, even if required!
