@@ -25,7 +25,7 @@ class ProductList {
 
 		$products = $this->products;
 
-		return wp_list_filter( $products, $filters );
+		return $this->filter_products( $products, $filters );
 	}
 
 	protected function load_products() {
@@ -185,8 +185,40 @@ class ProductList {
 
 		$products = $this->available_products;
 
-		return wp_list_filter( $products, $filters );
+		return $this->filter_products( $products, $filters );
 	}
+
+	protected function filter_products( $products, $filters = array() ) {
+		$shipment_weight = false;
+
+		if ( array_key_exists( 'shipment_weight', $filters ) ) {
+			$shipment_weight = $filters['shipment_weight'];
+
+			unset( $filters['shipment_weight'] );
+		}
+
+		$products = wp_list_filter( $products, $filters );
+
+		if ( false !== $shipment_weight ) {
+			foreach( $products as $key => $product ) {
+				if ( 0 !== $product->product_weight_min ) {
+					if ( $product->product_weight_min > $shipment_weight ) {
+						unset( $products[ $key ] );
+						continue;
+					}
+				}
+
+				if ( 0 !== $product->product_weight_max ) {
+					if ( $product->product_weight_max < $shipment_weight ) {
+						unset( $products[ $key ] );
+						continue;
+					}
+				}
+			}
+		}
+
+		return array_values( $products );
+ 	}
 
 	public function get_base_products() {
 		return self::get_products( array( 'product_parent_id' => 0 ) );
