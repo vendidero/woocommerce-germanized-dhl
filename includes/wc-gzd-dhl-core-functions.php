@@ -927,7 +927,7 @@ function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false ) {
 	$country      = Package::get_base_country();
 	$germany_dom  = Package::get_internetmarke_api()->get_available_products( array(
 		'product_destination' => 'national',
-		'shipment_weight'     => $shipment ? wc_get_weight( $shipment->get_weight(), 'g', $shipment->get_weight_unit() ) : false,
+		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
 	) );
 	$dhl_prod_dom = array();
 
@@ -961,7 +961,7 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false 
 	$country      = Package::get_base_country();
 	$germany_int  = Package::get_internetmarke_api()->get_available_products( array(
 		'product_destination' => 'international',
-		'shipment_weight'     => $shipment ? wc_get_weight( $shipment->get_weight(), 'g', $shipment->get_weight_unit() ) : false,
+		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
 	) );
 	$dhl_prod_int = array();
 
