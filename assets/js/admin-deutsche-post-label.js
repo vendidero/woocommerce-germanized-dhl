@@ -53,6 +53,12 @@ window.germanized.admin = window.germanized.admin || {};
                 $wrapper     = $( '.wc-gzd-dhl-im-product-data .col-preview' ),
                 $img_wrapper = $( '.wc-gzd-dhl-im-product-data' ).find( '.image-preview' );
 
+            if ( data.is_wp_int ) {
+                $wrapper.parents( '.wc-gzd-shipment-create-label' ).find( '.wc-gzd-shipment-im-page-format' ).hide();
+            } else {
+                $wrapper.parents( '.wc-gzd-shipment-create-label' ).find( '.wc-gzd-shipment-im-page-format' ).show();
+            }
+
             if ( data.preview_url ) {
                 $wrapper.block({
                     message: null,

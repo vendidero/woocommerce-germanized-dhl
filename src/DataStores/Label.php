@@ -68,7 +68,9 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	    '_voucher_id',
 	    '_original_url',
 	    '_manifest_url',
-	    '_additional_services'
+	    '_additional_services',
+	    '_wp_int_awb',
+	    '_wp_int_barcode',
     );
 
     /*

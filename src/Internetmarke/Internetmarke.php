@@ -438,10 +438,14 @@ class Internetmarke {
 	 */
 	public function get_label( &$label ) {
 		if ( $label->is_warenpost_international() ) {
-			return $this->create_or_update_wp_int_label( $label );
+			$result = $this->create_or_update_wp_int_label( $label );
 		} else {
-			return $this->create_or_update_default_label( $label );
+			$result = $this->create_or_update_default_label( $label );
 		}
+
+		$this->invalidate_balance();
+
+		return $result;
 	}
 
 	protected function get_wp_int_api() {
@@ -570,6 +574,10 @@ class Internetmarke {
 		if ( ! empty( $label->get_shop_order_id() ) ) {
 			$transaction_id = $this->refund_label( $label );
 
+			if ( false !== $transaction_id ) {
+				$this->invalidate_balance();
+			}
+
 			/**
 			 * Action fires before deleting a Deutsche Post PDF label through an API call.
 			 *
@@ -581,6 +589,9 @@ class Internetmarke {
 			do_action( 'woocommerce_gzd_dhl_deutsche_post_label_api_before_delete', $label );
 
 			$label->set_number( '' );
+			$label->set_wp_int_awb( '' );
+			$label->set_wp_int_barcode( '' );
+			$label->set_shop_order_id( '' );
 
 			if ( $file = $label->get_file() ) {
 				wp_delete_file( $file );
@@ -739,7 +750,6 @@ class Internetmarke {
 			}
 
 			$label->save();
-			$this->invalidate_balance();
 
 			return $label;
 		} else {

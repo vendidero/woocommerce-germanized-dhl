@@ -12,8 +12,10 @@ $default_args        = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_ord
 $im_products         = wc_gzd_dhl_get_deutsche_post_products( $shipment );
 $selected_product    = isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : array_key_first( $im_products );
 $selected_product_id = 0;
+$is_wp_int           = false;
 
 if ( ! empty( $selected_product ) ) {
+	$is_wp_int           = Package::get_internetmarke_api()->is_warenpost_international( $selected_product );
     $selected_product_id = Package::get_internetmarke_api()->get_product_id( $selected_product );
 }
 ?>
@@ -47,13 +49,15 @@ if ( ! empty( $selected_product ) ) {
             ?>
         </div>
 
-        <?php woocommerce_wp_select( array(
-            'id'          		=> 'deutsche_post_label_page_format',
-            'label'       		=> _x( 'Page Format', 'dhl', 'woocommerce-germanized-dhl' ),
-            'description'		=> '',
-            'options'			=> Package::get_internetmarke_api()->get_page_format_list(),
-            'value'             => isset( $default_args['page_format'] ) ? $default_args['page_format'] : '',
-        ) ); ?>
+        <div class="wc-gzd-shipment-im-page-format" style="<?php echo ( $is_wp_int ? 'display: none;' : '' ); ?>">
+            <?php woocommerce_wp_select( array(
+                'id'          		=> 'deutsche_post_label_page_format',
+                'label'       		=> _x( 'Page Format', 'dhl', 'woocommerce-germanized-dhl' ),
+                'description'		=> '',
+                'options'			=> Package::get_internetmarke_api()->get_page_format_list(),
+                'value'             => isset( $default_args['page_format'] ) ? $default_args['page_format'] : '',
+            ) ); ?>
+        </div>
     </form>
 
     <div class="columns preview-columns wc-gzd-dhl-im-product-data">

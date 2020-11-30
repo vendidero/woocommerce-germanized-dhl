@@ -127,7 +127,9 @@ class DeutschePostLabel extends Label {
 
 		if ( ! empty( $voucher_id ) && $voucher_id !== $this->get_number() ) {
 			return true;
-		} elseif( in_array( $this->get_dhl_product(), [ 232, 233, 234, 238, 1007, 195, 1017, 196, 1027, 197, 1037, 198, 1047, 199, 1057, 200 ] ) ) {
+		} elseif ( in_array( $this->get_dhl_product(), [ 232, 233, 234, 238, 1007, 195, 1017, 196, 1027, 197, 1037, 198, 1047, 199, 1057, 200 ] ) ) {
+			return true;
+		} elseif( ! empty( $this->get_wp_int_barcode() ) && in_array( 'TRCK', $this->get_additional_services() ) ) {
 			return true;
 		}
 

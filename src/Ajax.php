@@ -50,6 +50,7 @@ class Ajax {
 		$selected_services   = isset( $_POST['selected_services'] ) ? wc_clean( $_POST['selected_services'] ) : array();
 		$im_product_id       = absint( $_POST['product_id'] );
 		$product_id          = 0;
+		$is_wp_int           = false;
 		$response            = array(
 			'success'      => true,
 			'preview_url'  => '',
@@ -66,6 +67,7 @@ class Ajax {
 			$im_product_id = Package::get_internetmarke_api()->get_product_code( $im_product_id, $selected_services );
 			$preview_url   = Package::get_internetmarke_api()->preview_stamp( $im_product_id );
 			$preview_data  = Package::get_internetmarke_api()->get_product_preview_data( $im_product_id );
+			$is_wp_int     = Package::get_internetmarke_api()->is_warenpost_international( $im_product_id );
 
 			if ( $preview_url ) {
 				$response['preview_url']  = $preview_url;
@@ -77,6 +79,7 @@ class Ajax {
 		include( Package::get_path() . '/includes/admin/views/html-deutsche-post-additional-services.php' );
 		$html = ob_get_clean();
 
+		$response['is_wp_int'] = $is_wp_int;
 		$response['fragments']['.wc-gzd-shipment-im-additional-services'] = '<div class="wc-gzd-shipment-im-additional-services">' . $html . '</div>';
 
 		wp_send_json( $response );

@@ -55,10 +55,11 @@ class ImWarenpostIntRest extends Rest {
 		$label->set_shop_order_id( $order_id );
 		$label->set_wp_int_awb( $awb );
 		$label->set_wp_int_barcode( $barcode );
+		$label->set_number( $barcode );
 
 		$label->save();
 
-		return true;
+		return $label;
 	}
 
 	/**
