@@ -1157,11 +1157,21 @@ class Settings {
 			),
 
 			array(
+				'title'             => _x( 'EU Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'select',
+				'default'           => '',
+				'id'                => 'woocommerce_gzd_deutsche_post_label_default_product_eu',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default Deutsche Post shipping service for EU shipments that you want to offer to your customers.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'options'           => wc_gzd_dhl_get_deutsche_post_products_eu(),
+				'class'             => 'wc-enhanced-select',
+			),
+
+			array(
 				'title'             => _x( 'Int. Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'default'           => '',
 				'id'                => 'woocommerce_gzd_deutsche_post_label_default_product_int',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default Deutsche Post shipping service for cross-border shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default Deutsche Post shipping service for cross-border shipments that you want to offer to your customers.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 				'options'           => wc_gzd_dhl_get_deutsche_post_products_international(),
 				'class'             => 'wc-enhanced-select',
 			),

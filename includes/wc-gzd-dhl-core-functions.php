@@ -75,9 +75,21 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 
 			if ( abs( $per_item_diff_rounded ) > 0 ) {
 				foreach( $item_weights as $key => $weight ) {
-					$item_weights[ $key ] += $per_item_diff_rounded;
+					$item_weight_before = $item_weights[ $key ];
+					$new_item_weight    = $item_weights[ $key ] += $per_item_diff_rounded;
+					$item_diff_applied  = $per_item_diff;
 
-					$diff_applied += $per_item_diff;
+					/**
+					 * In case the diff is negative make sure we are not
+					 * subtracting more than available as min weight per item.
+					 */
+					if ( $new_item_weight <= 0.01 ) {
+						$new_item_weight   = 0.01;
+						$item_diff_applied = 0.01 - $item_weight_before;
+					}
+
+					$item_weights[ $key ] = $new_item_weight;
+					$diff_applied += $item_diff_applied;
 				}
 			}
 
@@ -458,6 +470,34 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 		if ( false === $im_product_code ) {
 			$error->add( 500, _x( 'The services chosen are not available for the current product.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		} else {
+			$args['dhl_product'] = $im_product_code;
+		}
+	}
+
+	$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment );
+
+	/**
+	 * Check whether the product might not be available for the current shipment
+	 */
+	if ( ! array_key_exists( $args['dhl_product'], $available_products ) ) {
+		if ( empty( $available_products ) ) {
+			$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( \Vendidero\Germanized\DHL\Admin\Settings::get_settings_url( 'internetmarke' ) ) ) );
+		} else {
+			/**
+			 * In case the chosen product is not available - use the first product available instead
+			 * to prevent errors during automation (connected with the default product option which might not fit).
+			 */
+			reset( $available_products );
+			$im_product_code = Package::get_internetmarke_api()->get_product_parent_code( key( $available_products ) );
+
+			if ( ! empty( $args['additional_services'] ) ) {
+				$im_product_code_additional = Package::get_internetmarke_api()->get_product_code( $im_product_code, $args['additional_services'] );
+
+				if ( false !== $im_product_code_additional ) {
+					$im_product_code = $im_product_code_additional;
+				}
+			}
+
 			$args['dhl_product'] = $im_product_code;
 		}
 	}
@@ -913,6 +953,8 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
 function wc_gzd_dhl_get_deutsche_post_products( $shipment ) {
 	if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment );
+	} elseif ( Package::is_eu_shipment( $shipment->get_country() ) ) {
+		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment );
 	} else {
 		return wc_gzd_dhl_get_deutsche_post_products_international( $shipment );
 	}
@@ -924,22 +966,12 @@ function wc_gzd_dhl_get_deutsche_post_products( $shipment ) {
  * @return array
  */
 function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false ) {
-	$country      = Package::get_base_country();
-	$germany_dom  = Package::get_internetmarke_api()->get_available_products( array(
+	$dom = Package::get_internetmarke_api()->get_available_products( array(
 		'product_destination' => 'national',
 		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
 	) );
-	$dhl_prod_dom = array();
 
-	switch ( $country ) {
-		case 'DE':
-			$dhl_prod_dom = $germany_dom;
-			break;
-		default:
-			break;
-	}
-
-	return wc_gzd_dhl_im_get_product_list( $dhl_prod_dom );
+	return wc_gzd_dhl_im_get_product_list( $dom );
 }
 
 function wc_gzd_dhl_im_get_product_list( $products ) {
@@ -952,28 +984,40 @@ function wc_gzd_dhl_im_get_product_list( $products ) {
 	return $list;
 }
 
+function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false ) {
+	$non_warenpost = Package::get_internetmarke_api()->get_available_products( array(
+		'product_destination' => 'international',
+		'product_is_wp_int'   => 0,
+		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
+	) );
+
+	$warenpost = Package::get_internetmarke_api()->get_available_products( array(
+		'product_destination' => 'eu',
+		'product_is_wp_int'   => 1,
+		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
+	) );
+
+	$international = array_merge( $non_warenpost, $warenpost );
+
+	return wc_gzd_dhl_im_get_product_list( $international );
+}
+
 /**
  * @param Shipment|false $shipment
  *
  * @return array
  */
 function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false ) {
-	$country      = Package::get_base_country();
-	$germany_int  = Package::get_internetmarke_api()->get_available_products( array(
-		'product_destination' => 'international',
-		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
-	) );
-	$dhl_prod_int = array();
+	if ( $shipment && Package::is_eu_shipment( $shipment->get_country() ) ) {
+		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment );
+	} else {
+		$international = Package::get_internetmarke_api()->get_available_products( array(
+			'product_destination' => 'international',
+			'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
+		) );
 
-	switch ( $country ) {
-		case 'DE':
-			$dhl_prod_int = $germany_int;
-			break;
-		default:
-			break;
+		return wc_gzd_dhl_im_get_product_list( $international );
 	}
-
-	return wc_gzd_dhl_im_get_product_list( $dhl_prod_int );
 }
 
 /**
@@ -1551,7 +1595,9 @@ function wc_gzd_dhl_get_default_product( $country, $method = false ) {
 function wc_gzd_dhl_get_deutsche_post_default_product( $country, $method = false ) {
 	if ( Package::is_shipping_domestic( $country ) ) {
 		return Package::get_setting( 'deutsche_post_label_default_product_dom', $method );
-	} else {
+	} elseif( Package::is_eu_shipment( $country ) ) {
+		return Package::get_setting( 'deutsche_post_label_default_product_eu', $method );
+	}else {
 		return Package::get_setting( 'deutsche_post_label_default_product_int', $method );
 	}
 }

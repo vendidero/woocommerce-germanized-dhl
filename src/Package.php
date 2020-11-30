@@ -1002,6 +1002,21 @@ class Package {
 	}
 
 	/**
+	 * Check if it is an EU shipment
+	 */
+	public static function is_eu_shipment( $country_receiver ) {
+		if ( self::is_shipping_domestic( $country_receiver ) ) {
+			return false;
+		}
+
+        if ( in_array( $country_receiver, WC()->countries->get_european_union_countries() ) ) {
+            return true;
+        } else {
+            return false;
+        }
+	}
+
+	/**
 	 * Function return whether the sender and receiver country is "crossborder" i.e. needs CUSTOMS declarations (outside EU)
 	 */
 	public static function is_crossborder_shipment( $country_receiver ) {

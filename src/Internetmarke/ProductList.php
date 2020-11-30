@@ -395,6 +395,7 @@ class ProductList {
 						'product_destination'           => $extended_identifier->destination,
 						'product_price'                 => property_exists( $product->priceDefinition, 'price' ) ? Package::eur_to_cents( $product->priceDefinition->price->calculatedGrossPrice->value ) : Package::eur_to_cents( $product->priceDefinition->grossPrice->value ),
 						'product_information_text'      => property_exists( $product, 'stampTypeList' ) ? $this->get_information_text( (array) $product->stampTypeList->stampType ) : '',
+						'product_is_wp_int'             => false,
 					);
 
 					$product_slug = $this->sanitize_product_slug( $to_insert['product_name'] );
@@ -405,6 +406,20 @@ class ProductList {
 					 */
 					if ( strpos( $product_slug, 'warenpost' ) !== false && 'international' !== $to_insert['product_destination'] ) {
 						continue;
+					}
+
+					/**
+					 * Warenpost International
+					 */
+					if ( strpos( $product_slug, 'warenpost' ) !== false ) {
+						$to_insert['product_is_wp_int'] = 1;
+					}
+
+					/**
+					 * EU Warenpost
+					 */
+					if ( strpos( $product_slug, 'warenpost' ) !== false && strpos( $product_slug, '(eu' ) !== false ) {
+						$to_insert['product_destination'] = 'eu';
 					}
 
 					if ( property_exists( $product, 'dimensionList' ) ) {

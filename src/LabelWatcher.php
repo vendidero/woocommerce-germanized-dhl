@@ -73,6 +73,11 @@ class LabelWatcher {
 		}
 	}
 
+	/**
+	 * @param DeutschePostLabel $label
+	 *
+	 * @throws Exception
+	 */
 	public static function create_post_label( $label ) {
 		try {
 			Package::get_internetmarke_api()->get_label( $label );

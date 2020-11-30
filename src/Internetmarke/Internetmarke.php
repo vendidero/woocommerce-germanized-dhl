@@ -12,6 +12,8 @@ use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
 use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Api\ImRefundSoap;
+use Vendidero\Germanized\DHL\Api\ImWarenpostIntRest;
+use Vendidero\Germanized\DHL\DeutschePostLabel;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -27,6 +29,8 @@ class Internetmarke {
 	 * @var Service|null
 	 */
 	protected $api = null;
+
+	protected $wp_int_api = null;
 
 	/**
 	 * @var User|null
@@ -191,6 +195,30 @@ class Internetmarke {
 		$this->load_products();
 
 		return $this->products;
+	}
+
+	public function is_warenpost_international( $im_product_code ) {
+		$is_wp_int = false;
+
+		if ( $product_data = $this->get_product_data_by_code( $im_product_code ) ) {
+			if ( 1 == $product_data->product_is_wp_int ) {
+				return true;
+			}
+		}
+
+		return $is_wp_int;
+	}
+
+	public function is_warenpost_international_eu( $im_product_code ) {
+		$is_wp_int = false;
+
+		if ( $product_data = $this->get_product_data_by_code( $im_product_code ) ) {
+			if ( 1 == $product_data->product_is_wp_int && 'eu' === $product_data->product_destination ) {
+				return true;
+			}
+		}
+
+		return $is_wp_int;
 	}
 
 	protected function format_dimensions( $product, $type = 'length' ) {
@@ -389,7 +417,15 @@ class Internetmarke {
 		$preview_url = false;
 
 		try {
-			$preview_url = $this->api->retrievePreviewVoucherPng( $product_id, $address_type, $image_id );
+			if ( $this->is_warenpost_international( $product_id ) ) {
+				if ( $this->is_warenpost_international_eu( $product_id ) ) {
+					$preview_url = trailingslashit( Package::get_assets_url() ) . 'img/wp-int-eu-preview.png';
+				} else {
+					$preview_url = trailingslashit( Package::get_assets_url() ) . 'img/wp-int-preview.png';
+				}
+			} else {
+				$preview_url = $this->api->retrievePreviewVoucherPng( $product_id, $address_type, $image_id );
+			}
 		} catch( \Exception $e ) {}
 
 		return $preview_url;
@@ -401,8 +437,52 @@ class Internetmarke {
 	 * @return mixed
 	 */
 	public function get_label( &$label ) {
+		if ( $label->is_warenpost_international() ) {
+			return $this->create_or_update_wp_int_label( $label );
+		} else {
+			return $this->create_or_update_default_label( $label );
+		}
+	}
+
+	protected function get_wp_int_api() {
+		if ( is_null( $this->wp_int_api ) ) {
+			$this->wp_int_api = new ImWarenpostIntRest();
+		}
+
+		return $this->wp_int_api;
+	}
+
+	/**
+	 * @param DeutschePostLabel $label
+	 *
+	 * @return mixed
+	 */
+	protected function create_or_update_wp_int_label( &$label ) {
+		if ( empty( $label->get_wp_int_awb() ) ) {
+			return $this->get_wp_int_api()->create_label( $label );
+		} else {
+			try {
+				$pdf = $this->get_wp_int_api()->get_pdf( $label->get_wp_int_awb() );
+
+				if ( ! $pdf ) {
+					throw new \Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
+				}
+			} catch( \Exception $e ) {
+				return $this->get_wp_int_api()->create_label( $label );
+			}
+
+			return true;
+		}
+	}
+
+	/**
+	 * @param DeutschePostLabel $label
+	 *
+	 * @return mixed
+	 */
+	protected function create_or_update_default_label( &$label ) {
 		if ( empty( $label->get_shop_order_id() ) ) {
-			return $this->create_label( $label );
+			return $this->create_default_label( $label );
 		} else {
 			if ( ! $this->auth() ) {
 				throw new \Exception( $this->get_authentication_error() );
@@ -411,10 +491,10 @@ class Internetmarke {
 			try {
 				$stamp = $this->api->retrieveOrder( $this->get_user()->getUserToken(), $label->get_shop_order_id() );
 			} catch( \Exception $e ) {
-				return $this->create_label( $label );
+				return $this->create_default_label( $label );
 			}
 
-			return $this->update_label( $label, $stamp );
+			return $this->update_default_label( $label, $stamp );
 		}
 	}
 
@@ -430,33 +510,54 @@ class Internetmarke {
 	 * @param DeutschePostLabel $label
 	 *
 	 * @return false|int
-	 * @throws \Exception
 	 */
 	public function refund_label( $label ) {
 		try {
-			$refund = $this->get_refund_api();
-
-			if ( ! $refund ) {
-				throw new \Exception( _x( 'Refund API could not be instantiated', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-
-			$refund_id = $refund->createRetoureId();
-
-			if ( $refund_id ) {
-				$user = $refund->authenticateUser( Package::get_internetmarke_username(), Package::get_internetmarke_password() );
-
-				if ( $user ) {
-					$transaction_id = $refund->retoureVouchers( $user->getUserToken(), $refund_id, $label->get_shop_order_id() );
-				}
-
-				Package::log( sprintf( 'Refunded DP label %s: %s', $label->get_number(), $transaction_id ) );
-
-				return $transaction_id;
+			if ( $label->is_warenpost_international() ) {
+				return $this->refund_wp_int_label( $label );
+			} else {
+				return $this->refund_default_label( $label );
 			}
 		} catch( \Exception $e ) {
 			throw new \Exception( sprintf( _x( 'Could not refund post label: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
 		}
+	}
 
+	/**
+	 * @param DeutschePostLabel $label
+	 *
+	 * @return false|int
+	 * @throws \Exception
+	 */
+	protected function refund_default_label( $label ) {
+		$refund = $this->get_refund_api();
+
+		if ( ! $refund ) {
+			throw new \Exception( _x( 'Refund API could not be instantiated', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$refund_id = $refund->createRetoureId();
+
+		if ( $refund_id ) {
+			$user = $refund->authenticateUser( Package::get_internetmarke_username(), Package::get_internetmarke_password() );
+
+			if ( $user ) {
+				$transaction_id = $refund->retoureVouchers( $user->getUserToken(), $refund_id, $label->get_shop_order_id() );
+			}
+
+			Package::log( sprintf( 'Refunded DP label %s: %s', $label->get_number(), $transaction_id ) );
+
+			return $transaction_id;
+		}
+	}
+
+	/**
+	 * @param DeutschePostLabel $label
+	 *
+	 * @return false|int
+	 * @throws \Exception
+	 */
+	protected function refund_wp_int_label( $label ) {
 		return false;
 	}
 
@@ -510,7 +611,7 @@ class Internetmarke {
 	/**
 	 * @param DeutschePostLabel $label
 	 */
-	protected function create_label( &$label ) {
+	protected function create_default_label( &$label ) {
 		$shipment = $label->get_shipment();
 
 		if ( ! $shipment ) {
@@ -562,7 +663,7 @@ class Internetmarke {
 			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_dhl_product(), null, $address_binding, new \baltpeter\Internetmarke\Position( 1, 1, 1 ), 'AddressZone' );
 			$stamp      = $this->api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_page_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
 
-			return $this->update_label( $label, $stamp );
+			return $this->update_default_label( $label, $stamp );
 		} catch( \Exception $e ) {
 			throw new \Exception( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), Settings::get_settings_url( 'internetmarke' ) ) );
 		}
@@ -575,7 +676,7 @@ class Internetmarke {
 	 * @return mixed
 	 * @throws \Exception
 	 */
-	protected function update_label( &$label, $stamp ) {
+	protected function update_default_label( &$label, $stamp ) {
 		if ( isset( $stamp->link ) ) {
 
 			$label->set_original_url( $stamp->link );

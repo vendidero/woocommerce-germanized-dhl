@@ -112,6 +112,16 @@ class DeutschePostLabel extends Label {
 		$this->set_prop( 'manifest_url', $value );
 	}
 
+	public function is_warenpost_international() {
+		if ( ! empty( $this->get_wp_int_awb() ) ) {
+			return true;
+		} elseif ( $api = Package::get_internetmarke_api() ) {
+			return $api->is_warenpost_international( $this->get_dhl_product() );
+		}
+
+		return false;
+	}
+
 	public function is_trackable() {
 		$voucher_id = $this->get_voucher_id();
 

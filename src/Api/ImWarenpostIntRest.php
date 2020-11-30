@@ -26,136 +26,144 @@ class ImWarenpostIntRest extends Rest {
 	}
 
 	/**
+	 * Updates the label
+	 *
+	 * @param DeutschePostLabel|DeutschePostReturnLabel $label
+	 * @param \stdClass $result
+	 *
+	 * @throws Exception
+	 */
+	public function update_label( &$label, $result ) {
+		$order_id = wc_clean( $result->orderId );
+		$awb      = wc_clean( $result->shipments[0]->awb );
+		$barcode  = wc_clean( $result->shipments[0]->items[0]->barcode );
+		$pdf      = $this->get_pdf( $awb );
+
+		if ( ! $pdf ) {
+			throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$filename = wc_gzd_dhl_generate_label_filename( $label, 'dp-wp-int-label' );
+
+		if ( $path = wc_gzd_dhl_upload_data( $filename, $pdf ) ) {
+			$label->set_default_path( $path );
+			$label->set_path( $path );
+		} else {
+			throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
+
+		$label->set_shop_order_id( $order_id );
+		$label->set_wp_int_awb( $awb );
+		$label->set_wp_int_barcode( $barcode );
+
+		$label->save();
+
+		return true;
+	}
+
+	/**
 	 * Creates a new order based on the given data
 	 *
 	 * @see https://api-qa.deutschepost.com/dpi-apidoc/index_prod_v1.html#/reference/orders/create-order/create-order
 	 *
 	 * @param DeutschePostLabel|DeutschePostReturnLabel $label
+	 *
+	 * @throws Exception
 	 */
-	public function create_label( $label )  {
-		$result = new \WP_Error();
+	public function create_label( &$label )  {
 
-		try {
+		if ( ! $shipment = $label->get_shipment() ) {
+			throw new Exception( _x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
 
-			if ( ! $shipment = $label->get_shipment() ) {
-				throw new Exception( _x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
+		$customs_data   = wc_gzd_dhl_get_shipment_customs_data( $label );
+		$positions      = array();
+		$position_index = 0;
 
-			$customs_data   = wc_gzd_dhl_get_shipment_customs_data( $label );
-			$positions      = array();
-			$position_index = 0;
+		foreach( $customs_data['ExportDocPosition'] as $position ) {
+			array_push($positions, array(
+				'contentPieceIndexNumber' => $position_index++,
+				'contentPieceHsCode'      => $position['customsTariffNumber'],
+				'contentPieceDescription' => substr( $position['description'], 0, 33 ),
+				'contentPieceValue'       => $position['customsValue'],
+				'contentPieceNetweight'   => wc_get_weight( $position['netWeightInKG'], 'g', 'kg' ),
+				'contentPieceOrigin'      => $position['countryCodeOrigin'],
+				'contentPieceAmount'      => $position['amount']
+			) );
+		}
 
-			foreach( $customs_data['ExportDocPosition'] as $position ) {
-				array_push($positions, array(
-					'contentPieceIndexNumber' => $position_index++,
-					'contentPieceHsCode'      => $position['customsTariffNumber'],
-					'contentPieceDescription' => substr( $position['description'], 0, 33 ),
-					'contentPieceValue'       => $position['customsValue'],
-					'contentPieceNetweight'   => wc_get_weight( $position['netWeightInKG'], 'g', 'kg' ),
-					'contentPieceOrigin'      => $position['countryCodeOrigin'],
-					'contentPieceAmount'      => $position['amount']
-				) );
-			}
+		$is_return = is_a( $shipment, 'Vendidero\Germanized\Shipments\ReturnShipment' );
 
-			$is_return = is_a( $shipment, 'Vendidero\Germanized\Shipments\ReturnShipment' );
+		if ( $is_return ) {
+			$sender_name = ( $shipment->get_sender_company() ? $shipment->get_sender_company() . ' ' : '' ) . $shipment->get_formatted_sender_full_name();
+		} else {
+			$sender_name = ( Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) . ' ' : '' ) . Package::get_setting( 'shipper_name' );
+		}
 
-			if ( $is_return ) {
-				$sender_name = ( $shipment->get_sender_company() ? $shipment->get_sender_company() . ' ' : '' ) . $shipment->get_formatted_sender_full_name();
-			} else {
-				$sender_name = ( Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) . ' ' : '' ) . Package::get_setting( 'shipper_name' );
-			}
-
-			$request_data = array(
-				'customerEkp' => $this->get_ekp(),
-				'orderId'     => null,
-				'items'       => array(
-					array(
-						'id'                  => 0,
-						'product'             => $label->get_dhl_product(),
-						'serviceLevel'        => 'STANDARD',
-						'recipient'           => $shipment->get_formatted_full_name(),
-						'recipientPhone'      => $shipment->get_phone(),
-						'recipientEmail'      => $shipment->get_email(),
-						'addressLine1'        => $shipment->get_address_1(),
-						'addressLine2'        => $shipment->get_address_2(),
-						'city'                => $shipment->get_city(),
-						'state'               => $shipment->get_state(),
-						'postalCode'          => $shipment->get_postcode(),
-						'destinationCountry'  => $shipment->get_country(),
-						'shipmentAmount'      => wc_format_decimal( $shipment->get_total() + $shipment->get_additional_total(), 2 ),
-						'shipmentCurrency'    => get_woocommerce_currency(),
-						'shipmentGrossWeight' => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
-						'senderName'          => $sender_name,
-						'senderAddressLine1'  => $is_return ? $shipment->get_sender_address_1() : Package::get_setting( 'shipper_street' ) . ' ' . Package::get_setting( 'shipper_street_no' ),
-						'senderAddressLine2'  => $is_return ? $shipment->get_sender_address_2() : '',
-						'senderCountry'       => $is_return ? $shipment->get_sender_country() : Package::get_setting( 'shipper_country' ),
-						'senderCity'          => $is_return ? $shipment->get_sender_city() : Package::get_setting( 'shipper_city' ),
-						'senderPostalCode'    => $is_return ? $shipment->get_sender_postcode() : Package::get_setting( 'shipper_postcode' ),
-						'senderPhone'         => $is_return ? $shipment->get_sender_phone() : Package::get_setting( 'shipper_phone' ),
-						'senderEmail'         => $is_return ? $shipment->get_sender_email() : Package::get_setting( 'shipper_email' ),
-						'returnItemWanted'    => false,
-						'shipmentNaturetype'  => strtoupper( apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_nature_type', ( is_a( $label, 'Vendidero\Germanized\DHL\DeutschePostReturnLabel' ) ? 'RETURN_GOODS' : 'SALE_GOODS' ), $label ) ),
-						'contents'            => $positions
-					)
-				),
-				'orderStatus' => 'FINALIZE',
-				'paperwork' => array(
-					'contactName'     => $sender_name,
-					'awbCopyCount'    => 1,
-					'jobReference'    => null,
-					'pickupType'      => 'CUSTOMER_DROP_OFF',
-					'pickupLocation'  => null,
-					'pickupDate'      => null,
-					'pickupTimeSlot'  => null,
-					'telephoneNumber' => null
+		$request_data = array(
+			'customerEkp' => $this->get_ekp(),
+			'orderId'     => null,
+			'items'       => array(
+				array(
+					'id'                  => 0,
+					'product'             => $label->get_dhl_product(),
+					'serviceLevel'        => 'STANDARD',
+					'recipient'           => $shipment->get_formatted_full_name(),
+					'recipientPhone'      => $shipment->get_phone(),
+					'recipientEmail'      => $shipment->get_email(),
+					'addressLine1'        => $shipment->get_address_1(),
+					'addressLine2'        => $shipment->get_address_2(),
+					'city'                => $shipment->get_city(),
+					'state'               => $shipment->get_state(),
+					'postalCode'          => $shipment->get_postcode(),
+					'destinationCountry'  => $shipment->get_country(),
+					'shipmentAmount'      => wc_format_decimal( $shipment->get_total() + $shipment->get_additional_total(), 2 ),
+					'shipmentCurrency'    => get_woocommerce_currency(),
+					'shipmentGrossWeight' => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
+					'senderName'          => $sender_name,
+					'senderAddressLine1'  => $is_return ? $shipment->get_sender_address_1() : Package::get_setting( 'shipper_street' ) . ' ' . Package::get_setting( 'shipper_street_no' ),
+					'senderAddressLine2'  => $is_return ? $shipment->get_sender_address_2() : '',
+					'senderCountry'       => $is_return ? $shipment->get_sender_country() : Package::get_setting( 'shipper_country' ),
+					'senderCity'          => $is_return ? $shipment->get_sender_city() : Package::get_setting( 'shipper_city' ),
+					'senderPostalCode'    => $is_return ? $shipment->get_sender_postcode() : Package::get_setting( 'shipper_postcode' ),
+					'senderPhone'         => $is_return ? $shipment->get_sender_phone() : Package::get_setting( 'shipper_phone' ),
+					'senderEmail'         => $is_return ? $shipment->get_sender_email() : Package::get_setting( 'shipper_email' ),
+					'returnItemWanted'    => false,
+					'shipmentNaturetype'  => strtoupper( apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_nature_type', ( is_a( $label, 'Vendidero\Germanized\DHL\DeutschePostReturnLabel' ) ? 'RETURN_GOODS' : 'SALE_GOODS' ), $label ) ),
+					'contents'            => $positions
 				)
-			);
+			),
+			'orderStatus' => 'FINALIZE',
+			'paperwork' => array(
+				'contactName'     => $sender_name,
+				'awbCopyCount'    => 1,
+				'jobReference'    => null,
+				'pickupType'      => 'CUSTOMER_DROP_OFF',
+				'pickupLocation'  => null,
+				'pickupDate'      => null,
+				'pickupTimeSlot'  => null,
+				'telephoneNumber' => null
+			)
+		);
 
-			if ( ! apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_transmit_communication_data', false ) ) {
-				if ( $is_return ) {
-					$request_data['senderPhone'] = '';
-					$request_data['senderEmail'] = '';
-				} else {
-					$request_data['recipientPhone'] = '';
-					$request_data['recipientEmail'] = '';
-				}
+		if ( ! apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_transmit_communication_data', false ) ) {
+			if ( $is_return ) {
+				$request_data['senderPhone'] = '';
+				$request_data['senderEmail'] = '';
+			} else {
+				$request_data['recipientPhone'] = '';
+				$request_data['recipientEmail'] = '';
 			}
-
-			$request_data = $this->walk_recursive_remove( $request_data );
-			$result       = $this->post_request( '/dpi/shipping/v1/orders', json_encode( $request_data, JSON_PRETTY_PRINT ) );
-
-			if ( isset( $result->shipments ) ) {
-				$awb     = $result->shipments[0]->awb;
-				$barcode = $result->shipments[0]->items[0]->barcode;
-				$pdf     = $this->get_pdf( $awb );
-
-				if ( ! $pdf ) {
-					throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
-				}
-
-				$filename = wc_gzd_dhl_generate_label_filename( $label, 'dp-wp-int-label' );
-
-				if ( $path = wc_gzd_dhl_upload_data( $filename, $pdf ) ) {
-					$label->set_default_path( $path );
-					$label->set_path( $path );
-				} else {
-					throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
-				}
-
-				$label->set_wp_int_awb( $awb );
-				$label->set_wp_int_barcode( $barcode );
-
-				$label->save();
-			}
-		} catch( Exception $e ) {
-			$result->add( $e->getCode(), $e->getMessage() );
 		}
 
-		if ( wc_gzd_dhl_wp_error_has_errors( $result ) ) {
-			return $result;
-		}
+		$request_data = $this->walk_recursive_remove( $request_data );
+		$result       = $this->post_request( '/dpi/shipping/v1/orders', json_encode( $request_data, JSON_PRETTY_PRINT ) );
 
-		return true;
+		if ( isset( $result->shipments ) ) {
+			return $this->update_label( $label, $result );
+		} else {
+			throw new Exception( _x( 'Invalid API response', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
 	}
 
 	protected function get_user_token() {

@@ -92,6 +92,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_im_products (
   product_weight_unit VARCHAR(8) NULL,
   product_parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
   product_service_count INT(3) NOT NULL DEFAULT 0,
+  product_is_wp_int INT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY  (product_id),
   KEY product_im_id (product_im_id),
   KEY product_code (product_code)
