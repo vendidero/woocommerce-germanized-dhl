@@ -1044,7 +1044,6 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 
 	$shipping_method     = $shipment->get_shipping_method();
 	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
-	$shipment_weight     = $shipment->get_weight();
 
 	$defaults = array(
 		'dhl_product'           => wc_gzd_dhl_get_default_product( $shipment->get_country(), $dhl_shipping_method ),
@@ -1248,7 +1247,7 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
  */
 function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg' ) {
 	$shipping_method     = $shipment->get_shipping_method();
-	$shipment_weight     = $shipment->get_weight();
+	$shipment_weight     = $shipment->get_total_weight();
 	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
 	$min_weight          = wc_get_weight( Package::get_setting( 'label_minimum_shipment_weight', $dhl_shipping_method ), $unit, 'kg' );
 	$weight              = empty( $shipment_weight ) ? wc_get_weight( Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ), $unit, 'kg' ) : wc_get_weight( $shipment_weight, $unit, $shipment->get_weight_unit() );
