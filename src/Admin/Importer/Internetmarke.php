@@ -25,8 +25,8 @@ class Internetmarke {
 		$old_settings = array_merge( (array) get_option( '_wcdpi_settings_portokasse' ), (array) get_option( '_wcdpi_settings_internetmarke_1c4a' ) );
 
 		$settings_mapping = array(
-			'_wcdpi_portokasse_email'                  => 'woocommerce_gzd_dhl_im_api_username',
-			'_wcdpi_portokasse_password'               => 'woocommerce_gzd_dhl_im_api_password',
+			'_wcdpi_portokasse_email'    => 'woocommerce_gzd_dhl_im_api_username',
+			'_wcdpi_portokasse_password' => 'woocommerce_gzd_dhl_im_api_password',
 		);
 
 		// Bulk update settings

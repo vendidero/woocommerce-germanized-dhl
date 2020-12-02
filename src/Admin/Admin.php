@@ -237,8 +237,8 @@ class Admin {
 		$countries = WC()->countries->get_countries();
 		$countries = array_merge( array( '0' => _x( 'Select a country', 'dhl', 'woocommerce-germanized-dhl' )  ), $countries );
 
-		woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => _x( 'Harmonized Tariff Schedule (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x(  'This code is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
-		woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => _x( 'Country of manufacture (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x(  'The country of manufacture is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
+		woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => _x( 'HS-Code (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The HS Code is a number assigned to every possible commodity that can be imported or exported from any country.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
+		woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => _x( 'Country of manufacture (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The country of manufacture is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
 	}
 
     public static function save_product( $product ) {

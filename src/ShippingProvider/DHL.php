@@ -28,7 +28,7 @@ class DHL extends ShippingProvider {
 	}
 
 	public function supports_customer_return_requests() {
-		return ( 'yes' === Package::get_setting( 'dhl_label_retoure_enable' ) ) ? true : false;
+		return ( 'yes' === Package::get_setting( 'dhl_label_retoure_enable' ) ? true : false );
 	}
 
 	public function is_activated() {

@@ -97,7 +97,11 @@ class LabelSoap extends Soap {
             switch( $e->getMessage() ) {
 	            case "Unauthorized":
 	            	throw new Exception( _x( 'Your DHL API credentials seem to be invalid. Please check your DHL settings.', 'dhl', 'woocommerce-germanized-dhl' ) );
-                break;
+                    break;
+	            case "SOAP-ERROR: Encoding: object has no 'customsTariffNumber' property":
+	            case "SOAP-ERROR: Encoding: object has no 'countryCodeOrigin' property":
+		            throw new Exception( _x( 'Your products are missing data relevant for custom declarations. Please provide missing DHL fields (country of origin, HS code) in your product data > shipping tab.', 'dhl', 'woocommerce-germanized-dhl' ) );
+		            break;
             }
 
             throw $e;
@@ -389,8 +393,8 @@ class LabelSoap extends Soap {
                     $services[ $service ]['insuranceAmount'] = $shipment->get_total();
                     break;
                 case 'IdentCheck':
-                    $services[ $service ]['Ident']['surname']     = $shipment->get_first_name();
-                    $services[ $service ]['Ident']['givenName']   = $shipment->get_last_name();
+                    $services[ $service ]['Ident']['surname']     = $shipment->get_last_name();
+                    $services[ $service ]['Ident']['givenName']   = $shipment->get_first_name();
                     $services[ $service ]['Ident']['dateOfBirth'] = $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->date( 'Y-m-d' ) : '';
                     $services[ $service ]['Ident']['minimumAge']  = $label->get_ident_min_age();
                     break;
@@ -665,7 +669,6 @@ class LabelSoap extends Soap {
 	         * @package Vendidero/Germanized/DHL
 	         */
 	        $customs_data['exportType'] = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', 'COMMERCIAL_GOODS', $label ) );
-
             $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = $customs_data;
         }
 
@@ -673,7 +676,7 @@ class LabelSoap extends Soap {
         $this->body_request = $this->walk_recursive_remove( $dhl_label_body );
 
         // Ensure Export Document is set before adding additional fee
-        if ( isset( $this->body_request['ShipmentOrder']['Shipment']['ExportDocument'] ) ) {
+        if ( isset( $this->body_request['ShipmentOrder']['Shipment']['ExportDocument'] ) && ! isset( $this->body_request['ShipmentOrder']['Shipment']['ExportDocument']['additionalFee'] ) ) {
             // Additional fees, required and 0 so place after check
             $this->body_request['ShipmentOrder']['Shipment']['ExportDocument']['additionalFee'] = 0;
         }

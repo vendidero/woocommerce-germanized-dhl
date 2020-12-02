@@ -87,13 +87,19 @@ class ReturnRest extends Rest {
 					$dhl_product = wc_gzd_dhl_get_product( $product );
 				}
 
+				$category = $dhl_product ? $dhl_product->get_main_category() : $item->get_name();
+
+				if ( empty( $category ) ) {
+					$category = $item->get_name();
+				}
+
 				$items[] = array(
 					'positionDescription' => substr( $item->get_name(), 0, 50 ),
 					'count'               => $item->get_quantity(),
 					'weightInGrams'       => intval( wc_get_weight( $item->get_weight(), 'g', $shipment->get_weight_unit() ) ),
 					'values'              => wc_format_decimal( floatval( $item->get_total() ), 2 ),
 					'originCountry'       => $dhl_product ? Package::get_country_iso_alpha3( $dhl_product->get_manufacture_country() ) : '',
-					'articleReference'    => '',
+					'articleReference'    => substr( $category, 0, 40 ),
 					'tarifNumber'         => $dhl_product ? $dhl_product->get_hs_code() : '',
 				);
 			}
