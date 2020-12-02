@@ -163,7 +163,7 @@ class ReturnRest extends Rest {
 		return base64_encode( Package::get_retoure_api_user() . ':' . Package::get_retoure_api_signature() );
 	}
 
-	protected function set_header( $authorization = '' ) {
+	protected function set_header( $authorization = '', $request_type = 'GET', $endpoint = '' ) {
 		parent::set_header();
 
 		if ( ! empty( $authorization ) ) {

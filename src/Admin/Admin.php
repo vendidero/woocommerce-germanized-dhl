@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Admin;
+use Vendidero\Germanized\DHL\Admin\Importer\DHL;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
@@ -29,6 +30,9 @@ class Admin {
 		add_action( 'woocommerce_gzd_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'label_fields' ), 10, 1 );
 		add_action( 'woocommerce_gzd_return_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'return_label_fields' ), 10, 1 );
 
+		add_action( 'woocommerce_gzd_shipment_print_deutsche_post_label_admin_fields', array( __CLASS__, 'post_label_fields' ), 10, 1 );
+		add_action( 'woocommerce_gzd_return_shipment_print_deutsche_post_label_admin_fields', array( __CLASS__, 'post_label_fields' ), 10, 1 );
+
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
 
@@ -42,7 +46,50 @@ class Admin {
 		// Reveiver ID options
         add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ) );
         add_action( 'woocommerce_gzd_admin_settings_after_save_dhl_labels', array( __CLASS__, 'save_receiver_ids' ) );
+
+		add_action( 'admin_init', array( __CLASS__, 'refresh_im_data' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'refresh_im_notices' ) );
 	}
+
+	public static function refresh_im_notices() {
+	    if ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['im-refresh-type'] ) ) {
+	        ?>
+            <div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' ); ?>"><p><?php echo ( isset( $_GET['success'] ) ? _x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : sprintf( _x( 'Error while refreshing data. Please check your DHL <a href="%s">logs</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-status&tab=logs' ) ) ); ?></p></div>
+            <?php
+        }
+    }
+
+	public static function refresh_im_data() {
+	    if ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-product-refresh' === $_GET['action'] ) {
+	        if ( wp_verify_nonce( $_GET['_wpnonce'], 'wc-gzd-dhl-refresh-im-products' ) ) {
+	            $result       = Package::get_internetmarke_api()->update_products();
+	            $settings_url = add_query_arg( array( 'im-refresh-type' => 'products' ), Settings::get_settings_url( 'internetmarke' ) );
+
+	            if ( is_wp_error( $result ) ) {
+                    $settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
+                } else {
+		            $settings_url = add_query_arg( array( 'success' => 1 ), $settings_url );
+                }
+
+	            wp_safe_redirect( $settings_url );
+	            exit();
+            }
+        } elseif ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-page-formats-refresh' === $_GET['action'] ) {
+			if ( wp_verify_nonce( $_GET['_wpnonce'], 'wc-gzd-dhl-refresh-im-page-formats' ) ) {
+				$result       = Package::get_internetmarke_api()->get_page_formats( true );
+				$settings_url = add_query_arg( array( 'im-refresh-type' => 'formats' ), Settings::get_settings_url( 'internetmarke' ) );
+
+				if ( is_wp_error( $result ) ) {
+					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
+				} else {
+					$settings_url = add_query_arg( array( 'success' => 1 ), $settings_url );
+				}
+
+				wp_safe_redirect( $settings_url );
+				exit();
+			}
+		}
+    }
 
 	/**
      * Output label admin settings.
@@ -60,6 +107,23 @@ class Admin {
 
 		include $path;
     }
+
+	/**
+	 * Output label admin settings.
+	 *
+	 * @param Shipment $p_shipment
+	 */
+	public static function post_label_fields( $p_shipment ) {
+		$shipment = $p_shipment;
+
+		if ( ! $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
+			return;
+		}
+
+		$path = Package::get_path() . '/includes/admin/views/html-shipment-deutsche-post-label-backbone-form.php';
+
+		include $path;
+	}
 
 	/**
 	 * Output label admin settings.
@@ -216,7 +280,7 @@ class Admin {
 	public static function add_legacy_meta_box() {
 		global $post;
 
-		if ( ! Importer::is_plugin_enabled() && ( $post && 'shop_order' === $post->post_type && get_post_meta(  $post->ID, '_pr_shipment_dhl_label_tracking' ) ) ) {
+		if ( ! DHL::is_plugin_enabled() && ( $post && 'shop_order' === $post->post_type && get_post_meta(  $post->ID, '_pr_shipment_dhl_label_tracking' ) ) ) {
 			add_meta_box( 'woocommerce-gzd-shipment-dhl-legacy-label', _x( 'DHL Label', 'dhl', 'woocommerce-germanized-dhl' ), array( __CLASS__, 'legacy_meta_box' ), 'shop_order', 'side', 'high' );
 		}
 	}
@@ -263,9 +327,25 @@ class Admin {
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		wp_register_script( 'wc-gzd-admin-dhl-label', Package::get_assets_url() . '/js/admin-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() );
+		wp_register_script( 'wc-gzd-admin-dhl-internetmarke', Package::get_assets_url() . '/js/admin-internetmarke' . $suffix . '.js', array( 'jquery' ), Package::get_version() );
+		wp_register_script( 'wc-gzd-admin-deutsche-post-label', Package::get_assets_url() . '/js/admin-deutsche-post-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() );
 
 		if ( wp_script_is( 'wc-gzd-admin-shipment-label-backbone', 'enqueued' ) ) {
 		    wp_enqueue_script( 'wc-gzd-admin-dhl-label' );
+			wp_enqueue_script( 'wc-gzd-admin-deutsche-post-label' );
+
+			wp_localize_script(
+				'wc-gzd-admin-deutsche-post-label',
+				'wc_gzd_admin_deutsche_post_label_params',
+				array(
+					'refresh_label_preview_nonce' => wp_create_nonce( 'wc-gzd-dhl-refresh-deutsche-post-label-preview' ),
+				)
+			);
+		}
+
+		// Shipping zone methods
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['section'] ) && 'internetmarke' === $_GET['section'] ) {
+			wp_enqueue_script( 'wc-gzd-admin-dhl-internetmarke' );
 		}
 	}
 

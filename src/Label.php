@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL;
+
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use WC_Data;

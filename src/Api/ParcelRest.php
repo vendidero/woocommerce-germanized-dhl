@@ -38,7 +38,7 @@ class ParcelRest extends Rest {
         return $this->get_request( '/checkout/' . $args['postcode'] . '/availableServices', array( 'startDate' => $args['start_date'] ) );
     }
 
-    protected function set_header( $authorization = '' ) {
+    protected function set_header( $authorization = '', $request_type = 'GET', $endpoint = '' ) {
         parent::set_header();
 
         if ( ! empty( $authorization ) ) {

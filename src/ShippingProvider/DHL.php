@@ -4,13 +4,14 @@
  *
  * @package WooCommerce/Blocks
  */
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\ShippingProvider;
 
+use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\ShippingProvider;
 
 defined( 'ABSPATH' ) || exit;
 
-class ShippingProviderDHL extends ShippingProvider {
+class DHL extends ShippingProvider {
 
 	public function is_manual_integration() {
 		return false;
@@ -31,7 +32,7 @@ class ShippingProviderDHL extends ShippingProvider {
 	}
 
 	public function is_activated() {
-		return Package::is_enabled();
+		return Package::is_dhl_enabled();
 	}
 
 	public function get_title( $context = 'view' ) {

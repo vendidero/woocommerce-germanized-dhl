@@ -1,7 +1,6 @@
 <?php
 
 namespace Vendidero\Germanized\DHL;
-use Vendidero\Germanized\DHL\Package;
 use WC_Download_Handler;
 
 defined( 'ABSPATH' ) || exit;
