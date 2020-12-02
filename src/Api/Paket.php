@@ -44,16 +44,24 @@ class Paket {
     }
 
     public function get_label_api() {
+	    $error_message = '';
+
         if ( is_null( $this->label_api ) ) {
             try {
                 $this->label_api = new LabelSoap();
             } catch( Exception $e ) {
+            	$error_message = $e->getMessage();
+
                 $this->label_api = null;
             }
         }
 
         if ( is_null( $this->label_api ) ) {
-            throw new Exception( _x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+        	if ( ! empty( $error_message ) ) {
+		        throw new Exception( sprintf( _x( 'Label API not available: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) );
+	        } else {
+		        throw new Exception( _x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+	        }
         }
 
         return $this->label_api;

@@ -1348,6 +1348,11 @@ class Settings {
 			$settings = array_merge( $settings, array(
 				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_print_options' )
 			) );
+		} elseif( Package::is_internetmarke_enabled() && ( $api = Package::get_internetmarke_api() ) && ! $api->is_available() ) {
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'API Error', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_internetmarke_api_error', 'desc' => '<div class="notice inline notice-error"><p>' . $api->get_startup_error() . '</p></div>' ),
+				array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_api_error' )
+			) );
 		}
 
 		$settings = array_merge( $settings, array(
@@ -1374,16 +1379,14 @@ class Settings {
 			'31',
 			'282',
 			'290',
-			'10272',
-			'10249',
-			'10257',
-			'10254',
-			'10255',
-			'10270',
-			'10256',
 			'10246',
 			'10247',
 			'10248',
+			'10249',
+			'10254',
+			'10255',
+			'10256',
+			'10257',
 		);
 	}
 

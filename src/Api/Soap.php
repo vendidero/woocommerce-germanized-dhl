@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Exception;
+use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -49,6 +50,10 @@ abstract class Soap {
      */
     public function __construct( $wsdl_link ) {
         try {
+        	if ( ! Package::has_load_dependencies() ) {
+        		throw new Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ) );
+	        }
+
             $this->soap_auth = new AuthSoap( $wsdl_link );
         } catch ( Exception $e ) {
             throw $e;

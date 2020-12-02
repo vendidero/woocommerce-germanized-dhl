@@ -1,8 +1,7 @@
 <?php
 
-namespace Vendidero\Germanized\DHL\Internetmarke;
+namespace Vendidero\Germanized\DHL\Api;
 
-use Vendidero\Germanized\DHL\Api\ImProductsSoap;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -10,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * DHL Shipment class.
  */
-class ProductList {
+class ImProductList {
 
 	protected $products = null;
 

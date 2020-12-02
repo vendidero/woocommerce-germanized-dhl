@@ -5,11 +5,10 @@ namespace Vendidero\Germanized\DHL;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use Vendidero\Germanized\DHL\Api\ImWarenpostIntRest;
 use Vendidero\Germanized\DHL\Api\Paket;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
-use Vendidero\Germanized\DHL\Internetmarke\Internetmarke;
+use Vendidero\Germanized\DHL\Api\Internetmarke;
 use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
@@ -716,6 +715,10 @@ class Package {
     }
 
     public static function get_wsdl_file( $wsdl_link ) {
+        if ( self::is_debug_mode() ) {
+            return $wsdl_link;
+        }
+
 	    $main_file       = basename( $wsdl_link );
 	    $required_files  = array( $main_file );
 

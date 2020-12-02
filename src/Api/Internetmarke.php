@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\DHL\Internetmarke;
+namespace Vendidero\Germanized\DHL\Api;
 
 use baltpeter\Internetmarke\Address;
 use baltpeter\Internetmarke\CompanyName;
@@ -11,8 +11,6 @@ use baltpeter\Internetmarke\PersonName;
 use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
 use Vendidero\Germanized\DHL\Admin\Settings;
-use Vendidero\Germanized\DHL\Api\ImRefundSoap;
-use Vendidero\Germanized\DHL\Api\ImWarenpostIntRest;
 use Vendidero\Germanized\DHL\DeutschePostLabel;
 use Vendidero\Germanized\DHL\Package;
 
@@ -43,7 +41,7 @@ class Internetmarke {
 	protected $errors = null;
 
 	/**
-	 * @var ProductList|null
+	 * @var ImProductList|null
 	 */
 	protected $products = null;
 
@@ -62,9 +60,13 @@ class Internetmarke {
 		$this->errors  = new \WP_Error();
 
 		try {
+			if ( ! Package::has_load_dependencies() ) {
+				throw new \Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ) );
+			}
+
 			$this->api = new Service( $this->partner, array(), Package::get_wsdl_file( 'https://internetmarke.deutschepost.de/OneClickForAppV3?wsdl' ) );
 		} catch( \Exception $e ) {
-			$this->errors->add( 'startup', _x( 'Error while instantiating main Internetmarke API.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			$this->errors->add( 'startup', sprintf( _x( 'Error while instantiating main Internetmarke API: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
 		}
 
 		if ( ! Package::is_internetmarke_enabled() ) {
@@ -154,7 +156,7 @@ class Internetmarke {
 
 	protected function load_products() {
 		if ( is_null( $this->products ) ) {
-			$this->products = new ProductList();
+			$this->products = new ImProductList();
 		}
 
 		$transient = get_transient( 'wc_gzd_dhl_im_products_expire' );
