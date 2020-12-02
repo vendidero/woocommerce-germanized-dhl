@@ -1159,6 +1159,41 @@ class Settings {
 		return $settings;
 	}
 
+	public static function get_internetmarke_setup_settings( $is_settings_page = false ) {
+		$settings = array(
+			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_internetmarke_options' ),
+
+			array(
+				'title' 	        => _x( 'Enable', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Enable Internetmarke integration.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_internetmarke_enable',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title'             => _x( 'Username', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your credentials to the <a href="%s" target="_blank">Portokasse</a>. Please test your credentials before connecting.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://portokasse.deutschepost.de/portokasse/#!/' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_dhl_im_api_username',
+				'default'           => '',
+				'custom_attributes'	=> array( 'autocomplete' => 'new-password' )
+			),
+
+			array(
+				'title'             => _x( 'Password', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'password',
+				'id' 		        => 'woocommerce_gzd_dhl_im_api_password',
+				'default'           => '',
+				'custom_attributes'	=> array( 'autocomplete' => 'new-password' )
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_options' )
+		);
+
+		return $settings;
+	}
+
 	public static function get_internetmarke_default_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array(
@@ -1261,36 +1296,7 @@ class Settings {
 	}
 
 	protected static function get_internetmarke_settings() {
-		$settings = array(
-			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_internetmarke_options' ),
-
-			array(
-				'title' 	        => _x( 'Enable', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc' 		        => _x( 'Enable Internetmarke integration.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id' 		        => 'woocommerce_gzd_dhl_internetmarke_enable',
-				'default'	        => 'no',
-				'type' 		        => 'gzd_toggle',
-			),
-
-			array(
-				'title'             => _x( 'Username', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'text',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your credentials for the <a href="%s" target="_blank">Portokasse</a>. Please test your credentials before connecting.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://portokasse.deutschepost.de/portokasse/#!/' ) . '</div>',
-				'id' 		        => 'woocommerce_gzd_dhl_im_api_username',
-				'default'           => '',
-				'custom_attributes'	=> array( 'autocomplete' => 'new-password' )
-			),
-
-			array(
-				'title'             => _x( 'Password', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'password',
-				'id' 		        => 'woocommerce_gzd_dhl_im_api_password',
-				'default'           => '',
-				'custom_attributes'	=> array( 'autocomplete' => 'new-password' )
-			),
-
-			array( 'type' => 'sectionend', 'id' => 'dhl_internetmarke_options' )
-		);
+		$settings = self::get_internetmarke_setup_settings( true );
 
 		if ( Package::is_internetmarke_enabled() && ( $api = Package::get_internetmarke_api() ) && $api->is_available() ) {
 			$api->reload_products();
@@ -1415,8 +1421,14 @@ class Settings {
 		return $html;
 	}
 
-	public static function get_new_customer_label() {
-		$label = '<a href="https://www.dhl.de/de/geschaeftskunden/paket/kunde-werden/angebot-dhl-geschaeftskunden-online.html" class="page-title-action" target="_blank">' . _x( 'Not yet a customer?', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>';
+	public static function get_new_customer_label( $current_section = '' ) {
+		$label = '';
+
+		if ( empty( $current_section ) ) {
+			$label = '<a href="https://www.dhl.de/de/geschaeftskunden/paket/kunde-werden/angebot-dhl-geschaeftskunden-online.html" class="page-title-action" target="_blank">' . _x( 'Not yet a customer?', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>';
+		} elseif( 'internetmarke' === $current_section ) {
+			$label = '<a href="https://portokasse.deutschepost.de/portokasse/#!/register/" class="page-title-action" target="_blank">' . _x( 'Not yet a customer?', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>';
+		}
 
 		return $label;
 	}
