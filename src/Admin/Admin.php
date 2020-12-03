@@ -40,7 +40,7 @@ class Admin {
         add_action( 'admin_notices', array( __CLASS__, 'check_upload_dir' ) );
 
 	    // Product Options
-		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ) );
+		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ), 9 );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
 
 		// Reveiver ID options
@@ -54,7 +54,7 @@ class Admin {
 	public static function refresh_im_notices() {
 	    if ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['im-refresh-type'] ) ) {
 	        ?>
-            <div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' ); ?>"><p><?php echo ( isset( $_GET['success'] ) ? _x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : sprintf( _x( 'Error while refreshing data. Please check your DHL <a href="%s">logs</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-status&tab=logs' ) ) ); ?></p></div>
+            <div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' ); ?>"><p><?php echo ( isset( $_GET['success'] ) ? _x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : sprintf( _x( 'Error while refreshing data. Please check your Internetmarke <a href="%s">logs</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-status&tab=logs' ) ) ); ?></p></div>
             <?php
         }
     }
@@ -237,8 +237,8 @@ class Admin {
 		$countries = WC()->countries->get_countries();
 		$countries = array_merge( array( '0' => _x( 'Select a country', 'dhl', 'woocommerce-germanized-dhl' )  ), $countries );
 
-		woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => _x( 'HS-Code (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The HS Code is a number assigned to every possible commodity that can be imported or exported from any country.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
-		woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => _x( 'Country of manufacture (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The country of manufacture is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
+        woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => _x( 'HS-Code (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The HS Code is a number assigned to every possible commodity that can be imported or exported from any country.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
+        woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => _x( 'Country of manufacture (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The country of manufacture is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
 	}
 
     public static function save_product( $product ) {

@@ -484,7 +484,7 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 		}
 	}
 
-	$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment );
+	$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
 
 	/**
 	 * Check whether the product might not be available for the current shipment
@@ -966,13 +966,13 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
  *
  * @return array
  */
-function wc_gzd_dhl_get_deutsche_post_products( $shipment ) {
+function wc_gzd_dhl_get_deutsche_post_products( $shipment, $parent_only = true ) {
 	if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
-		return wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment );
+		return wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment, $parent_only );
 	} elseif ( Package::is_eu_shipment( $shipment->get_country() ) ) {
-		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment );
+		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment, $parent_only );
 	} else {
-		return wc_gzd_dhl_get_deutsche_post_products_international( $shipment );
+		return wc_gzd_dhl_get_deutsche_post_products_international( $shipment, $parent_only );
 	}
 }
 
@@ -981,26 +981,30 @@ function wc_gzd_dhl_get_deutsche_post_products( $shipment ) {
  *
  * @return array
  */
-function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false ) {
+function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false, $parent_only = true ) {
 	$dom = Package::get_internetmarke_api()->get_available_products( array(
 		'product_destination' => 'national',
 		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
 	) );
 
-	return wc_gzd_dhl_im_get_product_list( $dom );
+	return wc_gzd_dhl_im_get_product_list( $dom, $parent_only );
 }
 
-function wc_gzd_dhl_im_get_product_list( $products ) {
+function wc_gzd_dhl_im_get_product_list( $products, $parent_only = true ) {
 	$list = array();
 
 	foreach( $products as $product ) {
+		if ( $parent_only && $product->product_parent_id > 0 ) {
+			continue;
+		}
+
 		$list[ $product->product_code ] = wc_gzd_dhl_get_im_product_title( $product->product_name );
 	}
 
 	return $list;
 }
 
-function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false ) {
+function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false, $parent_only = true ) {
 	$non_warenpost = Package::get_internetmarke_api()->get_available_products( array(
 		'product_destination' => 'international',
 		'product_is_wp_int'   => 0,
@@ -1015,7 +1019,7 @@ function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false ) {
 
 	$international = array_merge( $non_warenpost, $warenpost );
 
-	return wc_gzd_dhl_im_get_product_list( $international );
+	return wc_gzd_dhl_im_get_product_list( $international, $parent_only );
 }
 
 /**
@@ -1023,7 +1027,7 @@ function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false ) {
  *
  * @return array
  */
-function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false ) {
+function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false, $parent_only = true ) {
 	if ( $shipment && Package::is_eu_shipment( $shipment->get_country() ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment );
 	} else {
@@ -1032,7 +1036,7 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false 
 			'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
 		) );
 
-		return wc_gzd_dhl_im_get_product_list( $international );
+		return wc_gzd_dhl_im_get_product_list( $international, $parent_only );
 	}
 }
 
@@ -1553,7 +1557,7 @@ function wc_gzd_dhl_get_return_products_domestic() {
 }
 
 function wc_gzd_dhl_get_im_product_title( $product_name ) {
-	$title = sprintf( _x( 'Internetmarke %s', 'dhl', 'woocommerce-germanized-dhl' ), $product_name );
+	$title = $product_name;
 
 	return $title;
 }

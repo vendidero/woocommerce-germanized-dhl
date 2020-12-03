@@ -273,7 +273,7 @@ class ImWarenpostIntRest extends Rest {
 			case '201':
 				break;
 			default:
-				throw new Exception( _x( 'Error while during request.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( _x( 'Error during Warenpost International request.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	}
 

@@ -77,6 +77,8 @@ class Internetmarke {
 	public function auth() {
 		if ( Package::get_internetmarke_username() && Package::get_internetmarke_password() ) {
 			try {
+				$this->errors->remove( 'authentication' );
+
 				$this->user = $this->api->authenticateUser( Package::get_internetmarke_username(), Package::get_internetmarke_password() );
 			} catch( \Exception $e ) {
 				$this->errors->add( 'authentication', _x( 'Wrong username or password', 'dhl', 'woocommerce-germanized-dhl' ) );
@@ -112,6 +114,14 @@ class Internetmarke {
 		$error = $this->errors->get_error_message( 'startup' );
 
 		return $error;
+	}
+
+	public function has_errors() {
+		return wc_gzd_dhl_wp_error_has_errors( $this->errors ) ? true : false;
+	}
+
+	public function get_errors() {
+		return wc_gzd_dhl_wp_error_has_errors( $this->errors ) ? $this->errors : false;
 	}
 
 	public function is_available() {
