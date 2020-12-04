@@ -1457,8 +1457,8 @@ class Settings {
 
 	public static function get_sections() {
 		$sections = array(
-			''              => _x( 'General', 'dhl', 'woocommerce-germanized-dhl' ),
-			'labels'        => _x( 'Labels', 'dhl', 'woocommerce-germanized-dhl' ),
+			''              => _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' ),
+			'labels'        => _x( 'DHL Labels', 'dhl', 'woocommerce-germanized-dhl' ),
 			'internetmarke' => _x( 'Internetmarke', 'dhl', 'woocommerce-germanized-dhl' ),
 			'services'      => _x( 'Preferred Services', 'dhl', 'woocommerce-germanized-dhl' ),
 			'pickup'        => _x( 'Parcel Pickup', 'dhl', 'woocommerce-germanized-dhl' ),
