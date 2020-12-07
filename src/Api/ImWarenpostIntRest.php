@@ -147,7 +147,9 @@ class ImWarenpostIntRest extends Rest {
 			)
 		);
 
-		if ( ! apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_transmit_communication_data', false ) ) {
+		$transmit_data = 'yes' === Package::get_setting( 'label_force_email_transfer' );
+
+		if ( ! apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_transmit_communication_data', $transmit_data ) ) {
 			if ( $is_return ) {
 				$request_data['senderPhone'] = '';
 				$request_data['senderEmail'] = '';

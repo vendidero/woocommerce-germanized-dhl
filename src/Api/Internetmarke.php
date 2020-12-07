@@ -726,6 +726,14 @@ class Internetmarke {
 
 			$timeout_seconds = 5;
 
+			if ( ! function_exists( 'download_url' ) ) {
+				include_once( ABSPATH . 'wp-admin/includes/file.php' );
+			}
+
+			if ( ! function_exists( 'download_url' ) ) {
+				throw new \Exception( _x( 'Error while downloading the PDF stamp.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			}
+
 			// Download file to temp dir.
 			$temp_file = download_url( $stamp->link, $timeout_seconds );
 
