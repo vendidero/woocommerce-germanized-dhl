@@ -35,10 +35,32 @@ class ImProductList {
 		$this->products = $products;
 	}
 
+	public function get_default_available_products() {
+		return array(
+			'11',
+			'21',
+			'31',
+			'282',
+			'290',
+			'10246',
+			'10247',
+			'10248',
+			'10249',
+			'10254',
+			'10255',
+			'10256',
+			'10257',
+		);
+	}
+
 	protected function load_available_products() {
 		global $wpdb;
 
 		$available_products = Package::get_setting( 'im_available_products' );
+
+		if ( empty( $available_products ) ) {
+			$available_products = $this->get_default_available_products();
+		}
 
 		if ( ! empty( $available_products ) ) {
 			$available_products = array_filter( array_map( 'absint', $available_products ) );

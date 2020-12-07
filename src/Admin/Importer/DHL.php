@@ -13,8 +13,9 @@ class DHL {
 	public static function is_available() {
 		$options  = get_option( 'woocommerce_pr_dhl_paket_settings' );
 		$imported = get_option( 'woocommerc_gzd_dhl_import_finished' );
+		$user     = get_option( 'woocommerce_gzd_dhl_account_number' );
 
-		return ( ( ! empty( $options ) && 'yes' !== $imported && Package::base_country_is_supported() ) ? true : false );
+		return ( ( ! empty( $options ) && empty( $user ) && 'yes' !== $imported && Package::base_country_is_supported() ) ? true : false );
 	}
 
 	public static function is_plugin_enabled() {

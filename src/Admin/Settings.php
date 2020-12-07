@@ -1197,6 +1197,28 @@ class Settings {
 	public static function get_internetmarke_default_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array(
+				'title'             => _x( 'Default weight (kg)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => _x( 'Choose a default shipment weight to be used for labels if no weight has been applied to the shipment.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => true,
+				'id' 		        => 'woocommerce_gzd_deutsche_post_label_default_shipment_weight',
+				'default'           => '',
+				'css'               => 'max-width: 60px;',
+				'class'             => 'wc_input_decimal',
+			),
+
+			array(
+				'title'             => _x( 'Minimum weight (kg)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => _x( 'Choose a minimum weight to be used for labels e.g. to prevent low shipment weight errors.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => true,
+				'id' 		        => 'woocommerce_gzd_deutsche_post_label_minimum_shipment_weight',
+				'default'           => '0.01',
+				'css'               => 'max-width: 60px;',
+				'class'             => 'wc_input_decimal',
+			),
+
+			array(
 				'title'             => _x( 'Domestic Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'default'           => '',
@@ -1337,7 +1359,7 @@ class Settings {
 						'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) . '</div>',
 						'type'     => 'multiselect',
 						'options'  => self::get_products(),
-						'default'  => self::get_internetmarke_default_available_products(),
+						'default'  => $api->get_default_available_products(),
 					),
 				) );
 
@@ -1380,24 +1402,6 @@ class Settings {
 
 	public static function get_settings_url( $section = '' ) {
 		return admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=' . $section );
-	}
-
-	protected static function get_internetmarke_default_available_products() {
-		return array(
-			'11',
-			'21',
-			'31',
-			'282',
-			'290',
-			'10246',
-			'10247',
-			'10248',
-			'10249',
-			'10254',
-			'10255',
-			'10256',
-			'10257',
-		);
 	}
 
 	protected static function get_products() {

@@ -303,8 +303,10 @@ class Package {
 					unset( $p_settings[ $setting ] );
 				} elseif ( self::get_setting( $setting ) === $value ) {
 					unset( $p_settings[ $setting ] );
+				} elseif( ''  === $value ) {
+					unset( $p_settings[ $setting ] );
 				}
-			}
+ 			}
 		}
 
 		return $p_settings;

@@ -13,8 +13,9 @@ class Internetmarke {
 	public static function is_available() {
 		$options  = get_option( '_wcdpi_settings_general' );
 		$imported = get_option( 'woocommerce_gzd_internetmarke_import_finished' );
+		$user     = get_option( 'woocommerce_gzd_dhl_im_api_username' );
 
-		return ( ( ! empty( $options ) && 'yes' !== $imported && Package::base_country_is_supported() ) ? true : false );
+		return ( ( ! empty( $options ) && empty( $user ) && 'yes' !== $imported && Package::base_country_is_supported() ) ? true : false );
 	}
 
 	public static function is_plugin_enabled() {

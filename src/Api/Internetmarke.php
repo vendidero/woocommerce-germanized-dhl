@@ -197,6 +197,12 @@ class Internetmarke {
 		return $this->products->get_base_products();
 	}
 
+	public function get_default_available_products() {
+		$this->load_products();
+
+		return $this->products->get_default_available_products();
+	}
+
 	public function get_available_products( $filters = array() ) {
 		$this->load_products();
 
