@@ -39,6 +39,8 @@ class ParcelLocator {
 		add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_refresh_shipping_data', array( __CLASS__, 'ajax_refresh_shipping_data' ) );
 		add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_refresh_shipping_data', array( __CLASS__, 'ajax_refresh_shipping_data' ) );
 
+		add_filter( 'woocommerce_checkout_posted_data', array( __CLASS__, 'format_address_data' ), 10 );
+
 		// Shipment Pickup
 		add_filter( 'woocommerce_gzd_shipment_send_to_external_pickup', array( __CLASS__, 'shipment_has_pickup' ), 10, 3 );
 
@@ -165,7 +167,7 @@ class ParcelLocator {
 			return '';
 		}
 
-		return $value;
+		return self::remove_whitespace( $value );
 	}
 
 	public static function validate_address_fields( $value ) {
@@ -241,7 +243,7 @@ class ParcelLocator {
 			}
 		}
 
-		return $postnumber;
+		return self::remove_whitespace( $postnumber );
 	}
 
 	/**
@@ -533,6 +535,18 @@ class ParcelLocator {
 
 		if ( WC()->session ) {
 			WC()->session->set( 'dhl_shipping_method_data', $data );
+		}
+
+		return $data;
+	}
+
+	protected static function remove_whitespace( $str ) {
+		return trim( preg_replace('/\s+/', '', $str ) );
+	}
+
+	public static function format_address_data( $data ) {
+		if ( isset( $data['shipping_dhl_postnumber'] ) ) {
+			$data['shipping_dhl_postnumber'] = self::remove_whitespace( $data['shipping_dhl_postnumber'] );
 		}
 
 		return $data;
