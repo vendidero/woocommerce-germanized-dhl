@@ -1412,6 +1412,9 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
 		if ( 'return' === $label_type ) {
 			$args = wp_parse_args( $args, wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) );
 			$args = wc_gzd_dhl_validate_return_label_args( $shipment, $args );
+		} elseif ( in_array( $label_type, array( 'deutsche_post', 'deutsche_post_return' ) ) ) {
+			$args = wp_parse_args( $args, wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment ) );
+			$args = wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args );
 		} else {
 			$args = wp_parse_args( $args, wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) );
 			$args = wc_gzd_dhl_validate_label_args( $shipment, $args );

@@ -23,6 +23,7 @@ class ReturnLabel extends Label implements ShipmentReturnLabel {
 		'original_url'   => '',
 		'manifest_url'   => '',
 		'parent_id'      => 0,
+		'receiver_slug'  => '',
 		'sender_address' => array()
 	);
 

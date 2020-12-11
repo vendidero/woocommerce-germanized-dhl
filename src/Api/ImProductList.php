@@ -379,10 +379,10 @@ class ImProductList {
 	public function update() {
 		global $wpdb;
 
-		$product_soap = new ImProductsSoap();
-		$result       = new \WP_Error();
+		$result = new \WP_Error();
 
 		try {
+			$product_soap = new ImProductsSoap();
 			$product_list = $product_soap->getProducts();
 
 			$wpdb->query( "TRUNCATE TABLE {$wpdb->gzd_dhl_im_products}" );
