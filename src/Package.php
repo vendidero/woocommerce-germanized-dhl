@@ -753,11 +753,14 @@ class Package {
 	     */
 	    foreach( $required_files as $file ) {
 		    $transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $file );
+		    $file_path = get_transient( $transient );
 
-		    if ( ( $file_path = get_transient( $transient ) ) && file_exists( $file_path ) ) {
+		    if ( $file_path ) {
+			    $file_path = self::get_file_by_path( $file_path );
+		    }
 
-		    } else {
-		    	$files_exist = false;
+		    if ( ! $file_path || ! file_exists( $file_path ) ) {
+			    $files_exist = false;
 		    }
 	    }
 
@@ -785,7 +788,19 @@ class Package {
 		    }
 
 		    if ( function_exists( 'download_url' ) && function_exists( 'unzip_file' ) ) {
-			    $tmp_file = download_url( $file_link );
+			    /**
+			     * Some URLs like https://prodws.deutschepost.de:8443/ProdWSProvider_1_1/prodws?wsdl might
+                 * be rejected due to not using standard SSL ports, e.g.: 8443. Allow them anyway.
+			     */
+		        add_filter( 'http_request_args', function( $args, $url ) use ( $file_link ) {
+		            if ( $url === $file_link ) {
+		                $args['reject_unsafe_urls'] = false;
+                    }
+
+		            return $args;
+                }, 10, 2 );
+
+			    $tmp_file = download_url( $file_link, 1500 );
 
 			    if ( ! is_wp_error( $tmp_file ) ) {
 
