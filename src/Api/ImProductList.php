@@ -382,7 +382,7 @@ class ImProductList {
 		$result = new \WP_Error();
 
 		try {
-			$product_soap = new ImProductsSoap( array(), Package::get_wsdl_file( 'https://prodws.deutschepost.de:8443/ProdWSProvider_1_1/prodws?wsdl' ) );
+			$product_soap = new ImProductsSoap( array(), Package::get_wsdl_file( Package::get_internetmarke_products_url() ) );
 			$product_list = $product_soap->getProducts();
 
 			$wpdb->query( "TRUNCATE TABLE {$wpdb->gzd_dhl_im_products}" );

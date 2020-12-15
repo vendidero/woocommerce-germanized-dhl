@@ -16,7 +16,7 @@ class ImWarenpostIntRest extends Rest {
 	}
 
 	public function get_base_url() {
-		return self::is_sandbox() ? 'https://api-qa.deutschepost.com' : 'https://api.deutschepost.com';
+		return self::is_sandbox() ? 'https://api-qa.deutschepost.com' : Package::get_warenpost_international_rest_url();
 	}
 
 	public function get_pdf( $awb ) {
@@ -172,8 +172,6 @@ class ImWarenpostIntRest extends Rest {
 	protected function get_user_token() {
 		$user_token = false;
 
-		delete_transient( 'woocommerce_gzd_im_wp_int_user_token' );
-
 		if ( get_transient( 'woocommerce_gzd_im_wp_int_user_token' ) ) {
 			$user_token = get_transient( 'woocommerce_gzd_im_wp_int_user_token' );
 		} else {
@@ -291,6 +289,10 @@ class ImWarenpostIntRest extends Rest {
 					foreach( $response_body->messages as $message ) {
 						$error_message .= ( ! empty( $error_message ) ? ', ' : '' ) . $message;
 					}
+				}
+
+				if ( empty( $error_message ) ) {
+					$error_message = $response_code;
 				}
 
 				throw new Exception( sprintf( _x( 'Error during request: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) );

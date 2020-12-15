@@ -431,6 +431,22 @@ class Package {
     	return 'https://www.dhl-geschaeftskundenportal.de';
     }
 
+    public static function get_internetmarke_main_url() {
+        return 'https://internetmarke.deutschepost.de/OneClickForAppV3?wsdl';
+    }
+
+    public static function get_warenpost_international_rest_url() {
+        return 'https://api.deutschepost.com';
+    }
+
+    public static function get_internetmarke_products_url() {
+        return 'https://prodws.deutschepost.de:8443/ProdWSProvider_1_1/prodws?wsdl';
+    }
+
+    public static function get_internetmarke_refund_url() {
+        return 'https://internetmarke.deutschepost.de/OneClickForRefund?wsdl';
+    }
+
     public static function get_internetmarke_partner_id() {
     	return 'AVHGE';
     }

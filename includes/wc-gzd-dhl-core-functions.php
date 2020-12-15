@@ -42,16 +42,18 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 	$item_description = '';
 	$total_weight     = $label->get_weight();
 	$item_weights     = array();
+	$shipment_items   = $shipment->get_items();
 
-	foreach ( $shipment->get_items() as $key => $item ) {
-		$per_item_weight = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
+	foreach ( $shipment_items as $key => $item ) {
+		$per_item_weight     = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
+		$per_item_min_weight = 0.01 * $item->get_quantity();
 
 		/**
 		 * Set min weight to 0.01 to prevent missing weight error messages
 		 * for really small product weights.
 		 */
-		if ( $per_item_weight <= 0 ) {
-			$per_item_weight = '0.01';
+		if ( $per_item_weight < $per_item_min_weight ) {
+			$per_item_weight = $per_item_min_weight;
 		}
 
 		$item_weights[ $key ] = $per_item_weight;
@@ -75,6 +77,9 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 
 			if ( abs( $per_item_diff_rounded ) > 0 ) {
 				foreach( $item_weights as $key => $weight ) {
+					$shipment_item      = $shipment_items[ $key ];
+					$item_min_weight    = 0.01 * $shipment_item->get_quantity();
+
 					$item_weight_before = $item_weights[ $key ];
 					$new_item_weight    = $item_weights[ $key ] += $per_item_diff_rounded;
 					$item_diff_applied  = $per_item_diff;
@@ -83,9 +88,9 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 					 * In case the diff is negative make sure we are not
 					 * subtracting more than available as min weight per item.
 					 */
-					if ( $new_item_weight <= 0.01 ) {
-						$new_item_weight   = 0.01;
-						$item_diff_applied = 0.01 - $item_weight_before;
+					if ( $new_item_weight <= $item_min_weight ) {
+						$new_item_weight   = $item_min_weight;
+						$item_diff_applied = $item_min_weight - $item_weight_before;
 					}
 
 					$item_weights[ $key ] = $new_item_weight;
@@ -97,6 +102,9 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 
 			if ( abs( $diff_left ) > 0 ) {
 				foreach( $item_weights as $key => $weight ) {
+					$shipment_item   = $shipment_items[ $key ];
+					$item_min_weight = 0.01 * $shipment_item->get_quantity();
+
 					if ( $diff_left > 0 ) {
 						/**
 						 * Add the diff left to the first item and stop.
@@ -107,7 +115,7 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 						/**
 						 * Remove the diff left from the first item with a weight greater than 0.01 to prevent 0 weights.
 						 */
-						if ( $weight > 0.01 ) {
+						if ( $weight > $item_min_weight ) {
 							$item_weights[ $key ] += $diff_left;
 							break;
 						}
@@ -134,7 +142,10 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 			'countryCodeOrigin'   => ( $dhl_product && $dhl_product->get_manufacture_country() ) ? $dhl_product->get_manufacture_country() : Package::get_base_country(),
 			'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
 			'amount'              => intval( $item->get_quantity() ),
-			'netWeightInKG'       => wc_format_decimal( $item_weights[ $key ], 2 ),
+			/**
+			 * netWeightInKG is defined as the weight per item (e.g. 2 items in case the quantity equals 2).
+			 */
+			'netWeightInKG'       => wc_format_decimal( ( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
 			'customsValue'        => wc_format_decimal( $product_total, 2 )
 		);
 

@@ -13,7 +13,7 @@ class ImProductsSoap extends \SoapClient {
 		$options = array_merge( array( 'features' => SOAP_SINGLE_ELEMENT_ARRAYS ), $options );
 
 		if ( $wsdl === null ) {
-			$wsdl = 'https://prodws.deutschepost.de:8443/ProdWSProvider_1_1/prodws?wsdl';
+			$wsdl = Package::get_internetmarke_products_url();
 		}
 
 		parent::__construct( $wsdl, $options );

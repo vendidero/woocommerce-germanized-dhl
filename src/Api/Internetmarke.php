@@ -64,7 +64,7 @@ class Internetmarke {
 				throw new \Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ) );
 			}
 
-			$this->api = new Service( $this->partner, array(), Package::get_wsdl_file( 'https://internetmarke.deutschepost.de/OneClickForAppV3?wsdl' ) );
+			$this->api = new Service( $this->partner, array(), Package::get_wsdl_file( Package::get_internetmarke_main_url() ) );
 		} catch( \Exception $e ) {
 			$this->errors->add( 'startup', sprintf( _x( 'Error while instantiating main Internetmarke API: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
 		}
@@ -522,7 +522,7 @@ class Internetmarke {
 
 	public function get_refund_api() {
 		if ( is_null( $this->refund_api ) ) {
-			$this->refund_api = new ImRefundSoap( $this->partner, array(), Package::get_wsdl_file( 'https://internetmarke.deutschepost.de/OneClickForRefund?wsdl' ) );
+			$this->refund_api = new ImRefundSoap( $this->partner, array(), Package::get_wsdl_file( Package::get_internetmarke_refund_url() ) );
 		}
 
 		return $this->refund_api;

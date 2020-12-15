@@ -49,6 +49,8 @@ class Admin {
 
 		add_action( 'admin_init', array( __CLASS__, 'refresh_im_data' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'refresh_im_notices' ) );
+
+		Status::init();
 	}
 
 	public static function refresh_im_notices() {

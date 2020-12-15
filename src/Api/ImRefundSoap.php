@@ -20,7 +20,7 @@ class ImRefundSoap extends \SoapClient {
 		$options                   = array_merge( array( 'features' => SOAP_SINGLE_ELEMENT_ARRAYS ), $options );
 
 		if ( $wsdl === null ) {
-			$wsdl = 'https://internetmarke.deutschepost.de/OneClickForRefund?wsdl';
+			$wsdl = Package::get_internetmarke_refund_url();
 		}
 
 		parent::__construct( $wsdl, $options );
