@@ -7,7 +7,7 @@
   "prefer-stable": true,
   "minimum-stability": "dev",
   "require": {
-    "automattic/jetpack-autoloader": "^2.2.0",
+    "automattic/jetpack-autoloader": "2.6.0",
     "baltpeter/internetmarke-php": "^0.5.0",
     "wsdltophp/wssecurity": "^1.1"
   },
