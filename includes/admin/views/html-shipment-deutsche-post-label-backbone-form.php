@@ -10,11 +10,17 @@ use Vendidero\Germanized\DHL\Package;
 
 $default_args        = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
 $im_products         = wc_gzd_dhl_get_deutsche_post_products( $shipment );
-$selected_product    = isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : array_key_first( $im_products );
+$im_all_products     = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
+$default_product     = isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : array_keys( $im_all_products )[0];
+$selected_product    = isset( $im_all_products[ $default_product ] ) ? $default_product : array_keys( $im_all_products )[0];
 $selected_product_id = 0;
 $is_wp_int           = false;
+$selected_services   = array();
 
 if ( ! empty( $selected_product ) ) {
+    $selected_services   = Package::get_internetmarke_api()->get_product_services( $selected_product );
+	$selected_product    = Package::get_internetmarke_api()->get_product_parent_code( $selected_product );
+
 	$is_wp_int           = Package::get_internetmarke_api()->is_warenpost_international( $selected_product );
     $selected_product_id = Package::get_internetmarke_api()->get_product_id( $selected_product );
 }
@@ -42,9 +48,7 @@ if ( ! empty( $selected_product ) ) {
 
         <div class="wc-gzd-shipment-im-additional-services">
             <?php
-                $product_id        = $selected_product_id;
-                $selected_services = isset( $default_args['additional_services'] ) ? $default_args['additional_services'] : array();
-
+                $product_id = $selected_product_id;
                 include( Package::get_path() . '/includes/admin/views/html-deutsche-post-additional-services.php' );
             ?>
         </div>

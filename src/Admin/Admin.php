@@ -56,7 +56,7 @@ class Admin {
 	public static function refresh_im_notices() {
 	    if ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['im-refresh-type'] ) ) {
 	        ?>
-            <div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' ); ?>"><p><?php echo ( isset( $_GET['success'] ) ? _x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : sprintf( _x( 'Error while refreshing data. Please check your Internetmarke <a href="%s">logs</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-status&tab=logs' ) ) ); ?></p></div>
+            <div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' ); ?>"><p><?php echo ( isset( $_GET['success'] ) ? _x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : sprintf( _x( 'Error while refreshing data. Please make sure that the Internetmarke API URL can be <a href="%s">accessed</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-status&tab=dhl' ) ) ); ?></p></div>
             <?php
         }
     }

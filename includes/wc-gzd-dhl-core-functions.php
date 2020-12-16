@@ -1002,14 +1002,28 @@ function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false, $par
 }
 
 function wc_gzd_dhl_im_get_product_list( $products, $parent_only = true ) {
-	$list = array();
+	$list                       = array();
+	$additional_parent_products = array();
 
 	foreach( $products as $product ) {
 		if ( $parent_only && $product->product_parent_id > 0 ) {
+			$additional_parent_products[] = $product->product_parent_id;
 			continue;
 		}
 
 		$list[ $product->product_code ] = wc_gzd_dhl_get_im_product_title( $product->product_name );
+	}
+
+	$additional_parent_products = array_unique( $additional_parent_products );
+
+	if ( ! empty( $additional_parent_products ) ) {
+		foreach( $additional_parent_products as $product_id ) {
+			$product = Package::get_internetmarke_api()->get_product_data( $product_id );
+
+			if ( ! array_key_exists( $product->product_code, $list ) ) {
+				$list[ $product->product_code ] = wc_gzd_dhl_get_im_product_title( $product->product_name );
+			}
+		}
 	}
 
 	return $list;
