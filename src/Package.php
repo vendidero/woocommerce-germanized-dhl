@@ -23,7 +23,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.4.2';
+    const VERSION = '1.4.3';
 
     public static $upload_dir_suffix = '';
 
@@ -768,8 +768,8 @@ class Package {
 	     * Check if all required files exist locally
 	     */
 	    foreach( $required_files as $file ) {
-		    $transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $file );
-		    $file_path = get_transient( $transient );
+		    $inner_transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $file );
+		    $file_path       = get_transient( $inner_transient );
 
 		    if ( $file_path ) {
 			    $file_path = self::get_file_by_path( $file_path );
