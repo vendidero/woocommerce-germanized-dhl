@@ -498,9 +498,15 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 	$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
 
 	/**
+	 * Force the product to check to parent id because some services might not be explicitly added as
+	 * available products.
+	 */
+	$im_parent_code = Package::get_internetmarke_api()->get_product_parent_code( $args['dhl_product'] );
+
+	/**
 	 * Check whether the product might not be available for the current shipment
 	 */
-	if ( ! array_key_exists( $args['dhl_product'], $available_products ) ) {
+	if ( ! array_key_exists( $im_parent_code, $available_products ) ) {
 		if ( empty( $available_products ) ) {
 			$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( \Vendidero\Germanized\DHL\Admin\Settings::get_settings_url( 'internetmarke' ) ) ) );
 		} else {
