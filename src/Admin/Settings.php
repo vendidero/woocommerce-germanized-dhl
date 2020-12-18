@@ -459,15 +459,7 @@ class Settings {
 					'id' 		        => 'woocommerce_gzd_dhl_label_force_email_transfer',
 					'default'	        => 'no',
 					'type' 		        => 'gzd_toggle',
-				),
-				array(
-					'title' 	        => _x( 'Street number', 'dhl', 'woocommerce-germanized-dhl' ),
-					'desc' 		        => _x( 'Force existence of a street number within the first address field during checkout for EU countries.', 'dhl', 'woocommerce-germanized-dhl' ),
-					'desc_tip'          => _x( 'Enabling this option will force a street number to be provided during checkout within the first address field to prevent missing or wrong data sets.', 'dhl', 'woocommerce-germanized-dhl' ),
-					'id' 		        => 'woocommerce_gzd_dhl_label_checkout_validate_street_number_address',
-					'default'	        => 'no',
-					'type' 		        => 'gzd_toggle',
-				),
+				)
 			) );
 		}
 
@@ -707,53 +699,20 @@ class Settings {
 		return $new_settings;
 	}
 
-	protected static function get_label_settings() {
-
+	protected static function get_address_settings() {
 		$settings = array(
-			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_label_options', 'desc' => sprintf( _x( 'Adjust options for label creation. Settings may be overridden by more specific %s settings.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=shipping' ) . '" target="_blank">' . _x(  'shipping method', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
-		);
+			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_address_options' ),
 
-		$settings = array_merge( $settings, self::get_label_default_settings() );
+			array(
+				'title' 	        => _x( 'Street number', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Force existence of a street number within the first address field during checkout for EU countries.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => _x( 'Enabling this option will force a street number to be provided during checkout within the first address field to prevent missing or wrong data sets.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		        => 'woocommerce_gzd_dhl_label_checkout_validate_street_number_address',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
 
-		$settings = array_merge( $settings, array(
-			array( 'type' => 'sectionend', 'id' => 'dhl_label_options' ),
-		) );
-
-		$settings = array_merge( $settings, array(
-			array( 'title' => _x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_retoure_options', 'desc' => sprintf( _x(  'Adjust handling of return shipments through the DHL Retoure API. Make sure that your %s contains DHL Retoure Online.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '">' . _x(  'contract', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
-		) );
-
-		$settings = array_merge( $settings, self::get_retoure_settings() );
-
-		$settings = array_merge( $settings, array(
-			array( 'type' => 'sectionend', 'id' => 'dhl_retoure_options' ),
-		) );
-
-		if ( Package::base_country_supports( 'services' ) ) {
-
-			$settings = array_merge( $settings, array(
-				array( 'title' => _x( 'Default Services', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_label_default_services_options', 'desc' => sprintf( _x(  'Adjust services to be added to your labels by default. Find out more about these %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://www.dhl.de/de/geschaeftskunden/paket/leistungen-und-services/services/service-loesungen.html" target="_blank">' . _x(  'nationwide services', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
-			) );
-
-			$settings = array_merge( $settings, self::get_label_default_services_settings() );
-
-			$settings = array_merge( $settings, array(
-				array( 'type' => 'sectionend', 'id' => 'dhl_label_default_services_options' ),
-			) );
-
-		}
-
-		$settings = array_merge( $settings, array(
-			array( 'title' => _x( 'Automation', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_automation_options', 'desc' => _x(  'Choose whether and under which conditions labels for your shipments shall be requested and generated automatically.', 'dhl', 'woocommerce-germanized-dhl' ) ),
-		) );
-
-		$settings = array_merge( $settings, self::get_automation_settings() );
-
-		$settings = array_merge( $settings, array(
-			array( 'type' => 'sectionend', 'id' => 'dhl_automation_options' ),
-		) );
-
-		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'dhl_address_options' ),
 
 			array( 'title' => _x( 'Shipper Address', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_shipper_address_options' ),
 
@@ -892,6 +851,58 @@ class Settings {
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_return_address_options' ),
+		);
+
+		return $settings;
+	}
+
+	protected static function get_label_settings() {
+
+		$settings = array(
+			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_label_options', 'desc' => sprintf( _x( 'Adjust options for label creation. Settings may be overridden by more specific %s settings.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=shipping' ) . '" target="_blank">' . _x(  'shipping method', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
+		);
+
+		$settings = array_merge( $settings, self::get_label_default_settings() );
+
+		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'dhl_label_options' ),
+		) );
+
+		$settings = array_merge( $settings, array(
+			array( 'title' => _x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_retoure_options', 'desc' => sprintf( _x(  'Adjust handling of return shipments through the DHL Retoure API. Make sure that your %s contains DHL Retoure Online.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '">' . _x(  'contract', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
+		) );
+
+		$settings = array_merge( $settings, self::get_retoure_settings() );
+
+		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'dhl_retoure_options' ),
+		) );
+
+		if ( Package::base_country_supports( 'services' ) ) {
+
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'Default Services', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_label_default_services_options', 'desc' => sprintf( _x(  'Adjust services to be added to your labels by default. Find out more about these %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://www.dhl.de/de/geschaeftskunden/paket/leistungen-und-services/services/service-loesungen.html" target="_blank">' . _x(  'nationwide services', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
+			) );
+
+			$settings = array_merge( $settings, self::get_label_default_services_settings() );
+
+			$settings = array_merge( $settings, array(
+				array( 'type' => 'sectionend', 'id' => 'dhl_label_default_services_options' ),
+			) );
+
+		}
+
+		$settings = array_merge( $settings, array(
+			array( 'title' => _x( 'Automation', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_automation_options', 'desc' => _x(  'Choose whether and under which conditions labels for your shipments shall be requested and generated automatically.', 'dhl', 'woocommerce-germanized-dhl' ) ),
+		) );
+
+		$settings = array_merge( $settings, self::get_automation_settings() );
+
+		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'dhl_automation_options' ),
+		) );
+
+		$settings = array_merge( $settings, array(
 
 			array( 'title' => _x( 'Bank Account', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_bank_account_options', 'desc' => _x(  'Enter your bank details needed for services that use COD.', 'dhl', 'woocommerce-germanized-dhl' ) ),
 
@@ -1448,6 +1459,8 @@ class Settings {
 			$settings = self::get_general_settings();
 		} elseif( 'labels' === $current_section ) {
 			$settings = self::get_label_settings();
+		} elseif( 'addresses' === $current_section ) {
+			$settings = self::get_address_settings();
 		} elseif( 'services' === $current_section && Package::base_country_supports( 'services' ) ) {
 			$settings = self::get_service_settings();
 		} elseif( 'pickup' === $current_section && Package::base_country_supports( 'pickup' ) ) {
@@ -1462,8 +1475,9 @@ class Settings {
 	public static function get_sections() {
 		$sections = array(
 			''              => _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' ),
-			'labels'        => _x( 'DHL Labels', 'dhl', 'woocommerce-germanized-dhl' ),
+			'labels'        => _x( 'Labels', 'dhl', 'woocommerce-germanized-dhl' ),
 			'internetmarke' => _x( 'Internetmarke', 'dhl', 'woocommerce-germanized-dhl' ),
+			'addresses'     => _x( 'Addresses', 'dhl', 'woocommerce-germanized-dhl' ),
 			'services'      => _x( 'Preferred Services', 'dhl', 'woocommerce-germanized-dhl' ),
 			'pickup'        => _x( 'Parcel Pickup', 'dhl', 'woocommerce-germanized-dhl' ),
 		);
