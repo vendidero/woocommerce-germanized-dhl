@@ -156,8 +156,6 @@ class Order {
 	}
 
 	/**
-	 * @TODO: Add setting to override checkbox check.
-	 *
 	 * @return bool
 	 */
 	public function supports_email_notification() {
