@@ -544,25 +544,28 @@ class LabelSoap extends Soap {
 	    if ( ! empty( $shipper_reference ) ) {
 		    $dhl_label_body['ShipmentOrder']['Shipment']['ShipperReference'] = $shipper_reference;
 	    } else {
+	    	$name1 = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_name' ), $label );
+	    	$name2 = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_name' ) : '', $label );
+
 		    $dhl_label_body['ShipmentOrder']['Shipment']['Shipper'] = array(
 			    'Name'      => array(
-				    'name1' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_name' ),
-				    'name2' => Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_name' ) : '',
+				    'name1' => $name1,
+				    'name2' => $name2,
 			    ),
 			    'Address'   => array(
-				    'streetName'   => Package::get_setting( 'shipper_street' ),
-				    'streetNumber' => Package::get_setting( 'shipper_street_no' ),
-				    'zip'          => Package::get_setting( 'shipper_postcode' ),
-				    'city'         => Package::get_setting( 'shipper_city' ),
+				    'streetName'   => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_name', Package::get_setting( 'shipper_street' ), $label ),
+				    'streetNumber' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', Package::get_setting( 'shipper_street_no' ), $label ),
+				    'zip'          => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', Package::get_setting( 'shipper_postcode' ), $label ),
+				    'city'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', Package::get_setting( 'shipper_city' ), $label ),
 				    'Origin'       => array(
-					    'countryISOCode' => Package::get_setting( 'shipper_country' ),
-					    'state'          => wc_gzd_dhl_format_label_state( Package::get_setting( 'shipper_state' ), Package::get_setting( 'shipper_country' ) ),
+					    'countryISOCode' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_country', Package::get_setting( 'shipper_country' ), $label ),
+					    'state'          => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_state', wc_gzd_dhl_format_label_state( Package::get_setting( 'shipper_state' ), Package::get_setting( 'shipper_country' ) ), $label ),
 				    )
 			    ),
 			    'Communication' => array(
-				    'phone'         => Package::get_setting( 'shipper_phone' ),
-				    'email'         => Package::get_setting( 'shipper_email' ),
-				    'contactPerson' => Package::get_setting( 'shipper_name' ),
+				    'phone'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_phone', Package::get_setting( 'shipper_phone' ), $label ),
+				    'email'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_email', Package::get_setting( 'shipper_email' ), $label ),
+				    'contactPerson' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_contact_person', Package::get_setting( 'shipper_name' ), $label ),
 			    )
 		    );
 	    }
