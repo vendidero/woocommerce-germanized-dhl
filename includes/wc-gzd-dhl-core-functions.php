@@ -507,7 +507,10 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 	 * Check whether the product might not be available for the current shipment
 	 */
 	if ( ! array_key_exists( $im_parent_code, $available_products ) ) {
-		if ( empty( $available_products ) ) {
+		/**
+		 * In case no other products are available or this is a manual request - return error
+		 */
+		if ( empty( $available_products ) || ( is_admin() && current_user_can( 'manage_woocommerce' ) ) ) {
 			$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( \Vendidero\Germanized\DHL\Admin\Settings::get_settings_url( 'internetmarke' ) ) ) );
 		} else {
 			/**
