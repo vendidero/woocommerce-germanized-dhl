@@ -453,9 +453,9 @@ class LabelSoap extends Soap {
                         'shipmentDate'      => Package::get_date_de_timezone( 'Y-m-d' ),
                         'ShipmentItem'      => array(
                             'weightInKG' => $label->get_weight(),
-	                        'lengthInCM' => $shipment->has_dimensions() ? wc_get_dimension( $shipment->get_length(), 'cm', $shipment->get_dimension_unit() ) : '',
-                            'widthInCM'  => $shipment->has_dimensions() ? wc_get_dimension( $shipment->get_width(), 'cm', $shipment->get_dimension_unit() ) : '',
-                            'heightInCM' => $shipment->has_dimensions() ? wc_get_dimension( $shipment->get_height(), 'cm', $shipment->get_dimension_unit() ) : '',
+	                        'lengthInCM' => $label->has_dimensions() ? $label->get_length() : '',
+                            'widthInCM'  => $label->has_dimensions() ? $label->get_width() : '',
+                            'heightInCM' => $label->has_dimensions() ? $label->get_height() : '',
                         ),
                         'Service'           => $services,
                         'Notification'      => $label->has_email_notification() ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),

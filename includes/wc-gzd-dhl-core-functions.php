@@ -953,6 +953,7 @@ function wc_gzd_dhl_get_service_product_attributes( $service ) {
 function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment ) {
 	$shipping_method    = $shipment->get_shipping_method();
 	$dp_shipping_method = wc_gzd_dhl_get_deutsche_post_shipping_method( $shipping_method );
+	$dimensions         = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 
 	$defaults = array(
 		'dhl_product'         => wc_gzd_dhl_get_deutsche_post_default_product( $shipment->get_country(), $dp_shipping_method ),
@@ -960,6 +961,9 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
 		'stamp_total'         => 0,
 		'additional_services' => array(),
 		'weight'              => wc_gzd_dhl_get_shipment_weight( $shipment ),
+		'length'              => $dimensions['length'],
+		'width'               => $dimensions['width'],
+		'height'              => $dimensions['height'],
 	);
 
 	if ( ! empty( $defaults['dhl_product'] ) ) {
@@ -1082,12 +1086,16 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 
 	$shipping_method     = $shipment->get_shipping_method();
 	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
+	$dimensions          = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 
 	$defaults = array(
 		'dhl_product'           => wc_gzd_dhl_get_default_product( $shipment->get_country(), $dhl_shipping_method ),
 		'services'              => array(),
 		'codeable_address_only' => Package::get_setting( 'label_address_codeable_only', $dhl_shipping_method ),
 		'weight'                => wc_gzd_dhl_get_shipment_weight( $shipment ),
+		'length'                => $dimensions['length'],
+		'width'                 => $dimensions['width'],
+		'height'                => $dimensions['height'],
 	);
 
 	if ( $dhl_order->supports_email_notification() ) {
@@ -1279,6 +1287,33 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 
 /**
  * @param Shipment $shipment
+ * @param string $dimension
+ * @param string $unit
+ */
+function wc_gzd_dhl_get_shipment_dimensions( $shipment, $unit = 'cm' ) {
+	$dimensions = array(
+		'length' => 0,
+		'width'  => 0,
+		'height' => 0,
+	);
+
+	if ( $shipment->has_dimensions() ) {
+		$dimensions = $shipment->get_package_dimensions();
+
+		if ( apply_filters( 'woocommerce_gzd_dhl_use_shipment_inner_dimensions', false, $shipment ) ) {
+			$dimensions = $shipment->get_dimensions();
+		}
+
+		foreach( $dimensions as $key => $data ) {
+			$dimensions[ $key ] = wc_get_dimension( $data, $unit, $shipment->get_dimension_unit() );
+		}
+	}
+
+	return apply_filters( 'woocommerce_gzd_dhl_shipment_dimensions', $dimensions, $shipment, $unit );
+}
+
+/**
+ * @param Shipment $shipment
  * @param string $unit
  *
  * @return float
@@ -1323,11 +1358,15 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 
 	$shipping_method     = $shipment->get_shipping_method();
 	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
+	$dimensions          = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 
 	$defaults = array(
 		'services'       => array(),
 		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country(), $dhl_shipping_method ),
 		'weight'         => wc_gzd_dhl_get_shipment_weight( $shipment ),
+		'length'         => $dimensions['length'],
+		'width'          => $dimensions['width'],
+		'height'         => $dimensions['height'],
 		'sender_address' => $shipment->get_sender_address(),
 	);
 
@@ -1364,7 +1403,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
 			$label_type = 'return' === $shipment_type ? 'deutsche_post_return' : 'deutsche_post';
 		}
 
-		$hook_suffix   = 'simple' === $label_type ? '' : $label_type . '_';
+		$hook_suffix = 'simple' === $label_type ? '' : $label_type . '_';
 
 		if ( 'return' === $label_type ) {
 			$args = wp_parse_args( $args, wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) );

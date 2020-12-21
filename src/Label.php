@@ -55,6 +55,9 @@ abstract class Label extends WC_Data implements ShipmentLabel {
         'shipment_id'                => 0,
         'number'                     => '',
         'weight'                     => '',
+        'length'                     => '',
+        'width'                      => '',
+        'height'                     => '',
         'path'                       => '',
         'default_path'               => '',
         'export_path'                => '',
@@ -156,6 +159,26 @@ abstract class Label extends WC_Data implements ShipmentLabel {
 	public function get_weight( $context = 'view' ) {
     	return $this->get_prop( 'weight', $context );
     }
+
+	public function get_length( $context = 'view' ) {
+		return $this->get_prop( 'length', $context );
+	}
+
+	public function get_width( $context = 'view' ) {
+		return $this->get_prop( 'width', $context );
+	}
+
+	public function get_height( $context = 'view' ) {
+		return $this->get_prop( 'height', $context );
+	}
+
+	public function has_dimensions() {
+		$width  = $this->get_width();
+		$length = $this->get_length();
+		$height = $this->get_height();
+
+		return ( ! empty( $width ) && ! empty( $length ) && ! empty( $height ) );
+	}
 
     public function get_tracking_url() {
 
@@ -259,6 +282,18 @@ abstract class Label extends WC_Data implements ShipmentLabel {
 
 	public function set_weight( $weight ) {
 		$this->set_prop( 'weight','' !== $weight ? wc_format_decimal( $weight ) : '' );
+	}
+
+	public function set_width( $width ) {
+		$this->set_prop( 'width','' !== $width ? wc_format_decimal( $width ) : '' );
+	}
+
+	public function set_length( $length ) {
+		$this->set_prop( 'length','' !== $length ? wc_format_decimal( $length ) : '' );
+	}
+
+	public function set_height( $height ) {
+		$this->set_prop( 'height','' !== $height ? wc_format_decimal( $height ) : '' );
 	}
 
     public function set_path( $path ) {
