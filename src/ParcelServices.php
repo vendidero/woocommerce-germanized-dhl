@@ -114,6 +114,9 @@ class ParcelServices {
 		}
 	}
 
+	/**
+	 * @param \WC_Cart $cart
+	 */
 	public static function add_fees( $cart ) {
 		if ( ! $_POST || ( is_admin() && ! is_ajax() ) ) {
 			return;
@@ -132,7 +135,7 @@ class ParcelServices {
 			try {
 				if ( ! empty( $data['preferred_day'] ) ) {
 					if ( ! empty( $data['preferred_day_cost'] ) ) {
-						$cart->add_fee( _x( 'DHL Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_day_cost'] );
+						$cart->add_fee( _x( 'DHL Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_day_cost'], true );
 					}
 				}
 			} catch ( Exception $e ) {}
