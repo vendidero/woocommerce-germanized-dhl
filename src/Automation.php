@@ -24,13 +24,20 @@ class Automation {
 
 		// After a label has been successfully created - maybe update shipment status
 		add_action( 'woocommerce_gzd_shipment_created_dhl_label', array( __CLASS__, 'maybe_adjust_shipment_status' ), 10 );
+		add_action( 'woocommerce_gzd_shipment_created_deutsche_post_label', array( __CLASS__, 'maybe_adjust_shipment_status' ), 10 );
 	}
 
 	/**
 	 * @param Shipment $shipment
 	 */
 	public static function maybe_adjust_shipment_status( $shipment ) {
-		if ( 'yes' === Package::get_setting( 'label_auto_shipment_status_shipped' ) ) {
+		$setting_name = 'label_auto_shipment_status_shipped';
+
+		if ( 'deutsche_post' === $shipment->get_shipping_provider() ) {
+			$setting_name = 'deutsche_post_' . $setting_name;
+		}
+
+		if ( 'yes' === Package::get_setting( $setting_name ) ) {
 			$shipment->set_status( 'shipped' );
 		}
 	}
