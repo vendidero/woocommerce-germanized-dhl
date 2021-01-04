@@ -39,7 +39,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
 
                 <?php if ( ! empty( $preferred_day_cost ) ) : ?>
                     <div class="dhl-preferred-service-cost">
-                        <?php printf( _x( 'There is a surcharge of %1$s %2$s for this service.*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_day_cost ), ( wc_prices_include_tax() ? _x( 'incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'excl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) ) ); ?>
+                        <?php printf( _x( 'There is a surcharge of %1$s %2$s for this service.*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_day_cost ), ( wc_gzd_additional_costs_include_tax() ? _x( 'incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'excl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) ) ); ?>
                     </div>
                 <?php endif; ?>
 

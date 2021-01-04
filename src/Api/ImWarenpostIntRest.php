@@ -115,7 +115,7 @@ class ImWarenpostIntRest extends Rest {
 					'addressLine1'        => $shipment->get_address_1(),
 					'addressLine2'        => $shipment->get_address_2(),
 					'city'                => $shipment->get_city(),
-					'state'               => $shipment->get_state(),
+					'state'               => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() ),
 					'postalCode'          => $shipment->get_postcode(),
 					'destinationCountry'  => $shipment->get_country(),
 					'shipmentAmount'      => wc_format_decimal( $shipment->get_total() + $shipment->get_additional_total(), 2 ),
