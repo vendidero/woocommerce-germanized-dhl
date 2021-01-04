@@ -672,6 +672,18 @@ class LabelSoap extends Soap {
 	         * @package Vendidero/Germanized/DHL
 	         */
 	        $customs_data['exportType'] = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', 'COMMERCIAL_GOODS', $label ) );
+
+	        /**
+	         * Filter to allow adjusting the export invoice number.
+	         *
+	         * @param string $invoice_number The invoice number.
+	         * @param Label  $label The label instance.
+	         *
+	         * @since 3.3.4
+	         * @package Vendidero/Germanized/DHL
+	         */
+	        $customs_data['invoiceNumber'] = apply_filters( 'woocommerce_gzd_dhl_label_api_export_invoice_number', $customs_data['invoiceNumber'], $label );
+
             $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = $customs_data;
         }
 
