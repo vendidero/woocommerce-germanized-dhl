@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\Shipments\ShippingProviderMethod;
 
 defined( 'ABSPATH' ) || exit;
@@ -116,7 +117,11 @@ class MethodDHL {
 	}
 
 	public function is_packstation_enabled() {
-		return $this->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
+		if ( $this->is_deutsche_post_enabled() ) {
+			return ParcelLocator::is_packstation_enabled( false );
+		} else {
+			return $this->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
+		}
 	}
 
 	public function is_postoffice_enabled() {

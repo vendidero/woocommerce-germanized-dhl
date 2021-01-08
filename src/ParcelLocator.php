@@ -517,7 +517,9 @@ class ParcelLocator {
 					$supports = array();
 
 					foreach( wc_gzd_dhl_get_pickup_types() as $pickup_type => $title ) {
-						if ( 'yes' === $method->get_option( 'parcel_pickup_' . $pickup_type . '_enable' ) ) {
+						$getter = "is_{$pickup_type}_enabled";
+
+						if ( $method->$getter() ) {
 							$supports[] = $pickup_type;
 						}
 					}
@@ -553,6 +555,8 @@ class ParcelLocator {
 	}
 
 	public static function validate_checkout() {
+
+		var_dump(self::is_available());
 
 		if ( ! self::is_available() ) {
 			return;
@@ -774,7 +778,19 @@ class ParcelLocator {
 
 		if ( $check_method && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
 			if ( $method->has_option( $option_key ) && ! self::disable_method_setting() ) {
-				return $method->get_option( $option_key );
+				/**
+				 * Explicitly call available pickup getters instead of generic get_option method
+				 * to support DP adjustments (packstation).
+				 */
+				if ( 'parcel_pickup_packstation_enable' === $option_key ) {
+					return wc_bool_to_string( $method->is_packstation_enabled() );
+				} elseif ( 'parcel_pickup_parcelshop_enable' === $option_key ) {
+					return wc_bool_to_string( $method->is_parcelshop_enabled() );
+				} elseif ( 'parcel_pickup_postoffice_enable' === $option_key ) {
+					return wc_bool_to_string( $method->is_postoffice_enabled() );
+				} else {
+					return $method->get_option( $option_key );
+				}
 			}
 		}
 
@@ -806,7 +822,7 @@ class ParcelLocator {
 	public static function has_map() {
 		$api_key = self::get_setting( 'map_api_key' );
 
-		return ( 'yes' === self::get_setting( 'map_enable' ) && ! empty( $api_key ) );
+		return ( 'yes' === self::get_setting( 'map_enable' ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
 	}
 
 	public static function get_max_results() {

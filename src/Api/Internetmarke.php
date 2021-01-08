@@ -13,6 +13,7 @@ use baltpeter\Internetmarke\User;
 use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\DeutschePostLabel;
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\ParcelLocator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -672,7 +673,13 @@ class Internetmarke {
 			$receiver_name = new Name( $receiver_person_name, null );
 		}
 
-		$receiver_address = new Address( '', $shipment->get_address_street(), $shipment->get_address_street_number(), $shipment->get_postcode(), $shipment->get_city(), Package::get_country_iso_alpha3( $shipment->get_country() ) );
+		$additional = '';
+
+		if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
+			$additional = ParcelLocator::get_postnumber_by_shipment( $shipment );
+		}
+
+		$receiver_address = new Address( $additional, $shipment->get_address_street(), $shipment->get_address_street_number(), $shipment->get_postcode(), $shipment->get_city(), Package::get_country_iso_alpha3( $shipment->get_country() ) );
 		$receiver         = new \baltpeter\Internetmarke\NamedAddress( $receiver_name, $receiver_address );
 		$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
 

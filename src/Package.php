@@ -1045,11 +1045,21 @@ class Package {
 			return false;
 		}
 
-        if ( in_array( $country_receiver, WC()->countries->get_european_union_countries() ) ) {
+        if ( in_array( $country_receiver, self::get_eu_countries() ) ) {
             return true;
         } else {
             return false;
         }
+	}
+
+	protected static function get_eu_countries() {
+	    $countries = WC()->countries->get_european_union_countries();
+
+	    if ( in_array( 'GB', $countries ) ) {
+	        $countries = array_diff( $countries, array( 'GB' ) );
+	    }
+
+	    return $countries;
 	}
 
 	/**
@@ -1061,9 +1071,9 @@ class Package {
 		}
 
 		// Is sender country in EU...
-		if ( in_array( self::get_base_country(), WC()->countries->get_european_union_countries() ) ) {
+		if ( in_array( self::get_base_country(), self::get_eu_countries() ) ) {
 			// ... and receiver country is in EU means NOT crossborder!
-			if ( in_array( $country_receiver, WC()->countries->get_european_union_countries() ) ) {
+			if ( in_array( $country_receiver, self::get_eu_countries() ) ) {
 				return false;
 			} else {
 				return true;

@@ -215,7 +215,7 @@ class ImWarenpostIntRest extends Rest {
 	 * @return string
 	 */
 	protected function get_pdf_accept_header() {
-		return 'application/pdf';
+		return apply_filters( 'woocommerce_gzd_deutsche_post_label_api_pdf_accept_header', 'application/pdf' );
 	}
 
 	protected function set_header( $authorization = '', $request_type = 'GET', $endpoint = '' ) {
