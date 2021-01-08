@@ -294,6 +294,22 @@ class Internetmarke {
 		return $im_product_id;
 	}
 
+	public function product_code_is_parent( $im_product_id ) {
+		$this->load_products();
+		$data      = $this->products->get_product_data_by_code( $im_product_id );
+		$is_parent = false;
+
+		if ( ! empty( $data ) ) {
+			if ( $data->product_parent_id > 0 ) {
+				$is_parent = false;
+			} else {
+				$is_parent = true;
+			}
+		}
+
+		return $is_parent;
+	}
+
 	public function get_product_total( $product_code ) {
 		$total = 0;
 

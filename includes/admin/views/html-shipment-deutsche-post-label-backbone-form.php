@@ -15,12 +15,17 @@ $default_product     = isset( $default_args['dhl_product'] ) ? $default_args['dh
 $selected_product    = isset( $im_all_products[ $default_product ] ) ? $default_product : array_keys( $im_all_products )[0];
 $selected_product_id = 0;
 $is_wp_int           = false;
-$selected_services   = array();
+$selected_services   = isset( $default_args['additional_services'] ) ? $default_args['additional_services'] : array();
 
 if ( ! empty( $selected_product ) ) {
-    $selected_services   = Package::get_internetmarke_api()->get_product_services( $selected_product );
-	$selected_product    = Package::get_internetmarke_api()->get_product_parent_code( $selected_product );
+	/**
+	 * Do only override services in case the product is a child product
+	 */
+	if ( ! Package::get_internetmarke_api()->product_code_is_parent( $selected_product ) ) {
+		$selected_services = Package::get_internetmarke_api()->get_product_services( $selected_product );
+	}
 
+	$selected_product    = Package::get_internetmarke_api()->get_product_parent_code( $selected_product );
 	$is_wp_int           = Package::get_internetmarke_api()->is_warenpost_international( $selected_product );
     $selected_product_id = Package::get_internetmarke_api()->get_product_id( $selected_product );
 }
