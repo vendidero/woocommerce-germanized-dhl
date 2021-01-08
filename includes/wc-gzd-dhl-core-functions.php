@@ -950,6 +950,41 @@ function wc_gzd_dhl_get_service_product_attributes( $service ) {
 	);
 }
 
+/**
+ * @param Shipment $shipment
+ * @param Order $dhl_order
+ */
+function wc_gzd_dhl_get_deutsche_post_selected_default_product( $shipment, $dhl_order = false ) {
+	if ( ! $dhl_order ) {
+		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
+	}
+
+	$default_args        = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
+	$im_all_products     = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
+	$default_product     = isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : array_keys( $im_all_products )[0];
+	$selected_product    = isset( $im_all_products[ $default_product ] ) ? $default_product : array_keys( $im_all_products )[0];
+	$selected_services   = isset( $default_args['additional_services'] ) ? $default_args['additional_services'] : array();
+	$selected_product_id = 0;
+
+	if ( ! empty( $selected_product ) ) {
+		/**
+		 * Do only override services in case the product is a child product and force parent code.
+		 */
+		if ( ! Package::get_internetmarke_api()->product_code_is_parent( $selected_product ) ) {
+			$selected_services = Package::get_internetmarke_api()->get_product_services( $selected_product );
+			$selected_product  = Package::get_internetmarke_api()->get_product_parent_code( $selected_product );
+		}
+
+		$selected_product_id = Package::get_internetmarke_api()->get_product_id( $selected_product );
+	}
+
+	return array(
+		'services'     => $selected_services,
+		'product_code' => $selected_product,
+		'product_id'   => $selected_product_id,
+	);
+}
+
 function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment ) {
 	$shipping_method    = $shipment->get_shipping_method();
 	$dp_shipping_method = wc_gzd_dhl_get_deutsche_post_shipping_method( $shipping_method );

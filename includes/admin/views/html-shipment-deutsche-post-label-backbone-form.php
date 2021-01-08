@@ -8,26 +8,15 @@ defined( 'ABSPATH' ) || exit;
 
 use Vendidero\Germanized\DHL\Package;
 
-$default_args        = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
-$im_products         = wc_gzd_dhl_get_deutsche_post_products( $shipment );
-$im_all_products     = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
-$default_product     = isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : array_keys( $im_all_products )[0];
-$selected_product    = isset( $im_all_products[ $default_product ] ) ? $default_product : array_keys( $im_all_products )[0];
-$selected_product_id = 0;
-$is_wp_int           = false;
-$selected_services   = isset( $default_args['additional_services'] ) ? $default_args['additional_services'] : array();
+$selected_data     = wc_gzd_dhl_get_deutsche_post_selected_default_product( $shipment, $dhl_order );
+$im_products       = wc_gzd_dhl_get_deutsche_post_products( $shipment );
+$product_id        = $selected_data['product_id'];
+$product_code      = $selected_data['product_code'];
+$selected_services = $selected_data['services'];
+$is_wp_int         = false;
 
-if ( ! empty( $selected_product ) ) {
-	/**
-	 * Do only override services in case the product is a child product
-	 */
-	if ( ! Package::get_internetmarke_api()->product_code_is_parent( $selected_product ) ) {
-		$selected_services = Package::get_internetmarke_api()->get_product_services( $selected_product );
-	}
-
-	$selected_product    = Package::get_internetmarke_api()->get_product_parent_code( $selected_product );
-	$is_wp_int           = Package::get_internetmarke_api()->is_warenpost_international( $selected_product );
-    $selected_product_id = Package::get_internetmarke_api()->get_product_id( $selected_product );
+if ( ! empty( $product_code ) ) {
+	$is_wp_int = Package::get_internetmarke_api()->is_warenpost_international( $product_code );
 }
 ?>
 <?php if ( empty( $im_products ) ) : ?>
@@ -48,14 +37,11 @@ if ( ! empty( $selected_product ) ) {
             'label'       		=> _x( 'Product', 'dhl', 'woocommerce-germanized-dhl' ),
             'description'		=> '',
             'options'			=> $im_products,
-            'value'             => isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : '',
+            'value'             => $product_code,
         ) ); ?>
 
         <div class="wc-gzd-shipment-im-additional-services">
-            <?php
-                $product_id = $selected_product_id;
-                include( Package::get_path() . '/includes/admin/views/html-deutsche-post-additional-services.php' );
-            ?>
+            <?php include( Package::get_path() . '/includes/admin/views/html-deutsche-post-additional-services.php' ); ?>
         </div>
 
         <div class="wc-gzd-shipment-im-page-format" style="<?php echo ( $is_wp_int ? 'display: none;' : '' ); ?>">

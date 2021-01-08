@@ -14,6 +14,7 @@ use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\DeutschePostLabel;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
+use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -712,7 +713,33 @@ class Internetmarke {
 
 			$label->set_shop_order_id( $shop_order_id );
 
-			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_dhl_product(), null, $address_binding, new \baltpeter\Internetmarke\Position( 1, 1, 1 ), 'AddressZone' );
+			$position = new \baltpeter\Internetmarke\Position(
+				/**
+				 * Adjust the Deutsche Post (Internetmarke) label print X position.
+				 *
+				 * @param mixed $x The x axis position.
+				 * @param DeutschePostLabel $label The label instance.
+				 * @param Shipment $shipment The shipment instance.
+				 *
+				 * @since 3.4.5
+				 * @package Vendidero/Germanized/DHL
+				 */
+				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_position_x', 1, $label, $shipment ),
+				/**
+				 * Adjust the Deutsche Post (Internetmarke) label print Y position.
+				 *
+				 * @param mixed $y The y axis position.
+				 * @param DeutschePostLabel $label The label instance.
+				 * @param Shipment $shipment The shipment instance.
+				 *
+				 * @since 3.4.5
+				 * @package Vendidero/Germanized/DHL
+				 */
+				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_position_y', 1, $label, $shipment ),
+				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_page_number', 1, $label, $shipment ),
+			);
+
+			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_dhl_product(), null, $address_binding, $position, 'AddressZone' );
 			$stamp      = $this->api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_page_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
 
 			return $this->update_default_label( $label, $stamp );
