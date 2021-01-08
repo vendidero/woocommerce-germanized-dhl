@@ -223,7 +223,10 @@ class Package {
 		        ParcelLocator::init();
 	        }
 
-	        if ( ParcelServices::is_enabled() ) {
+	        /**
+	         * Additional services are only available for DHL products
+	         */
+	        if ( self::is_dhl_enabled() && ParcelServices::is_enabled() ) {
 	        	ParcelServices::init();
 	        }
 
