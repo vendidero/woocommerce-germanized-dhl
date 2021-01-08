@@ -736,7 +736,7 @@ class Internetmarke {
 				 * @package Vendidero/Germanized/DHL
 				 */
 				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_position_y', 1, $label, $shipment ),
-				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_page_number', 1, $label, $shipment ),
+				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_page_number', 1, $label, $shipment )
 			);
 
 			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_dhl_product(), null, $address_binding, $position, 'AddressZone' );
