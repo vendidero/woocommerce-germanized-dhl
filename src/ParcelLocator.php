@@ -556,8 +556,6 @@ class ParcelLocator {
 
 	public static function validate_checkout() {
 
-		var_dump(self::is_available());
-
 		if ( ! self::is_available() ) {
 			return;
 		}
