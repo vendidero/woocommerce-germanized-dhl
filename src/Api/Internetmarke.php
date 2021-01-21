@@ -690,7 +690,7 @@ class Internetmarke {
 			$receiver_name = new Name( $receiver_person_name, null );
 		}
 
-		$additional = '';
+		$additional = $shipment->get_address_2();
 
 		if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
 			$additional = ParcelLocator::get_postnumber_by_shipment( $shipment );
