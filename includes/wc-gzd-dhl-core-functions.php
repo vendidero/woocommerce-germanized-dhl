@@ -1354,27 +1354,45 @@ function wc_gzd_dhl_get_shipment_dimensions( $shipment, $unit = 'cm' ) {
  * @return float
  */
 function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg' ) {
-	$shipping_method     = $shipment->get_shipping_method();
-	$shipment_weight     = $shipment->get_total_weight();
-	$min_weight          = 0;
+	$shipping_method           = $shipment->get_shipping_method();
+	$shipment_weight           = $shipment->get_total_weight();
+	$shipment_content_weight   = $shipment->get_weight();
+	$shipment_packaging_weight = $shipment->get_packaging_weight();
+	$min_weight                = 0;
 
 	if ( ! empty( $shipment_weight ) ) {
 		$shipment_weight = wc_get_weight( $shipment_weight, $unit, $shipment->get_weight_unit() );
+	}
+
+	if ( ! empty( $shipment_content_weight ) ) {
+		$shipment_content_weight = wc_get_weight( $shipment_content_weight, $unit, $shipment->get_weight_unit() );
+	}
+
+	if ( ! empty( $shipment_packaging_weight ) ) {
+		$shipment_packaging_weight = wc_get_weight( $shipment_packaging_weight, $unit, $shipment->get_weight_unit() );
 	}
 
 	if ( 'dhl' === $shipment->get_shipping_provider() ) {
 		$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
 		$min_weight          = wc_get_weight( Package::get_setting( 'label_minimum_shipment_weight', $dhl_shipping_method ), $unit, 'kg' );
 
-		if ( empty( $shipment_weight ) ) {
+		/**
+		 * In case the content weight of the shipment is empty - use the standard weight and add the packaging on top.
+		 */
+		if ( empty( $shipment_content_weight ) ) {
 			$shipment_weight = wc_get_weight( Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ), $unit, 'kg' );
+			$shipment_weight += $shipment_packaging_weight;
 		}
 	} elseif ( 'deutsche_post' === $shipment->get_shipping_provider() ) {
 		$dp_shipping_method = wc_gzd_dhl_get_deutsche_post_shipping_method( $shipping_method );
 		$min_weight         = wc_get_weight( Package::get_setting( 'deutsche_post_label_minimum_shipment_weight', $dp_shipping_method ), $unit, 'kg' );
 
-		if ( empty( $shipment_weight ) ) {
+		/**
+		 * In case the content weight of the shipment is empty - use the standard weight and add the packaging on top.
+		 */
+		if ( empty( $shipment_content_weight ) ) {
 			$shipment_weight = wc_get_weight( Package::get_setting( 'deutsche_post_label_default_shipment_weight', $dp_shipping_method ), $unit, 'kg' );
+			$shipment_weight += $shipment_packaging_weight;
 		}
 	}
 
