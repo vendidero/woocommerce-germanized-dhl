@@ -1319,6 +1319,24 @@ class Settings {
 				'options'  => Package::get_internetmarke_api()->get_page_format_list(),
 				'default'  => 1,
 			),
+			array(
+				'title'    => _x( 'Print Y-axis Position', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'       => 'woocommerce_gzd_deutsche_post_label_position_x',
+				'desc_tip' => _x( 'Adjust the print X-axis start position for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'     => 'number',
+				'custom_attributes' => array( 'min' => 0, 'step' => 1 ),
+				'css'      => 'max-width: 100px;',
+				'default'  => 1,
+			),
+			array(
+				'title'    => _x( 'Print X-axis Position', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'       => 'woocommerce_gzd_deutsche_post_label_position_y',
+				'desc_tip' => _x( 'Adjust the print Y-axis start position for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'     => 'number',
+				'custom_attributes' => array( 'min' => 0, 'step' => 1 ),
+				'css'      => 'max-width: 100px;',
+				'default'  => 1,
+			),
 		);
 
 		if ( $for_shipping_method ) {

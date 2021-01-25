@@ -40,7 +40,7 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 
 	$customsDetails   = array();
 	$item_description = '';
-	$total_weight     = $label->get_weight();
+	$total_weight     = $label->get_net_weight();
 	$item_weights     = array();
 	$shipment_items   = $shipment->get_items();
 
@@ -155,11 +155,11 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 	$item_description = substr( $item_description, 0, 255 );
 
 	return array(
-		'invoiceNumber'              => $shipment->get_id(),
-		'additionalFee'              => wc_format_decimal( $shipment->get_additional_total(), 2 ),
-		'exportTypeDescription'      => $item_description,
-		'placeOfCommital'            => $shipment->get_country(),
-		'ExportDocPosition'          => $customsDetails
+		'invoiceNumber'         => $shipment->get_id(),
+		'additionalFee'         => wc_format_decimal( $shipment->get_additional_total(), 2 ),
+		'exportTypeDescription' => $item_description,
+		'placeOfCommital'       => $shipment->get_country(),
+		'ExportDocPosition'     => $customsDetails
 	);
 }
 
@@ -996,6 +996,7 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
 		'stamp_total'         => 0,
 		'additional_services' => array(),
 		'weight'              => wc_gzd_dhl_get_shipment_weight( $shipment ),
+		'net_weight'          => wc_gzd_dhl_get_shipment_weight( $shipment, 'kg', true ),
 		'length'              => $dimensions['length'],
 		'width'               => $dimensions['width'],
 		'height'              => $dimensions['height'],
@@ -1128,6 +1129,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 		'services'              => array(),
 		'codeable_address_only' => Package::get_setting( 'label_address_codeable_only', $dhl_shipping_method ),
 		'weight'                => wc_gzd_dhl_get_shipment_weight( $shipment ),
+		'net_weight'            => wc_gzd_dhl_get_shipment_weight( $shipment, 'kg', true ),
 		'length'                => $dimensions['length'],
 		'width'                 => $dimensions['width'],
 		'height'                => $dimensions['height'],
@@ -1353,7 +1355,7 @@ function wc_gzd_dhl_get_shipment_dimensions( $shipment, $unit = 'cm' ) {
  *
  * @return float
  */
-function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg' ) {
+function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg', $net_weight = false ) {
 	$shipping_method           = $shipment->get_shipping_method();
 	$shipment_weight           = $shipment->get_total_weight();
 	$shipment_content_weight   = $shipment->get_weight();
@@ -1370,6 +1372,13 @@ function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg' ) {
 
 	if ( ! empty( $shipment_packaging_weight ) ) {
 		$shipment_packaging_weight = wc_get_weight( $shipment_packaging_weight, $unit, $shipment->get_weight_unit() );
+	}
+
+	/**
+	 * The net weight does not include packaging weight.
+	 */
+	if ( $net_weight ) {
+		$shipment_packaging_weight = 0;
 	}
 
 	if ( 'dhl' === $shipment->get_shipping_provider() ) {
@@ -1417,6 +1426,7 @@ function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
 		'services'       => array(),
 		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country(), $dhl_shipping_method ),
 		'weight'         => wc_gzd_dhl_get_shipment_weight( $shipment ),
+		'net_weight'     => wc_gzd_dhl_get_shipment_weight( $shipment, 'kg', true ),
 		'length'         => $dimensions['length'],
 		'width'          => $dimensions['width'],
 		'height'         => $dimensions['height'],

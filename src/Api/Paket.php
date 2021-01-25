@@ -243,6 +243,9 @@ class Paket {
 		    $preferred_services = $this->get_parcel_api()->get_services( $args );
 		    $preferred_days     = $this->get_preferred_days( $preferred_services );
 	    } catch( Exception $e ) {
+		    // Reset timezone to not affect any other plugins
+		    date_default_timezone_set( $current_timzone );
+
 		    throw $e;
 	    }
 

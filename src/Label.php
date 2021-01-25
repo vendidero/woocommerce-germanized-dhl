@@ -55,6 +55,7 @@ abstract class Label extends WC_Data implements ShipmentLabel {
         'shipment_id'                => 0,
         'number'                     => '',
         'weight'                     => '',
+        'net_weight'                 => '',
         'length'                     => '',
         'width'                      => '',
         'height'                     => '',
@@ -159,6 +160,16 @@ abstract class Label extends WC_Data implements ShipmentLabel {
 	public function get_weight( $context = 'view' ) {
     	return $this->get_prop( 'weight', $context );
     }
+
+	public function get_net_weight( $context = 'view' ) {
+		$weight = $this->get_prop( 'net_weight', $context );
+
+		if ( 'view' === $context && '' === $weight ) {
+			$weight = $this->get_weight( $context );
+		}
+
+		return $weight;
+	}
 
 	public function get_length( $context = 'view' ) {
 		return $this->get_prop( 'length', $context );
@@ -282,6 +293,10 @@ abstract class Label extends WC_Data implements ShipmentLabel {
 
 	public function set_weight( $weight ) {
 		$this->set_prop( 'weight','' !== $weight ? wc_format_decimal( $weight ) : '' );
+	}
+
+	public function set_net_weight( $weight ) {
+		$this->set_prop( 'net_weight','' !== $weight ? wc_format_decimal( $weight ) : '' );
 	}
 
 	public function set_width( $width ) {
