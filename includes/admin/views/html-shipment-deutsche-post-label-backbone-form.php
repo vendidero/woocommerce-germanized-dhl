@@ -50,7 +50,7 @@ if ( ! empty( $product_code ) ) {
                 'label'       		=> _x( 'Page Format', 'dhl', 'woocommerce-germanized-dhl' ),
                 'description'		=> '',
                 'options'			=> Package::get_internetmarke_api()->get_page_format_list(),
-                'value'             => isset( $default_args['page_format'] ) ? $default_args['page_format'] : '',
+                'value'             => isset( $selected_data['page_format'] ) ? $selected_data['page_format'] : '',
             ) ); ?>
         </div>
     </form>

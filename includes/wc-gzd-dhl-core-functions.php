@@ -13,7 +13,6 @@ use Vendidero\Germanized\DHL\LabelQuery;
 use Vendidero\Germanized\DHL\Order;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
-use Vendidero\Germanized\DHL\ShippingProviderMethodDHL;
 use Vendidero\Germanized\DHL\ParcelServices;
 use Vendidero\Germanized\DHL\LabelFactory;
 use Vendidero\Germanized\DHL\SimpleLabel;
@@ -982,6 +981,7 @@ function wc_gzd_dhl_get_deutsche_post_selected_default_product( $shipment, $dhl_
 		'services'     => $selected_services,
 		'product_code' => $selected_product,
 		'product_id'   => $selected_product_id,
+		'page_format'  => $default_args['page_format']
 	);
 }
 
