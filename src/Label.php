@@ -452,4 +452,8 @@ abstract class Label extends WC_Data implements ShipmentLabel {
 	public function download( $args = array() ) {
 		DownloadHandler::download_label( $this->get_id(), $args );
 	}
+
+	public function is_trackable() {
+		return true;
+	}
 }
