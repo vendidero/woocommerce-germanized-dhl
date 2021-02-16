@@ -902,6 +902,9 @@ class Settings {
 			array( 'type' => 'sectionend', 'id' => 'dhl_automation_options' ),
 		) );
 
+		$ref_placeholders     = wc_gzd_dhl_get_label_payment_ref_placeholder();
+		$ref_placeholders_str = implode( ', ', array_keys( $ref_placeholders ) );
+
 		$settings = array_merge( $settings, array(
 
 			array( 'title' => _x( 'Bank Account', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_bank_account_options', 'desc' => _x(  'Enter your bank details needed for services that use COD.', 'dhl', 'woocommerce-germanized-dhl' ) ),
@@ -939,7 +942,7 @@ class Settings {
 				'type'              => 'text',
 				'id' 		        => 'woocommerce_gzd_dhl_bank_ref',
 				'custom_attributes'	=> array( 'maxlength' => '35' ),
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Use these placeholders to add info to the payment reference: %s. This text is limited to 35 characters.', 'dhl', 'woocommerce-germanized-dhl' ), '<code>{shipment_id}, {order_id}, {email}</code>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Use these placeholders to add info to the payment reference: %s. This text is limited to 35 characters.', 'dhl', 'woocommerce-germanized-dhl' ), '<code>' . esc_html( $ref_placeholders_str )  . '</code>' ) . '</div>',
 				'default'           => '{shipment_id}'
 			),
 
@@ -948,7 +951,7 @@ class Settings {
 				'type'              => 'text',
 				'id' 		        => 'woocommerce_gzd_dhl_bank_ref_2',
 				'custom_attributes'	=> array( 'maxlength' => '35' ),
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Use these placeholders to add info to the payment reference: %s. This text is limited to 35 characters.', 'dhl', 'woocommerce-germanized-dhl' ), '<code>{shipment_id}, {order_id}, {email}</code>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Use these placeholders to add info to the payment reference: %s. This text is limited to 35 characters.', 'dhl', 'woocommerce-germanized-dhl' ), '<code>' . esc_html( $ref_placeholders_str )  . '</code>' ) . '</div>',
 				'default'           => '{email}'
 			),
 

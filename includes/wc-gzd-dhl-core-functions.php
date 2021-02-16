@@ -179,14 +179,14 @@ function wc_gzd_dhl_get_preferred_times_select_options( $times ) {
 /**
  * @param false|Shipment $shipment
  *
- * @return array|int[]
+ * @return array
  */
 function wc_gzd_dhl_get_label_payment_ref_placeholder( $shipment = false ) {
-	return array(
+	return apply_filters( 'woocommerce_gzd_dhl_label_payment_ref_placeholder', array(
 		'{shipment_id}' => $shipment ? $shipment->get_shipment_number() : '',
 		'{order_id}'    => $shipment ? $shipment->get_order_number() : '',
 		'{email}'       => $shipment ? $shipment->get_email() : ''
-	);
+	) );
 }
 
 function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
