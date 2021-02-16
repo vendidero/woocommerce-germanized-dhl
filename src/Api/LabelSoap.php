@@ -410,9 +410,15 @@ class LabelSoap extends Soap {
                         'bank_bic'    => 'bic'
                     );
 
+	                $ref_replacements = wc_gzd_dhl_get_label_payment_ref_placeholder( $shipment );
+
                     foreach ( $bank_data_map as $key => $value ) {
                         if ( $setting_value = Package::get_setting( $key ) ) {
                             $bank_data[ $value ] = $setting_value;
+
+                            if ( in_array( $key, array( 'bank_ref', 'bank_ref_2' ) ) ) {
+	                            $bank_data[ $value ] = str_replace( array_keys( $ref_replacements ), array_values( $ref_replacements ), $bank_data[ $value ] );
+                            }
                         }
                     }
                     break;
