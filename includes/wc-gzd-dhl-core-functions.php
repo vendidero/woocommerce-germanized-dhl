@@ -137,21 +137,11 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 			$dhl_product = wc_gzd_dhl_get_product( $product );
 		}
 
-		if ( $product_total <= 0 ) {
-
-			// Use the order item subtotal amount in case possible
+		if ( $product_total < 0.01 ) {
+			// Use the order item subtotal amount as fallback
 			if ( ( $order_item = $item->get_order_item() ) && ( $order = $shipment->get_order() ) ) {
 				$order_item_subtotal = $order->get_line_subtotal( $order_item, true );
 				$product_total       = floatval( ( $order_item_subtotal / $item->get_quantity() ) );
-			}
-
-			// Use the current product price as fallback
-			if ( $product_total <= 0 && $product ) {
-				$product_total = floatval( ( $product->get_price() / $item->get_quantity() ) );
-			}
-
-			if ( $product_total <= 0 ) {
-				$product_total = apply_filters( 'woocommerce_gzd_dhl_customs_item_min_price', 1, $item, $shipment );
 			}
 		}
 
@@ -164,7 +154,7 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 			 * netWeightInKG is defined as the weight per item (e.g. 2 items in case the quantity equals 2).
 			 */
 			'netWeightInKG'       => wc_format_decimal( ( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
-			'customsValue'        => wc_format_decimal( $product_total, 2 )
+			'customsValue'        => $product_total < 0.01 ? wc_format_decimal( apply_filters( 'woocommerce_gzd_dhl_customs_item_min_price', 0.01, $item, $shipment ), 2 ) : wc_format_decimal( $product_total, 2 )
 		);
 
 		array_push($customsDetails, $json_item );
