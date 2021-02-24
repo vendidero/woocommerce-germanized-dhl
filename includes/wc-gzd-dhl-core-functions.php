@@ -125,15 +125,34 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 	}
 
 	foreach ( $shipment->get_items() as $key => $item ) {
-
 		$item_description .= ! empty( $item_description ) ? ', ' : '';
 		$item_description .= $item->get_name();
 
-		$product_total = floatval( ( $item->get_total() / $item->get_quantity() ) );
+		// Use total before discounts for customs
+		$product_total = floatval( ( $item->get_subtotal() / $item->get_quantity() ) );
 		$dhl_product   = false;
+		$product       = $item->get_product();
 
-		if ( $product = $item->get_product() ) {
+		if ( $product ) {
 			$dhl_product = wc_gzd_dhl_get_product( $product );
+		}
+
+		if ( $product_total <= 0 ) {
+
+			// Use the order item subtotal amount in case possible
+			if ( ( $order_item = $item->get_order_item() ) && ( $order = $shipment->get_order() ) ) {
+				$order_item_subtotal = $order->get_line_subtotal( $order_item, true );
+				$product_total       = floatval( ( $order_item_subtotal / $item->get_quantity() ) );
+			}
+
+			// Use the current product price as fallback
+			if ( $product_total <= 0 && $product ) {
+				$product_total = floatval( ( $product->get_price() / $item->get_quantity() ) );
+			}
+
+			if ( $product_total <= 0 ) {
+				$product_total = apply_filters( 'woocommerce_gzd_dhl_customs_item_min_price', 1, $item, $shipment );
+			}
 		}
 
 		$json_item = array(

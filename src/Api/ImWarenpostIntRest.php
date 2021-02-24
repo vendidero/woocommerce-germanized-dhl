@@ -108,7 +108,7 @@ class ImWarenpostIntRest extends Rest {
 				array(
 					'id'                  => 0,
 					'product'             => $label->get_dhl_product(),
-					'serviceLevel'        => 'STANDARD',
+					'serviceLevel'        => apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_service_level', 'STANDARD', $label ),
 					'recipient'           => $shipment->get_formatted_full_name(),
 					'recipientPhone'      => $shipment->get_phone(),
 					'recipientEmail'      => $shipment->get_email(),
@@ -131,7 +131,7 @@ class ImWarenpostIntRest extends Rest {
 					'senderEmail'         => $is_return ? $shipment->get_sender_email() : Package::get_setting( 'shipper_email' ),
 					'returnItemWanted'    => false,
 					'shipmentNaturetype'  => strtoupper( apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_nature_type', ( is_a( $label, 'Vendidero\Germanized\DHL\DeutschePostReturnLabel' ) ? 'RETURN_GOODS' : 'SALE_GOODS' ), $label ) ),
-					'contents'            => $positions
+					'contents'            => array()
 				)
 			),
 			'orderStatus' => 'FINALIZE',
@@ -146,6 +146,11 @@ class ImWarenpostIntRest extends Rest {
 				'telephoneNumber' => null
 			)
 		);
+
+		// Do only add customs data in case it is a non-EU shipment
+		if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+			$request_data['items'][0]['contents'] = $customs_data;
+		}
 
 		$transmit_data = 'yes' === Package::get_setting( 'label_force_email_transfer' );
 
