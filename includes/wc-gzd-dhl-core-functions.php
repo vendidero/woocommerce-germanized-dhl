@@ -18,6 +18,7 @@ use Vendidero\Germanized\DHL\LabelFactory;
 use Vendidero\Germanized\DHL\SimpleLabel;
 use Vendidero\Germanized\DHL\ReturnLabel;
 use Vendidero\Germanized\DHL\Product;
+use Automattic\WooCommerce\Utilities\NumberUtil;
 
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\SimpleShipment;
@@ -25,6 +26,10 @@ use Vendidero\Germanized\Shipments\ReturnShipment;
 use Vendidero\Germanized\Shipments\ShipmentFactory;
 
 defined( 'ABSPATH' ) || exit;
+
+function wc_gzd_dhl_round_customs_item_weight( $value, $precision = 0 ) {
+	return NumberUtil::round( $value, $precision, 2 );
+}
 
 /**
  * @param Label $label
@@ -39,13 +44,15 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 
 	$customsDetails   = array();
 	$item_description = '';
-	$total_weight     = $label->get_net_weight();
+	$total_weight     = wc_gzd_dhl_round_customs_item_weight( wc_add_number_precision( $label->get_net_weight() ) );
 	$item_weights     = array();
 	$shipment_items   = $shipment->get_items();
 
 	foreach ( $shipment_items as $key => $item ) {
 		$per_item_weight     = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
-		$per_item_min_weight = 0.01 * $item->get_quantity();
+		$per_item_weight     = wc_add_number_precision( $per_item_weight );
+		$per_item_weight     = $per_item_weight * $item->get_quantity();
+		$per_item_min_weight = 1 * $item->get_quantity();
 
 		/**
 		 * Set min weight to 0.01 to prevent missing weight error messages
@@ -58,7 +65,7 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 		$item_weights[ $key ] = $per_item_weight;
 	}
 
-	$item_total_weight = wc_format_decimal( array_sum( $item_weights ), 2 );
+	$item_total_weight = array_sum( $item_weights );
 	$item_count        = sizeof( $item_weights );
 
 	/**
@@ -66,22 +73,23 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 	 * Try to distribute the mismatch between items.
 	 */
 	if ( $item_total_weight != $total_weight ) {
-		$diff     = wc_format_decimal( $total_weight - $item_total_weight, 2 );
+		$diff     = $total_weight - $item_total_weight;
 		$diff_abs = abs( $diff );
 
 		if ( $diff_abs > 0 ) {
 			$per_item_diff         = $diff / $item_count;
-			$per_item_diff_rounded = wc_format_decimal( $per_item_diff, 2 );
+			// Round down to int
+			$per_item_diff_rounded = wc_gzd_dhl_round_customs_item_weight( $per_item_diff );
 			$diff_applied          = 0;
 
 			if ( abs( $per_item_diff_rounded ) > 0 ) {
 				foreach( $item_weights as $key => $weight ) {
 					$shipment_item      = $shipment_items[ $key ];
-					$item_min_weight    = 0.01 * $shipment_item->get_quantity();
+					$item_min_weight    = 1 * $shipment_item->get_quantity();
 
 					$item_weight_before = $item_weights[ $key ];
 					$new_item_weight    = $item_weights[ $key ] += $per_item_diff_rounded;
-					$item_diff_applied  = $per_item_diff;
+					$item_diff_applied  = $per_item_diff_rounded;
 
 					/**
 					 * In case the diff is negative make sure we are not
@@ -97,12 +105,13 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 				}
 			}
 
-			$diff_left = wc_format_decimal( ( ( $per_item_diff_rounded * $item_count ) - $diff_applied ), 2 );
+			// Check rounding diff and apply the diff to one item
+			$diff_left = $diff - $diff_applied;
 
 			if ( abs( $diff_left ) > 0 ) {
 				foreach( $item_weights as $key => $weight ) {
 					$shipment_item   = $shipment_items[ $key ];
-					$item_min_weight = 0.01 * $shipment_item->get_quantity();
+					$item_min_weight = 1 * $shipment_item->get_quantity();
 
 					if ( $diff_left > 0 ) {
 						/**
@@ -153,7 +162,7 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 			/**
 			 * netWeightInKG is defined as the weight per item (e.g. 2 items in case the quantity equals 2).
 			 */
-			'netWeightInKG'       => wc_format_decimal( ( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
+			'netWeightInKG'       => wc_gzd_dhl_round_customs_item_weight( wc_remove_number_precision( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
 			'customsValue'        => $product_total < 0.01 ? wc_format_decimal( apply_filters( 'woocommerce_gzd_dhl_customs_item_min_price', 0.01, $item, $shipment ), 2 ) : wc_format_decimal( $product_total, 2 )
 		);
 
