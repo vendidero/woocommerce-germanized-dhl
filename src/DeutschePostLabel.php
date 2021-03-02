@@ -123,11 +123,7 @@ class DeutschePostLabel extends Label {
 	}
 
 	public function is_trackable() {
-		$voucher_id = $this->get_voucher_id();
-
-		if ( ! empty( $voucher_id ) && $voucher_id !== $this->get_number() ) {
-			return true;
-		} elseif ( in_array( $this->get_dhl_product(), [ 232, 233, 234, 238, 1007, 195, 1017, 196, 1027, 197, 1037, 198, 1047, 199, 1057, 200 ] ) ) {
+		if ( in_array( $this->get_dhl_product(), [ 195, 196, 197, 198, 199, 200, 1007, 1017, 1027, 1037, 1047, 1057 ] ) ) {
 			return true;
 		} elseif( ! empty( $this->get_wp_int_barcode() ) && in_array( 'TRCK', $this->get_additional_services() ) ) {
 			return true;
