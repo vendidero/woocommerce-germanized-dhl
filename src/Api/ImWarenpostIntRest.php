@@ -85,7 +85,7 @@ class ImWarenpostIntRest extends Rest {
 			array_push($positions, array(
 				'contentPieceIndexNumber' => $position_index++,
 				'contentPieceHsCode'      => $position['customsTariffNumber'],
-				'contentPieceDescription' => substr( $position['description'], 0, 33 ),
+				'contentPieceDescription' => wc_clean( substr( $position['description'], 0, 33 ) ),
 				'contentPieceValue'       => $position['customsValue'],
 				'contentPieceNetweight'   => wc_get_weight( $position['netWeightInKG'], 'g', 'kg' ),
 				'contentPieceOrigin'      => $position['countryCodeOrigin'],
@@ -269,6 +269,8 @@ class ImWarenpostIntRest extends Rest {
 	}
 
 	protected function get_basic_auth_encode( $user, $pass ) {
+		$pass = htmlentities( $pass, ENT_XML1 );
+
 		return base64_encode( $user . ':' . $pass );
 	}
 

@@ -155,7 +155,7 @@ function wc_gzd_dhl_get_shipment_customs_data( $label ) {
 		}
 
 		$json_item = array(
-			'description'         => substr( $item->get_name(), 0, 255 ),
+			'description'         => wc_clean( substr( $item->get_name(), 0, 255 ) ),
 			'countryCodeOrigin'   => ( $dhl_product && $dhl_product->get_manufacture_country() ) ? $dhl_product->get_manufacture_country() : Package::get_base_country(),
 			'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
 			'amount'              => intval( $item->get_quantity() ),
