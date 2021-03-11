@@ -356,7 +356,8 @@ function wc_gzd_dhl_get_current_shipping_method() {
 function wc_gzd_dhl_get_international_services() {
 	return array(
 		'Premium',
-		'GoGreen'
+		'GoGreen',
+		'AdditionalInsurance'
 	);
 }
 

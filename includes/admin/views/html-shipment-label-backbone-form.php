@@ -82,36 +82,36 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
         </div>
 
 		<?php if ( $dhl_order->has_preferred_location() ) : ?>
-		<?php woocommerce_wp_text_input( array(
-			'id'          		=> 'dhl_label_preferred_location',
-			'label'       		=> _x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ),
-			'placeholder' 		=> '',
-			'description'		=> '',
-			'value'       		=> isset( $default_args['preferred_location'] ) ? $default_args['preferred_location'] : '',
-			'custom_attributes'	=> array( 'maxlength' => '80' )
-		) ); ?>
-	<?php endif; ?>
+            <?php woocommerce_wp_text_input( array(
+                'id'          		=> 'dhl_label_preferred_location',
+                'label'       		=> _x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ),
+                'placeholder' 		=> '',
+                'description'		=> '',
+                'value'       		=> isset( $default_args['preferred_location'] ) ? $default_args['preferred_location'] : '',
+                'custom_attributes'	=> array( 'maxlength' => '80' )
+            ) ); ?>
+        <?php endif; ?>
 
 		<?php if ( $dhl_order->has_preferred_neighbor() ) : ?>
-		<?php woocommerce_wp_text_input( array(
-			'id'          		=> 'dhl_label_preferred_neighbor',
-			'label'       		=> _x( 'Preferred Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
-			'placeholder' 		=> '',
-			'description'		=> '',
-			'value'       		=> isset( $default_args['preferred_neighbor'] ) ? $default_args['preferred_neighbor'] : '',
-			'custom_attributes'	=> array( 'maxlength' => '80' )
-		) ); ?>
-	<?php endif; ?>
+            <?php woocommerce_wp_text_input( array(
+                'id'          		=> 'dhl_label_preferred_neighbor',
+                'label'       		=> _x( 'Preferred Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
+                'placeholder' 		=> '',
+                'description'		=> '',
+                'value'       		=> isset( $default_args['preferred_neighbor'] ) ? $default_args['preferred_neighbor'] : '',
+                'custom_attributes'	=> array( 'maxlength' => '80' )
+            ) ); ?>
+        <?php endif; ?>
 
 		<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_has_inlay_return',
-		'label'       		=> _x( 'Create inlay return label', 'dhl', 'woocommerce-germanized-dhl' ),
-		'class'             => 'checkbox show-if-trigger',
-		'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
-		'desc_tip'          => true,
-		'value'             => isset( $default_args['has_inlay_return'] ) ? wc_bool_to_string( $default_args['has_inlay_return'] ) : 'no',
-		'wrapper_class'     => 'form-field-checkbox'
-	) ); ?>
+            'id'          		=> 'dhl_label_has_inlay_return',
+            'label'       		=> _x( 'Create inlay return label', 'dhl', 'woocommerce-germanized-dhl' ),
+            'class'             => 'checkbox show-if-trigger',
+            'custom_attributes' => array( 'data-show-if' => '.show-if-has-return' ),
+            'desc_tip'          => true,
+            'value'             => isset( $default_args['has_inlay_return'] ) ? wc_bool_to_string( $default_args['has_inlay_return'] ) : 'no',
+            'wrapper_class'     => 'form-field-checkbox'
+        ) ); ?>
 
         <div class="show-if show-if-has-return">
             <div class="columns">
@@ -333,6 +333,15 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 			'value'       		=> in_array( 'GoGreen', $default_args['services'] ) ? 'yes' : 'no',
 			'wrapper_class'     => 'form-field-checkbox',
 			'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'GoGreen' )
+		) ); ?>
+
+		<?php woocommerce_wp_checkbox( array(
+			'id'          		=> 'dhl_label_service_AdditionalInsurance',
+			'label'       		=> _x( 'Additional insurance', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'       => '',
+			'value'		        => in_array( 'AdditionalInsurance', $default_args['services'] ) ? 'yes' : 'no',
+			'wrapper_class'     => 'form-field-checkbox',
+			'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'AdditionalInsurance' )
 		) ); ?>
 
 	<?php endif; ?>
