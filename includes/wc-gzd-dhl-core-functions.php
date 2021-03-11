@@ -1411,6 +1411,7 @@ function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg', $net_weight = 
 	 */
 	if ( $net_weight ) {
 		$shipment_packaging_weight = 0;
+		$shipment_weight           = $shipment_content_weight;
 	}
 
 	if ( 'dhl' === $shipment->get_shipping_provider() ) {
@@ -1422,7 +1423,10 @@ function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg', $net_weight = 
 		 */
 		if ( empty( $shipment_content_weight ) ) {
 			$shipment_weight = wc_get_weight( Package::get_setting( 'label_default_shipment_weight', $dhl_shipping_method ), $unit, 'kg' );
-			$shipment_weight += $shipment_packaging_weight;
+
+			if ( ! $net_weight ) {
+				$shipment_weight += $shipment_packaging_weight;
+			}
 		}
 	} elseif ( 'deutsche_post' === $shipment->get_shipping_provider() ) {
 		$dp_shipping_method = wc_gzd_dhl_get_deutsche_post_shipping_method( $shipping_method );
@@ -1433,7 +1437,10 @@ function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg', $net_weight = 
 		 */
 		if ( empty( $shipment_content_weight ) ) {
 			$shipment_weight = wc_get_weight( Package::get_setting( 'deutsche_post_label_default_shipment_weight', $dp_shipping_method ), $unit, 'kg' );
-			$shipment_weight += $shipment_packaging_weight;
+
+			if ( ! $net_weight ) {
+				$shipment_weight += $shipment_packaging_weight;
+			}
 		}
 	}
 

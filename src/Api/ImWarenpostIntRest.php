@@ -77,17 +77,29 @@ class ImWarenpostIntRest extends Rest {
 			throw new Exception( _x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$customs_data   = wc_gzd_dhl_get_shipment_customs_data( $label );
-		$positions      = array();
-		$position_index = 0;
+		$customs_data     = wc_gzd_dhl_get_shipment_customs_data( $label );
+		$positions        = array();
+		$position_index   = 0;
+		$total_value      = 0;
+		$total_net_weight = 0;
 
 		foreach( $customs_data['ExportDocPosition'] as $position ) {
+			/**
+			 * The Warenpost API expects value and weight to be a per row value, e.g.
+			 * if 2x Product A is included the total weight/value is expected. In contrarian to the DHL customs API.
+			 */
+			$pos_value      = wc_format_decimal( ( $position['customsValue'] * $position['amount'] ), 2 );
+			$pos_net_weight = absint( $position['amount'] * wc_get_weight( $position['netWeightInKG'], 'g', 'kg' ) );
+
+			$total_value += $pos_value;
+			$total_net_weight += $pos_net_weight;
+
 			array_push($positions, array(
 				'contentPieceIndexNumber' => $position_index++,
 				'contentPieceHsCode'      => $position['customsTariffNumber'],
 				'contentPieceDescription' => wc_clean( substr( $position['description'], 0, 33 ) ),
-				'contentPieceValue'       => $position['customsValue'],
-				'contentPieceNetweight'   => wc_get_weight( $position['netWeightInKG'], 'g', 'kg' ),
+				'contentPieceValue'       => $pos_value,
+				'contentPieceNetweight'   => $pos_net_weight,
 				'contentPieceOrigin'      => $position['countryCodeOrigin'],
 				'contentPieceAmount'      => $position['amount']
 			) );
@@ -150,6 +162,18 @@ class ImWarenpostIntRest extends Rest {
 		// Do only add customs data in case it is a non-EU shipment
 		if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
 			$request_data['items'][0]['contents'] = $positions;
+
+			/**
+			 * If the total position net weight and/or value is greater than the global shipment value
+			 * use the position value instead.
+			 */
+			if ( $total_net_weight > $request_data['items'][0]['shipmentGrossWeight'] ) {
+				$request_data['items'][0]['shipmentGrossWeight'] = $total_net_weight;
+			}
+
+			if ( $total_value > $request_data['items'][0]['shipmentAmount'] ) {
+				$request_data['items'][0]['shipmentAmount'] = $total_value;
+			}
 		}
 
 		$transmit_data = 'yes' === Package::get_setting( 'label_force_email_transfer' );
