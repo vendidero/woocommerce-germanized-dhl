@@ -1315,6 +1315,12 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 	return $defaults;
 }
 
+/**
+ * @param Label $label
+ * @param string $type
+ *
+ * @return mixed|string|void
+ */
 function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	$available = array(
 		'A4',
@@ -1336,6 +1342,7 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	 * <li>910-300-600</li>
 	 * <li>910-300-610</li>
 	 * <li>910-300-710</li>
+	 * <li>100x70mm (Warenpost only)</li>
 	 * </ul>
 	 *
 	 * @param string $format The label format.
@@ -1346,6 +1353,13 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	 * @package Vendidero/Germanized/DHL
 	 */
 	$format = apply_filters( 'woocommerce_gzd_dhl_label_custom_format', '', $label, $type );
+
+	/**
+	 * Warenpost format
+	 */
+	if ( 'V62WP' === $label->get_dhl_product() ) {
+		$available[] = '100x70mm';
+	}
 
 	if ( ! empty( $format ) && ! in_array( $format, $available ) ) {
 		$format = '';
