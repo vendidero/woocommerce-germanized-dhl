@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\Legacy;
 use WC_Download_Handler;
 
 defined( 'ABSPATH' ) || exit;
@@ -32,17 +32,8 @@ class DownloadHandler {
 
 		if ( $has_permission ) {
 			if ( $label = wc_gzd_dhl_get_label( $label_id ) ) {
-
-				if ( 'export' === $args['path'] ) {
-					$file     = $label->get_export_file();
-					$filename = $label->get_export_filename();
-				} elseif( 'default' === $args['path'] ) {
-					$file     = $label->get_default_file();
-					$filename = $label->get_default_filename();
-				} else {
-					$file     = $label->get_file();
-					$filename = $label->get_filename();
-				}
+				$file     = $label->get_file( $args['path'] );
+				$filename = $label->get_filename( $args['path'] );
 
 				if ( file_exists( $file ) ) {
 					if ( $args['force'] ) {

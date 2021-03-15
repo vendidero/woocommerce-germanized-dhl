@@ -13,6 +13,14 @@ defined( 'ABSPATH' ) || exit;
 
 class DeutschePost extends ShippingProvider {
 
+	public function get_label_classname( $type ) {
+		if ( 'return' === $type ) {
+			return '\Vendidero\Germanized\DHL\Label\DeutschePostReturn';
+		} else {
+			return '\Vendidero\Germanized\DHL\Label\DeutschePost';
+		}
+	}
+
 	public function is_manual_integration() {
 		return false;
 	}

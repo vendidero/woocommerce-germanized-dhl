@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\Label;
 use DateTimeZone;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Data;
@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * DHL ReturnLabel class.
  */
-class SimpleLabel extends Label {
+class DHL extends Label {
 
 	/**
 	 * Stores product data.
@@ -40,6 +40,10 @@ class SimpleLabel extends Label {
 
 	public function get_type() {
 		return 'simple';
+	}
+
+	public function get_shipping_provider( $context = 'view' ) {
+		return 'dhl';
 	}
 
 	public function get_return_address( $context = 'view' ) {
@@ -195,7 +199,7 @@ class SimpleLabel extends Label {
 	public function has_inlay_return() {
 		$products = wc_gzd_dhl_get_inlay_return_products();
 
-		return ( true === $this->get_has_inlay_return() && in_array( $this->get_dhl_product(), $products ) );
+		return ( true === $this->get_has_inlay_return() && in_array( $this->get_product_id(), $products ) );
 	}
 
 	/**
@@ -246,10 +250,6 @@ class SimpleLabel extends Label {
 
 	public function set_duties( $duties ) {
 		$this->set_prop( 'duties', $duties );
-	}
-
-	public function set_dhl_product( $product ) {
-		$this->set_prop( 'dhl_product', $product );
 	}
 
 	public function set_preferred_day( $day ) {

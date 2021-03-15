@@ -213,6 +213,7 @@ class Package {
 
     private static function includes() {
         include_once self::get_path() . '/includes/wc-gzd-dhl-core-functions.php';
+	    include_once self::get_path() . '/includes/wc-gzd-dhl-legacy-functions.php';
 
         if ( self::is_enabled() ) {
 	        if ( is_admin() ) {
@@ -352,7 +353,7 @@ class Package {
 	}
 
 	public static function register_data_stores( $stores ) {
-        $stores['dhl-label'] = 'Vendidero\Germanized\DHL\DataStores\Label';
+        $stores['dhl-legacy-label'] = 'Vendidero\Germanized\DHL\Legacy\DataStores\Label';
 
         return $stores;
     }

@@ -9,7 +9,7 @@
  */
 
 use Vendidero\Germanized\DHL\Label;
-use Vendidero\Germanized\DHL\LabelQuery;
+use Vendidero\Germanized\DHL\LegacyLabelQuery;
 use Vendidero\Germanized\DHL\Order;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
@@ -326,19 +326,6 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
 	$ref = apply_filters( 'woocommerce_gzd_dhl_inlay_return_label_reference', wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
 
 	return sanitize_text_field( substr( $ref, 0, 35 ) );
-}
-
-/**
- * Standard way of retrieving shipments based on certain parameters.
- *
- * @since  2.6.0
- * @param  array $args Array of args (above).
- * @return Label[]|stdClass Number of pages and an array of order objects if
- *                             paginate is true, or just an array of values.
- */
-function wc_gzd_dhl_get_labels( $args ) {
-    $query = new LabelQuery( $args );
-    return $query->get_labels();
 }
 
 function wc_gzd_dhl_get_current_shipping_method() {
@@ -1707,18 +1694,6 @@ function wc_gzd_dhl_get_shipping_method_slug( $method ) {
 	$new_ship_method = isset( $new_ship_method[0] ) ? $new_ship_method[0] : $method;
 
 	return $new_ship_method;
-}
-
-/**
- * Main function for returning label.
- *
- * @param  mixed $the_label Object or label id.
- *
- * @return bool|SimpleLabel|ReturnLabel
- *
- */
-function wc_gzd_dhl_get_label( $the_label = false ) {
-	return LabelFactory::get_label( $the_label );
 }
 
 function wc_gzd_dhl_get_order( $order ) {

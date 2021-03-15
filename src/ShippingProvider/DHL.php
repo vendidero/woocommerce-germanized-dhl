@@ -17,6 +17,14 @@ class DHL extends ShippingProvider {
 		return false;
 	}
 
+	public function get_label_classname( $type ) {
+		if ( 'return' === $type ) {
+			return '\Vendidero\Germanized\DHL\Label\DHLReturn';
+		} else {
+			return '\Vendidero\Germanized\DHL\Label\DHL';
+		}
+	}
+
 	public function supports_labels( $label_type ) {
 		$label_types = array( 'simple' );
 

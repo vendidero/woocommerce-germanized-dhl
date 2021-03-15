@@ -1,13 +1,13 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\Label;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Deutsche Post Label class.
  */
-class DeutschePostLabel extends Label {
+class DeutschePost extends Label {
 
 	/**
 	 * Stores product data.
@@ -27,6 +27,10 @@ class DeutschePostLabel extends Label {
 	);
 
 	public function get_type() {
+		return 'simple';
+	}
+
+	public function get_shipping_provider( $context = 'view' ) {
 		return 'deutsche_post';
 	}
 
@@ -82,10 +86,6 @@ class DeutschePostLabel extends Label {
 
 	public function set_shop_order_id( $value ) {
 		$this->set_prop( 'shop_order_id', $value );
-	}
-
-	public function set_dhl_product( $product ) {
-		$this->set_prop( 'dhl_product', $product );
 	}
 
 	public function get_voucher_id( $context = 'view' ) {
