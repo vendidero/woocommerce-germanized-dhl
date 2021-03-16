@@ -490,7 +490,7 @@ function wc_gzd_dhl_validate_return_label_args( $shipment, $args = array() ) {
 function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array() ) {
 	$args = wp_parse_args( $args, array(
 		'page_format' => '',
-		'dhl_product' => ''
+		'product_id'  => ''
 	) );
 
 	$error = new WP_Error();
@@ -504,12 +504,12 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 		 * Additional services are requested. Lets check whether the actual product exists and
 		 * refresh the product code (to the child product code).
 		 */
-		$im_product_code = Package::get_internetmarke_api()->get_product_code( $args['dhl_product'], $args['additional_services'] );
+		$im_product_code = Package::get_internetmarke_api()->get_product_code( $args['product_id'], $args['additional_services'] );
 
 		if ( false === $im_product_code ) {
 			$error->add( 500, _x( 'The services chosen are not available for the current product.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		} else {
-			$args['dhl_product'] = $im_product_code;
+			$args['product_id'] = $im_product_code;
 		}
 	}
 
@@ -519,7 +519,7 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 	 * Force the product to check to parent id because some services might not be explicitly added as
 	 * available products.
 	 */
-	$im_parent_code = Package::get_internetmarke_api()->get_product_parent_code( $args['dhl_product'] );
+	$im_parent_code = Package::get_internetmarke_api()->get_product_parent_code( $args['product_id'] );
 
 	/**
 	 * Check whether the product might not be available for the current shipment
@@ -546,15 +546,15 @@ function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array(
 				}
 			}
 
-			$args['dhl_product'] = $im_product_code;
+			$args['product_id'] = $im_product_code;
 		}
 	}
 
 	/**
 	 * Refresh stamp total based on actual product.
 	 */
-	if ( ! empty( $args['dhl_product'] ) ) {
-		$args['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $args['dhl_product'] );
+	if ( ! empty( $args['product_id'] ) ) {
+		$args['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $args['product_id'] );
 	} else {
 		$error->add( 500, sprintf( _x( 'Deutsche Post product is missing for %s.', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_id() ) );
 	}
@@ -581,7 +581,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		'has_inlay_return'      => 'no',
 		'codeable_address_only' => 'no',
 		'cod_total'             => 0,
-		'dhl_product'           => '',
+		'product_id'            => '',
 		'duties'                => '',
 		'services'              => array(),
 		'return_address'        => array(),
@@ -603,7 +603,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			/**
 			 * Remove services that are not supported for this product
 			 */
-			if ( ! wc_gzd_dhl_product_supports_service( $args['dhl_product'], $service ) ) {
+			if ( ! wc_gzd_dhl_product_supports_service( $args['product_id'], $service ) ) {
 				unset( $args['services'][ $key ] );
 			}
 		}
@@ -648,7 +648,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$args['cod_total'] = 0;
 	}
 
-	if ( ! empty( $args['cod_total'] ) && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $args['dhl_product'], 'CashOnDelivery' ) ) {
+	if ( ! empty( $args['cod_total'] ) && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $args['product_id'], 'CashOnDelivery' ) ) {
 		$args['services'] = array_merge( $args['services'], array( 'CashOnDelivery' ) );
 	}
 
@@ -687,7 +687,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		$args['services'] = array_diff( $args['services'], array( 'PreferredNeighbour' ) );
 	}
 
-	if ( wc_gzd_dhl_product_supports_service( $args['dhl_product'], 'VisualCheckOfAge' ) ) {
+	if ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'VisualCheckOfAge' ) ) {
 		if ( ! empty( $args['visual_min_age'] ) && wc_gzd_dhl_is_valid_visual_min_age( $args['visual_min_age'] ) ) {
 			$args['services'] = array_merge( $args['services'], array( 'VisualCheckOfAge' ) );
 		} else {
@@ -709,7 +709,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		}
 	}
 
-	if ( wc_gzd_dhl_product_supports_service( $args['dhl_product'], 'IdentCheck' ) ) {
+	if ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'IdentCheck' ) ) {
 		if ( ! empty( $args['ident_min_age'] ) && wc_gzd_dhl_is_valid_ident_min_age( $args['ident_min_age'] ) ) {
 			$args['services'] = array_merge( $args['services'], array( 'IdentCheck' ) );
 		}
@@ -979,7 +979,7 @@ function wc_gzd_dhl_get_deutsche_post_selected_default_product( $shipment, $dhl_
 
 	$default_args        = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
 	$im_all_products     = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
-	$default_product     = isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : array_keys( $im_all_products )[0];
+	$default_product     = isset( $default_args['product_id'] ) ? $default_args['product_id'] : array_keys( $im_all_products )[0];
 	$selected_product    = isset( $im_all_products[ $default_product ] ) ? $default_product : array_keys( $im_all_products )[0];
 	$selected_services   = isset( $default_args['additional_services'] ) ? $default_args['additional_services'] : array();
 	$selected_product_id = 0;
@@ -1010,7 +1010,7 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
 	$dimensions         = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 
 	$defaults = array(
-		'dhl_product'         => wc_gzd_dhl_get_deutsche_post_default_product( $shipment->get_country(), $dp_shipping_method ),
+		'product_id'          => wc_gzd_dhl_get_deutsche_post_default_product( $shipment->get_country(), $dp_shipping_method ),
 		'page_format'         => Package::get_setting( 'deutsche_post_label_default_page_format', $dp_shipping_method ),
 		'stamp_total'         => 0,
 		'additional_services' => array(),
@@ -1021,20 +1021,20 @@ function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment 
 		'height'              => $dimensions['height'],
 	);
 
-	if ( ! empty( $defaults['dhl_product'] ) ) {
+	if ( ! empty( $defaults['product_id'] ) ) {
 		/**
 		 * Get current services from the selected product.
 		 */
-		$defaults['additional_services'] = Package::get_internetmarke_api()->get_product_services( $defaults['dhl_product'] );
+		$defaults['additional_services'] = Package::get_internetmarke_api()->get_product_services( $defaults['product_id'] );
 
 		/**
 		 * Force parent product by default to allow manually selecting services.
 		 */
-		$defaults['dhl_product'] = Package::get_internetmarke_api()->get_product_parent_code( $defaults['dhl_product'] );
+		$defaults['product_id'] = Package::get_internetmarke_api()->get_product_parent_code( $defaults['product_id'] );
  	}
 
-	if ( ! empty( $defaults['dhl_product'] ) ) {
-		$defaults['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $defaults['dhl_product'] );
+	if ( ! empty( $defaults['product_id'] ) ) {
+		$defaults['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $defaults['product_id'] );
 	}
 
 	return $defaults;
@@ -1144,7 +1144,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 	$dimensions          = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 
 	$defaults = array(
-		'dhl_product'           => wc_gzd_dhl_get_default_product( $shipment->get_country(), $dhl_shipping_method ),
+		'product_id'            => wc_gzd_dhl_get_default_product( $shipment->get_country(), $dhl_shipping_method ),
 		'services'              => array(),
 		'codeable_address_only' => Package::get_setting( 'label_address_codeable_only', $dhl_shipping_method ),
 		'weight'                => wc_gzd_dhl_get_shipment_weight( $shipment ),
@@ -1158,7 +1158,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 		$defaults['email_notification'] = 'yes';
 	}
 
-	if ( $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $defaults['dhl_product'], 'CashOnDelivery' ) ) {
+	if ( $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $defaults['product_id'], 'CashOnDelivery' ) ) {
 		$defaults['cod_total'] = $shipment->get_total();
 
 		/**
@@ -1210,7 +1210,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				$defaults['preferred_neighbor'] = $dhl_order->get_preferred_neighbor_formatted_address();
 			}
 
-			if ( wc_gzd_dhl_product_supports_service( $defaults['dhl_product'], 'VisualCheckOfAge' ) ) {
+			if ( wc_gzd_dhl_product_supports_service( $defaults['product_id'], 'VisualCheckOfAge' ) ) {
 				$visual_min_age = Package::get_setting( 'label_visual_min_age', $dhl_shipping_method );
 
 				if ( wc_gzd_dhl_is_valid_visual_min_age( $visual_min_age ) ) {
@@ -1224,7 +1224,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 				}
 			}
 
-			if ( wc_gzd_dhl_product_supports_service( $defaults['dhl_product'], 'IdentCheck' ) ) {
+			if ( wc_gzd_dhl_product_supports_service( $defaults['product_id'], 'IdentCheck' ) ) {
 				$ident_min_age = Package::get_setting( 'label_ident_min_age', $dhl_shipping_method );
 
 				if ( wc_gzd_dhl_is_valid_ident_min_age( $ident_min_age ) ) {
@@ -1245,7 +1245,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 
 			foreach( wc_gzd_dhl_get_services() as $service ) {
 
-				if ( ! wc_gzd_dhl_product_supports_service( $defaults['dhl_product'], $service ) ) {
+				if ( ! wc_gzd_dhl_product_supports_service( $defaults['product_id'], $service ) ) {
 					continue;
 				}
 
@@ -1286,7 +1286,7 @@ function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
 
 		foreach( wc_gzd_dhl_get_international_services() as $service ) {
 
-			if ( ! wc_gzd_dhl_product_supports_service( $defaults['dhl_product'], $service ) ) {
+			if ( ! wc_gzd_dhl_product_supports_service( $defaults['product_id'], $service ) ) {
 				continue;
 			}
 
@@ -1856,33 +1856,6 @@ function wc_gzd_dhl_get_return_label_by_parent( $label_parent_id ) {
 
 	if ( ! empty( $labels ) ) {
 		return $labels[0];
-	}
-
-	return false;
-}
-
-function wc_gzd_dhl_get_return_label_by_shipment( $the_shipment ) {
-	return wc_gzd_dhl_get_shipment_label( $the_shipment, 'return' );
-}
-
-function wc_gzd_dhl_get_shipment_label( $the_shipment, $type = '' ) {
-	$shipment_id = ShipmentFactory::get_shipment_id( $the_shipment );
-
-	if ( $shipment_id ) {
-
-		$args = array(
-			'shipment_id' => $shipment_id,
-		);
-
-		if ( ! empty( $type ) ) {
-			$args['type'] = $type;
-		}
-
-		$labels = wc_gzd_dhl_get_labels( $args );
-
-		if ( ! empty( $labels ) ) {
-			return $labels[0];
-		}
 	}
 
 	return false;

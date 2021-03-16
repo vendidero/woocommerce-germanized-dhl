@@ -24,16 +24,8 @@ class ShipmentLabelWatcher {
 		add_action( 'woocommerce_gzd_shipment_create_deutsche_post_label', array( __CLASS__, 'create_shipment_post_label' ), 10, 4 );
 		add_action( 'woocommerce_gzd_return_shipment_create_deutsche_post_label', array( __CLASS__, 'create_return_shipment_post_label' ), 10, 4 );
 
-		// Return the DHL label for a shipment if available
-		add_filter( 'woocommerce_gzd_shipment_get_dhl_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
-		add_filter( 'woocommerce_gzd_return_shipment_get_dhl_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
-
-		add_filter( 'woocommerce_gzd_shipment_get_deutsche_post_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
-		add_filter( 'woocommerce_gzd_return_shipment_get_deutsche_post_label', array( __CLASS__, 'get_shipment_label' ), 10, 2 );
-
 		// Legacy ShippingProviderMethod hook support
 		add_filter( 'woocommerce_gzd_shipping_provider_method_provider', array( __CLASS__, 'legacy_provider_hook_support' ), 10, 3 );
-
 		add_filter( 'woocommerce_gzd_shipment_get_tracking_url', array( __CLASS__, 'filter_tracking_url' ), 10, 2 );
 	}
 

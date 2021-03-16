@@ -23,6 +23,66 @@ function wc_gzd_dhl_get_labels( $args ) {
 	return $query->get_labels();
 }
 
+function wc_gzd_dhl_get_return_label_by_shipment( $the_shipment ) {
+	return wc_gzd_dhl_get_shipment_label( $the_shipment, 'return' );
+}
+
+/**
+ * Main function for returning label.
+ *
+ * @param  mixed $the_label Object or label id.
+ *
+ * @return bool|\Vendidero\Germanized\DHL\Label\Label
+ *
+ */
+function wc_gzd_dhl_get_label( $the_label = false ) {
+	return wc_gzd_get_shipment_label( $the_label );
+}
+
+function wc_gzd_dhl_get_shipment_label( $the_shipment, $type = '' ) {
+	$shipment_id = \Vendidero\Germanized\Shipments\ShipmentFactory::get_shipment_id( $the_shipment );
+
+	if ( $shipment_id ) {
+
+		$args = array(
+			'shipment_id' => $shipment_id,
+		);
+
+		if ( ! empty( $type ) ) {
+			$args['type'] = $type;
+		}
+
+		$labels = wc_gzd_dhl_get_labels( $args );
+
+		if ( ! empty( $labels ) ) {
+			return $labels[0];
+		}
+	}
+
+	return false;
+}
+
+add_filter( 'woocommerce_gzd_shipping_provider_dhl_get_label', '_wc_gzd_dhl_legacy_shipment_label_dhl', 10, 3 );
+add_filter( 'woocommerce_gzd_shipping_provider_deutsche_post_get_label', '_wc_gzd_dhl_legacy_shipment_label_deutsche_post', 10, 3 );
+
+function _wc_gzd_dhl_legacy_shipment_label_dhl( $label, $label_type, $the_shipment ) {
+	if ( ! $label ) {
+		return wc_gzd_dhl_get_shipment_label( $the_shipment, $label_type );
+	}
+
+	return $label;
+}
+
+function _wc_gzd_dhl_legacy_shipment_label_deutsche_post( $label, $label_type, $the_shipment ) {
+	if ( ! $label ) {
+		$label_type = 'return' === $label_type ? 'deutsche_post_return' : 'deutsche_post';
+
+		return wc_gzd_dhl_get_shipment_label( $the_shipment, $label_type );
+	}
+
+	return $label;
+}
+
 add_filter( 'woocommerce_gzd_shipment_label', '_wc_gzd_dhl_legacy_label', 10, 4 );
 
 function _wc_gzd_dhl_legacy_label( $label, $the_label, $shipping_provider, $type ) {
@@ -53,16 +113,4 @@ function _wc_gzd_dhl_legacy_label( $label, $the_label, $shipping_provider, $type
 	}
 
 	return $label;
-}
-
-/**
- * Main function for returning label.
- *
- * @param  mixed $the_label Object or label id.
- *
- * @return bool|\Vendidero\Germanized\DHL\Label\Label
- *
- */
-function wc_gzd_dhl_get_label( $the_label = false ) {
-	return wc_gzd_get_shipment_label( $the_label );
 }

@@ -18,7 +18,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		'label'       		=> _x( 'DHL Product', 'dhl', 'woocommerce-germanized-dhl' ),
 		'description'		=> '',
 		'options'			=> wc_gzd_dhl_get_products( $shipment->get_country() ),
-		'value'             => isset( $default_args['dhl_product'] ) ? $default_args['dhl_product'] : '',
+		'value'             => isset( $default_args['product_id'] ) ? $default_args['product_id'] : '',
 	) ); ?>
 
 	<?php if ( $dhl_order->has_cod_payment() ) : ?>
@@ -58,28 +58,13 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 		} catch( Exception $e ) {}
 		?>
 
-        <div class="columns">
-            <div class="column <?php echo ( isset( $default_args['preferred_time'] ) ) ? 'col-6' : 'col-12'; ?>">
-				<?php woocommerce_wp_select( array(
-					'id'          		=> 'dhl_label_preferred_day',
-					'label'       		=> _x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ),
-					'description'		=> '',
-					'value'       		=> isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '',
-					'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, ( isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '' ) ),
-				) ); ?>
-            </div>
-			<?php if ( isset( $default_args['preferred_time'] ) ) : ?>
-                <div class="column col-6">
-					<?php woocommerce_wp_select( array(
-						'id'          		=> 'dhl_label_preferred_time',
-						'label'       		=> _x( 'Preferred Time', 'dhl', 'woocommerce-germanized-dhl' ),
-						'description'		=> '',
-						'value'       		=> $default_args['preferred_time'],
-						'options'			=> wc_gzd_dhl_get_preferred_times_select_options( array( $default_args['preferred_time'] => $default_args['preferred_time'] ) ),
-					) ); ?>
-                </div>
-			<?php endif; ?>
-        </div>
+        <?php woocommerce_wp_select( array(
+            'id'          		=> 'dhl_label_preferred_day',
+            'label'       		=> _x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ),
+            'description'		=> '',
+            'value'       		=> isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '',
+            'options'			=> wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, ( isset( $default_args['preferred_day'] ) ? $default_args['preferred_day'] : '' ) ),
+        ) ); ?>
 
 		<?php if ( $dhl_order->has_preferred_location() ) : ?>
             <?php woocommerce_wp_text_input( array(
@@ -195,13 +180,13 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
         </div>
 
 		<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_codeable_address_only',
-		'label'       		=> _x( 'Valid address only', 'dhl', 'woocommerce-germanized-dhl' ),
-		'placeholder' 		=> '',
-		'description'		=> '',
-		'value'       		=> isset( $default_args['codeable_address_only'] ) ? wc_bool_to_string( $default_args['codeable_address_only'] ) : 'no',
-		'wrapper_class'     => 'form-field-checkbox'
-	) ); ?>
+            'id'          		=> 'dhl_label_codeable_address_only',
+            'label'       		=> _x( 'Valid address only', 'dhl', 'woocommerce-germanized-dhl' ),
+            'placeholder' 		=> '',
+            'description'		=> '',
+            'value'       		=> isset( $default_args['codeable_address_only'] ) ? wc_bool_to_string( $default_args['codeable_address_only'] ) : 'no',
+            'wrapper_class'     => 'form-field-checkbox'
+        ) ); ?>
 
         <p class="show-services-trigger">
             <a href="#" class="show-further-services <?php echo ( ! empty( $default_args['services'] ) ? 'hide-default' : '' ); ?>">
@@ -315,7 +300,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 				) ); ?>
             </div>
         </div>
-	<?php elseif( Package::is_crossborder_shipment( $shipment->get_country ) ) : ?>
+	<?php elseif( Package::is_crossborder_shipment( $shipment->get_country() ) ) : ?>
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_Premium',
