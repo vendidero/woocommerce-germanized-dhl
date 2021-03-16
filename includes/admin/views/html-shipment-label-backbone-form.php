@@ -195,13 +195,13 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
         </div>
 
 		<?php woocommerce_wp_checkbox( array(
-		'id'          		=> 'dhl_label_codeable_address_only',
-		'label'       		=> _x( 'Valid address only', 'dhl', 'woocommerce-germanized-dhl' ),
-		'placeholder' 		=> '',
-		'description'		=> '',
-		'value'       		=> isset( $default_args['codeable_address_only'] ) ? wc_bool_to_string( $default_args['codeable_address_only'] ) : 'no',
-		'wrapper_class'     => 'form-field-checkbox'
-	) ); ?>
+            'id'          		=> 'dhl_label_codeable_address_only',
+            'label'       		=> _x( 'Valid address only', 'dhl', 'woocommerce-germanized-dhl' ),
+            'placeholder' 		=> '',
+            'description'		=> '',
+            'value'       		=> isset( $default_args['codeable_address_only'] ) ? wc_bool_to_string( $default_args['codeable_address_only'] ) : 'no',
+            'wrapper_class'     => 'form-field-checkbox'
+        ) ); ?>
 
         <p class="show-services-trigger">
             <a href="#" class="show-further-services <?php echo ( ! empty( $default_args['services'] ) ? 'hide-default' : '' ); ?>">
@@ -315,7 +315,7 @@ $default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 				) ); ?>
             </div>
         </div>
-	<?php elseif( Package::is_crossborder_shipment( $shipment->get_country ) ) : ?>
+	<?php elseif( Package::is_crossborder_shipment( $shipment->get_country() ) ) : ?>
 
 		<?php woocommerce_wp_checkbox( array(
 			'id'          		=> 'dhl_label_service_Premium',
