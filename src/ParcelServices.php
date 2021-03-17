@@ -364,19 +364,19 @@ class ParcelServices {
 	}
 
 	public static function is_preferred_day_enabled() {
-		return 'yes' === self::get_setting( 'PreferredDay_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredDay_enable' ) );
 	}
 
 	public static function is_preferred_time_enabled() {
-		return 'yes' === self::get_setting( 'PreferredTime_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredTime_enable' ) );
 	}
 
 	public static function is_preferred_location_enabled() {
-		return 'yes' === self::get_setting( 'PreferredLocation_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredLocation_enable' ) );
 	}
 
 	public static function is_preferred_neighbor_enabled() {
-		return 'yes' === self::get_setting( 'PreferredNeighbour_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredNeighbour_enable' ) );
 	}
 
 	protected static function get_setting( $key ) {
@@ -388,6 +388,8 @@ class ParcelServices {
 		if ( $method = wc_gzd_dhl_get_current_shipping_method() ) {
 			if ( $method->has_option( $key ) ) {
 				return $method->get_option( $key );
+			} elseif( strpos( $key, '_enable' ) !== false ) {
+				return false;
 			}
 		}
 

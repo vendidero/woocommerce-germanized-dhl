@@ -103,6 +103,16 @@ class DHL extends ShippingProvider {
 		do_action( 'woocommerce_gzd_shipping_provider_deactivated', $this );
 	}
 
+	public function get_setting( $key, $default = null ) {
+		$value = parent::get_setting( $key, $default );
+
+		if ( is_null( $value ) ) {
+			$value = Package::get_setting( $key, false, $default );
+		}
+
+		return $value;
+	}
+
 	public function get_setting_sections() {
 		$sections = parent::get_setting_sections();
 

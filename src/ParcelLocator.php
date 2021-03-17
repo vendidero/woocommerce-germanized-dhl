@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL;
 use Exception;
 use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
+use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Checkout;
 use WC_Order;
@@ -512,7 +513,6 @@ class ParcelLocator {
 			$rates = $package['rates'];
 
 			foreach( $rates as $rate ) {
-
 				if ( $method = wc_gzd_dhl_get_shipping_method( $rate ) ) {
 					$supports = array();
 
@@ -613,6 +613,8 @@ class ParcelLocator {
 		if ( isset( $pickup_types['packstation'] ) && ! self::is_packstation_enabled() ) {
 			unset( $pickup_types['packstation'] );
 		}
+
+		var_dump(self::is_postoffice_enabled());
 
 		if ( isset( $pickup_types['postoffice'] ) && ! self::is_postoffice_enabled() ) {
 			unset( $pickup_types['postoffice'] );
@@ -775,20 +777,18 @@ class ParcelLocator {
 		$option_key = 'parcel_pickup_' . $key;
 
 		if ( $check_method && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
-			if ( $method->has_option( $option_key ) && ! self::disable_method_setting() ) {
+			if ( 'parcel_pickup_packstation_enable' === $option_key ) {
+				return wc_bool_to_string( $method->is_packstation_enabled() );
+			} elseif ( 'parcel_pickup_parcelshop_enable' === $option_key ) {
+				return wc_bool_to_string( $method->is_parcelshop_enabled() );
+			} elseif ( 'parcel_pickup_postoffice_enable' === $option_key ) {
+				return wc_bool_to_string( $method->is_postoffice_enabled() );
+			} elseif ( ! self::disable_method_setting() ) {
 				/**
 				 * Explicitly call available pickup getters instead of generic get_option method
 				 * to support DP adjustments (packstation).
 				 */
-				if ( 'parcel_pickup_packstation_enable' === $option_key ) {
-					return wc_bool_to_string( $method->is_packstation_enabled() );
-				} elseif ( 'parcel_pickup_parcelshop_enable' === $option_key ) {
-					return wc_bool_to_string( $method->is_parcelshop_enabled() );
-				} elseif ( 'parcel_pickup_postoffice_enable' === $option_key ) {
-					return wc_bool_to_string( $method->is_postoffice_enabled() );
-				} else {
-					return $method->get_option( $option_key );
-				}
+				return $method->get_option( $option_key );
 			}
 		}
 
@@ -849,7 +849,7 @@ class ParcelLocator {
 	/**
 	 * @param string $sep
 	 * @param bool $plural
-	 * @param bool|MethodDHL $method
+	 * @param bool|ShippingMethod $method
 	 *
 	 * @return string
 	 */
@@ -940,7 +940,7 @@ class ParcelLocator {
 		 * to the address field when a certain pickup type was chosen.
 		 *
 		 * @param string            $pickup_type_text The pickup type text.
-		 * @param boolean|MethodDHL $method The shipping method object if available.
+		 * @param boolean|ShippingMethod $method The shipping method object if available.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL
@@ -954,7 +954,7 @@ class ParcelLocator {
 		 * to the address field when a certain pickup type was chosen.
 		 *
 		 * @param string            $pickup_type_text The pickup type placeholder text.
-		 * @param boolean|MethodDHL $method The shipping method object if available.
+		 * @param boolean|ShippingMethod $method The shipping method object if available.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL

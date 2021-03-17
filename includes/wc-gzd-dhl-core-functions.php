@@ -328,6 +328,9 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
 	return sanitize_text_field( substr( $ref, 0, 35 ) );
 }
 
+/**
+ * @return false|\Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod
+ */
 function wc_gzd_dhl_get_current_shipping_method() {
 	$chosen_shipping_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods' ) : array();
 
@@ -368,16 +371,19 @@ function wc_gzd_dhl_get_services() {
     );
 }
 
+/**
+ * @param $instance_id
+ *
+ * @return \Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod
+ */
 function wc_gzd_dhl_get_shipping_method( $instance_id ) {
 	$method = wc_gzd_get_shipping_provider_method( $instance_id );
 
-	return new \Vendidero\Germanized\DHL\ShippingProvider\MethodDHL( $method );
+	return new \Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod( $method );
 }
 
 function wc_gzd_dhl_get_deutsche_post_shipping_method( $instance_id ) {
-	$method = wc_gzd_get_shipping_provider_method( $instance_id );
-
-	return new \Vendidero\Germanized\DHL\ShippingProvider\MethodDeutschePost( $method );
+	return wc_gzd_dhl_get_shipping_method( $instance_id );
 }
 
 function wc_gzd_dhl_get_preferred_services() {
