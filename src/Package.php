@@ -7,10 +7,8 @@ use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Api\Paket;
-use Vendidero\Germanized\DHL\ShippingProvider\MethodDeutschePost;
-use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
-use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
+use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\ShippingProviderMethod;
 use WP_Error;
 
@@ -26,7 +24,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.4.6';
+    const VERSION = '1.5.0';
 
     public static $upload_dir_suffix = '';
 
@@ -45,7 +43,6 @@ class Package {
      * Init the package - load the REST API Server class.
      */
     public static function init() {
-
     	if ( ! self::has_dependencies() ) {
     		return;
 	    }
