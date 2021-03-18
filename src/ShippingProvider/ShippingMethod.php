@@ -4,7 +4,6 @@ namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
-use Vendidero\Germanized\Shipments\ShippingProviderMethod;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 class ShippingMethod {
 
 	/**
-	 * @var ShippingProviderMethod|null
+	 * @var \Vendidero\Germanized\Shipments\ShippingProvider\Method null
 	 */
 	protected $method = null;
 
@@ -27,7 +26,7 @@ class ShippingMethod {
 	/**
 	 * ShippingProviderMethodDHL constructor.
 	 *
-	 * @param ShippingProviderMethod $method
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Method $method
 	 */
 	public function __construct( $method ) {
 		$this->method = $method;

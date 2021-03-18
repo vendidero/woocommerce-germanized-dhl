@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\DHL;
 
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -10,8 +12,120 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
     public static function install() {
-    	self::create_upload_dir();
+	    $current_version       = get_option( 'woocommerce_gzd_dhl_version', null );
+	    $needs_settings_update = false;
+
 		self::create_db();
+
+	    /**
+	     * Older versions did not support custom versioning
+	     */
+	    if ( is_null( $current_version ) ) {
+		    add_option( 'woocommerce_gzd_dhl_version', Package::get_version() );
+
+		    // Legacy settings -> indicate update necessary
+		    $needs_settings_update = get_option( 'woocommerce_gzd_dhl_enable' ) || get_option( 'woocommerce_gzd_deutsche_post_enable' );
+	    }
+
+	    if ( $needs_settings_update ) {
+	    	self::migrate_settings();
+	    }
+    }
+
+    private static function migrate_settings() {
+    	// Make sure that providers are registered
+	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( '\Vendidero\Germanized\DHL\Package', 'add_shipping_provider_class_name' ), 10, 1 );
+
+	    global $wpdb;
+
+	    $plugin_options   = $wpdb->get_results( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE 'woocommerce_gzd_dhl_%'" );
+		$dhl              = wc_gzd_get_shipping_provider( 'dhl' );
+	    $deutsche_post    = wc_gzd_get_shipping_provider( 'deutsche_post' );
+	    $excluded_options = array( 'woocommerce_gzd_dhl_upload_dir_suffix', 'woocommerce_gzd_dhl_enable', 'woocommerce_gzd_dhl_enable_internetmarke', 'woocommerce_gzd_dhl_internetmarke_enable' );
+
+	    /**
+	     * Error while retrieving shipping provider instance
+	     */
+	    if ( ! is_a( $dhl, '\Vendidero\Germanized\DHL\ShippingProvider\DHL' ) || ! is_a( $deutsche_post, '\Vendidero\Germanized\DHL\ShippingProvider\DeutschePost' ) ) {
+	    	return false;
+	    }
+
+	    foreach( $plugin_options as $option ) {
+	    	$option_name  = $option->option_name;
+
+	    	if ( in_array( $option_name, $excluded_options ) ) {
+	    		continue;
+		    }
+
+			$option_value = get_option( $option->option_name );
+			$is_dp        = strpos( $option_name, '_im_' ) !== false || strpos( $option_name, '_internetmarke_' ) !== false || strpos( $option_name, '_deutsche_post_' ) !== false;
+
+			if ( $option_value ) {
+				if ( ! $is_dp ) {
+					$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name );
+
+					if ( 'label_default_shipment_weight' === $option_name_clean ) {
+						$dhl->set_label_default_shipment_weight( $option_value );
+					} elseif ( 'label_minimum_shipment_weight' === $option_name_clean ) {
+						$dhl->set_label_minimum_shipment_weight( $option_value );
+					} elseif ( strpos( $option_name_clean, '_shipper_' ) !== false || strpos( $option_name_clean, '_return_address_' ) !== false ) {
+						continue;
+					} else {
+						$dhl->update_meta_data( $option_name_clean, $option_value );
+					}
+				} else {
+					$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name );
+					$option_name_clean = str_replace( '_deutsche_post_', '', $option_name_clean );
+					$option_name_clean = str_replace( '_im_', '', $option_name_clean );
+
+					$deutsche_post->update_meta_data( $option_name_clean, $option_value );
+				}
+			}
+	    }
+
+	    $deutsche_post->set_label_default_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_default_shipment_weight' ) );
+	    $deutsche_post->set_label_minimum_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_minimum_shipment_weight' ) );
+
+	    // Update address data
+	    $shipper_address = array(
+		    'company'       => get_option( 'woocommerce_gzd_dhl_shipper_company' ),
+		    'name'          => get_option( 'woocommerce_gzd_dhl_shipper_name' ),
+		    'street'        => get_option( 'woocommerce_gzd_dhl_shipper_street' ),
+		    'street_number' => get_option( 'woocommerce_gzd_dhl_shipper_street_no' ),
+		    'postcode'      => get_option( 'woocommerce_gzd_dhl_shipper_postcode' ),
+		    'country'       => get_option( 'woocommerce_gzd_dhl_shipper_country' ),
+		    'city'          => get_option( 'woocommerce_gzd_dhl_shipper_city' ),
+		    'phone'         => get_option( 'woocommerce_gzd_dhl_shipper_phone' ),
+		    'email'         => get_option( 'woocommerce_gzd_dhl_shipper_email' ),
+	    );
+
+	    $shipper_address = array_filter( $shipper_address );
+
+	    if ( ! empty( $shipper_address ) ) {
+		    $dhl->set_shipper_address( $shipper_address );
+		    $deutsche_post->set_shipper_address( $shipper_address );
+	    }
+
+	    $return_address = array(
+		    'company'       => get_option( 'woocommerce_gzd_dhl_return_address_company' ),
+		    'name'          => get_option( 'woocommerce_gzd_dhl_return_address_name' ),
+		    'street'        => get_option( 'woocommerce_gzd_dhl_return_address_street' ),
+		    'street_number' => get_option( 'woocommerce_gzd_dhl_return_address_street_no' ),
+		    'postcode'      => get_option( 'woocommerce_gzd_dhl_return_address_postcode' ),
+		    'country'       => get_option( 'woocommerce_gzd_dhl_return_address_country' ),
+		    'city'          => get_option( 'woocommerce_gzd_dhl_return_address_city' ),
+		    'phone'         => get_option( 'woocommerce_gzd_dhl_return_address_phone' ),
+		    'email'         => get_option( 'woocommerce_gzd_dhl_return_address_email' ),
+	    );
+
+	    $return_address = array_filter( $return_address );
+
+	    if ( ! empty( $return_address ) ) {
+		    $dhl->set_return_address( $return_address );
+	    }
+
+	    $dhl->save();
+	    $deutsche_post->save();
     }
 
     private static function create_db() {

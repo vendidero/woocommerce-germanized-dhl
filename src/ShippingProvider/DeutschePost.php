@@ -7,11 +7,11 @@
 namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
-use Vendidero\Germanized\Shipments\ShippingProvider;
+use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
 
 defined( 'ABSPATH' ) || exit;
 
-class DeutschePost extends ShippingProvider {
+class DeutschePost extends Auto {
 
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
@@ -55,28 +55,6 @@ class DeutschePost extends ShippingProvider {
 		return 'https://www.deutschepost.de/sendung/simpleQueryResult.html?form.sendungsnummer={tracking_id}&form.einlieferungsdatum_tag={label_date_day}&form.einlieferungsdatum_monat={label_date_month}&form.einlieferungsdatum_jahr={label_date_year}';
 	}
 
-	public function get_tracking_url_placeholder( $context = 'view' ) {
-		$data = parent::get_tracking_url_placeholder( $context );
-
-		// In case the option value is not stored in DB yet
-		if ( 'view' === $context && empty( $data ) ) {
-			$data = $this->get_default_tracking_url_placeholder();
-		}
-
-		return $data;
-	}
-
-	public function get_tracking_desc_placeholder( $context = 'view' ) {
-		$data = parent::get_tracking_desc_placeholder( $context );
-
-		// In case the option value is not stored in DB yet
-		if ( 'view' === $context && empty( $data ) ) {
-			$data = $this->get_default_tracking_desc_placeholder();
-		}
-
-		return $data;
-	}
-
 	public function deactivate() {
 		update_option( 'woocommerce_gzd_dhl_internetmarke_enable', 'no' );
 
@@ -93,5 +71,13 @@ class DeutschePost extends ShippingProvider {
 		 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
 		 */
 		do_action( 'woocommerce_gzd_shipping_provider_deactivated', $this );
+	}
+
+	public function get_default_label_product( $shipment ) {
+		// TODO: Implement get_default_label_product() method.
+	}
+
+	public function get_available_label_products( $shipment ) {
+		// TODO: Implement get_available_label_products() method.
 	}
 }

@@ -9,7 +9,7 @@ use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Api\Paket;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
-use Vendidero\Germanized\Shipments\ShippingProviderMethod;
+use Vendidero\Germanized\Shipments\Provider\Method;
 use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
@@ -53,15 +53,6 @@ class Package {
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
 	    add_action( 'woocommerce_gzd_admin_settings_before_save_dhl', array( __CLASS__, 'before_update_settings' ), 10, 2 );
-
-	    // Password Settings
-	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
-	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
-	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_im_api_password', array( __CLASS__, 'sanitize_password_field' ), 10, 3 );
-
-	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
-	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_api_sandbox_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
-	    add_filter( 'woocommerce_admin_settings_sanitize_option_woocommerce_gzd_dhl_im_api_username', array( __CLASS__, 'sanitize_user_field' ), 10, 3 );
 
 	    if ( self::is_enabled() ) {
 	        if ( self::has_load_dependencies() ) {
@@ -245,16 +236,6 @@ class Package {
 	    // Maybe force street number during checkout
 	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
     }
-
-	public static function sanitize_password_field( $value, $option, $raw_value ) {
-		$value = is_null( $raw_value ) ? '' : addslashes( $raw_value );
-
-		return trim( $value );
-	}
-
-	public static function sanitize_user_field( $value, $option, $raw_value ) {
-		return strtolower( wc_clean( $value ) );
-	}
 
 	/**
 	 * @param array     $data
@@ -1004,7 +985,7 @@ class Package {
 
 	/**
 	 * @param $name
-	 * @param bool|ShippingProviderMethod|ShippingMethod $method
+	 * @param bool|ShippingMethod $method
 	 *
 	 * @return mixed|void
 	 */

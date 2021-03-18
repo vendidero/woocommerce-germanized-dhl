@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * DHL Shipment class.
  */
-abstract class Label extends \Vendidero\Germanized\Shipments\Label {
+abstract class Label extends \Vendidero\Germanized\Shipments\Labels\Label {
 
 	protected $legacy = false;
 

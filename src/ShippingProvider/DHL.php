@@ -7,15 +7,11 @@
 namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
-use Vendidero\Germanized\Shipments\ShippingProvider;
+use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
 
 defined( 'ABSPATH' ) || exit;
 
-class DHL extends ShippingProvider {
-
-	public function is_manual_integration() {
-		return false;
-	}
+class DHL extends Auto {
 
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
@@ -28,7 +24,7 @@ class DHL extends ShippingProvider {
 	public function supports_labels( $label_type ) {
 		$label_types = array( 'simple' );
 
-		if ( 'yes' === Package::get_setting( 'dhl_label_retoure_enable' ) ) {
+		if ( 'yes' === $this->get_setting( 'label_retoure_enable' ) ) {
 			$label_types[] = 'return';
 		}
 
@@ -37,10 +33,6 @@ class DHL extends ShippingProvider {
 
 	public function supports_customer_return_requests() {
 		return ( 'yes' === Package::get_setting( 'dhl_label_retoure_enable' ) ? true : false );
-	}
-
-	public function is_activated() {
-		return Package::is_dhl_enabled();
 	}
 
 	public function get_title( $context = 'view' ) {
@@ -63,26 +55,20 @@ class DHL extends ShippingProvider {
 		return 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?lang=de&idc={tracking_id}&rfn=&extendedSearch=true';
 	}
 
-	public function get_tracking_url_placeholder( $context = 'view' ) {
-		$data = parent::get_tracking_url_placeholder( $context );
-
-		// In case the option value is not stored in DB yet
-		if ( 'view' === $context && empty( $data ) ) {
-			$data = $this->get_default_tracking_url_placeholder();
-		}
-
-		return $data;
+	public function get_api_username( $context = 'view' ) {
+		return $this->get_meta( 'api_username', true );
 	}
 
-	public function get_tracking_desc_placeholder( $context = 'view' ) {
-		$data = parent::get_tracking_desc_placeholder( $context );
+	public function set_api_username( $username ) {
+		$this->update_meta_data( 'api_username', strtolower( $username ) );
+	}
 
-		// In case the option value is not stored in DB yet
-		if ( 'view' === $context && empty( $data ) ) {
-			$data = $this->get_default_tracking_desc_placeholder();
-		}
+	public function get_api_sandbox_username( $context = 'view' ) {
+		return $this->get_meta( 'api_sandbox_username', true );
+	}
 
-		return $data;
+	public function set_api_sandbox_username( $username ) {
+		$this->update_meta_data( 'api_sandbox_username', strtolower( $username ) );
 	}
 
 	public function deactivate() {
@@ -103,16 +89,6 @@ class DHL extends ShippingProvider {
 		do_action( 'woocommerce_gzd_shipping_provider_deactivated', $this );
 	}
 
-	public function get_setting( $key, $default = null ) {
-		$value = parent::get_setting( $key, $default );
-
-		if ( is_null( $value ) ) {
-			$value = Package::get_setting( $key, false, $default );
-		}
-
-		return $value;
-	}
-
 	public function get_setting_sections() {
 		$sections = parent::get_setting_sections();
 
@@ -124,8 +100,8 @@ class DHL extends ShippingProvider {
 	 *
 	 * @return array
 	 */
-	public function get_label_settings( $shipment ) {
-		$settings     = parent::get_label_settings( $shipment );
+	public function get_label_fields( $shipment ) {
+		$settings     = parent::get_label_fields( $shipment );
 		$dhl_order    = wc_gzd_dhl_get_order( $shipment->get_order() );
 		$default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
@@ -464,5 +440,107 @@ class DHL extends ShippingProvider {
 		$default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
 
 		return isset( $default_args['product_id'] ) ? $default_args['product_id'] : false;
+	}
+
+	public function get_general_settings() {
+		$settings = array(
+			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_general_options' ),
+
+			array(
+				'title'             => _x( 'Customer Number (EKP)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your 10 digits DHL customer number, also called "EKP". Find your %s in the DHL business portal.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() .'" target="_blank">' . _x(  'customer number', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'id' 		        => 'dhl_account_number',
+				'value'             => $this->get_setting( 'dhl_account_number', '' ),
+				'placeholder'		=> '1234567890',
+				'custom_attributes'	=> array( 'maxlength' => '10' )
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'dhl_general_options' ),
+
+			array( 'title' => _x( 'API', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_api_options' ),
+
+			array(
+				'title' 	=> _x( 'Enable Sandbox', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		=> _x( 'Activate Sandbox mode for testing purposes.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id' 		=> 'dhl_sandbox_mode',
+				'value'      => wc_bool_to_string( $this->get_setting( 'dhl_sandbox_mode', 'no' ) ),
+				'type' 		=> 'gzd_toggle',
+			),
+
+			array(
+				'title'             => _x( 'Live Username', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your username (<strong>not</strong> your email address) to the DHL business customer portal. Please make sure to test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'id' 		        => 'dhl_api_username',
+				'value'             => $this->get_setting( 'dhl_api_username', '' ),
+				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
+			),
+
+			array(
+				'title'             => _x( 'Live Password', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'password',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your password to the DHL business customer portal. Please note the new assignment of the password to 3 (Standard User) or 12 (System User) months and make sure to test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
+				'id' 		        => 'dhl_api_password',
+				'value'             => $this->get_setting( 'dhl_api_password', '' ),
+				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
+			),
+
+			array(
+				'title'             => _x( 'Sandbox Username', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'text',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your username (<strong>not</strong> your email address) to the DHL developer portal. Please make sure to test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+				'id' 		        => 'dhl_api_sandbox_username',
+				'value'             => $this->get_setting( 'dhl_api_sandbox_username', '' ),
+				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )
+			),
+
+			array(
+				'title'             => _x( 'Sandbox Password', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'password',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your password for the DHL developer portal. Please test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
+				'id' 		        => 'api_sandbox_password',
+				'value'             => $this->get_setting( 'api_sandbox_password', '' ),
+				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'dhl_api_options' ),
+
+			array( 'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_api_options' ),
+		);
+
+		$dhl_products = array();
+
+		foreach( ( wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_international() ) as $product => $title ) {
+			$dhl_products[] = array(
+				'title'             => $title,
+				'type'              => 'text',
+				'id'                => 'dhl_participation_' . $product,
+				'value'             => $this->get_setting( 'dhl_participation_' . $product, '' ),
+				'custom_attributes'	=> array( 'maxlength' => '2' ),
+			);
+		}
+
+		$dhl_products[] = array(
+			'title'             => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ),
+			'type'              => 'text',
+			'value'             => $this->get_setting( 'dhl_participation_return', '' ),
+			'custom_attributes'	=> array( 'maxlength' => '2' ),
+		);
+
+		$settings = array_merge( $settings, $dhl_products );
+
+		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'dhl_product_options' ),
+			array( 'title' => _x( 'Tracking', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'tracking_options' ),
+		) );
+
+		$general_settings = parent::get_general_settings();
+
+		return array_merge( $settings, $general_settings );
+	}
+
+	protected function get_available_base_countries() {
+		return Package::get_available_countries();
 	}
 }
