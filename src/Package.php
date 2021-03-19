@@ -7,9 +7,11 @@ use DateTimeZone;
 use Exception;
 use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Api\Paket;
+use Vendidero\Germanized\DHL\ShippingProvider\DeutschePost;
+use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
-use Vendidero\Germanized\Shipments\Provider\Method;
+use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
@@ -43,26 +45,36 @@ class Package {
      * Init the package - load the REST API Server class.
      */
     public static function init() {
-    	if ( ! self::has_dependencies() ) {
-    		return;
-	    }
+	    /**
+	     * Make sure provider is loaded after main shipments module.
+	     */
+        if ( ! did_action( 'woocommerce_gzd_shipments_init' ) ) {
+            add_action( 'woocommerce_gzd_shipments_init', array( __CLASS__, 'on_shipments_init' ) );
+        } else {
+            self::on_shipments_init();
+        }
+    }
 
-        self::define_tables();
-        self::maybe_set_upload_dir();
-
+    public static function on_shipments_init() {
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
-	    add_action( 'woocommerce_gzd_admin_settings_before_save_dhl', array( __CLASS__, 'before_update_settings' ), 10, 2 );
+
+	    if ( ! self::has_dependencies() ) {
+		    return;
+	    }
+
+	    self::define_tables();
+	    self::maybe_set_upload_dir();
 
 	    if ( self::is_enabled() ) {
-	        if ( self::has_load_dependencies() ) {
-		        self::init_hooks();
-            } else {
-	            add_action( 'admin_notices', array( __CLASS__, 'load_dependencies_notice' ) );
-            }
-        }
+		    if ( self::has_load_dependencies() ) {
+			    self::init_hooks();
+		    } else {
+			    add_action( 'admin_notices', array( __CLASS__, 'load_dependencies_notice' ) );
+		    }
+	    }
 
-        self::includes();
+	    self::includes();
     }
 
     public static function load_dependencies_notice() {
@@ -177,11 +189,17 @@ class Package {
     }
 
     public static function is_enabled() {
-    	return ( self::is_dhl_enabled() || self::is_internetmarke_enabled() );
+    	return ( self::is_dhl_enabled() || self::is_deutsche_post_enabled() );
     }
 
 	public static function is_dhl_enabled() {
-		return ( 'yes' === self::get_setting( 'enable' ) );
+		$is_enabled = false;
+
+		if ( $provider = self::get_dhl_shipping_provider() ) {
+			$is_enabled = $provider->is_activated();
+		}
+
+		return $is_enabled;
 	}
     
     public static function get_country_iso_alpha3( $country_code ) {
@@ -228,8 +246,6 @@ class Package {
     public static function init_hooks() {
 	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
 
-	    add_filter( 'woocommerce_gzd_shipping_provider_method_admin_settings', array( __CLASS__, 'register_shipping_method_settings' ), 10, 1 );
-
 	    // Filter templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
@@ -268,121 +284,34 @@ class Package {
 		return $path;
 	}
 
-	public static function register_shipping_method_settings( $settings ) {
-		return array_merge( $settings, self::get_method_settings() );
+	public static function get_default_bank_account_data( $data_key = '' ) {
+		$bacs = get_option( 'woocommerce_bacs_accounts' );
+
+		if ( ! empty( $bacs ) && is_array( $bacs ) ) {
+			$data = $bacs[0];
+
+			if ( isset( $data[ 'account_' . $data_key ] ) ) {
+				return $data[ 'account_' . $data_key ];
+			} elseif ( isset( $data[ $data_key ] ) ) {
+				return $data[ $data_key ];
+			}
+		}
+
+		return '';
 	}
 
-	public static function get_method_settings() {
-		$settings = array();
+	/**
+	 * @return false|DHL
+	 */
+	public static function get_dhl_shipping_provider() {
+        return wc_gzd_get_shipping_provider( 'dhl' );
+	}
 
-		if ( Package::is_dhl_enabled() ) {
-			$settings = array(
-				'dhl_label_title' => array(
-					'title'       => _x( 'DHL Labels', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'        => 'title',
-					'default'     => '',
-					'description' => sprintf( _x( 'Adjust DHL label settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=labels' ) ),
-				),
-			);
-
-			$label_settings = Settings::get_label_default_settings( true );
-			$settings       = array_merge( $settings, $label_settings );
-
-			if ( Package::base_country_supports( 'services' ) ) {
-				$settings = array_merge( $settings, array(
-					'dhl_label_service_title' => array(
-						'title'       => _x( 'DHL Label Services', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'        => 'title',
-						'default'     => '',
-						'description' => sprintf( _x( 'Adjust default DHL label service settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=labels' ) ),
-					),
-				) );
-
-				$label_service_settings = Settings::get_label_default_services_settings( true );
-				$settings               = array_merge( $settings, $label_service_settings );
-			}
-
-			$settings = array_merge( $settings, array(
-				'dhl_label_auto_title' => array(
-					'title'       => _x( 'Label Automation', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'        => 'title',
-					'default'     => '',
-					'description' => sprintf( _x( 'Adjust label automation settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=labels' ) ),
-				),
-			) );
-
-			$auto_settings  = Settings::get_automation_settings( true );
-			$settings       = array_merge( $settings, $auto_settings );
-
-			if ( ParcelServices::is_enabled() ) {
-				$settings = array_merge( $settings, array(
-					'dhl_preferred_services_title' => array(
-						'title'       => _x( 'DHL Preferred Services', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'        => 'title',
-						'default'     => '',
-						'description' => sprintf( _x( 'Adjust preferred service settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=services' ) ),
-					),
-				) );
-				$service_settings = Settings::get_preferred_services_settings( true );
-				$settings         = array_merge( $settings, $service_settings );
-			}
-
-			if ( ParcelLocator::is_enabled() ) {
-				$settings = array_merge( $settings, array(
-					'dhl_parcel_pickup_title' => array(
-						'title'       => _x( 'DHL Pickup', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'        => 'title',
-						'default'     => '',
-						'description' => sprintf( _x( 'Adjust pickup settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=pickup' ) ),
-					),
-				) );
-				$service_settings = Settings::get_parcel_pickup_type_settings( true );
-				$settings         = array_merge( $settings, $service_settings );
-			}
-		}
-
-		if ( Package::is_internetmarke_enabled() ) {
-			/**
-			 * Deutsche Post
-			 */
-			$settings = array_merge( $settings, array(
-				'deutsche_post_label_title' => array(
-					'title'       => _x( 'Deutsche Post Labels', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'        => 'title',
-					'default'     => '',
-					'description' => sprintf( _x( 'Adjust Deutsche Post label settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
-				),
-			) );
-
-			$label_settings = Settings::get_internetmarke_default_settings( true );
-			$settings       = array_merge( $settings, $label_settings );
-
-			$settings = array_merge( $settings, array(
-				'deutsche_post_label_print_title' => array(
-					'title'       => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'        => 'title',
-					'default'     => '',
-					'description' => sprintf( _x( 'Adjust label printing settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
-				),
-			) );
-
-			$label_settings = Settings::get_internetmarke_printing_settings( true );
-			$settings       = array_merge( $settings, $label_settings );
-
-			$settings = array_merge( $settings, array(
-				'deutsche_post_label_auto_title' => array(
-					'title'       => _x( 'Label Automation', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'        => 'title',
-					'default'     => '',
-					'description' => sprintf( _x( 'Adjust label automation settings. Changes override <a href="%s">global settings</a>.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&section=internetmarke' ) ),
-				),
-			) );
-
-			$label_settings = Settings::get_internetmarke_automation_settings( true );
-			$settings       = array_merge( $settings, $label_settings );
-		}
-
-		return $settings;
+	/**
+	 * @return false|DeutschePost
+	 */
+	public static function get_deutsche_post_shipping_provider() {
+		return wc_gzd_get_shipping_provider( 'deutsche_post' );
 	}
 
 	public static function eur_to_cents( $price ) {
@@ -428,7 +357,7 @@ class Package {
     }
 
 	public static function get_internetmarke_api() {
-		if ( is_null( self::$im_api ) && self::is_internetmarke_enabled() ) {
+		if ( is_null( self::$im_api ) && self::is_deutsche_post_enabled() ) {
 			self::$im_api = new Internetmarke();
 		}
 
@@ -536,8 +465,14 @@ class Package {
 		return 'VENDIDERO';
 	}
 
-	public static function is_internetmarke_enabled() {
-    	return 'yes' === self::get_setting( 'internetmarke_enable' );
+	public static function is_deutsche_post_enabled() {
+    	$is_enabled = false;
+
+    	if ( $provider = self::get_deutsche_post_shipping_provider() ) {
+    	    $is_enabled = $provider->is_activated();
+	    }
+
+    	return $is_enabled;
 	}
 
 	public static function get_internetmarke_username() {
@@ -991,6 +926,7 @@ class Package {
 	 */
     public static function get_setting( $name, $method = false, $default = false ) {
 	    $is_dp = false;
+	    $value = $default;
 
     	if ( substr( $name, 0, 4 ) === 'dhl_' ) {
     		$name = substr( $name, 4 );
@@ -1016,13 +952,13 @@ class Package {
 	    }
 
     	if ( ! $is_dp ) {
-		    $value = get_option( "woocommerce_gzd_dhl_{$name}", $default );
+    	    if ( $provider = Package::get_dhl_shipping_provider() ) {
+    	        $value = $provider->get_setting( $name, $default );
+	        }
 	    } else {
-		    $value = get_option( "woocommerce_gzd_deutsche_post_{$name}", $default );
-	    }
-
-    	if ( ! empty( $value ) && strpos( $name, 'password' ) !== false ) {
-    		return stripslashes( $value );
+		    if ( $provider = Package::get_deutsche_post_shipping_provider() ) {
+			    $value = $provider->get_setting( $name, $default );
+		    }
 	    }
 
     	return $value;
@@ -1145,38 +1081,6 @@ class Package {
 			}
 		} else {
 			return true;
-		}
-	}
-
-	public static function before_update_settings( $settings, $current_section = '' ) {
-
-		if ( ! empty( $current_section ) ) {
-			return;
-		}
-
-		$currently_enabled = self::get_setting( 'enable' ) === 'yes';
-
-		if ( ! $currently_enabled && isset( $_POST['woocommerce_gzd_dhl_enable'] ) && ! empty( $_POST['woocommerce_gzd_dhl_enable'] ) ) {
-
-			if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
-				$default_provider = wc_gzd_get_default_shipping_provider();
-
-				if ( empty( $default_provider ) ) {
-					update_option( 'woocommerce_gzd_shipments_default_shipping_provider', 'dhl' );
-				}
-
-				/**
-				 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
-				 */
-				do_action( 'woocommerce_gzd_shipping_provider_activated', $provider );
-			}
-		} elseif ( $currently_enabled && ! isset( $_POST['woocommerce_gzd_dhl_enable'] ) ) {
-			if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
-				/**
-				 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
-				 */
-				do_action( 'woocommerce_gzd_shipping_provider_deactivated', $provider );
-			}
 		}
 	}
 }

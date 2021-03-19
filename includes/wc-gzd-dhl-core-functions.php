@@ -583,9 +583,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		'ident_date_of_birth'   => '',
 		'ident_min_age'         => '',
 		'visual_min_age'        => '',
-		'email_notification'    => 'no',
 		'has_inlay_return'      => 'no',
-		'codeable_address_only' => 'no',
 		'cod_total'             => 0,
 		'product_id'            => '',
 		'duties'                => '',
@@ -646,12 +644,13 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			$error->add( 500, _x( 'Please either add a return company or name.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	} else {
-		$args['return_address'] = array();
+		unset( $args['return_address'] );
+		unset( $args['has_inlay_return'] );
 	}
 
 	// No cash on delivery available
-	if ( ! empty( $args['cod_total'] ) && ! $dhl_order->has_cod_payment() ) {
-		$args['cod_total'] = 0;
+	if ( ( ! empty( $args['cod_total'] ) && ! $dhl_order->has_cod_payment() ) || empty( $args['cod_total'] ) ) {
+		unset( $args['cod_total'] );
 	}
 
 	if ( ! empty( $args['cod_total'] ) && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $args['product_id'], 'CashOnDelivery' ) ) {
@@ -665,8 +664,9 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			$error->add( 500, _x( 'Error while parsing preferred day.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$args['services']      = array_diff( $args['services'], array( 'PreferredDay' ) );
-		$args['preferred_day'] = '';
+		$args['services'] = array_diff( $args['services'], array( 'PreferredDay' ) );
+
+		unset( $args['preferred_day'] );
 	}
 
 	if ( ( ! empty( $args['preferred_time_start'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_time_start'], 'H:i' ) ) && ( ! empty( $args['preferred_time_end'] ) && wc_gzd_dhl_is_valid_datetime( $args['preferred_time_end'], 'H:i' ) ) ) {
@@ -676,21 +676,23 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			$error->add( 500, _x( 'Error while parsing preferred time.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$args['services']             = array_diff( $args['services'], array( 'PreferredTime' ) );
-		$args['preferred_time_start'] = '';
-		$args['preferred_time_end']   = '';
+		$args['services'] = array_diff( $args['services'], array( 'PreferredTime' ) );
+
+		unset( $args['preferred_time_start'], $args['preferred_time_end'] );
  	}
 
 	if ( ! empty( $args['preferred_location'] ) ) {
 		$args['services'] = array_merge( $args['services'], array( 'PreferredLocation' ) );
 	} else {
 		$args['services'] = array_diff( $args['services'], array( 'PreferredLocation' ) );
+		unset( $args['preferred_location'] );
 	}
 
 	if ( ! empty( $args['preferred_neighbor'] ) ) {
 		$args['services'] = array_merge( $args['services'], array( 'PreferredNeighbour' ) );
 	} else {
 		$args['services'] = array_diff( $args['services'], array( 'PreferredNeighbour' ) );
+		unset( $args['preferred_neighbor'] );
 	}
 
 	if ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'VisualCheckOfAge' ) ) {
@@ -701,11 +703,12 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 				$error->add( 500, _x( 'The visual min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 
-			$args['services']       = array_diff( $args['services'], array( 'VisualCheckOfAge' ) );
-			$args['visual_min_age'] = '';
+			$args['services'] = array_diff( $args['services'], array( 'VisualCheckOfAge' ) );
+
+			unset( $args['visual_min_age'] );
 		}
 	} else {
-		$args['visual_min_age'] = '';
+		unset( $args['visual_min_age'] );
 	}
 
 	// In case order does not support email notification - remove parcel outlet routing
@@ -723,8 +726,6 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 		if ( in_array( 'IdentCheck', $args['services'] ) ) {
 			if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
 				$error->add( 500, _x( 'The ident min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
-
-				$args['ident_min_age'] = '';
 			}
 
 			if ( ! empty( $args['ident_date_of_birth'] ) ) {
@@ -738,8 +739,8 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			}
 		}
 	} else {
-		$args['ident_min_age']       = '';
-		$args['ident_date_of_birth'] = '';
+		unset( $args['ident_min_age'] );
+		unset( $args['ident_date_of_birth'] );
 	}
 
 	// We don't need duties for non-crossborder shipments
@@ -1144,20 +1145,13 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false,
  * @param Shipment $shipment
  */
 function wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment ) {
-
 	$shipping_method     = $shipment->get_shipping_method();
 	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
-	$dimensions          = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 
 	$defaults = array(
 		'product_id'            => wc_gzd_dhl_get_default_product( $shipment->get_country(), $dhl_shipping_method ),
 		'services'              => array(),
 		'codeable_address_only' => Package::get_setting( 'label_address_codeable_only', $dhl_shipping_method ),
-		'weight'                => wc_gzd_dhl_get_shipment_weight( $shipment ),
-		'net_weight'            => wc_gzd_dhl_get_shipment_weight( $shipment, 'kg', true ),
-		'length'                => $dimensions['length'],
-		'width'                 => $dimensions['width'],
-		'height'                => $dimensions['height'],
 	);
 
 	if ( $dhl_order->supports_email_notification() ) {
@@ -1463,19 +1457,12 @@ function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg', $net_weight = 
  * @param ReturnShipment $shipment
  */
 function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
-
 	$shipping_method     = $shipment->get_shipping_method();
 	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
-	$dimensions          = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 
 	$defaults = array(
 		'services'       => array(),
 		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country(), $dhl_shipping_method ),
-		'weight'         => wc_gzd_dhl_get_shipment_weight( $shipment ),
-		'net_weight'     => wc_gzd_dhl_get_shipment_weight( $shipment, 'kg', true ),
-		'length'         => $dimensions['length'],
-		'width'          => $dimensions['width'],
-		'height'         => $dimensions['height'],
 		'sender_address' => $shipment->get_sender_address(),
 	);
 

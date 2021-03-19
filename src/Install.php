@@ -75,8 +75,8 @@ class Install {
 					}
 				} else {
 					$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name );
-					$option_name_clean = str_replace( '_deutsche_post_', '', $option_name_clean );
-					$option_name_clean = str_replace( '_im_', '', $option_name_clean );
+					$option_name_clean = str_replace( 'deutsche_post_', '', $option_name_clean );
+					$option_name_clean = str_replace( 'im_', '', $option_name_clean );
 
 					$deutsche_post->update_meta_data( $option_name_clean, $option_value );
 				}

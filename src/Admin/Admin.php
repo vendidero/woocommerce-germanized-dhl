@@ -44,8 +44,8 @@ class Admin {
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
 
 		// Reveiver ID options
-        add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ) );
-        add_action( 'woocommerce_gzd_admin_settings_after_save_dhl_labels', array( __CLASS__, 'save_receiver_ids' ) );
+        add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ), 10 );
+        add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'save_receiver_ids' ), 10, 3 );
 
 		add_action( 'admin_init', array( __CLASS__, 'refresh_im_data' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'refresh_im_notices' ) );
@@ -144,14 +144,19 @@ class Admin {
 		include $path;
 	}
 
-	public static function save_receiver_ids() {
-		$receiver = array();
+	public static function save_receiver_ids( $value, $option, $raw_value ) {
+	    if ( ! isset( $option['type'] ) || 'dhl_receiver_ids' !== $option['type'] ) {
+	        return $value;
+	    }
+
+		$receiver  = array();
+	    $raw_value = is_array( $raw_value ) ? $raw_value : array();
 
 		// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()
-		if ( isset( $_POST['receiver_id'] ) ) {
+		if ( isset( $raw_value['receiver_id'], $raw_value['receiver_country'] ) ) {
 
-			$receiver_ids    = wc_clean( wp_unslash( $_POST['receiver_id'] ) );
-			$countries       = wc_clean( wp_unslash( $_POST['receiver_country'] ) );
+			$receiver_ids    = wc_clean( wp_unslash( $raw_value['receiver_id'] ) );
+			$countries       = wc_clean( wp_unslash( $raw_value['receiver_country'] ) );
 
 			foreach ( $receiver_ids as $i => $name ) {
 				$country = isset( $countries[ $i ] ) ? substr( strtoupper( $countries[ $i ] ), 0, 2 ) : '';
@@ -164,13 +169,15 @@ class Admin {
 				);
 			}
 		}
-		// phpcs:enable
 
-		update_option( 'woocommerce_gzd_dhl_retoure_receiver_ids', $receiver );
+		return $receiver;
     }
 
-	public static function output_receiver_ids_field( $value ) {
+	public static function output_receiver_ids_field( $option ) {
 		ob_start();
+
+		$option_key   = isset( $option['id'] ) ? $option['id'] : 'dhl_receiver_ids';
+		$receiver_ids = isset( $option['value'] ) ? $option['value'] : array();
 		?>
         <tr valign="top">
             <th scope="row" class="titledesc"><?php echo esc_html_x(  'Receiver Ids', 'dhl', 'woocommerce-germanized-dhl' ); ?></th>
@@ -187,16 +194,14 @@ class Admin {
                         <tbody class="receiver_ids">
 						<?php
 						$i = -1;
-						if ( Package::get_return_receivers() ) {
-							foreach ( Package::get_return_receivers() as $receiver ) {
-								$i++;
+                        foreach ( $receiver_ids as $receiver ) {
+                            $i++;
 
-								echo '<tr class="receiver">
-										<td><input type="text" value="' . esc_attr( wp_unslash( $receiver['id'] ) ) . '" name="receiver_id[' . esc_attr( $i ) . ']" /></td>
-										<td><input type="text" value="' . esc_attr( wp_unslash( $receiver['country'] ) ) . '" name="receiver_country[' . esc_attr( $i ) . ']" /></td>
-									</tr>';
-							}
-						}
+                            echo '<tr class="receiver">
+                                    <td><input type="text" value="' . esc_attr( wp_unslash( $receiver['id'] ) ) . '" name="' . $option_key . '[receiver_id][' . esc_attr( $i ) . ']" /></td>
+                                    <td><input type="text" value="' . esc_attr( wp_unslash( $receiver['country'] ) ) . '" name="' . $option_key . '[receiver_country][' . esc_attr( $i ) . ']" /></td>
+                                </tr>';
+                        }
 						?>
                         </tbody>
                         <tfoot>
@@ -213,8 +218,8 @@ class Admin {
                             var size = jQuery('#dhl_receiver_ids').find('tbody .receiver').length;
 
                             jQuery('<tr class="receiver">\
-									<td><input type="text" name="receiver_id[' + size + ']" /></td>\
-									<td><input type="text" name="receiver_country[' + size + ']" /></td>\
+									<td><input type="text" name="<?php echo $option_key; ?>[receiver_id][' + size + ']" /></td>\
+									<td><input type="text" name="<?php echo $option_key; ?>[receiver_country][' + size + ']" /></td>\
 								</tr>').appendTo('#dhl_receiver_ids table tbody');
 
                             return false;

@@ -81,7 +81,7 @@ class Status {
 			) );
 		}
 
-		if ( Package::is_internetmarke_enabled() ) {
+		if ( Package::is_deutsche_post_enabled() ) {
 			$urls = array_merge( $urls, array(
 				Package::get_warenpost_international_rest_url(),
 				Package::get_internetmarke_main_url(),

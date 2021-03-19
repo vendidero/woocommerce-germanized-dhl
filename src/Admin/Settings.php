@@ -1352,7 +1352,7 @@ class Settings {
 	protected static function get_internetmarke_settings() {
 		$settings = self::get_internetmarke_setup_settings( true );
 
-		if ( Package::is_internetmarke_enabled() ) {
+		if ( Package::is_deutsche_post_enabled() ) {
 			$api = Package::get_internetmarke_api();
 
 			if ( $api && $api->auth() && $api->is_available() ) {

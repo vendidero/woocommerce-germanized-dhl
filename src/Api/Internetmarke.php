@@ -71,7 +71,7 @@ class Internetmarke {
 			$this->errors->add( 'startup', sprintf( _x( 'Error while instantiating main Internetmarke API: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
 		}
 
-		if ( ! Package::is_internetmarke_enabled() ) {
+		if ( ! Package::is_deutsche_post_enabled() ) {
 			$this->errors->add( 'startup', _x( 'Internetmarke is disabled. Please enable Internetmarke.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	}
