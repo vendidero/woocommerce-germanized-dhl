@@ -400,7 +400,13 @@ class Package {
 	}
 
 	public static function is_debug_mode() {
-		return ( defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG ) || 'yes' === get_option( "woocommerce_gzd_dhl_sandbox_mode" );
+		$is_debug_mode = ( defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG );
+
+		if ( ! $is_debug_mode && ( $provider = self::get_dhl_shipping_provider() ) ) {
+		    $is_debug_mode = $provider->is_sandbox();
+		}
+
+		return $is_debug_mode;
 	}
 
 	public static function enable_logging() {
@@ -996,12 +1002,15 @@ class Package {
     }
 
     public static function get_base_country() {
-	    $base_location       = wc_get_base_location();
-	    $base_country        = $base_location['country'];
-	    $sender_base_country = Package::get_setting( 'shipper_country' );
+	    $base_location = wc_get_base_location();
+	    $base_country  = $base_location['country'];
 
-	    if ( ! empty( $sender_base_country ) ) {
-	    	$base_country = $sender_base_country;
+	    if ( did_action( 'woocommerce_gzd_shipments_init' ) ) {
+		    $sender_base_country = Package::get_setting( 'shipper_country' );
+
+		    if ( ! empty( $sender_base_country ) ) {
+			    $base_country = $sender_base_country;
+		    }
 	    }
 
 	    /**

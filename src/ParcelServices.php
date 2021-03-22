@@ -335,7 +335,6 @@ class ParcelServices {
 				if ( ! empty( $shipping_postcode ) ) {
 					WC()->session->set( 'dhl_preferred_day_options', Package::get_api()->get_preferred_available_days( $shipping_postcode ) );
 				}
-
 			} catch( Exception $e ) {}
 		}
 	}

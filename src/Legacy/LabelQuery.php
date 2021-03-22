@@ -118,7 +118,7 @@ class LabelQuery extends WC_Object_Query {
 
         if ( null === $this->results ) {
             $this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
-
+            
             if ( is_array( $qv['fields'] ) || 'objects' == $qv['fields'] ) {
                 $this->results = $wpdb->get_results( $this->request );
             } else {

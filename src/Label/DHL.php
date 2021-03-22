@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\DHL\Label;
 use DateTimeZone;
+use Vendidero\Germanized\DHL\Api\LabelSoap;
+use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Data;
 use WC_Data_Store;
@@ -205,10 +207,16 @@ class DHL extends Label {
 	/**
 	 * Returns a directly linked return label.
 	 *
-	 * @return bool|ReturnLabel
+	 * @return bool|DHLInlayReturn
 	 */
 	public function get_inlay_return_label() {
-		return wc_gzd_dhl_get_return_label_by_parent( $this->get_id() );
+		$children = $this->get_children();
+
+		if ( ! empty( $children ) && is_a( $children[0], '\Vendidero\Germanized\DHL\Label\DHLInlayReturn' ) ) {
+			return $children[0];
+		}
+
+		return false;
 	}
 
 	/**
@@ -294,5 +302,28 @@ class DHL extends Label {
 
 	public function set_visual_min_age( $age ) {
 		$this->set_prop( 'visual_min_age', $age );
+	}
+
+	/**
+	 * @return \WP_Error|true
+	 */
+	public function fetch() {
+		$result = new \WP_Error();
+
+		try {
+			Package::get_api()->get_label( $this );
+		} catch( Exception $e ) {
+			$errors = explode(PHP_EOL, $e->getMessage() );
+
+			foreach( $errors as $error ) {
+				$result->add( 'dhl-api-error', $error );
+			}
+		}
+
+		if ( wc_gzd_dhl_wp_error_has_errors( $result ) ) {
+			return $result;
+		} else {
+			return true;
+		}
 	}
 }

@@ -17,6 +17,8 @@ class DHL extends Auto {
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
 			return '\Vendidero\Germanized\DHL\Label\DHLReturn';
+		} elseif ( 'inlay_return' === $type ) {
+			return '\Vendidero\Germanized\DHL\Label\DHLInlayReturn';
 		} else {
 			return '\Vendidero\Germanized\DHL\Label\DHL';
 		}
@@ -495,6 +497,10 @@ class DHL extends Auto {
 		return $props;
 	}
 
+	public function is_sandbox() {
+		return 'yes' === $this->get_meta( 'sandbox_mode', true );
+	}
+
 	/**
 	 * @param Shipment $shipment
 	 *
@@ -529,8 +535,8 @@ class DHL extends Auto {
 				'title'             => _x( 'Customer Number (EKP)', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your 10 digits DHL customer number, also called "EKP". Find your %s in the DHL business portal.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() .'" target="_blank">' . _x(  'customer number', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
-				'id' 		        => 'dhl_account_number',
-				'value'             => $this->get_setting( 'dhl_account_number', '' ),
+				'id' 		        => 'account_number',
+				'value'             => $this->get_setting( 'account_number', '' ),
 				'placeholder'		=> '1234567890',
 				'custom_attributes'	=> array( 'maxlength' => '10' )
 			),
@@ -542,8 +548,8 @@ class DHL extends Auto {
 			array(
 				'title' 	=> _x( 'Enable Sandbox', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		=> _x( 'Activate Sandbox mode for testing purposes.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id' 		=> 'dhl_sandbox_mode',
-				'value'      => wc_bool_to_string( $this->get_setting( 'dhl_sandbox_mode', 'no' ) ),
+				'id' 		=> 'sandbox_mode',
+				'value'      => wc_bool_to_string( $this->get_setting( 'sandbox_mode', 'no' ) ),
 				'type' 		=> 'gzd_toggle',
 			),
 
@@ -551,28 +557,28 @@ class DHL extends Auto {
 				'title'             => _x( 'Live Username', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your username (<strong>not</strong> your email address) to the DHL business customer portal. Please make sure to test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
-				'id' 		        => 'dhl_api_username',
+				'id' 		        => 'api_username',
 				'default'           => '',
-				'value'             => $this->get_setting( 'dhl_api_username', '' ),
-				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
+				'value'             => $this->get_setting( 'api_username', '' ),
+				'custom_attributes'	=> array( 'data-show_if_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
 			),
 
 			array(
 				'title'             => _x( 'Live Password', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'password',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your password to the DHL business customer portal. Please note the new assignment of the password to 3 (Standard User) or 12 (System User) months and make sure to test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
-				'id' 		        => 'dhl_api_password',
-				'value'             => $this->get_setting( 'dhl_api_password', '' ),
-				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
+				'id' 		        => 'api_password',
+				'value'             => $this->get_setting( 'api_password', '' ),
+				'custom_attributes'	=> array( 'data-show_if_sandbox_mode' => 'no', 'autocomplete' => 'new-password' )
 			),
 
 			array(
 				'title'             => _x( 'Sandbox Username', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'text',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your username (<strong>not</strong> your email address) to the DHL developer portal. Please make sure to test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
-				'id' 		        => 'dhl_api_sandbox_username',
-				'value'             => $this->get_setting( 'dhl_api_sandbox_username', '' ),
-				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )
+				'id' 		        => 'api_sandbox_username',
+				'value'             => $this->get_setting( 'api_sandbox_username', '' ),
+				'custom_attributes'	=> array( 'data-show_if_sandbox_mode' => '', 'autocomplete' => 'new-password' )
 			),
 
 			array(
@@ -581,7 +587,7 @@ class DHL extends Auto {
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Your password for the DHL developer portal. Please test your access data in advance %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://entwickler.dhl.de" target = "_blank">' . _x(  'here', 'dhl', 'woocommerce-germanized-dhl' ) .'</a>' ) . '</div>',
 				'id' 		        => 'api_sandbox_password',
 				'value'             => $this->get_setting( 'api_sandbox_password', '' ),
-				'custom_attributes'	=> array( 'data-show_if_dhl_sandbox_mode' => '', 'autocomplete' => 'new-password' )
+				'custom_attributes'	=> array( 'data-show_if_sandbox_mode' => '', 'autocomplete' => 'new-password' )
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_api_options' ),

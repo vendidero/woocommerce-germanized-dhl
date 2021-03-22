@@ -704,7 +704,6 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			}
 
 			$args['services'] = array_diff( $args['services'], array( 'VisualCheckOfAge' ) );
-
 			unset( $args['visual_min_age'] );
 		}
 	} else {
@@ -737,6 +736,9 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 			if ( empty( $args['ident_date_of_birth'] ) && empty( $args['ident_min_age'] ) ) {
 				$error->add( 500, _x( 'Either a minimum age or a date of birth must be added to the ident check.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
+		} else {
+			unset( $args['ident_min_age'] );
+			unset( $args['ident_date_of_birth'] );
 		}
 	} else {
 		unset( $args['ident_min_age'] );
@@ -744,7 +746,7 @@ function wc_gzd_dhl_validate_label_args( $shipment, $args = array() ) {
 	}
 
 	// We don't need duties for non-crossborder shipments
-	if ( ! empty( $args['duties'] ) && ! Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+	if ( ! Package::is_crossborder_shipment( $shipment->get_country() ) ) {
 		unset( $args['duties'] );
 	}
 

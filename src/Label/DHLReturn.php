@@ -17,13 +17,6 @@ class DHLReturn extends Label implements ShipmentReturnLabel {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'page_format'    => '',
-		'shop_order_id'  => '',
-		'stamp_total'    => 0,
-		'voucher_id'     => '',
-		'original_url'   => '',
-		'manifest_url'   => '',
-		'parent_id'      => 0,
 		'receiver_slug'  => '',
 		'sender_address' => array()
 	);

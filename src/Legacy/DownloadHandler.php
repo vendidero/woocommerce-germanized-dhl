@@ -13,7 +13,7 @@ class DownloadHandler {
 	protected static function parse_args( $args = array() ) {
 		$args = wp_parse_args( $args, array(
 			'force'             => false,
-			'path'              => '',
+			'file_type'         => '',
 			'check_permissions' => true,
 		) );
 
@@ -31,39 +31,15 @@ class DownloadHandler {
 		}
 
 		if ( $has_permission ) {
-			if ( $label = wc_gzd_dhl_get_label( $label_id ) ) {
-				$file     = $label->get_file( $args['path'] );
-				$filename = $label->get_filename( $args['path'] );
+			if ( $label = wc_gzd_get_shipment_label( $label_id ) ) {
+				$file     = $label->get_file( $args['file_type'] );
+				$filename = $label->get_filename( $args['file_type'] );
 
 				if ( file_exists( $file ) ) {
 					if ( $args['force'] ) {
 						WC_Download_Handler::download_file_force( $file, $filename );
 					} else {
 						self::embed( $file, $filename );
-					}
-				}
-			}
-		}
-	}
-
-	public static function download_legacy_label( $order_id, $args = array() ) {
-		$args = self::parse_args( $args );
-
-		if ( current_user_can( 'edit_shop_orders' ) ) {
-			if ( $order = wc_get_order( $order_id ) ) {
-				$meta = (array) $order->get_meta( '_pr_shipment_dhl_label_tracking' );
-
-				if ( ! empty( $meta ) ) {
-					$path = $meta['label_path'];
-
-					if ( file_exists( $path ) ) {
-						$filename = basename( $path );
-
-						if ( $args['force'] ) {
-							WC_Download_Handler::download_file_force( $path, $filename );
-						} else {
-							self::embed( $path, $filename );
-						}
 					}
 				}
 			}

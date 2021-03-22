@@ -65,16 +65,26 @@ function wc_gzd_dhl_get_shipment_label( $the_shipment, $type = '' ) {
 add_filter( 'woocommerce_gzd_shipping_provider_dhl_get_label', '_wc_gzd_dhl_legacy_shipment_label_dhl', 10, 3 );
 add_filter( 'woocommerce_gzd_shipping_provider_deutsche_post_get_label', '_wc_gzd_dhl_legacy_shipment_label_deutsche_post', 10, 3 );
 
-function _wc_gzd_dhl_legacy_shipment_label_dhl( $label, $label_type, $the_shipment ) {
-	if ( ! $label ) {
+/**
+ * @param $label
+ * @param \Vendidero\Germanized\Shipments\Shipment $the_shipment
+ * @param \Vendidero\Germanized\Shipments\Interfaces\ShippingProvider $provider
+ *
+ * @return false|\Vendidero\Germanized\DHL\Label\Label
+ */
+function _wc_gzd_dhl_legacy_shipment_label_dhl( $label, $the_shipment, $provider ) {
+	if ( ! $label && '' === $the_shipment->get_version() ) {
+		$label_type = $the_shipment->get_type();
+
 		return wc_gzd_dhl_get_shipment_label( $the_shipment, $label_type );
 	}
 
 	return $label;
 }
 
-function _wc_gzd_dhl_legacy_shipment_label_deutsche_post( $label, $label_type, $the_shipment ) {
-	if ( ! $label ) {
+function _wc_gzd_dhl_legacy_shipment_label_deutsche_post( $label, $the_shipment, $provider ) {
+	if ( ! $label && '' === $the_shipment->get_version() ) {
+		$label_type = $the_shipment->get_type();
 		$label_type = 'return' === $label_type ? 'deutsche_post_return' : 'deutsche_post';
 
 		return wc_gzd_dhl_get_shipment_label( $the_shipment, $label_type );
@@ -87,7 +97,7 @@ add_filter( 'woocommerce_gzd_shipment_label', '_wc_gzd_dhl_legacy_label', 10, 4 
 
 function _wc_gzd_dhl_legacy_label( $label, $the_label, $shipping_provider, $type ) {
 	if ( ! $label ) {
-		$label_id = \Vendidero\Germanized\Shipments\LabelFactory::get_label_id( $the_label );
+		$label_id = \Vendidero\Germanized\Shipments\Labels\Factory::get_label_id( $the_label );
 
 		if ( $label_id ) {
 			$type = WC_Data_Store::load( 'dhl-legacy-label' )->get_label_type( $label_id );
