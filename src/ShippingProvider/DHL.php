@@ -467,10 +467,9 @@ class DHL extends Auto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_default_label_product( $shipment ) {
-		$dhl_order    = wc_gzd_dhl_get_order( $shipment->get_order() );
-		$default_args = wc_gzd_dhl_get_label_default_args( $dhl_order, $shipment );
+		$default = wc_gzd_dhl_get_default_product( $shipment->get_country(), $shipment );
 
-		return isset( $default_args['product_id'] ) ? $default_args['product_id'] : false;
+		return $default;
 	}
 
 	public function get_participation_number( $product ) {
@@ -965,7 +964,7 @@ class DHL extends Auto {
 				'title' 	        => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Enable the GoGreen Service by default.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'label_service_GoGreen',
-				'value'             => $this->get_setting( 'label_service_GoGreen', 'no' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_service_GoGreen', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -973,15 +972,15 @@ class DHL extends Auto {
 				'title' 	        => _x( 'Additional Insurance', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Add an additional insurance to labels.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'label_service_AdditionalInsurance',
-				'value'             => $this->get_setting( 'label_service_AdditionalInsurance', 'no' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_service_AdditionalInsurance', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
 			array(
 				'title' 	        => _x( 'Retail Outlet Routing', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Send undeliverable items to nearest retail outlet instead of immediate return.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id' 		        => 'label_service_AdditionalInsurance',
-				'value'             => $this->get_setting( 'label_service_AdditionalInsurance', 'no' ),
+				'id' 		        => 'label_service_ParcelOutletRouting',
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_service_ParcelOutletRouting', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -989,7 +988,7 @@ class DHL extends Auto {
 				'title' 	        => _x( 'No Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Do not deliver to neighbors.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'label_service_NoNeighbourDelivery',
-				'value'             => $this->get_setting( 'label_service_NoNeighbourDelivery', 'no' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_service_NoNeighbourDelivery', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -997,7 +996,7 @@ class DHL extends Auto {
 				'title' 	        => _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Do only delivery to named person.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'label_service_NamedPersonOnly',
-				'value'             => $this->get_setting( 'label_service_NamedPersonOnly', 'no' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_service_NamedPersonOnly', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -1005,7 +1004,7 @@ class DHL extends Auto {
 				'title' 	        => _x( 'Bulky Goods', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Deliver as bulky goods.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'label_service_BulkyGoods',
-				'value'             => $this->get_setting( 'label_service_BulkyGoods', 'no' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_service_BulkyGoods', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -1022,7 +1021,7 @@ class DHL extends Auto {
 				'title' 	        => _x( 'Sync (Visual Check)', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Visually verify age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x(  'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the visual age check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'id' 		        => 'label_auto_age_check_sync',
-				'value'             => $this->get_setting( 'label_auto_age_check_sync', 'yes' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_sync', 'yes' ) ),
 				'default'	        => 'yes',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -1039,7 +1038,7 @@ class DHL extends Auto {
 				'title' 	        => _x( 'Sync (Ident Check)', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Verify identity and age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x(  'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the identity check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'id' 		        => 'label_auto_age_check_ident_sync',
-				'value'             => $this->get_setting( 'label_auto_age_check_ident_sync', 'no' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_ident_sync', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -1047,7 +1046,7 @@ class DHL extends Auto {
 				'title' 	        => _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Premium delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id' 		        => 'label_service_Premium',
-				'value'             => $this->get_setting( 'label_service_Premium', 'no' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_service_Premium', 'no' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),

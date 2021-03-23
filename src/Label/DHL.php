@@ -23,6 +23,8 @@ class DHL extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
+		'default_path'                  => '',
+		'export_path'                   => '',
 		'preferred_day'                 => '',
 		'preferred_time_start'          => '',
 		'preferred_time_end'            => '',
@@ -325,5 +327,110 @@ class DHL extends Label {
 		} else {
 			return true;
 		}
+	}
+
+	public function delete( $force_delete = false ) {
+		if ( $api = Package::get_api() ) {
+			try {
+				$api->get_label_api()->delete_label( $this );
+			} catch( \Exception $e ) {}
+		}
+
+		return parent::delete( $force_delete );
+	}
+
+	public function get_additional_file_types() {
+		return array(
+			'default',
+			'export'
+		);
+	}
+
+	public function get_filename( $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			return $this->get_default_filename();
+		} elseif( 'export' === $file_type ) {
+			return $this->get_export_filename();
+		} else {
+			return parent::get_filename( $file_type );
+		}
+	}
+
+	public function get_file( $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			return $this->get_default_file();
+		} elseif( 'export' === $file_type ) {
+			return $this->get_export_file();
+		} else {
+			return parent::get_file( $file_type );
+		}
+	}
+
+	public function get_path( $context = 'view', $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			return $this->get_default_path( $context );
+		} elseif( 'export' === $file_type ) {
+			return $this->get_export_path( $context );
+		} else {
+			return parent::get_path( $context, $file_type );
+		}
+	}
+
+	public function set_path( $path, $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			$this->set_default_path( $path );
+		} elseif( 'export' === $file_type ) {
+			$this->set_export_path( $path );
+		} else {
+			parent::set_path( $path, $file_type );
+		}
+	}
+
+	public function get_default_file() {
+		if ( ! $path = $this->get_default_path() ) {
+			return false;
+		}
+
+		return $this->get_file_by_path( $path );
+	}
+
+	public function get_default_filename() {
+		if ( ! $path = $this->get_default_path() ) {
+			return $this->get_new_filename( 'default' );
+		}
+
+		return basename( $path );
+	}
+
+	public function get_export_file() {
+		if ( ! $path = $this->get_export_path() ) {
+			return false;
+		}
+
+		return $this->get_file_by_path( $path );
+	}
+
+	public function get_export_filename() {
+		if ( ! $path = $this->get_export_path() ) {
+			return $this->get_new_filename( 'export' );
+		}
+
+		return basename( $path );
+	}
+
+	public function set_default_path( $path ) {
+		$this->set_prop( 'default_path', $path );
+	}
+
+	public function set_export_path( $path ) {
+		$this->set_prop( 'export_path', $path );
+	}
+
+	public function get_default_path( $context = 'view' ) {
+		return $this->get_prop( 'default_path', $context );
+	}
+
+	public function get_export_path( $context = 'view' ) {
+		return $this->get_prop( 'export_path', $context );
 	}
 }

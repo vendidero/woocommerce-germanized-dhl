@@ -56,6 +56,7 @@ class Package {
     }
 
     public static function on_shipments_init() {
+
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
 
@@ -239,7 +240,6 @@ class Package {
 	        Ajax::init();
 	        ShipmentLabelWatcher::init();
 	        LabelWatcher::init();
-	        Automation::init();
         }
     }
 
@@ -251,6 +251,12 @@ class Package {
 
 	    // Maybe force street number during checkout
 	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
+
+	    add_filter( 'woocommerce_gzd_shipment_label_types', array( __CLASS__, 'register_label_types' ), 10 );
+    }
+
+    public static function register_label_types( $types ) {
+        $types[] = 'inlay_return';
     }
 
 	/**
@@ -930,7 +936,7 @@ class Package {
 	 *
 	 * @return mixed|void
 	 */
-    public static function get_setting( $name, $method = false, $default = false ) {
+    public static function get_setting( $name, $shipment = false, $default = false ) {
 	    $is_dp = false;
 	    $value = $default;
 
@@ -951,19 +957,21 @@ class Package {
 			}
 	    }
 
-    	if ( $method ) {
-    		if ( $method->has_option( $name ) ) {
-    			return $method->get_option( $name );
-		    }
-	    }
-
     	if ( ! $is_dp ) {
     	    if ( $provider = Package::get_dhl_shipping_provider() ) {
-    	        $value = $provider->get_setting( $name, $default );
+    	        if ( $shipment ) {
+		            $value = $provider->get_shipment_setting( $shipment, $name, $default );
+	            } else {
+		            $value = $provider->get_setting( $name, $default );
+	            }
 	        }
 	    } else {
 		    if ( $provider = Package::get_deutsche_post_shipping_provider() ) {
-			    $value = $provider->get_setting( $name, $default );
+			    if ( $shipment ) {
+				    $value = $provider->get_shipment_setting( $shipment, $name, $default );
+			    } else {
+				    $value = $provider->get_setting( $name, $default );
+			    }
 		    }
 	    }
 

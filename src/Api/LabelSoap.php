@@ -158,9 +158,10 @@ class LabelSoap extends Soap {
 			    		if ( $return_label = Factory::get_label( 0, $label->get_shipping_provider(), 'inlay_return' ) ) {
 						    $return_label->set_parent_id( $label->get_id() );
 						    $return_label->set_shipment_id( $label->get_shipment_id() );
+						    $return_label->set_shipping_provider( $label->get_shipping_provider() );
 
 						    if ( $shipment = $label->get_shipment() ) {
-							    $return_label->set_sender_address( $shipment->get_sender_address() );
+							    $return_label->set_sender_address( $shipment->get_address() );
 						    }
 					    }
 				    }
