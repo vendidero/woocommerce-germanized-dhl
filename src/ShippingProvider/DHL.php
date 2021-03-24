@@ -92,24 +92,6 @@ class DHL extends Auto {
 		$this->update_meta_data( 'api_sandbox_username', strtolower( $username ) );
 	}
 
-	public function deactivate() {
-		update_option( 'woocommerce_gzd_dhl_enable', 'no' );
-
-		/**
-		 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
-		 */
-		do_action( 'woocommerce_gzd_shipping_provider_activated', $this );
-	}
-
-	public function activate() {
-		update_option( 'woocommerce_gzd_dhl_enable', 'yes' );
-
-		/**
-		 * This action is documented in woocommerce-germanized-shipments/src/ShippingProvider.php
-		 */
-		do_action( 'woocommerce_gzd_shipping_provider_deactivated', $this );
-	}
-
 	public function get_setting_sections() {
 		$sections = parent::get_setting_sections();
 
@@ -119,13 +101,28 @@ class DHL extends Auto {
 		return $sections;
 	}
 
+	protected function get_return_label_fields( $shipment ) {
+		$default_args = $this->get_default_label_props( $shipment );
+
+		return array(
+			array(
+				'id'            => 'receiver_slug',
+				'label'       	=> _x( 'Receiver', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'   => '',
+				'type'          => 'select',
+				'options'		=> wc_gzd_dhl_get_return_receivers(),
+				'value'         => isset( $default_args['receiver_slug'] ) ? $default_args['receiver_slug'] : '',
+			)
+		);
+	}
+
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 *
 	 * @return array
 	 */
-	public function get_label_fields( $shipment ) {
-		$settings     = parent::get_label_fields( $shipment );
+	protected function get_simple_label_fields( $shipment ) {
+		$settings     = parent::get_simple_label_fields( $shipment );
 		$dhl_order    = wc_gzd_dhl_get_order( $shipment->get_order() );
 		$default_args = $this->get_default_label_props( $shipment );
 

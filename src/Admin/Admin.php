@@ -5,7 +5,6 @@ use Vendidero\Germanized\DHL\Admin\Importer\DHL;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
-use Vendidero\Germanized\DHL\DownloadHandler;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,7 +20,7 @@ class Admin {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_scripts' ), 30 );
 
-		add_action( 'admin_init', array( __CLASS__, 'download_label' ) );
+		add_action( 'admin_init', array( __CLASS__, 'download_legacy_label' ) );
 
 		// Legacy meta box
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_legacy_meta_box' ), 20 );
@@ -311,17 +310,29 @@ class Admin {
 		return $url;
 	}
 
-	public static function download_label() {
+	public static function download_legacy_label() {
 		if( isset( $_GET['action'] ) && 'wc-gzd-dhl-download-legacy-label' === $_GET['action'] ) {
 			if ( isset( $_GET['order_id'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'dhl-download-legacy-label' ) ) {
-
 				$order_id = absint( $_GET['order_id'] );
-				$args     = wp_parse_args( $_GET, array(
-					'force'  => 'no',
-					'print'  => 'no',
+				$args     = \Vendidero\Germanized\Shipments\Labels\DownloadHandler::parse_args( array(
+					'force' => wc_string_to_bool( isset( $_GET['force'] ) ? wc_clean( $_GET['force'] ) : false )
 				) );
 
-				DownloadHandler::download_legacy_label( $order_id, $args );
+				if ( current_user_can( 'edit_shop_orders' ) ) {
+					if ( $order = wc_get_order( $order_id ) ) {
+						$meta = (array) $order->get_meta( '_pr_shipment_dhl_label_tracking' );
+
+						if ( ! empty( $meta ) ) {
+							$path = $meta['label_path'];
+
+							if ( file_exists( $path ) ) {
+								$filename = basename( $path );
+
+								\Vendidero\Germanized\Shipments\Labels\DownloadHandler::download( $path, $filename, $args['force'] );
+							}
+						}
+					}
+				}
 			}
 		}
 	}

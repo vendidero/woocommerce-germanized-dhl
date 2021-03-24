@@ -128,12 +128,4 @@ abstract class Label extends \Vendidero\Germanized\Shipments\Labels\Label {
 			return parent::get_file_by_path( $file );
 		}
 	}
-
-	public function download( $args = array() ) {
-		if ( $this->legacy ) {
-			DownloadHandler::download_label( $this->get_id(), $args );
-		} else {
-			parent::download( $args );
-		}
-	}
 }

@@ -1,14 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Label;
-use DateTimeZone;
-use Vendidero\Germanized\DHL\Api\LabelSoap;
 use Vendidero\Germanized\DHL\Package;
-use Vendidero\Germanized\Shipments\Shipment;
-use WC_Data;
-use WC_Data_Store;
-use Exception;
-use WC_DateTime;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -314,7 +307,7 @@ class DHL extends Label {
 
 		try {
 			Package::get_api()->get_label( $this );
-		} catch( Exception $e ) {
+		} catch( \Exception $e ) {
 			$errors = explode(PHP_EOL, $e->getMessage() );
 
 			foreach( $errors as $error ) {

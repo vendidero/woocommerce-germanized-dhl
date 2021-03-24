@@ -56,6 +56,7 @@ class Package {
     }
 
     public static function on_shipments_init() {
+	    \Vendidero\Germanized\DHL\Package::log( 'init called' );
 
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
@@ -336,7 +337,7 @@ class Package {
 	}
 
     public static function install() {
-	    self::includes();
+	    self::on_shipments_init();
 	    Install::install();
     }
 

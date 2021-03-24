@@ -29,6 +29,10 @@ class DHLReturn extends ReturnLabel {
 		return 'return';
 	}
 
+	public function get_shipping_provider( $context = 'view' ) {
+		return 'dhl';
+	}
+
 	public function get_receiver_id() {
 		$slug = $this->get_receiver_slug();
 		$id   = '';
@@ -59,5 +63,28 @@ class DHLReturn extends ReturnLabel {
 
 	public function set_receiver_slug( $receiver_slug ) {
 		$this->set_prop( 'receiver_slug', $receiver_slug );
+	}
+
+	/**
+	 * @return \WP_Error|true
+	 */
+	public function fetch() {
+		$result = new \WP_Error();
+
+		try {
+			Package::get_api()->get_return_label( $this );
+		} catch( \Exception $e ) {
+			$errors = explode(PHP_EOL, $e->getMessage() );
+
+			foreach( $errors as $error ) {
+				$result->add( 'dhl-api-error', $error );
+			}
+		}
+
+		if ( wc_gzd_dhl_wp_error_has_errors( $result ) ) {
+			return $result;
+		} else {
+			return true;
+		}
 	}
 }

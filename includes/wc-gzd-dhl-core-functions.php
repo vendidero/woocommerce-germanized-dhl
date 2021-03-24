@@ -32,12 +32,11 @@ function wc_gzd_dhl_round_customs_item_weight( $value, $precision = 0 ) {
 }
 
 /**
- * @param Label $label
+ * @param Vendidero\Germanized\DHL\Label\Label $label
  *
  * @return array|false
  */
 function wc_gzd_dhl_get_shipment_customs_data( $label ) {
-
 	if ( ! $shipment = $label->get_shipment() ) {
 		return false;
 	}
@@ -911,13 +910,12 @@ function wc_gzd_dhl_get_label_shipment_street_number( $shipment ) {
 }
 
 /**
- * @param ReturnLabel $label
+ * @param \Vendidero\Germanized\DHL\Label\ReturnLabel $label
  */
 function wc_gzd_dhl_get_return_label_sender_street_number( $label ) {
 	$street_number = $label->get_sender_street_number();
 
 	if ( ! Package::is_shipping_domestic( $label->get_sender_country() ) ) {
-
 		if ( empty( $street_number ) ) {
 			/**
 			 * This filter is documented in includes/wc-gzd-dhl-core-functions.php
@@ -1457,12 +1455,9 @@ function wc_gzd_dhl_get_shipment_weight( $shipment, $unit = 'kg', $net_weight = 
  * @param ReturnShipment $shipment
  */
 function wc_gzd_dhl_get_return_label_default_args( $dhl_order, $shipment ) {
-	$shipping_method     = $shipment->get_shipping_method();
-	$dhl_shipping_method = wc_gzd_dhl_get_shipping_method( $shipping_method );
-
 	$defaults = array(
 		'services'       => array(),
-		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country(), $dhl_shipping_method ),
+		'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country() ),
 		'sender_address' => $shipment->get_sender_address(),
 	);
 
@@ -1794,7 +1789,7 @@ function wc_gzd_dhl_get_default_return_receiver( $country, $method = false ) {
 	return Package::get_return_receiver_by_country( $country );
 }
 
-function wc_gzd_dhl_get_default_return_receiver_slug( $country, $method = false ) {
+function wc_gzd_dhl_get_default_return_receiver_slug( $country ) {
 	$receiver = Package::get_return_receiver_by_country( $country );
 
 	return ( $receiver ? $receiver['slug'] : '' );
