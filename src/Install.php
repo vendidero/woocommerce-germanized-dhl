@@ -23,9 +23,10 @@ class Install {
 	     */
 	    if ( is_null( $current_version ) ) {
 		    add_option( 'woocommerce_gzd_dhl_version', Package::get_version() );
-
 		    // Legacy settings -> indicate update necessary
 		    $needs_settings_update = ( get_option( 'woocommerce_gzd_dhl_enable' ) || get_option( 'woocommerce_gzd_deutsche_post_enable' ) ) && ! get_option( 'woocommerce_gzd_migrated_settings' );
+	    } else {
+		    update_option( 'woocommerce_gzd_dhl_version', Package::get_version() );
 	    }
 
 	    if ( $needs_settings_update ) {
@@ -42,7 +43,7 @@ class Install {
 	     */
 	    Helper::instance()->load_shipping_providers();
 
-	    $plugin_options   = $wpdb->get_results( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE 'woocommerce_gzd_dhl_%'" );
+	    $plugin_options   = $wpdb->get_results( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE 'woocommerce_gzd_dhl_%' OR option_name LIKE 'woocommerce_gzd_deutsche_post_%'" );
 		$dhl              = wc_gzd_get_shipping_provider( 'dhl' );
 	    $deutsche_post    = wc_gzd_get_shipping_provider( 'deutsche_post' );
 	    $excluded_options = array(
@@ -79,7 +80,8 @@ class Install {
 					self::update_provider_setting( $dhl, $option_name_clean, $option_value );
 				}
 			} else {
-				$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name );
+				$option_name_clean = str_replace( 'woocommerce_gzd_deutsche_post_', '', $option_name );
+				$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name_clean );
 				$option_name_clean = str_replace( 'deutsche_post_', '', $option_name_clean );
 				$option_name_clean = str_replace( 'im_', '', $option_name_clean );
 

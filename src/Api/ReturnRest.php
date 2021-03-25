@@ -78,48 +78,36 @@ class ReturnRest extends Rest {
 		);
 
 		if ( Package::is_crossborder_shipment( $label->get_sender_country() ) ) {
-			$items        = array();
-			$customs_data = wc_gzd_dhl_get_shipment_customs_data( $label );
-			$index        = 0;
+			$items          = array();
+			$customs_data   = wc_gzd_dhl_get_shipment_customs_data( $label );
+			$shipment_items = $shipment->get_items();
 
-			foreach( $shipment->get_items() as $item ) {
-				$customs_item = isset( $customs_data[ $index ] ) ? $customs_data[ $index ] : false;
-
-				if ( ! $customs_item ) {
-					continue;
-				}
-
-				$dhl_product = false;
-
-				if ( $product = $item->get_product() ) {
-					$dhl_product = wc_gzd_dhl_get_product( $product );
-				}
-
-				$category = $dhl_product ? $dhl_product->get_main_category() : $item->get_name();
-
-				if ( empty( $category ) ) {
-					$category = $item->get_name();
-				}
+			foreach( $customs_data['items'] as $key => $customs_item ) {
+				$shipment_item = $shipment_items[ $key ];
 
 				$items[] = array(
 					'positionDescription' => $customs_item['description'],
-					'count'               => $customs_item['amount'],
-					'weightInGrams'       => intval( wc_get_weight( $customs_item['netWeightInKG'] * $customs_item['amount'], 'g', 'kg' ) ),
-					'values'              => $customs_item['customsValue'],
-					'originCountry'       => $customs_item['countryCodeOrigin'],
-					'articleReference'    => apply_filters( 'woocommerce_gzd_dhl_retoure_customs_article_reference', $category, $item, $label ),
-					'tarifNumber'         => $customs_item['customsTariffNumber'],
+					'count'               => $customs_item['quantity'],
+					/**
+					 * Total weight per row
+					 */
+					'weightInGrams'       => intval( wc_get_weight( $customs_item['weight_in_kg'], 'g', 'kg' ) ),
+					/**
+					 * Total value per row
+					 */
+					'values'              => $customs_item['value'],
+					'originCountry'       => $customs_item['origin_code'],
+					'articleReference'    => apply_filters( 'woocommerce_gzd_dhl_retoure_customs_article_reference', $customs_item['category'], $shipment_item, $label ),
+					'tarifNumber'         => $customs_item['tariff_number'],
 				);
-
-				$index++;
 			}
 
-			$request_args['customsDocument'] = array(
+			$request_args['customsDocument'] = apply_filters( 'woocommerce_gzd_dhl_retoure_customs_data', array(
 				'currency'               => $order ? $order->get_currency() : 'EUR',
 				'originalShipmentNumber' => $shipment->get_order_number(),
 				'originalOperator'       => $shipment->get_shipping_provider(),
 				'positions'              => $items,
-			);
+			), $label );
 		}
 
 		return $request_args;

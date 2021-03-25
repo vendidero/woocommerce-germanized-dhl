@@ -361,9 +361,6 @@ class LabelSoap extends Soap {
                 case 'PreferredDay':
                     $services[ $service ]['details'] = $label->get_preferred_day() ? $label->get_preferred_day()->date( 'Y-m-d' ) : '';
                     break;
-                case 'PreferredTime':
-                    $services[ $service ]['type'] = wc_gzd_dhl_format_preferred_api_time( $label->get_preferred_time() );
-                    break;
                 case 'VisualCheckOfAge':
                     $services[ $service ]['type'] = $label->get_visual_min_age();
                     break;
@@ -593,38 +590,61 @@ class LabelSoap extends Soap {
                 throw new Exception( sprintf( _x( 'Only %s shipment items can be processed, your shipment has %s items.', 'dhl', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, sizeof( $shipment->get_items() ) ) );
             }
 
-            $customs_data = wc_gzd_dhl_get_shipment_customs_data( $label );
-            $customs_data['termsOfTrade'] = $label->get_duties();
+            $customs_label_data = wc_gzd_dhl_get_shipment_customs_data( $label );
+            $customs_items = array();
 
-            /**
-	         * Filter to allow adjusting the export type of a DHL label (for customs). Could be:
-	         * <ul>
-	         * <li>OTHER</li>
-	         * <li>PRESENT</li>
-	         * <li>COMMERCIAL_SAMPLE</li>
-	         * <li>DOCUMENT</li>
-	         * <li>RETURN_OF_GOODS</li>
-	         * <li>COMMERCIAL_GOODS</li>
-	         * </ul>
-	         *
-	         * @param string $export_type The export type.
-	         * @param Label  $label The label instance.
-	         *
-	         * @since 3.3.0
-	         * @package Vendidero/Germanized/DHL
-	         */
-	        $customs_data['exportType'] = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', 'COMMERCIAL_GOODS', $label ) );
+            foreach( $customs_label_data['items'] as $item_id => $item_data ) {
+	            $customs_items[] = array(
+		            'description'         => $item_data['description'],
+		            'countryCodeOrigin'   => $item_data['origin_code'],
+		            'customsTariffNumber' => $item_data['tariff_number'],
+		            'amount'              => $item_data['quantity'],
+		            /**
+		             * netWeightInKG is defined as the weight per item (e.g. 2 items in case the quantity equals 2).
+		             */
+		            'netWeightInKG'       => $item_data['single_weight_in_kg'],
+		            /**
+		             * Single product value per item
+		             */
+		            'customsValue'        => $item_data['single_value']
+	            );
+            }
 
-	        /**
-	         * Filter to allow adjusting the export invoice number.
-	         *
-	         * @param string $invoice_number The invoice number.
-	         * @param Label  $label The label instance.
-	         *
-	         * @since 3.3.4
-	         * @package Vendidero/Germanized/DHL
-	         */
-	        $customs_data['invoiceNumber'] = apply_filters( 'woocommerce_gzd_dhl_label_api_export_invoice_number', $customs_data['invoiceNumber'], $label );
+            $customs_data = array(
+            	'termsOfTrade'          => $label->get_duties(),
+	            'additionalFee'         => $customs_label_data['additional_fee'],
+	            'exportTypeDescription' => $customs_label_data['export_type_description'],
+	            'placeOfCommital'       => $customs_label_data['place_of_commital'],
+	            'ExportDocPosition'     => $customs_items,
+	            /**
+	             * Filter to allow adjusting the export type of a DHL label (for customs). Could be:
+	             * <ul>
+	             * <li>OTHER</li>
+	             * <li>PRESENT</li>
+	             * <li>COMMERCIAL_SAMPLE</li>
+	             * <li>DOCUMENT</li>
+	             * <li>RETURN_OF_GOODS</li>
+	             * <li>COMMERCIAL_GOODS</li>
+	             * </ul>
+	             *
+	             * @param string $export_type The export type.
+	             * @param Label\Label  $label The label instance.
+	             *
+	             * @since 3.3.0
+	             * @package Vendidero/Germanized/DHL
+	             */
+	            'exportType' => strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', 'COMMERCIAL_GOODS', $label ) ),
+	            /**
+	             * Filter to allow adjusting the export invoice number.
+	             *
+	             * @param string $invoice_number The invoice number.
+	             * @param Label\Label $label The label instance.
+	             *
+	             * @since 3.3.4
+	             * @package Vendidero/Germanized/DHL
+	             */
+	            'invoiceNumber' => apply_filters( 'woocommerce_gzd_dhl_label_api_export_invoice_number', $customs_label_data['invoice_number'], $label )
+            );
 
             $dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = $customs_data;
         }

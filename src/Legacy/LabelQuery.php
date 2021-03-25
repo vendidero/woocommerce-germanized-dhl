@@ -50,7 +50,7 @@ class LabelQuery extends WC_Object_Query {
             'limit'          => 10,
             'shipment_id'    => '',
             'parent_id'      => '',
-            'type'           => wc_gzd_dhl_get_label_types(),
+            'type'           => wc_gzd_legacy_dhl_get_label_types(),
             'number'         => '',
             'order'          => 'DESC',
             'orderby'        => 'date_created',
@@ -118,7 +118,7 @@ class LabelQuery extends WC_Object_Query {
 
         if ( null === $this->results ) {
             $this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
-            
+
             if ( is_array( $qv['fields'] ) || 'objects' == $qv['fields'] ) {
                 $this->results = $wpdb->get_results( $this->request );
             } else {

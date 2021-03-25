@@ -11,6 +11,7 @@ use Vendidero\Germanized\DHL\ShippingProvider\DeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
+use Vendidero\Germanized\Shipments\ShipmentItem;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WP_Error;
 
@@ -239,48 +240,39 @@ class Package {
 	        }
 
 	        Ajax::init();
-	        ShipmentLabelWatcher::init();
-	        LabelWatcher::init();
         }
     }
 
     public static function init_hooks() {
+        // Legacy data store
 	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
 
 	    // Filter templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
-	    // Maybe force street number during checkout
-	    add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'maybe_force_street_number' ), 10, 2 );
-
+	    // Register additional label types
 	    add_filter( 'woocommerce_gzd_shipment_label_types', array( __CLASS__, 'register_label_types' ), 10 );
-    }
 
-    public static function register_label_types( $types ) {
-        $types[] = 'inlay_return';
+	    // Sync shipment items
+	    add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
     }
 
 	/**
-	 * @param array     $data
-	 * @param WP_Error $errors
+	 * @param ShipmentItem   $item
+	 * @param \WC_Order_Item $order_item
+	 * @param $args
 	 */
-    public static function maybe_force_street_number( $data, $errors ) {
-    	if ( 'yes' === self::get_setting( 'label_checkout_validate_street_number_address' ) ) {
-		    if ( function_exists( 'wc_gzd_split_shipment_street' ) && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
-			    if ( $method->is_dhl_enabled() || $method->is_deutsche_post_enabled() ) {
-				    if ( isset( $data['shipping_country'], $data['shipping_address_1'] ) && ! empty( $data['shipping_country'] ) ) {
-					    // Do only check street numbers for inner EU.
-					    if ( ! self::is_crossborder_shipment( $data['shipping_country'] ) ) {
-						    $parts = wc_gzd_split_shipment_street( $data['shipping_address_1'] );
+	public static function sync_item_meta( $item, $order_item, $args ) {
+		if ( $product = $item->get_product() ) {
+			$dhl_product = wc_gzd_dhl_get_product( $product );
 
-						    if ( empty( $parts['number'] ) ) {
-							    $errors->add( 'shipping', _x( 'Please check the street field and make sure to provide a valid street number.', 'dhl', 'woocommerce-germanized-dhl' ) );
-						    }
-					    }
-				    }
-			    }
-		    }
-	    }
+			$item->update_meta_data( '_dhl_hs_code', $dhl_product->get_hs_code() );
+			$item->update_meta_data( '_dhl_manufacture_country', $dhl_product->get_manufacture_country() );
+		}
+	}
+
+	public static function register_label_types( $types ) {
+        $types[] = 'inlay_return';
     }
 
 	public static function filter_templates( $path, $template_name ) {
@@ -492,12 +484,12 @@ class Package {
 		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_SANDBOX_USER' ) ) {
 			return WC_GZD_DHL_IM_SANDBOX_USER;
 		} else {
-			return self::get_setting( 'im_api_username' );
+			return self::get_setting( 'deutsche_post_api_username' );
 		}
 	}
 
 	public static function get_internetmarke_warenpost_int_ekp() {
-		$ekp = self::get_setting( 'internetmarke_warenpost_int_ekp' );
+		$ekp = self::get_setting( 'deutsche_post_warenpost_int_ekp' );
 
 		if ( empty( $ekp ) ) {
 			$ekp = '0000012207';
@@ -516,7 +508,7 @@ class Package {
 		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_WP_SANDBOX_USER' ) ) {
 			return WC_GZD_DHL_IM_WP_SANDBOX_USER;
 		} else {
-			return self::get_setting( 'im_api_username' );
+			return self::get_setting( 'deutsche_post_api_username' );
 		}
 	}
 
@@ -524,7 +516,7 @@ class Package {
 		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_SANDBOX_PASSWORD' ) ) {
 			return WC_GZD_DHL_IM_SANDBOX_PASSWORD;
 		} else {
-			return self::get_setting( 'im_api_password' );
+			return self::get_setting( 'deutsche_post_api_password' );
 		}
 	}
 
@@ -532,7 +524,7 @@ class Package {
 		if ( self::is_debug_mode() && defined( 'WC_GZD_DHL_IM_WP_SANDBOX_PASSWORD' ) ) {
 			return WC_GZD_DHL_IM_WP_SANDBOX_PASSWORD;
 		} else {
-			return self::get_setting( 'im_api_password' );
+			return self::get_setting( 'deutsche_post_api_password' );
 		}
 	}
 
@@ -948,7 +940,7 @@ class Package {
     		$is_dp = true;
 	    }
 
-    	if ( self::is_debug_mode() ) {
+    	if ( ! $is_dp && self::is_debug_mode() ) {
 			if( 'api_username' === $name ) {
 				$name = 'api_sandbox_username';
 			} elseif( 'api_password' === $name ) {

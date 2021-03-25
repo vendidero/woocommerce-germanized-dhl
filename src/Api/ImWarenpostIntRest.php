@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\DHL\Api;
 use Exception;
 use Vendidero\Germanized\DHL\DeutschePostLabel;
 use Vendidero\Germanized\DHL\DeutschePostReturnLabel;
+use Vendidero\Germanized\DHL\Label\Label;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -67,7 +68,7 @@ class ImWarenpostIntRest extends Rest {
 	 *
 	 * @see https://api-qa.deutschepost.com/dpi-apidoc/index_prod_v1.html#/reference/orders/create-order/create-order
 	 *
-	 * @param DeutschePostLabel|DeutschePostReturnLabel $label
+	 * @param Label $label
 	 *
 	 * @throws Exception
 	 */
@@ -77,31 +78,29 @@ class ImWarenpostIntRest extends Rest {
 			throw new Exception( _x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$customs_data     = wc_gzd_dhl_get_shipment_customs_data( $label );
+		$customs_data     = wc_gzd_dhl_get_shipment_customs_data( $label, 33 );
 		$positions        = array();
 		$position_index   = 0;
 		$total_value      = 0;
 		$total_net_weight = 0;
 
-		foreach( $customs_data['ExportDocPosition'] as $position ) {
+		foreach( $customs_data['items'] as $position ) {
 			/**
 			 * The Warenpost API expects value and weight to be a per row value, e.g.
 			 * if 2x Product A is included the total weight/value is expected. In contrarian to the DHL customs API.
 			 */
-			$pos_value      = wc_format_decimal( ( $position['customsValue'] * $position['amount'] ), 2 );
-			$pos_net_weight = absint( $position['amount'] * wc_get_weight( $position['netWeightInKG'], 'g', 'kg' ) );
-
-			$total_value += $pos_value;
+			$pos_net_weight   = intval( wc_get_weight( $position['weight_in_kg'], 'g', 'kg' ) );
+			$total_value      += $position['value'];
 			$total_net_weight += $pos_net_weight;
 
 			array_push($positions, array(
 				'contentPieceIndexNumber' => $position_index++,
-				'contentPieceHsCode'      => $position['customsTariffNumber'],
-				'contentPieceDescription' => wc_clean( substr( $position['description'], 0, 33 ) ),
-				'contentPieceValue'       => $pos_value,
+				'contentPieceHsCode'      => $position['tariff_number'],
+				'contentPieceDescription' => $position['description'],
+				'contentPieceValue'       => $position['value'],
 				'contentPieceNetweight'   => $pos_net_weight,
-				'contentPieceOrigin'      => $position['countryCodeOrigin'],
-				'contentPieceAmount'      => $position['amount']
+				'contentPieceOrigin'      => $position['origin_code'],
+				'contentPieceAmount'      => $position['quantity']
 			) );
 		}
 

@@ -362,7 +362,7 @@ class Admin {
 		}
 
 		// Shipping zone methods
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['section'] ) && 'internetmarke' === $_GET['section'] ) {
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['provider'] ) && 'deutsche_post' === $_GET['provider'] ) {
 			wp_enqueue_script( 'wc-gzd-admin-dhl-internetmarke' );
 		}
 	}
