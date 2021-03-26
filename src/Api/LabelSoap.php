@@ -409,7 +409,7 @@ class LabelSoap extends Soap {
 	                         * address field to the DHL API. You may adjust the field value by using this filter.
 	                         *
 	                         * @param string $value The field value.
-	                         * @param Label  $label The label instance.
+	                         * @param Label\DHL  $label The label instance.
 	                         *
 	                         * @since 3.0.3
 	                         * @package Vendidero/Germanized/DHL
@@ -430,7 +430,7 @@ class LabelSoap extends Soap {
 	                         * while creating a label.
 	                         *
 	                         * @param string $name The name of the shipmen receiver.
-	                         * @param Label  $label The label instance.
+	                         * @param Label\DHL  $label The label instance.
 	                         *
 	                         * @since 3.0.5
 	                         * @package Vendidero/Germanized/DHL
@@ -441,7 +441,7 @@ class LabelSoap extends Soap {
 	                         * By default the phone number is not transmitted.
 	                         *
 	                         * @param string $phone The phone number.
-	                         * @param Label  $label The label instance.
+	                         * @param Label\DHL  $label The label instance.
 	                         *
 	                         * @since 3.0.3
 	                         * @package Vendidero/Germanized/DHL
@@ -455,7 +455,7 @@ class LabelSoap extends Soap {
 	                         * meant for communicaton purposes.
 	                         *
 	                         * @param string $email The email.
-	                         * @param Label  $label The label instance.
+	                         * @param Label\DHL  $label The label instance.
 	                         *
 	                         * @since 3.0.3
 	                         * @package Vendidero/Germanized/DHL
@@ -473,7 +473,7 @@ class LabelSoap extends Soap {
 	     * reference exists.
 	     *
 	     * @param string $shipper_reference The shipper reference from the GKP.
-	     * @param Label  $label The label instance.
+	     * @param Label\DHL  $label The label instance.
 	     *
 	     * @since 3.0.5
 	     * @package Vendidero/Germanized/DHL
@@ -493,7 +493,7 @@ class LabelSoap extends Soap {
 			    ),
 			    'Address'   => array(
 				    'streetName'   => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_name', Package::get_setting( 'shipper_street' ), $label ),
-				    'streetNumber' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', Package::get_setting( 'shipper_street_no' ), $label ),
+				    'streetNumber' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', Package::get_setting( 'shipper_street_number' ), $label ),
 				    'zip'          => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', Package::get_setting( 'shipper_postcode' ), $label ),
 				    'city'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', Package::get_setting( 'shipper_city' ), $label ),
 				    'Origin'       => array(
@@ -502,8 +502,8 @@ class LabelSoap extends Soap {
 				    )
 			    ),
 			    'Communication' => array(
-				    'phone'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_phone', Package::get_setting( 'shipper_phone' ), $label ),
-				    'email'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_email', Package::get_setting( 'shipper_email' ), $label ),
+				    'phone'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_phone', Package::get_setting( 'contact_phone' ), $label ),
+				    'email'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_email', Package::get_setting( 'contact_email' ), $label ),
 				    'contactPerson' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_contact_person', Package::get_setting( 'shipper_name' ), $label ),
 			    )
 		    );

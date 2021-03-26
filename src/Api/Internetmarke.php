@@ -11,7 +11,8 @@ use baltpeter\Internetmarke\PersonName;
 use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
 use Vendidero\Germanized\DHL\Admin\Settings;
-use Vendidero\Germanized\DHL\DeutschePostLabel;
+use Vendidero\Germanized\DHL\Label\DeutschePost;
+use Vendidero\Germanized\DHL\Label\DeutschePostReturn;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\Shipments\Shipment;
@@ -468,7 +469,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @return mixed
 	 */
@@ -493,7 +494,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @return mixed
 	 */
@@ -516,7 +517,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @return mixed
 	 */
@@ -547,7 +548,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @return false|int
 	 */
@@ -564,7 +565,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @return false|int
 	 * @throws \Exception
@@ -592,7 +593,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @return false|int
 	 * @throws \Exception
@@ -602,7 +603,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @return mixed
 	 */
@@ -617,7 +618,7 @@ class Internetmarke {
 			/**
 			 * Action fires before deleting a Deutsche Post PDF label through an API call.
 			 *
-			 * @param DeutschePostLabel $label The label object.
+			 * @param DeutschePost $label The label object.
 			 *
 			 * @since 3.2.0
 			 * @package Vendidero/Germanized/DHL
@@ -629,20 +630,10 @@ class Internetmarke {
 			$label->set_wp_int_barcode( '' );
 			$label->set_shop_order_id( '' );
 
-			if ( $file = $label->get_file() ) {
-				wp_delete_file( $file );
-			}
-
-			$label->set_path( '' );
-
-			if ( $file = $label->get_default_file() ) {
-				wp_delete_file( $file );
-			}
-
 			/**
 			 * Action fires after deleting a Deutsche Post PDF label through an API call.
 			 *
-			 * @param DeutschePostLabel $label The label object.
+			 * @param DeutschePost $label The label object.
 			 *
 			 * @since 3.2.0
 			 * @package Vendidero/Germanized/DHL
@@ -655,8 +646,67 @@ class Internetmarke {
 		return false;
 	}
 
+	protected function get_shipment_address_prop( $shipment, $prop, $address_type = '' ) {
+		$getter = "get_{$prop}";
+
+		if ( ! empty( $address_type ) ) {
+			$getter = "get_{$address_type}_{$prop}";
+		}
+
+		if ( is_callable( array( $shipment, $getter ) ) ) {
+			return $shipment->$getter();
+		} else {
+			return '';
+		}
+	}
+
+	protected function get_shipment_address_data( $shipment, $address_type = '' ) {
+		$person_name = new PersonName( '', '', $this->get_shipment_address_prop( $shipment, 'first_name', $address_type ), $this->get_shipment_address_prop( $shipment, 'last_name', $address_type ) );
+
+		if ( $this->get_shipment_address_prop( $shipment, 'company', $address_type ) ) {
+			$name = new Name( null, new CompanyName( $this->get_shipment_address_prop( $shipment, 'company', $address_type ), $receiver_person_name ) );
+		} else {
+			$name = new Name( $person_name, null );
+		}
+
+		$additional = $this->get_shipment_address_prop( $shipment, 'address_2', $address_type );
+
+		if ( 'simple' === $shipment->get_type() && $shipment->send_to_external_pickup( 'packstation' ) ) {
+			$additional = ParcelLocator::get_postnumber_by_shipment( $shipment );
+		}
+
+		$address = new Address(
+			$additional,
+			$this->get_shipment_address_prop( $shipment, 'address_street', $address_type ),
+			$this->get_shipment_address_prop( $shipment, 'address_street_number', $address_type ),
+			$this->get_shipment_address_prop( $shipment, 'postcode', $address_type ),
+			$this->get_shipment_address_prop( $shipment, 'city', $address_type ),
+			Package::get_country_iso_alpha3( $this->get_shipment_address_prop( $shipment, 'country', $address_type ) )
+		);
+
+		$named_address = new \baltpeter\Internetmarke\NamedAddress( $name, $address );
+
+		return $named_address;
+	}
+
+	protected function get_setting_address_data() {
+		$person_name    = new PersonName( '', '', Package::get_setting( 'shipper_first_name' ), Package::get_setting( 'shipper_last_name' ) );
+		$sender_country = Package::get_country_iso_alpha3( Package::get_setting( 'shipper_country' ) );
+
+		if ( Package::get_setting( 'shipper_company' ) ) {
+			$name = new Name( null, new CompanyName( Package::get_setting( 'shipper_company' ), $person_name ) );
+		} else {
+			$name = new Name( $person_name, null );
+		}
+
+		$address = new Address( '', Package::get_setting( 'shipper_street' ), Package::get_setting( 'shipper_street_number' ), Package::get_setting( 'shipper_postcode' ), Package::get_setting( 'shipper_city' ), $sender_country );
+		$sender  = new \baltpeter\Internetmarke\NamedAddress( $name, $address );
+
+		return $sender;
+	}
+
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost|DeutschePostReturn $label
 	 */
 	protected function create_default_label( &$label ) {
 		$shipment = $label->get_shipment();
@@ -665,40 +715,17 @@ class Internetmarke {
 			throw new \Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
-		$sender_name       = explode( " ", Package::get_setting( 'shipper_name' ) );
-		$sender_name_first = $sender_name;
-		$sender_first_name = array_splice( $sender_name_first, 0, ( sizeof( $sender_name ) - 1 ) );
-		$sender_last_name  = $sender_name[ sizeof( $sender_name ) - 1 ];
+		if ( 'return' === $label->get_type() ) {
+			$sender   = $this->get_shipment_address_data( $shipment, 'sender' );
+			$receiver = $this->get_setting_address_data();
 
-		$person_name       = new PersonName( '', '', implode( ' ', $sender_first_name ), $sender_last_name );
-		$sender_country    = Package::get_country_iso_alpha3( Package::get_setting( 'shipper_country' ) );
-
-		if ( Package::get_setting( 'shipper_company' ) ) {
-			$name = new Name( null, new CompanyName( Package::get_setting( 'shipper_company' ), $person_name ) );
+			$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
 		} else {
-			$name = new Name( $person_name, null );
+			$sender   = $this->get_setting_address_data();
+			$receiver = $this->get_shipment_address_data( $shipment );
+
+			$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
 		}
-
-		$address = new Address( '', Package::get_setting( 'shipper_street' ), Package::get_setting( 'shipper_street_no' ), Package::get_setting( 'shipper_postcode' ), Package::get_setting( 'shipper_city' ), $sender_country );
-		$sender  = new \baltpeter\Internetmarke\NamedAddress( $name, $address );
-
-		$receiver_person_name = new PersonName( '', '', $shipment->get_first_name(), $shipment->get_last_name() );
-
-		if ( $shipment->get_company() ) {
-			$receiver_name = new Name( null, new CompanyName( $shipment->get_company(), $receiver_person_name ) );
-		} else {
-			$receiver_name = new Name( $receiver_person_name, null );
-		}
-
-		$additional = $shipment->get_address_2();
-
-		if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
-			$additional = ParcelLocator::get_postnumber_by_shipment( $shipment );
-		}
-
-		$receiver_address = new Address( $additional, $shipment->get_address_street(), $shipment->get_address_street_number(), $shipment->get_postcode(), $shipment->get_city(), Package::get_country_iso_alpha3( $shipment->get_country() ) );
-		$receiver         = new \baltpeter\Internetmarke\NamedAddress( $receiver_name, $receiver_address );
-		$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
 
 		if ( ! $this->auth() ) {
 			throw new \Exception( $this->get_authentication_error() );
@@ -718,7 +745,7 @@ class Internetmarke {
 				 * Adjust the Deutsche Post (Internetmarke) label print X position.
 				 *
 				 * @param mixed $x The x axis position.
-				 * @param DeutschePostLabel $label The label instance.
+				 * @param DeutschePost $label The label instance.
 				 * @param Shipment $shipment The shipment instance.
 				 *
 				 * @since 3.4.5
@@ -729,7 +756,7 @@ class Internetmarke {
 				 * Adjust the Deutsche Post (Internetmarke) label print Y position.
 				 *
 				 * @param mixed $y The y axis position.
-				 * @param DeutschePostLabel $label The label instance.
+				 * @param DeutschePost $label The label instance.
 				 * @param Shipment $shipment The shipment instance.
 				 *
 				 * @since 3.4.5
@@ -739,7 +766,7 @@ class Internetmarke {
 				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_page_number', 1, $label, $shipment )
 			);
 
-			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_dhl_product(), null, $address_binding, $position, 'AddressZone' );
+			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_product_id(), null, $address_binding, $position, 'AddressZone' );
 			$stamp      = $this->api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_page_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
 
 			return $this->update_default_label( $label, $stamp );
@@ -749,7 +776,7 @@ class Internetmarke {
 	}
 
 	/**
-	 * @param DeutschePostLabel $label
+	 * @param DeutschePost $label
 	 * @param \stdClass $stamp
 	 *
 	 * @return mixed
@@ -779,49 +806,9 @@ class Internetmarke {
 			}
 
 			$label->save();
+			$result = $label->download_label_file( $stamp->link );
 
-			$timeout_seconds = 5;
-
-			if ( ! function_exists( 'download_url' ) ) {
-				include_once( ABSPATH . 'wp-admin/includes/file.php' );
-			}
-
-			if ( ! function_exists( 'download_url' ) ) {
-				throw new \Exception( _x( 'Error while downloading the PDF stamp.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-
-			// Download file to temp dir.
-			$temp_file = download_url( $stamp->link, $timeout_seconds );
-
-			if ( is_wp_error( $temp_file ) ) {
-				throw new \Exception( _x( 'Error while downloading the PDF stamp.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-
-			$file = [
-				'name'     => wc_gzd_dhl_generate_label_filename( $label, 'dp-label' ),
-				'type'     => 'application/pdf',
-				'tmp_name' => $temp_file,
-				'error'    => 0,
-				'size'     => filesize( $temp_file ),
-			];
-
-			$overrides = [
-				'test_type' => false,
-				'test_form' => false,
-				'test_size' => true,
-			];
-
-			// Move the temporary file into the fonts uploads directory.
-			Package::set_upload_dir_filter();
-			$results = wp_handle_sideload( $file, $overrides );
-			Package::unset_upload_dir_filter();
-
-			if ( empty( $results['error'] ) ) {
-				$path = Package::get_relative_upload_dir( $results['file'] );
-
-				$label->set_path( $path );
-				$label->set_default_path( $path );
-			} else {
+			if ( ! $result ) {
 				throw new \Exception( _x( 'Error while downloading the PDF stamp.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 

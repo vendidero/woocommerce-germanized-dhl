@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL;
 
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
+use Vendidero\Germanized\Shipments\ShippingProvider\Simple;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -74,7 +75,7 @@ class Install {
 			if ( ! $is_dp ) {
 				$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name );
 
-				if ( strpos( $option_name_clean, '_shipper_' ) !== false || strpos( $option_name_clean, '_return_address_' ) !== false ) {
+				if ( strstr( $option_name_clean, 'shipper_' ) || strstr( $option_name_clean, 'return_address_' ) ) {
 					continue;
 				} else {
 					self::update_provider_setting( $dhl, $option_name_clean, $option_value );
@@ -92,12 +93,17 @@ class Install {
 	    $deutsche_post->set_label_default_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_default_shipment_weight' ) );
 	    $deutsche_post->set_label_minimum_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_minimum_shipment_weight' ) );
 
+	    $dhl->save();
+	    $deutsche_post->save();
+
+	    $shipper_name = self::get_address_name_parts( 'shipper' );
+
 	    // Update address data
 	    $shipper_address = array(
+		    'first_name'    => $shipper_name['first_name'],
+		    'last_name'     => $shipper_name['last_name'],
 		    'company'       => get_option( 'woocommerce_gzd_dhl_shipper_company' ),
-		    'name'          => get_option( 'woocommerce_gzd_dhl_shipper_name' ),
-		    'street'        => get_option( 'woocommerce_gzd_dhl_shipper_street' ),
-		    'street_number' => get_option( 'woocommerce_gzd_dhl_shipper_street_no' ),
+		    'address_1'     => get_option( 'woocommerce_gzd_dhl_shipper_street' ) . ' ' . get_option( 'woocommerce_gzd_dhl_shipper_street_no' ),
 		    'postcode'      => get_option( 'woocommerce_gzd_dhl_shipper_postcode' ),
 		    'country'       => get_option( 'woocommerce_gzd_dhl_shipper_country' ),
 		    'city'          => get_option( 'woocommerce_gzd_dhl_shipper_city' ),
@@ -107,16 +113,17 @@ class Install {
 
 	    $shipper_address = array_filter( $shipper_address );
 
-	    if ( ! empty( $shipper_address ) ) {
-		    $dhl->set_shipper_address( $shipper_address );
-		    $deutsche_post->set_shipper_address( $shipper_address );
+	    foreach( $shipper_address as $key => $value ) {
+	    	update_option( 'woocommerce_gzd_shipments_shipper_address_' . $key, $value );
 	    }
 
+	    $return_name = self::get_address_name_parts( 'return_address' );
+
 	    $return_address = array(
+		    'first_name'    => $return_name['first_name'],
+		    'last_name'     => $return_name['last_name'],
 		    'company'       => get_option( 'woocommerce_gzd_dhl_return_address_company' ),
-		    'name'          => get_option( 'woocommerce_gzd_dhl_return_address_name' ),
-		    'street'        => get_option( 'woocommerce_gzd_dhl_return_address_street' ),
-		    'street_number' => get_option( 'woocommerce_gzd_dhl_return_address_street_no' ),
+		    'address_1'     => get_option( 'woocommerce_gzd_dhl_return_address_street' ) . ' ' . get_option( 'woocommerce_gzd_dhl_return_address_street_no' ),
 		    'postcode'      => get_option( 'woocommerce_gzd_dhl_return_address_postcode' ),
 		    'country'       => get_option( 'woocommerce_gzd_dhl_return_address_country' ),
 		    'city'          => get_option( 'woocommerce_gzd_dhl_return_address_city' ),
@@ -126,26 +133,34 @@ class Install {
 
 	    $return_address = array_filter( $return_address );
 
-	    if ( ! empty( $return_address ) ) {
-		    $dhl->set_return_address( $return_address );
+	    foreach( $return_address as $key => $value ) {
+		    update_option( 'woocommerce_gzd_shipments_return_address_' . $key, $value );
 	    }
-
-	    $dhl->save();
-	    $deutsche_post->save();
 
 	    update_option( 'woocommerce_gzd_migrated_settings', 'yes' );
 
 	    return true;
     }
 
-    protected static function update_provider_setting( $provider, $key, $value ) {
-	    $setter = 'set_' . $key;
+    protected static function get_address_name_parts( $address_type = 'shipper' ) {
+	    $sender_name       = explode( " ", get_option( "woocommerce_gzd_dhl_{$address_type}_name" ) );
+	    $sender_name_first = $sender_name;
+	    $sender_first_name = implode( ' ', array_splice( $sender_name_first, 0, ( sizeof( $sender_name ) - 1 ) ) );
+	    $sender_last_name  = $sender_name[ sizeof( $sender_name ) - 1 ];
 
-	    if ( is_callable( array( $provider, $setter ) ) ) {
-		    $provider->{$setter}( $value );
-	    } else {
-		    $provider->update_meta_data( $key, $value );
-	    }
+	    return array(
+	    	'first_name' => $sender_first_name,
+		    'last_name'  => $sender_last_name
+	    );
+    }
+
+	/**
+	 * @param Simple $provider
+	 * @param $key
+	 * @param $value
+	 */
+    protected static function update_provider_setting( $provider, $key, $value ) {
+    	$provider->update_setting( $key, $value );
     }
 
     private static function create_db() {

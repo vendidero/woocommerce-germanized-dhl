@@ -459,85 +459,6 @@ function wc_gzd_dhl_wp_error_has_errors( $error ) {
 	}
 }
 
-function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array() ) {
-	$args = wp_parse_args( $args, array(
-		'page_format' => '',
-		'product_id'  => ''
-	) );
-
-	$error = new WP_Error();
-
-	if ( ! $shipment_order = $shipment->get_order() ) {
-		$error->add( 500, sprintf( _x( 'Shipment order #%s does not exist', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_order_id() ) );
-	}
-
-	if ( ! empty( $args['additional_services'] ) ) {
-		/**
-		 * Additional services are requested. Lets check whether the actual product exists and
-		 * refresh the product code (to the child product code).
-		 */
-		$im_product_code = Package::get_internetmarke_api()->get_product_code( $args['product_id'], $args['additional_services'] );
-
-		if ( false === $im_product_code ) {
-			$error->add( 500, _x( 'The services chosen are not available for the current product.', 'dhl', 'woocommerce-germanized-dhl' ) );
-		} else {
-			$args['product_id'] = $im_product_code;
-		}
-	}
-
-	$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
-
-	/**
-	 * Force the product to check to parent id because some services might not be explicitly added as
-	 * available products.
-	 */
-	$im_parent_code = Package::get_internetmarke_api()->get_product_parent_code( $args['product_id'] );
-
-	/**
-	 * Check whether the product might not be available for the current shipment
-	 */
-	if ( ! array_key_exists( $im_parent_code, $available_products ) ) {
-		/**
-		 * In case no other products are available or this is a manual request - return error
-		 */
-		if ( empty( $available_products ) || ( is_admin() && current_user_can( 'manage_woocommerce' ) ) ) {
-			$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( \Vendidero\Germanized\DHL\Admin\Settings::get_settings_url( 'internetmarke' ) ) ) );
-		} else {
-			/**
-			 * In case the chosen product is not available - use the first product available instead
-			 * to prevent errors during automation (connected with the default product option which might not fit).
-			 */
-			reset( $available_products );
-			$im_product_code = Package::get_internetmarke_api()->get_product_parent_code( key( $available_products ) );
-
-			if ( ! empty( $args['additional_services'] ) ) {
-				$im_product_code_additional = Package::get_internetmarke_api()->get_product_code( $im_product_code, $args['additional_services'] );
-
-				if ( false !== $im_product_code_additional ) {
-					$im_product_code = $im_product_code_additional;
-				}
-			}
-
-			$args['product_id'] = $im_product_code;
-		}
-	}
-
-	/**
-	 * Refresh stamp total based on actual product.
-	 */
-	if ( ! empty( $args['product_id'] ) ) {
-		$args['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $args['product_id'] );
-	} else {
-		$error->add( 500, sprintf( _x( 'Deutsche Post product is missing for %s.', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_id() ) );
-	}
-
-	if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
-		return $error;
-	}
-
-	return $args;
-}
-
 function wc_gzd_dhl_is_valid_datetime( $maybe_datetime, $format = 'Y-m-d' ) {
 	if ( ! is_a( $maybe_datetime, 'DateTime' && ! is_numeric( $maybe_datetime ) ) ) {
 		if ( ! DateTime::createFromFormat( $format, $maybe_datetime ) ) {
@@ -691,85 +612,19 @@ function wc_gzd_dhl_get_service_product_attributes( $service ) {
 
 /**
  * @param Shipment $shipment
- * @param Order $dhl_order
- */
-function wc_gzd_dhl_get_deutsche_post_selected_default_product( $shipment, $dhl_order = false ) {
-	if ( ! $dhl_order ) {
-		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
-	}
-
-	$default_args        = wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment );
-	$im_all_products     = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
-	$default_product     = isset( $default_args['product_id'] ) ? $default_args['product_id'] : array_keys( $im_all_products )[0];
-	$selected_product    = isset( $im_all_products[ $default_product ] ) ? $default_product : array_keys( $im_all_products )[0];
-	$selected_services   = isset( $default_args['additional_services'] ) ? $default_args['additional_services'] : array();
-	$selected_product_id = 0;
-
-	if ( ! empty( $selected_product ) ) {
-		/**
-		 * Do only override services in case the product is a child product and force parent code.
-		 */
-		if ( ! Package::get_internetmarke_api()->product_code_is_parent( $selected_product ) ) {
-			$selected_services = Package::get_internetmarke_api()->get_product_services( $selected_product );
-			$selected_product  = Package::get_internetmarke_api()->get_product_parent_code( $selected_product );
-		}
-
-		$selected_product_id = Package::get_internetmarke_api()->get_product_id( $selected_product );
-	}
-
-	return array(
-		'services'     => $selected_services,
-		'product_code' => $selected_product,
-		'product_id'   => $selected_product_id,
-		'page_format'  => $default_args['page_format']
-	);
-}
-
-function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment ) {
-	$shipping_method    = $shipment->get_shipping_method();
-	$dp_shipping_method = wc_gzd_dhl_get_deutsche_post_shipping_method( $shipping_method );
-	$dimensions         = wc_gzd_dhl_get_shipment_dimensions( $shipment );
-
-	$defaults = array(
-		'product_id'          => wc_gzd_dhl_get_deutsche_post_default_product( $shipment->get_country(), $dp_shipping_method ),
-		'page_format'         => Package::get_setting( 'deutsche_post_label_default_page_format', $dp_shipping_method ),
-		'stamp_total'         => 0,
-		'additional_services' => array(),
-		'weight'              => wc_gzd_dhl_get_shipment_weight( $shipment ),
-		'net_weight'          => wc_gzd_dhl_get_shipment_weight( $shipment, 'kg', true ),
-		'length'              => $dimensions['length'],
-		'width'               => $dimensions['width'],
-		'height'              => $dimensions['height'],
-	);
-
-	if ( ! empty( $defaults['product_id'] ) ) {
-		/**
-		 * Get current services from the selected product.
-		 */
-		$defaults['additional_services'] = Package::get_internetmarke_api()->get_product_services( $defaults['product_id'] );
-
-		/**
-		 * Force parent product by default to allow manually selecting services.
-		 */
-		$defaults['product_id'] = Package::get_internetmarke_api()->get_product_parent_code( $defaults['product_id'] );
- 	}
-
-	if ( ! empty( $defaults['product_id'] ) ) {
-		$defaults['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $defaults['product_id'] );
-	}
-
-	return $defaults;
-}
-
-/**
- * @param Shipment $shipment
  *
  * @return array
  */
 function wc_gzd_dhl_get_deutsche_post_products( $shipment, $parent_only = true ) {
-	if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
+	$country = $shipment->get_country();
+
+	if ( 'return' === $shipment->get_type() ) {
+		$country = $shipment->get_sender_country();
+	}
+
+	if ( Package::is_shipping_domestic( $country ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment, $parent_only );
-	} elseif ( Package::is_eu_shipment( $shipment->get_country() ) ) {
+	} elseif ( Package::is_eu_shipment( $country ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment, $parent_only );
 	} else {
 		return wc_gzd_dhl_get_deutsche_post_products_international( $shipment, $parent_only );
@@ -896,7 +751,7 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	/**
 	 * Warenpost format
 	 */
-	if ( 'V62WP' === $label->get_dhl_product() ) {
+	if ( 'V62WP' === $label->get_product_id() ) {
 		$available[] = '100x70mm';
 	}
 
@@ -1023,16 +878,6 @@ function wc_gzd_dhl_get_default_product( $country, $shipment = false ) {
 		return Package::get_setting( 'label_default_product_dom', $shipment );
 	} else {
 		return Package::get_setting( 'label_default_product_int', $shipment );
-	}
-}
-
-function wc_gzd_dhl_get_deutsche_post_default_product( $shipment ) {
-	if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
-		return Package::get_setting( 'deutsche_post_label_default_product_dom', $method );
-	} elseif( Package::is_eu_shipment( $shipment->get_country() ) ) {
-		return Package::get_setting( 'deutsche_post_label_default_product_eu', $method );
-	} else {
-		return Package::get_setting( 'deutsche_post_label_default_product_int', $method );
 	}
 }
 

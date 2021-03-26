@@ -12,6 +12,7 @@ use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\ShipmentItem;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WP_Error;
 
@@ -57,8 +58,6 @@ class Package {
     }
 
     public static function on_shipments_init() {
-	    \Vendidero\Germanized\DHL\Package::log( 'init called' );
-
 	    // Add shipping provider
 	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
 
@@ -273,6 +272,8 @@ class Package {
 
 	public static function register_label_types( $types ) {
         $types[] = 'inlay_return';
+
+        return $types;
     }
 
 	public static function filter_templates( $path, $template_name ) {
@@ -303,14 +304,26 @@ class Package {
 	 * @return false|DHL
 	 */
 	public static function get_dhl_shipping_provider() {
-        return wc_gzd_get_shipping_provider( 'dhl' );
+        $provider = wc_gzd_get_shipping_provider( 'dhl' );
+
+        if ( ! is_a( $provider, '\Vendidero\Germanized\DHL\ShippingProvider\DHL' ) ) {
+            return false;
+        }
+
+        return $provider;
 	}
 
 	/**
 	 * @return false|DeutschePost
 	 */
 	public static function get_deutsche_post_shipping_provider() {
-		return wc_gzd_get_shipping_provider( 'deutsche_post' );
+		$provider = wc_gzd_get_shipping_provider( 'deutsche_post' );
+
+		if ( ! is_a( $provider, '\Vendidero\Germanized\DHL\ShippingProvider\DeutschePost' ) ) {
+			return false;
+		}
+
+		return $provider;
 	}
 
 	public static function eur_to_cents( $price ) {
@@ -1005,14 +1018,6 @@ class Package {
     public static function get_base_country() {
 	    $base_location = wc_get_base_location();
 	    $base_country  = $base_location['country'];
-
-	    if ( did_action( 'woocommerce_gzd_shipments_init' ) ) {
-		    $sender_base_country = Package::get_setting( 'shipper_country' );
-
-		    if ( ! empty( $sender_base_country ) ) {
-			    $base_country = $sender_base_country;
-		    }
-	    }
 
 	    /**
 	     * Filter to adjust the DHL base country.

@@ -34,6 +34,10 @@ class DHL extends Auto {
 		return 'yes' === $this->get_meta( 'sandbox_mode', true );
 	}
 
+	public function get_customer_number() {
+		return $this->get_meta( 'account_number', true );
+	}
+
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
 			return '\Vendidero\Germanized\DHL\Label\DHLReturn';
@@ -44,7 +48,7 @@ class DHL extends Auto {
 		}
 	}
 
-	public function supports_labels( $label_type ) {
+	public function supports_labels( $label_type, $shipment = false ) {
 		$label_types = array( 'simple' );
 
 		if ( $this->enable_retoure() ) {
@@ -56,6 +60,17 @@ class DHL extends Auto {
 
 	public function supports_customer_return_requests() {
 		return $this->enable_retoure();
+	}
+
+	/**
+	 * Some providers (e.g. DHL) create return labels automatically and the return
+	 * address is chosen dynamically depending on the country. For that reason the return address
+	 * might not show up within emails or in customer panel.
+	 *
+	 * @return bool
+	 */
+	public function hide_return_address() {
+		return false;
 	}
 
 	public function get_api_username( $context = 'view' ) {
@@ -561,7 +576,7 @@ class DHL extends Auto {
 				'postcode'      => '',
 				'city'          => '',
 				'state'         => '',
-				'country'       => Package::get_setting( 'return_address_country' ),
+				'country'       => Package::get_setting( 'return_country' ),
 			) );
 
 			$mandatory = array(
@@ -863,14 +878,14 @@ class DHL extends Auto {
 			if ( Package::base_country_supports( 'returns' ) ) {
 
 				$defaults['return_address'] = array(
-					'name'          => Package::get_setting( 'return_address_name' ),
-					'company'       => Package::get_setting( 'return_address_company' ),
-					'street'        => Package::get_setting( 'return_address_street' ),
-					'street_number' => Package::get_setting( 'return_address_street_no' ),
-					'postcode'      => Package::get_setting( 'return_address_postcode' ),
-					'city'          => Package::get_setting( 'return_address_city' ),
-					'phone'         => Package::get_setting( 'return_address_phone' ),
-					'email'         => Package::get_setting( 'return_address_email' ),
+					'name'          => Package::get_setting( 'return_name' ),
+					'company'       => Package::get_setting( 'return_company' ),
+					'street'        => Package::get_setting( 'return_street' ),
+					'street_number' => Package::get_setting( 'return_street_number' ),
+					'postcode'      => Package::get_setting( 'return_postcode' ),
+					'city'          => Package::get_setting( 'return_city' ),
+					'phone'         => Package::get_setting( 'return_phone' ),
+					'email'         => Package::get_setting( 'return_email' ),
 				);
 
 				if ( 'yes' === $this->get_shipment_setting( $shipment, 'label_auto_inlay_return_label' ) ) {

@@ -7,11 +7,16 @@
 namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
 
 defined( 'ABSPATH' ) || exit;
 
 class DeutschePost extends Auto {
+
+	public function supports_customer_return_requests() {
+		return true;
+	}
 
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
@@ -21,8 +26,31 @@ class DeutschePost extends Auto {
 		}
 	}
 
-	public function supports_labels( $label_type ) {
+	/**
+	 * @param false|\WC_Order $order
+	 *
+	 * @return bool
+	 */
+	public function supports_customer_returns( $order = false ) {
+		/**
+		 * Return labels are only supported for DE
+		 */
+		if ( $order && 'DE' !== $order->get_shipping_country() ) {
+			return false;
+		}
+
+		return parent::supports_customer_returns( $order );
+	}
+
+	public function supports_labels( $label_type, $shipment = false ) {
 		$label_types = array( 'simple', 'return' );
+
+		/**
+		 * Return labels are only supported for DE
+		 */
+		if ( 'return' === $label_type && $shipment && 'return' === $shipment->get_type() && 'DE' !== $shipment->get_sender_country() ) {
+			return false;
+		}
 
 		return in_array( $label_type, $label_types );
 	}
@@ -55,9 +83,15 @@ class DeutschePost extends Auto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_default_label_product( $shipment ) {
-		if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
+		$country = $shipment->get_country();
+
+		if ( 'return' === $shipment->get_type() ) {
+			$country = $shipment->get_sender_country();
+		}
+
+		if ( Package::is_shipping_domestic( $country ) ) {
 			return $this->get_shipment_setting( $shipment, 'label_default_product_dom' );
-		} elseif( Package::is_eu_shipment( $shipment->get_country() ) ) {
+		} elseif( Package::is_eu_shipment( $country ) ) {
 			return $this->get_shipment_setting( $shipment, 'label_default_product_eu' );
 		} else {
 			return $this->get_shipment_setting( $shipment, 'label_default_product_int' );
@@ -267,7 +301,7 @@ class DeutschePost extends Auto {
 	}
 
 	public function get_label_fields_html( $shipment ) {
-		$html = parent::get_label_fields_html( $shipment );
+		$html     = parent::get_label_fields_html( $shipment );
 		$html .= '
 			<div class="columns preview-columns wc-gzd-dhl-im-product-data">
 		        <div class="column col-4">
@@ -322,12 +356,12 @@ class DeutschePost extends Auto {
 		if ( ! $is_wp_int ) {
 			$settings = array_merge( $settings, array(
 				array(
-					'id'          => 'label_page_format',
+					'id'          => 'page_format',
 					'label'       => _x( 'Page Format', 'dhl', 'woocommerce-germanized-dhl' ),
 					'description' => '',
 					'type'        => 'select',
 					'options'	  => Package::get_internetmarke_api()->get_page_format_list(),
-					'value'       => isset( $selected_data['page_format'] ) ? $selected_data['page_format'] : '',
+					'value'       => isset( $default_args['page_format'] ) ? $default_args['page_format'] : '',
 				)
 			) );
 		}
@@ -338,12 +372,17 @@ class DeutschePost extends Auto {
 	public function get_available_additional_services( $product_id, $selected_services = array() ) {
 		$im_product_id = Package::get_internetmarke_api()->get_product_id( $product_id );
 		$services      = \Vendidero\Germanized\DHL\Package::get_internetmarke_api()->get_product_list()->get_services_for_product( $im_product_id, $selected_services );
-		$settings      = array();
+		$settings      = array(
+			array(
+				'id'   => 'additional-services',
+				'type' => 'wrapper',
+			)
+		);
 
 		foreach( $services as $service ) {
 			$settings[] = array(
-				'id'            => 'label_additional_services_' . $service,
-				'name'          => 'label_additional_services[]',
+				'id'            => 'service_' . $service,
+				'name'          => 'services[]',
 				'wrapper_class' => 'form-field-checkbox',
 				'type'          => 'checkbox',
 				'label'         => \Vendidero\Germanized\DHL\Package::get_internetmarke_api()->get_product_list()->get_additional_service_title( $service ),
@@ -351,6 +390,10 @@ class DeutschePost extends Auto {
 				'value'         => in_array( $service, $selected_services ) ? $service : '',
 			);
 		}
+
+		$settings[] = array(
+			'type' => 'wrapper_end',
+		);
 
 		return $settings;
 	}
@@ -408,11 +451,104 @@ class DeutschePost extends Auto {
 
 	protected function get_default_simple_label_props( $shipment ) {
 		$defaults = array(
-			'page_format'         => $this->get_shipment_setting( $shipment, 'label_default_page_format' ),
-			'stamp_total'         => 0,
-			'additional_services' => array(),
+			'page_format' => $this->get_shipment_setting( $shipment, 'label_default_page_format' ),
+			'stamp_total' => 0,
+			'services'    => array(),
 		);
 
 		return $defaults;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return array
+	 */
+	protected function get_default_return_label_props( $shipment ) {
+		$defaults                   = $this->get_default_simple_label_props( $shipment );
+		$defaults['sender_address'] = $shipment->get_address();
+
+		return $defaults;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 * @param $props
+	 *
+	 * @return \WP_Error|mixed
+	 */
+	protected function validate_label_request( $shipment, $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'page_format' => '',
+			'product_id'  => ''
+		) );
+
+		$error = new \WP_Error();
+
+		if ( ! empty( $args['services'] ) ) {
+			/**
+			 * Additional services are requested. Lets check whether the actual product exists and
+			 * refresh the product code (to the child product code).
+			 */
+			$im_product_code = Package::get_internetmarke_api()->get_product_code( $args['product_id'], $args['services'] );
+
+			if ( false === $im_product_code ) {
+				$error->add( 500, _x( 'The services chosen are not available for the current product.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			} else {
+				$args['product_id'] = $im_product_code;
+			}
+		}
+
+		$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
+
+		/**
+		 * Force the product to check to parent id because some services might not be explicitly added as
+		 * available products.
+		 */
+		$im_parent_code = Package::get_internetmarke_api()->get_product_parent_code( $args['product_id'] );
+
+		/**
+		 * Check whether the product might not be available for the current shipment
+		 */
+		if ( ! array_key_exists( $im_parent_code, $available_products ) ) {
+			/**
+			 * In case no other products are available or this is a manual request - return error
+			 */
+			if ( empty( $available_products ) || ( is_admin() && current_user_can( 'manage_woocommerce' ) ) ) {
+				$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'labels' ) ) );
+			} else {
+				/**
+				 * In case the chosen product is not available - use the first product available instead
+				 * to prevent errors during automation (connected with the default product option which might not fit).
+				 */
+				reset( $available_products );
+				$im_product_code = Package::get_internetmarke_api()->get_product_parent_code( key( $available_products ) );
+
+				if ( ! empty( $args['services'] ) ) {
+					$im_product_code_additional = Package::get_internetmarke_api()->get_product_code( $im_product_code, $args['services'] );
+
+					if ( false !== $im_product_code_additional ) {
+						$im_product_code = $im_product_code_additional;
+					}
+				}
+
+				$args['product_id'] = $im_product_code;
+			}
+		}
+
+		/**
+		 * Refresh stamp total based on actual product.
+		 */
+		if ( ! empty( $args['product_id'] ) ) {
+			$args['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $args['product_id'] );
+		} else {
+			$error->add( 500, sprintf( _x( 'Deutsche Post product is missing for %s.', 'dhl', 'woocommerce-germanized-dhl' ), $shipment->get_id() ) );
+		}
+
+		if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
+			return $error;
+		}
+
+		return $args;
 	}
 }

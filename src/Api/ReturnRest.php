@@ -70,8 +70,8 @@ class ReturnRest extends Rest {
 					'state'          => $label->get_sender_state(),
 				),
 			),
-			'email'              => Package::get_setting( 'return_address_email' ),
-			'telephoneNumber'    => Package::get_setting( 'return_address_phone' ),
+			'email'              => Package::get_setting( 'return_email' ),
+			'telephoneNumber'    => Package::get_setting( 'return_phone' ),
 			"weightInGrams"      => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
 			'value'              => $shipment->get_total(),
 			'returnDocumentType' => 'SHIPMENT_LABEL'

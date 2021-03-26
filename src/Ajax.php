@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\DHL;
 
+use Vendidero\Germanized\Shipments\Admin\Settings;
+
 /**
  * WC_Ajax class.
  */
@@ -43,13 +45,14 @@ class Ajax {
 	public static function refresh_deutsche_post_label_preview() {
 		check_ajax_referer( 'wc-gzd-dhl-refresh-deutsche-post-label-preview', 'security' );
 
-		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['product_id'] ) ) {
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['product_id'], $_POST['shipment_id'] ) ) {
 			wp_die( -1 );
 		}
 
 		$selected_services   = isset( $_POST['selected_services'] ) ? wc_clean( $_POST['selected_services'] ) : array();
 		$im_product_id       = absint( $_POST['product_id'] );
-		$product_id          = 0;
+		$shipment_id         = absint( $_POST['shipment_id'] );
+		$product_id          = $im_product_id;
 		$is_wp_int           = false;
 		$response            = array(
 			'success'      => true,
@@ -59,8 +62,6 @@ class Ajax {
 		);
 
 		if ( ! empty( $im_product_id ) ) {
-			$product_id = Package::get_internetmarke_api()->get_product_id( $im_product_id );
-
 			/**
 			 * Refresh im product id by selected services.
 			 */
@@ -75,12 +76,13 @@ class Ajax {
 			}
 		}
 
-		ob_start();
-		include( Package::get_path() . '/includes/admin/views/html-deutsche-post-additional-services.php' );
-		$html = ob_get_clean();
-
 		$response['is_wp_int'] = $is_wp_int;
-		$response['fragments']['.wc-gzd-shipment-im-additional-services'] = '<div class="wc-gzd-shipment-im-additional-services">' . $html . '</div>';
+
+		if ( ( $provider = Package::get_deutsche_post_shipping_provider() ) && ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) ) {
+			$fields = $provider->get_available_additional_services( $product_id, $selected_services );
+
+			$response['fragments']['#wc-gzd-shipment-label-wrapper-additional-services'] = Settings::render_label_fields( $fields, $shipment );
+		}
 
 		wp_send_json( $response );
 	}

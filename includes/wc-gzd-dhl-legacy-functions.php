@@ -315,3 +315,27 @@ function wc_gzd_dhl_generate_label_filename( $label, $prefix = 'label' ) {
 
 	return $filename;
 }
+
+function wc_gzd_dhl_get_deutsche_post_selected_default_product( $shipment, $dhl_order = false ) {
+	wc_deprecated_function( 'wc_gzd_dhl_get_deutsche_post_selected_default_product', '1.5' );
+
+	return array();
+}
+
+function wc_gzd_dhl_get_deutsche_post_label_default_args( $dhl_order, $shipment ) {
+	wc_deprecated_function( 'wc_gzd_dhl_get_deutsche_post_label_default_args', '1.5' );
+
+	return array();
+}
+
+function wc_gzd_dhl_validate_deutsche_post_label_args( $shipment, $args = array() ) {
+	wc_deprecated_function( 'wc_gzd_dhl_validate_deutsche_post_label_args', '1.5' );
+
+	return $args;
+}
+
+function wc_gzd_dhl_get_deutsche_post_default_product( $shipment ) {
+	wc_deprecated_function( 'wc_gzd_dhl_get_deutsche_post_default_product', '1.5' );
+
+	return false;
+}

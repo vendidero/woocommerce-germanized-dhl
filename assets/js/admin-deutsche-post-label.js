@@ -14,20 +14,11 @@ window.germanized.admin = window.germanized.admin || {};
             var self    = admin.dhl_post_label;
             self.params = wc_gzd_admin_deutsche_post_label_params;
 
-            $( document ).on( 'change', '#deutsche_post_label_dhl_product, .wc-gzd-shipment-im-additional-services :input', self.onRefreshPreview );
-            $( document.body ).on( 'wc_gzd_shipment_label_after_init', self.onInit );
-        },
-
-        onInit: function() {
-            var self = admin.dhl_post_label;
-
-            if ( $( '#deutsche_post_label_dhl_product' ).length > 0 ) {
-                self.refreshProductData();
-            }
+            $( document ).on( 'change', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', self.onRefreshPreview );
         },
 
         getSelectedAdditionalServices: function() {
-            var selectedIds = $( ".wc-gzd-shipment-im-additional-services :input:checked" ).map( function () {
+            var selectedIds = $( "#wc-gzd-shipment-label-wrapper-additional-services :input:checked" ).map( function () {
                 return $( this ).val();
             }).get();
 
@@ -54,9 +45,9 @@ window.germanized.admin = window.germanized.admin || {};
                 $img_wrapper = $( '.wc-gzd-dhl-im-product-data' ).find( '.image-preview' );
 
             if ( data.is_wp_int ) {
-                $wrapper.parents( '.wc-gzd-shipment-create-label' ).find( '.wc-gzd-shipment-im-page-format' ).hide();
+                $wrapper.parents( '.wc-gzd-shipment-create-label' ).find( '.page_format_field' ).hide();
             } else {
-                $wrapper.parents( '.wc-gzd-shipment-create-label' ).find( '.wc-gzd-shipment-im-page-format' ).show();
+                $wrapper.parents( '.wc-gzd-shipment-create-label' ).find( '.page_format_field' ).show();
             }
 
             if ( data.preview_url ) {
@@ -90,7 +81,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         getProductId: function() {
-            return $( '#deutsche_post_label_dhl_product' ).val();
+            return $( '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id' ).val();
         },
 
         replaceProductData: function( productData ) {
