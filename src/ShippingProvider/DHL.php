@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\Shipments\Admin\ProviderSettings;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
 
@@ -1516,5 +1517,196 @@ class DHL extends Auto {
 		) );
 
 		return $settings;
+	}
+
+	public function get_help_link() {
+		return 'https://vendidero.de/dokumentation/woocommerce-germanized/post-dhl';
+	}
+
+	public function get_settings_help_pointers( $section = '' ) {
+		$pointers = array();
+
+		if ( '' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'account'          => array(
+						'target'       => '#account_number',
+						'next'         => 'api',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Customer Number', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'Insert your DHL business customer number (EKP) here. If you are not yet a business customer you might want to create a new account first.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'api'              => array(
+						'target'       => Package::is_debug_mode() ? '#api_sandbox_username' : '#api_username',
+						'next'         => '',
+						'next_url'     => add_query_arg( array( 'tutorial' => 'yes' ), $this->get_edit_link( 'label' ) ),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'API Access', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'To create labels and embed DHL services, our software needs access to the API. You will need to fill out the username and password fields accordingly.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				),
+			);
+		} elseif( 'label' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'inlay'     => array(
+						'target'       => '#label_auto_inlay_return_label-toggle',
+						'next'         => 'retoure',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'If you want to provide your customers with inlay return labels for your shipments you might enable this feature by default here.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'retoure'   => array(
+						'target'       => '#label_retoure_enable-toggle',
+						'next'         => 'age_check',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'If you want to create DHL labels to returns you should activate this feature. Make sure that you have DHL Online Retoure activated in your contract.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'age_check' => array(
+						'target'       => '#label_auto_age_check_sync-toggle',
+						'next'         => '',
+						'next_url'     => add_query_arg( array( 'tutorial' => 'yes' ), $this->get_edit_link( 'automation' ) ),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Age verification', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'Use this feature to sync the Germanized age verification checkbox with the DHL visual minimum age verification service. As soon as applicable products are contained within the shipment, the service will be booked by default.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				)
+			);
+		} elseif( 'automation' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'auto'          => array(
+						'target'       => '#label_auto_enable-toggle',
+						'next'         => '',
+						'next_url'     => add_query_arg( array( 'tutorial' => 'yes' ), $this->get_edit_link( 'preferred' ) ),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Automation', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'You might want to save some time and let Germanized generate labels automatically as soon as a shipment switches to a certain status.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					)
+				)
+			);
+		} elseif( 'preferred' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'day'          => array(
+						'target'       => '#PreferredDay_enable-toggle',
+						'next'         => 'fee',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Preferred Day', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'Let your customers choose a preferred day (if the service is available at the customer\'s location) of delivery within your checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'fee'          => array(
+						'target'       => '#PreferredDay_cost',
+						'next'         => 'location',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Fee', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'Optionally charge your customers an additional fee for preferred services like preferred day.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'location'          => array(
+						'target'       => '#PreferredLocation_enable-toggle',
+						'next'         => '',
+						'next_url'     => add_query_arg( array( 'tutorial' => 'yes' ), $this->get_edit_link( 'pickup' ) ),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Preferred Location', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'Allow your customers to send their parcels to a preferred location e.g. a neighbor. This service is free of charge for DHL shipments.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				)
+			);
+		} elseif( 'pickup' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'day'          => array(
+						'target'       => '#parcel_pickup_packstation_enable-toggle',
+						'next'         => 'map',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'Allow your customers to choose packstation (and/or other DHL location types as configured below) as shipping address.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'map'          => array(
+						'target'       => '#parcel_pickup_map_enable-toggle',
+						'next'         => '',
+						'next_url'     => ProviderSettings::get_next_pointers_link( $this->get_name() ),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Map', 'dhl', 'woocommerce-germanized-dhl' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'This option adds a map overlay view to let your customers choose a DHL location from a map nearby. You\'ll need a valid Google Maps API key to enable the map view.', 'dhl', 'woocommerce-germanized-dhl' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				)
+			);
+		}
+
+		return $pointers;
 	}
 }

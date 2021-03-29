@@ -25,13 +25,6 @@ class Admin {
 		// Legacy meta box
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_legacy_meta_box' ), 20 );
 
-		// Label settings
-		add_action( 'woocommerce_gzd_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'label_fields' ), 10, 1 );
-		add_action( 'woocommerce_gzd_return_shipment_print_dhl_label_admin_fields', array( __CLASS__, 'return_label_fields' ), 10, 1 );
-
-		add_action( 'woocommerce_gzd_shipment_print_deutsche_post_label_admin_fields', array( __CLASS__, 'post_label_fields' ), 10, 1 );
-		add_action( 'woocommerce_gzd_return_shipment_print_deutsche_post_label_admin_fields', array( __CLASS__, 'post_label_fields' ), 10, 1 );
-
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
 
@@ -42,7 +35,7 @@ class Admin {
 		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ), 9 );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
 
-		// Reveiver ID options
+		// Receiver ID options
         add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ), 10 );
         add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'save_receiver_ids' ), 10, 3 );
 
@@ -91,57 +84,6 @@ class Admin {
 			}
 		}
     }
-
-	/**
-     * Output label admin settings.
-     *
-	 * @param Shipment $p_shipment
-	 */
-	public static function label_fields( $p_shipment ) {
-	    $shipment = $p_shipment;
-
-		if ( ! $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
-			return;
-		}
-
-		$path = Package::get_path() . '/includes/admin/views/html-shipment-label-backbone-form.php';
-
-		include $path;
-    }
-
-	/**
-	 * Output label admin settings.
-	 *
-	 * @param Shipment $p_shipment
-	 */
-	public static function post_label_fields( $p_shipment ) {
-		$shipment = $p_shipment;
-
-		if ( ! $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
-			return;
-		}
-
-		$path = Package::get_path() . '/includes/admin/views/html-shipment-deutsche-post-label-backbone-form.php';
-
-		include $path;
-	}
-
-	/**
-	 * Output label admin settings.
-	 *
-	 * @param ReturnShipment $p_shipment
-	 */
-	public static function return_label_fields( $p_shipment ) {
-		$shipment = $p_shipment;
-
-		if ( ! $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
-			return;
-		}
-
-		$path = Package::get_path() . '/includes/admin/views/html-shipment-return-label-backbone-form.php';
-
-		include $path;
-	}
 
 	public static function save_receiver_ids( $value, $option, $raw_value ) {
 	    if ( ! isset( $option['type'] ) || 'dhl_receiver_ids' !== $option['type'] ) {
@@ -377,11 +319,6 @@ class Admin {
 
 		// Admin styles for WC pages only.
 		if ( in_array( $screen_id, self::get_screen_ids() ) ) {
-			wp_enqueue_style( 'woocommerce_gzd_dhl_admin' );
-		}
-
-		// Shipping zone methods
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) {
 			wp_enqueue_style( 'woocommerce_gzd_dhl_admin' );
 		}
 	}

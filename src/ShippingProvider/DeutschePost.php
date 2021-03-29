@@ -18,6 +18,10 @@ class DeutschePost extends Auto {
 		return true;
 	}
 
+	public function get_help_link() {
+		return 'https://vendidero.de/dokumentation/woocommerce-germanized/post-dhl';
+	}
+
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
 			return '\Vendidero\Germanized\DHL\Label\DeutschePostReturn';

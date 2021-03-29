@@ -2,7 +2,6 @@
 
 namespace Vendidero\Germanized\DHL;
 use Exception;
-use Vendidero\Germanized\DHL\ShippingProvider\MethodDHL;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Checkout;
@@ -66,6 +65,11 @@ class ParcelLocator {
 		add_filter( 'woocommerce_localisation_address_formats', array( __CLASS__, 'set_address_format' ), 20 );
 		add_filter( 'woocommerce_my_account_my_address_formatted_address', array( __CLASS__, 'set_user_address' ), 10, 3 );
 
+		/**
+		 * Street number validation
+		 */
+		add_filter( 'woocommerce_gzd_checkout_is_valid_street_number', array( __CLASS__, 'street_number_is_valid' ), 10, 2 );
+		
 		if ( self::has_map() ) {
 			add_action( 'wp_footer', array( __CLASS__, 'add_form' ), 50 );
 
@@ -75,6 +79,14 @@ class ParcelLocator {
 			add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
 			add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
 		}
+	}
+
+	public static function street_number_is_valid( $is_valid, $data ) {
+		if ( isset( $data['shipping_address_type'] ) && 'dhl' === $data['shipping_address_type'] ) {
+			$is_valid = true;
+		}
+
+		return $is_valid;
 	}
 
 	public static function refresh_shipping_data_session( $fragments ) {
@@ -614,8 +626,6 @@ class ParcelLocator {
 			unset( $pickup_types['packstation'] );
 		}
 
-		var_dump(self::is_postoffice_enabled());
-
 		if ( isset( $pickup_types['postoffice'] ) && ! self::is_postoffice_enabled() ) {
 			unset( $pickup_types['postoffice'] );
 		}
@@ -647,6 +657,14 @@ class ParcelLocator {
 
 		$error          = new WP_Error();
 		$is_packstation = false;
+		$pickup_number  = preg_replace( "/[^0-9]/", "", $args['address_1'] );
+
+		/**
+		 * A number is required for the packstation/parcelshop/postoffice
+		 */
+		if ( empty( $pickup_number ) && ! empty( $args['address_1'] ) ) {
+			$error->add( 'validation', sprintf( _x( 'Please provide a valid number within the %s field.', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( ' / ' ) ) );
+		}
 
 		if ( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'packstation' ) ) {
 			$is_packstation = true;

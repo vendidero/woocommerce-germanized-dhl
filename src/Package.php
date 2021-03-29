@@ -5,16 +5,12 @@ namespace Vendidero\Germanized\DHL;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Api\Paket;
 use Vendidero\Germanized\DHL\ShippingProvider\DeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\ShipmentItem;
-use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
-use Vendidero\Germanized\Shipments\ShippingProvider\Method;
-use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
 
