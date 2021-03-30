@@ -743,7 +743,7 @@ class ParcelLocator {
 				'packstation_icon'	  => Package::get_assets_url() . '/img/packstation.png',
 				'parcelshop_icon'	  => Package::get_assets_url() . '/img/parcelshop.png',
 				'postoffice_icon'	  => Package::get_assets_url() . '/img/post_office.png',
-				'api_key'             => self::get_setting( 'map_api_key' ),
+				'api_key'             => self::get_setting( 'map_api_password' ),
 				'wrapper'             => is_checkout() ? '.woocommerce-checkout' : '.woocommerce-address-fields',
 				'i18n'                => array_merge( wc_gzd_dhl_get_pickup_types(), array(
 					'branch'			=> _x( 'Branch', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -836,7 +836,7 @@ class ParcelLocator {
 	}
 
 	public static function has_map() {
-		$api_key = self::get_setting( 'map_api_key' );
+		$api_key = self::get_setting( 'map_api_password' );
 
 		return ( 'yes' === self::get_setting( 'map_enable' ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
 	}

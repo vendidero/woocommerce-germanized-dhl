@@ -77,6 +77,8 @@ class Install {
 
 				if ( strstr( $option_name_clean, 'shipper_' ) || strstr( $option_name_clean, 'return_address_' ) ) {
 					continue;
+				} elseif( 'parcel_pickup_map_api_key' === $option_name_clean ) {
+					self::update_provider_setting( $dhl, 'parcel_pickup_map_api_password', $option_value );
 				} else {
 					self::update_provider_setting( $dhl, $option_name_clean, $option_value );
 				}

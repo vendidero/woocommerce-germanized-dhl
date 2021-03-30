@@ -22,6 +22,10 @@ class DeutschePost extends Auto {
 		return 'https://vendidero.de/dokumentation/woocommerce-germanized/post-dhl';
 	}
 
+	public function get_signup_link() {
+		return 'https://portokasse.deutschepost.de/portokasse/#!/register/';
+	}
+
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
 			return '\Vendidero\Germanized\DHL\Label\DeutschePostReturn';
@@ -86,25 +90,6 @@ class DeutschePost extends Auto {
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
-	public function get_default_label_product( $shipment ) {
-		$country = $shipment->get_country();
-
-		if ( 'return' === $shipment->get_type() ) {
-			$country = $shipment->get_sender_country();
-		}
-
-		if ( Package::is_shipping_domestic( $country ) ) {
-			return $this->get_shipment_setting( $shipment, 'label_default_product_dom' );
-		} elseif( Package::is_eu_shipment( $country ) ) {
-			return $this->get_shipment_setting( $shipment, 'label_default_product_eu' );
-		} else {
-			return $this->get_shipment_setting( $shipment, 'label_default_product_int' );
-		}
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
-	 */
 	public function get_available_label_products( $shipment ) {
 		return wc_gzd_dhl_get_deutsche_post_products( $shipment );
 	}
@@ -158,7 +143,7 @@ class DeutschePost extends Auto {
 			$api->reload_products();
 
 			$balance      = $api->get_balance( true );
-			$settings_url = $this->get_edit_link( 'labels' );
+			$settings_url = $this->get_edit_link( 'label' );
 			$default_available_products = $api->get_default_available_products();
 
 			$settings = array_merge( $settings, array(
@@ -347,12 +332,21 @@ class DeutschePost extends Auto {
 		$products          = $this->get_available_label_products( $shipment );
 		$is_wp_int         = false;
 
+		/**
+		 * Replace the product id (which might contain services) with the default parent id.
+		 */
 		if ( ! empty( $default_args['product_id'] ) ) {
+			foreach( $settings as $key => $setting ) {
+				if ( 'product_id' === $setting['id'] ) {
+					$settings[ $key ]['value'] = $default_args['product_id'];
+				}
+			}
+
 			$is_wp_int = Package::get_internetmarke_api()->is_warenpost_international( $default_args['product_id'] );
 		}
 
 		if ( empty( $products ) ) {
-			return new \WP_Error( 'dp-label-missing-products', sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'labels' ) ) );
+			return new \WP_Error( 'dp-label-missing-products', sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
 		}
 
 		$settings = array_merge( $settings, $this->get_available_additional_services( $default_args['product_id'], $default_args['services'] ) );
@@ -427,6 +421,25 @@ class DeutschePost extends Auto {
 			'product_id'    => $selected_product,
 			'page_format'   => $default_args['page_format']
 		) );
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_default_label_product( $shipment ) {
+		$country = $shipment->get_country();
+
+		if ( 'return' === $shipment->get_type() ) {
+			$country = $shipment->get_sender_country();
+		}
+
+		if ( Package::is_shipping_domestic( $country ) ) {
+			return $this->get_shipment_setting( $shipment, 'label_default_product_dom' );
+		} elseif( Package::is_eu_shipment( $country ) ) {
+			return $this->get_shipment_setting( $shipment, 'label_default_product_eu' );
+		} else {
+			return $this->get_shipment_setting( $shipment, 'label_default_product_int' );
+		}
 	}
 
 	protected function get_default_label_props( $shipment ) {
@@ -519,7 +532,7 @@ class DeutschePost extends Auto {
 			 * In case no other products are available or this is a manual request - return error
 			 */
 			if ( empty( $available_products ) || ( is_admin() && current_user_can( 'manage_woocommerce' ) ) ) {
-				$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'labels' ) ) );
+				$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
 			} else {
 				/**
 				 * In case the chosen product is not available - use the first product available instead

@@ -47,7 +47,7 @@ class DHLReturn extends ReturnLabel {
 		 * The dynamic portion of the hook name, `$this->get_hook_prefix()` constructs an individual
 		 * hook name which uses `woocommerce_gzd_dhl_return_label_get_` as a prefix.
 		 *
-		 * Example hook name: `woocommerce_gzd_dhl_return_label_get_receiver_id`
+		 * Example hook name: `woocommerce_gzd_shipments_dhl_return_label_get_receiver_id`
 		 *
 		 * @param string      $id The receiver id.
 		 * @param ReturnLabel $label The return label

@@ -1080,10 +1080,10 @@ class DHL extends Auto {
 
 			array(
 				'title'             => _x( 'Google Maps Key', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'text',
-				'id' 		        => 'parcel_pickup_map_api_key',
+				'type'              => 'password',
+				'id' 		        => 'parcel_pickup_map_api_password',
 				'custom_attributes'	=> array( 'data-show_if_parcel_pickup_map_enable' => '' ),
-				'value'             => $this->get_setting( 'parcel_pickup_map_api_key' ),
+				'value'             => $this->get_setting( 'parcel_pickup_map_api_password' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To integrate a map within your checkout you\'ll need a valid API key for Google Maps. You may %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">' . _x(  'retrieve a new one', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'default'           => '',
 				'allow_override'    => false,
@@ -1521,6 +1521,10 @@ class DHL extends Auto {
 
 	public function get_help_link() {
 		return 'https://vendidero.de/dokumentation/woocommerce-germanized/post-dhl';
+	}
+
+	public function get_signup_link() {
+		return 'https://www.dhl.de/de/geschaeftskunden/paket/plugin-kunde-werden/angebot-dhl-geschaeftskunden-online.html?source=woocommercegermanized';
 	}
 
 	public function get_settings_help_pointers( $section = '' ) {

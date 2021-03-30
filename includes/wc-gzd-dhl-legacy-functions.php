@@ -203,7 +203,7 @@ function wc_gzd_dhl_update_label( $label, $args = array() ) {
  * @param \Vendidero\Germanized\Shipments\Shipment $shipment the shipment
  * @param array $args
  */
-function wc_gzd_dhl_create_label( $shipment, $args = array() ) {
+function wc_gzd_dhl_create_label( $shipment, $args = false ) {
 	wc_deprecated_function( 'wc_gzd_dhl_create_label', '1.5' );
 
 	try {

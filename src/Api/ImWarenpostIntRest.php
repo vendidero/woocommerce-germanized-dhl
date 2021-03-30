@@ -110,6 +110,8 @@ class ImWarenpostIntRest extends Rest {
 			$sender_name = ( Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) . ' ' : '' ) . Package::get_setting( 'shipper_name' );
 		}
 
+		$recipient = $shipment->get_company() ? $shipment->get_company() . ', ' : '' . $shipment->get_formatted_full_name();
+
 		$request_data = array(
 			'customerEkp' => $this->get_ekp(),
 			'orderId'     => null,
@@ -118,7 +120,7 @@ class ImWarenpostIntRest extends Rest {
 					'id'                  => 0,
 					'product'             => $label->get_product_id(),
 					'serviceLevel'        => apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_service_level', 'STANDARD', $label ),
-					'recipient'           => $shipment->get_formatted_full_name(),
+					'recipient'           => $recipient,
 					'recipientPhone'      => $shipment->get_phone(),
 					'recipientEmail'      => $shipment->get_email(),
 					'addressLine1'        => $shipment->get_address_1(),

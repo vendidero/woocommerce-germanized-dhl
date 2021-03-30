@@ -167,7 +167,7 @@ class DeutschePost extends Label {
 			$is_trackable = true;
 		}
 
-		return apply_filters( 'woocommerce_gzd_deutsche_post_label_is_trackable', $is_trackable, $this );
+		return apply_filters( "{$this->get_general_hook_prefix()}is_trackable", $is_trackable, $this );
 	}
 
 	/**

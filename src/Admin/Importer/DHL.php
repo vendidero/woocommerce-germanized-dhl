@@ -70,7 +70,7 @@ class DHL {
 			'display_parcelshop'      => 'parcel_pickup_parcelshop_enable',
 			'display_post_office'     => 'parcel_pickup_postoffice_enable',
 			'parcel_limit'            => 'parcel_pickup_map_max_results',
-			'google_maps_api_key'     => 'parcel_pickup_map_api_key',
+			'google_maps_api_key'     => 'parcel_pickup_map_api_password',
 		);
 
 		// Bulk update settings
