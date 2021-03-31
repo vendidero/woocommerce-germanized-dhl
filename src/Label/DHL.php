@@ -19,8 +19,6 @@ class DHL extends Label {
 		'default_path'                  => '',
 		'export_path'                   => '',
 		'preferred_day'                 => '',
-		'preferred_time_start'          => '',
-		'preferred_time_end'            => '',
 		'preferred_location'            => '',
 		'preferred_neighbor'            => '',
 		'ident_date_of_birth'           => '',
@@ -131,36 +129,6 @@ class DHL extends Label {
 		return $this->get_prop( 'preferred_day', $context );
 	}
 
-	public function get_preferred_time() {
-		$start = $this->get_preferred_time_start();
-		$end   = $this->get_preferred_time_end();
-
-		if ( $start && $end ) {
-			return $start->date( 'H:i' ) . '-' . $end->date( 'H:i' );
-		}
-
-		return null;
-	}
-
-	public function get_preferred_time_start( $context = 'view' ) {
-		return $this->get_prop( 'preferred_time_start', $context );
-	}
-
-	public function get_preferred_time_end( $context = 'view' ) {
-		return $this->get_prop( 'preferred_time_end', $context );
-	}
-
-	public function get_preferred_formatted_time() {
-		$start = $this->get_preferred_time_start();
-		$end   = $this->get_preferred_time_end();
-
-		if ( $start && $end ) {
-			return sprintf( _x( '%s-%s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
-		}
-
-		return null;
-	}
-
 	public function get_preferred_location( $context = 'view' ) {
 		return $this->get_prop( 'preferred_location', $context );
 	}
@@ -257,14 +225,6 @@ class DHL extends Label {
 
 	public function set_preferred_day( $day ) {
 		$this->set_date_prop( 'preferred_day', $day );
-	}
-
-	public function set_preferred_time_start( $time ) {
-		$this->set_time_prop( 'preferred_time_start', $time );
-	}
-
-	public function set_preferred_time_end( $time ) {
-		$this->set_time_prop( 'preferred_time_end', $time );
 	}
 
 	public function set_preferred_location( $location ) {

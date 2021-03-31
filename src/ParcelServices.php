@@ -85,11 +85,6 @@ class ParcelServices {
 					$dhl_order->set_preferred_day( $data['preferred_day'] );
 				}
 
-				if ( ! empty( $data['preferred_time'] ) ) {
-					$dhl_order->set_preferred_time_start( $data['preferred_time_start'] );
-					$dhl_order->set_preferred_time_end( $data['preferred_time_end'] );
-				}
-
 				if ( 'place' === $data['preferred_location_type'] && ! empty( $data['preferred_location'] ) ) {
 					$dhl_order->set_preferred_location( $data['preferred_location'] );
 				} elseif ( 'neighbor' === $data['preferred_location_type'] && ! empty( $data['preferred_location_neighbor_name'] ) && ! empty( $data['preferred_location_neighbor_address'] ) ) {

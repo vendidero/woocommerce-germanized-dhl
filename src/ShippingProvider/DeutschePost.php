@@ -334,6 +334,7 @@ class DeutschePost extends Auto {
 
 		/**
 		 * Replace the product id (which might contain services) with the default parent id.
+		 * Otherwise the correct (parent only) product would not be selected from the available products lists.
 		 */
 		if ( ! empty( $default_args['product_id'] ) ) {
 			foreach( $settings as $key => $setting ) {

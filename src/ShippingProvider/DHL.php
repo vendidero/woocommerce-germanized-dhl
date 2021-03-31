@@ -533,8 +533,6 @@ class DHL extends Auto {
 	protected function validate_simple_label_args( $shipment, $args = array() ) {
 		$args = wp_parse_args( $args, array(
 			'preferred_day'         => '',
-			'preferred_time_start'  => '',
-			'preferred_time_end'    => '',
 			'preferred_location'    => '',
 			'preferred_neighbor'    => '',
 			'ident_date_of_birth'   => '',
@@ -761,7 +759,8 @@ class DHL extends Auto {
 	 * @return array
 	 */
 	protected function get_default_simple_label_props( $shipment ) {
-		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$dhl_order  = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$product_id = $this->get_default_label_product( $shipment );
 
 		$defaults = array(
 			'services'              => array(),
@@ -772,7 +771,7 @@ class DHL extends Auto {
 			$defaults['email_notification'] = 'yes';
 		}
 
-		if ( $dhl_order && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $defaults['product_id'], 'CashOnDelivery' ) ) {
+		if ( $dhl_order && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $product_id, 'CashOnDelivery' ) ) {
 			$defaults['cod_total'] = $shipment->get_total();
 
 			/**
@@ -810,12 +809,6 @@ class DHL extends Auto {
 					$defaults['preferred_day'] = $dhl_order->get_preferred_day()->format( 'Y-m-d' );
 				}
 
-				if ( $dhl_order && $dhl_order->has_preferred_time() ) {
-					$defaults['preferred_time']       = $dhl_order->get_preferred_time();
-					$defaults['preferred_time_start'] = $dhl_order->get_preferred_time_start()->format( 'H:i' );
-					$defaults['preferred_time_end']   = $dhl_order->get_preferred_time_end()->format( 'H:i' );
-				}
-
 				if ( $dhl_order && $dhl_order->has_preferred_location() ) {
 					$defaults['preferred_location'] = $dhl_order->get_preferred_location();
 				}
@@ -824,7 +817,7 @@ class DHL extends Auto {
 					$defaults['preferred_neighbor'] = $dhl_order->get_preferred_neighbor_formatted_address();
 				}
 
-				if ( wc_gzd_dhl_product_supports_service( $defaults['product_id'], 'VisualCheckOfAge' ) ) {
+				if ( wc_gzd_dhl_product_supports_service( $product_id, 'VisualCheckOfAge' ) ) {
 					$visual_min_age = $this->get_shipment_setting( $shipment, 'label_visual_min_age' );
 
 					if ( wc_gzd_dhl_is_valid_visual_min_age( $visual_min_age ) ) {
@@ -838,7 +831,7 @@ class DHL extends Auto {
 					}
 				}
 
-				if ( wc_gzd_dhl_product_supports_service( $defaults['product_id'], 'IdentCheck' ) ) {
+				if ( wc_gzd_dhl_product_supports_service( $product_id, 'IdentCheck' ) ) {
 					$ident_min_age = $this->get_shipment_setting( $shipment, 'label_ident_min_age' );
 
 					if ( wc_gzd_dhl_is_valid_ident_min_age( $ident_min_age ) ) {
@@ -858,7 +851,7 @@ class DHL extends Auto {
 				}
 
 				foreach( wc_gzd_dhl_get_services() as $service ) {
-					if ( ! wc_gzd_dhl_product_supports_service( $defaults['product_id'], $service ) ) {
+					if ( ! wc_gzd_dhl_product_supports_service( $product_id, $service ) ) {
 						continue;
 					}
 
@@ -899,7 +892,7 @@ class DHL extends Auto {
 
 			foreach( wc_gzd_dhl_get_international_services() as $service ) {
 
-				if ( ! wc_gzd_dhl_product_supports_service( $defaults['product_id'], $service ) ) {
+				if ( ! wc_gzd_dhl_product_supports_service( $product_id, $service ) ) {
 					continue;
 				}
 

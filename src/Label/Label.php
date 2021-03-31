@@ -22,9 +22,11 @@ abstract class Label extends \Vendidero\Germanized\Shipments\Labels\Label {
 		$this->legacy = $legacy;
 
 		if ( $this->legacy ) {
-			$this->data['dhl_product']  = '';
-			$this->data['default_path'] = '';
-			$this->data['export_path']  = '';
+			$this->data['dhl_product']          = '';
+			$this->data['default_path']         = '';
+			$this->data['export_path']          = '';
+			$this->data['preferred_time_start'] = '';
+			$this->data['preferred_time_end']   = '';
 		}
 
 		if ( $data instanceof Label ) {
@@ -112,6 +114,44 @@ abstract class Label extends \Vendidero\Germanized\Shipments\Labels\Label {
 		}
 
 		return parent::get_product_id();
+	}
+
+	public function get_preferred_time() {
+		$start = $this->get_preferred_time_start();
+		$end   = $this->get_preferred_time_end();
+
+		if ( $start && $end ) {
+			return $start->date( 'H:i' ) . '-' . $end->date( 'H:i' );
+		}
+
+		return null;
+	}
+
+	public function get_preferred_time_start( $context = 'view' ) {
+		return $this->get_prop( 'preferred_time_start', $context );
+	}
+
+	public function get_preferred_time_end( $context = 'view' ) {
+		return $this->get_prop( 'preferred_time_end', $context );
+	}
+
+	public function get_preferred_formatted_time() {
+		$start = $this->get_preferred_time_start();
+		$end   = $this->get_preferred_time_end();
+
+		if ( $start && $end ) {
+			return sprintf( _x( '%s-%s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
+		}
+
+		return null;
+	}
+
+	public function set_preferred_time_start( $time ) {
+		$this->set_time_prop( 'preferred_time_start', $time );
+	}
+
+	public function set_preferred_time_end( $time ) {
+		$this->set_time_prop( 'preferred_time_end', $time );
 	}
 
 	protected function get_file_by_path( $file ) {
