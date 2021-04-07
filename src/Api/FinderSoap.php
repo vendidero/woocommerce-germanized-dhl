@@ -91,7 +91,6 @@ class FinderSoap extends Soap {
 		}
 
 		if ( is_array( $api_results ) ) {
-
 			foreach( $api_results as $result ) {
 
 				// Lets assume it is a postoffice by default

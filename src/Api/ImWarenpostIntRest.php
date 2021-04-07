@@ -265,7 +265,7 @@ class ImWarenpostIntRest extends Rest {
 			$this->remote_header['Accept'] = $this->get_pdf_accept_header();
 		}
 
-		$date = new \DateTime( null, new \DateTimeZone( 'Europe/Berlin' ) );
+		$date = new \DateTime( "now", new \DateTimeZone( 'Europe/Berlin' ) );
 
 		$this->remote_header = array_merge( $this->remote_header, array(
 			'KEY_PHASE'         => $this->get_key_phase(),
@@ -347,7 +347,7 @@ class ImWarenpostIntRest extends Rest {
 
 	protected function get_signature( $date = null ) {
 		if ( ! $date ) {
-			$date = new \DateTime( null, new \DateTimeZone( 'Europe/Berlin' ) );
+			$date = new \DateTime( "now", new \DateTimeZone( 'Europe/Berlin' ) );
 		}
 
 		return substr(

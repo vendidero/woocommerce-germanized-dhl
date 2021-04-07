@@ -207,13 +207,19 @@ function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
 				continue;
 			}
 
-			$formatted_day  = date_i18n( wc_date_format(), strtotime( $day ) );
+			$date = new \WC_DateTime( $day );
+			$date->setTimezone( new DateTimeZone( 'Europe/Berlin' ) );
+
+			$formatted_day  = $date->date_i18n( wc_date_format() );
 			$preferred_days = array_merge( $preferred_days, array( $day => $formatted_day ) );
 		}
 	}
 
 	if ( ! empty( $current ) ) {
-		$preferred_days[ $current ] = date_i18n( wc_date_format(), strtotime( $current ) );
+		$date = new \WC_DateTime( $current );
+		$date->setTimezone( new DateTimeZone( 'Europe/Berlin' ) );
+
+		$preferred_days[ $current ] = $date->date_i18n( wc_date_format() );
 	}
 
 	return $preferred_days;

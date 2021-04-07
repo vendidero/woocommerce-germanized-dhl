@@ -69,7 +69,7 @@ class ParcelLocator {
 		 * Street number validation
 		 */
 		add_filter( 'woocommerce_gzd_checkout_is_valid_street_number', array( __CLASS__, 'street_number_is_valid' ), 10, 2 );
-		
+
 		if ( self::has_map() ) {
 			add_action( 'wp_footer', array( __CLASS__, 'add_form' ), 50 );
 
@@ -794,19 +794,24 @@ class ParcelLocator {
 	protected static function get_setting( $key, $check_method = true ) {
 		$option_key = 'parcel_pickup_' . $key;
 
-		if ( $check_method && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
-			if ( 'parcel_pickup_packstation_enable' === $option_key ) {
-				return wc_bool_to_string( $method->is_packstation_enabled() );
-			} elseif ( 'parcel_pickup_parcelshop_enable' === $option_key ) {
-				return wc_bool_to_string( $method->is_parcelshop_enabled() );
-			} elseif ( 'parcel_pickup_postoffice_enable' === $option_key ) {
-				return wc_bool_to_string( $method->is_postoffice_enabled() );
-			} elseif ( ! self::disable_method_setting() ) {
-				/**
-				 * Explicitly call available pickup getters instead of generic get_option method
-				 * to support DP adjustments (packstation).
-				 */
-				return $method->get_option( $option_key );
+		/**
+		 * Exclude non-overridable options to make sure they might be used for DP too (e.g. packstation maps)
+		 */
+		if ( ! in_array( $option_key, array( 'parcel_pickup_map_enable', 'parcel_pickup_map_api_password', 'parcel_pickup_map_max_results' ) ) ) {
+			if ( $check_method && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
+				if ( 'parcel_pickup_packstation_enable' === $option_key ) {
+					return wc_bool_to_string( $method->is_packstation_enabled() );
+				} elseif ( 'parcel_pickup_parcelshop_enable' === $option_key ) {
+					return wc_bool_to_string( $method->is_parcelshop_enabled() );
+				} elseif ( 'parcel_pickup_postoffice_enable' === $option_key ) {
+					return wc_bool_to_string( $method->is_postoffice_enabled() );
+				} elseif ( ! self::disable_method_setting() ) {
+					/**
+					 * Explicitly call available pickup getters instead of generic get_option method
+					 * to support DP adjustments (packstation).
+					 */
+					return $method->get_option( $option_key );
+				}
 			}
 		}
 
@@ -835,10 +840,10 @@ class ParcelLocator {
 		return 'yes' === self::get_setting( 'parcelshop_enable', $check_shipping_method );
 	}
 
-	public static function has_map() {
-		$api_key = self::get_setting( 'map_api_password' );
+	public static function has_map( $check_shipping_method = true ) {
+		$api_key = self::get_setting( 'map_api_password', false );
 
-		return ( 'yes' === self::get_setting( 'map_enable' ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
+		return ( 'yes' === self::get_setting( 'map_enable', $check_shipping_method ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
 	}
 
 	public static function get_max_results() {

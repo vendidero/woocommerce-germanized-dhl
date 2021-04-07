@@ -109,23 +109,11 @@ class Package {
 		return false;
     }
 
-    public static function get_date_de_timezone( $format = 'Y-m-d', $reset_timezone = true ) {
+    public static function get_date_de_timezone( $format = 'Y-m-d' ) {
     	try {
-		    // Get existing timezone to reset afterwards
-		    $current_timzone = date_default_timezone_get();
-
-		    // Always set and get DE timezone and check against it.
-		    date_default_timezone_set( 'Europe/Berlin' );
-
-		    $tz_obj       = new DateTimeZone(  'Europe/Berlin' );
-		    $current_date = new DateTime( "now", $tz_obj );
-
+		    $tz_obj         = new DateTimeZone(  'Europe/Berlin' );
+		    $current_date   = new DateTime( "now", $tz_obj );
 		    $date_formatted = $current_date->format( $format );
-
-		    if ( $reset_timezone ) {
-			    // Reset timezone to not affect any other plugins
-			    date_default_timezone_set( $current_timzone );
-		    }
 
 		    return $date_formatted;
 	    } catch( Exception $e ) {
