@@ -56,7 +56,7 @@ class ImProductList {
 	protected function load_available_products() {
 		global $wpdb;
 
-		$available_products = Package::get_setting( 'im_available_products' );
+		$available_products = Package::get_setting( 'deutsche_post_available_products' );
 
 		if ( empty( $available_products ) ) {
 			$available_products = $this->get_default_available_products();

@@ -3,8 +3,8 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Exception;
+use Vendidero\Germanized\DHL\Label\ReturnLabel;
 use Vendidero\Germanized\DHL\Package;
-use Vendidero\Germanized\DHL\ReturnLabel;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -13,7 +13,7 @@ class ReturnRest extends Rest {
 	public function __construct() {}
 
 	/**
-	 * @param Label $label
+	 * @param \Vendidero\Germanized\DHL\Label\ReturnLabel $label
 	 *
 	 * @return mixed
 	 * @throws Exception
@@ -23,7 +23,7 @@ class ReturnRest extends Rest {
 	}
 
 	/**
-	 * @param ReturnLabel $label
+	 * @param \Vendidero\Germanized\DHL\Label\ReturnLabel $label
 	 */
 	protected function get_request_args( $label ) {
 		$shipment     = $label->get_shipment();
@@ -53,8 +53,8 @@ class ReturnRest extends Rest {
 				 * By default the name3 parameter is used to transmit the additional
 				 * address field to the DHL API. You may adjust the field value by using this filter.
 				 *
-				 * @param string      $value The field value.
-				 * @param ReturnLabel $label The label instance.
+				 * @param string                                      $value The field value.
+				 * @param \Vendidero\Germanized\DHL\Label\ReturnLabel $label The label instance.
 				 *
 				 * @since 3.0.3
 				 * @package Vendidero/Germanized/DHL
@@ -70,46 +70,44 @@ class ReturnRest extends Rest {
 					'state'          => $label->get_sender_state(),
 				),
 			),
-			'email'              => Package::get_setting( 'return_address_email' ),
-			'telephoneNumber'    => Package::get_setting( 'return_address_phone' ),
+			'email'              => Package::get_setting( 'return_email' ),
+			'telephoneNumber'    => Package::get_setting( 'return_phone' ),
 			"weightInGrams"      => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
 			'value'              => $shipment->get_total(),
 			'returnDocumentType' => 'SHIPMENT_LABEL'
 		);
 
 		if ( Package::is_crossborder_shipment( $label->get_sender_country() ) ) {
-			$items = array();
+			$items          = array();
+			$customs_data   = wc_gzd_dhl_get_shipment_customs_data( $label );
+			$shipment_items = $shipment->get_items();
 
-			foreach( $shipment->get_items() as $item ) {
-				$dhl_product = false;
-
-				if ( $product = $item->get_product() ) {
-					$dhl_product = wc_gzd_dhl_get_product( $product );
-				}
-
-				$category = $dhl_product ? $dhl_product->get_main_category() : $item->get_name();
-
-				if ( empty( $category ) ) {
-					$category = $item->get_name();
-				}
+			foreach( $customs_data['items'] as $key => $customs_item ) {
+				$shipment_item = $shipment_items[ $key ];
 
 				$items[] = array(
-					'positionDescription' => substr( $item->get_name(), 0, 50 ),
-					'count'               => $item->get_quantity(),
-					'weightInGrams'       => intval( wc_get_weight( $item->get_weight(), 'g', $shipment->get_weight_unit() ) ),
-					'values'              => wc_format_decimal( floatval( $item->get_total() ), 2 ),
-					'originCountry'       => $dhl_product ? Package::get_country_iso_alpha3( $dhl_product->get_manufacture_country() ) : '',
-					'articleReference'    => substr( $category, 0, 40 ),
-					'tarifNumber'         => $dhl_product ? $dhl_product->get_hs_code() : '',
+					'positionDescription' => $customs_item['description'],
+					'count'               => $customs_item['quantity'],
+					/**
+					 * Total weight per row
+					 */
+					'weightInGrams'       => intval( wc_get_weight( $customs_item['weight_in_kg'], 'g', 'kg' ) ),
+					/**
+					 * Total value per row
+					 */
+					'values'              => $customs_item['value'],
+					'originCountry'       => $customs_item['origin_code'],
+					'articleReference'    => apply_filters( 'woocommerce_gzd_dhl_retoure_customs_article_reference', $customs_item['category'], $shipment_item, $label ),
+					'tarifNumber'         => $customs_item['tariff_number'],
 				);
 			}
 
-			$request_args['customsDocument'] = array(
+			$request_args['customsDocument'] = apply_filters( 'woocommerce_gzd_dhl_retoure_customs_data', array(
 				'currency'               => $order ? $order->get_currency() : 'EUR',
 				'originalShipmentNumber' => $shipment->get_order_number(),
 				'originalOperator'       => $shipment->get_shipping_provider(),
 				'positions'              => $items,
-			);
+			), $label );
 		}
 
 		return $request_args;
@@ -129,10 +127,15 @@ class ReturnRest extends Rest {
 		return $this->update_return_label( $label, $result );
 	}
 
+	/**
+	 * @param ReturnLabel $label
+	 * @param $response_body
+	 *
+	 * @return mixed
+	 * @throws Exception
+	 */
 	protected function update_return_label( $label, $response_body ) {
-
 		try {
-
 			if ( isset( $response_body->shipmentNumber ) ) {
 				$label->set_number( $response_body->shipmentNumber );
 			}
@@ -140,15 +143,11 @@ class ReturnRest extends Rest {
 			$default_file = base64_decode( $response_body->labelData );
 
 			// Store the downloaded label as default file
-			if ( ! $filename_label = $label->get_default_filename() ) {
-				$filename_label = wc_gzd_dhl_generate_label_filename( $label, 'label-default' );
-			}
+			$path = $label->upload_label_file( $default_file );
 
-			if ( $path = wc_gzd_dhl_upload_data( $filename_label, $default_file ) ) {
-				$label->set_default_path( $path );
-				$label->set_path( $path );
+			if ( ! $path ) {
+				throw new Exception( 'Error while uploading the return label' );
 			}
-
 		} catch( Exception $e ) {
 			// Delete the label dues to errors.
 			$label->delete();

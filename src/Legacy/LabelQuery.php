@@ -1,6 +1,8 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\Legacy;
+
+use Vendidero\Germanized\DHL\Label\Label;
 use WC_Object_Query;
 use WC_Data_Store;
 use WP_Date_Query;
@@ -48,7 +50,7 @@ class LabelQuery extends WC_Object_Query {
             'limit'          => 10,
             'shipment_id'    => '',
             'parent_id'      => '',
-            'type'           => wc_gzd_dhl_get_label_types(),
+            'type'           => wc_gzd_legacy_dhl_get_label_types(),
             'number'         => '',
             'order'          => 'DESC',
             'orderby'        => 'date_created',
@@ -66,7 +68,7 @@ class LabelQuery extends WC_Object_Query {
      *
      * @return Label[] objects
      *
-     * @throws Exception When WC_Data_Store validation fails.
+     * @throws \Exception When WC_Data_Store validation fails.
      */
     public function get_labels() {
 	    /**
@@ -78,7 +80,7 @@ class LabelQuery extends WC_Object_Query {
 	     * @package Vendidero/Germanized/DHL
 	     */
         $args    = apply_filters( 'woocommerce_gzd_dhl_label_query_args', $this->get_query_vars() );
-        $args    = WC_Data_Store::load( 'dhl-label' )->get_query_args( $args );
+        $args    = WC_Data_Store::load( 'dhl-legacy-label' )->get_query_args( $args );
 
         $this->query( $args );
 
@@ -278,11 +280,11 @@ class LabelQuery extends WC_Object_Query {
              * The default columns depend on the search term, and include 'label_id',
              * 'label_shipment_id', 'label_path' and 'label_number'.
              *
-             * @since 3.0.0
-             *
              * @param string[]   $search_columns Array of column names to be searched.
              * @param string     $search         Text being searched.
-             * @param LabelQuery $this  The current LabelQuery instance.
+             * @param LegacyLabelQuery $this  The current LabelQuery instance.
+             *
+             * @since 3.0.0
              *
              * @package Vendidero/Germanized/DHL
              */

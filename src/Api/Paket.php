@@ -189,18 +189,12 @@ class Paket {
 	    	return array();
 	    }
 
-	    $preparation_days      = ParcelServices::get_preferred_day_preparation_days();
-	    $cutoff_time           = empty( $cutoff_time ) ? ParcelServices::get_preferred_day_cutoff_time() : $cutoff_time;
-	    $account_num           = Package::get_setting( 'account_number' );
+	    $preparation_days = ParcelServices::get_preferred_day_preparation_days();
+	    $cutoff_time      = empty( $cutoff_time ) ? ParcelServices::get_preferred_day_cutoff_time() : $cutoff_time;
+	    $account_num      = Package::get_setting( 'account_number' );
 
-	    // Get existing timezone to reset afterwards
-	    $current_timzone = date_default_timezone_get();
-
-	    // Always set and get DE timezone and check against it.
-	    date_default_timezone_set( 'Europe/Berlin' );
-
-	    $tz_obj             = new DateTimeZone(  'Europe/Berlin' );
-	    $starting_date      = new DateTime( "now", $tz_obj );
+	    $tz_obj           = new DateTimeZone(  'Europe/Berlin' );
+	    $starting_date    = new DateTime( "now", $tz_obj );
 
 	    // Add preparation days
 	    if ( ! empty( $preparation_days ) ) {
@@ -243,14 +237,8 @@ class Paket {
 		    $preferred_services = $this->get_parcel_api()->get_services( $args );
 		    $preferred_days     = $this->get_preferred_days( $preferred_services );
 	    } catch( Exception $e ) {
-		    // Reset timezone to not affect any other plugins
-		    date_default_timezone_set( $current_timzone );
-
 		    throw $e;
 	    }
-
-	    // Reset timezone to not affect any other plugins
-	    date_default_timezone_set( $current_timzone );
 
 	    return $preferred_days;
     }
@@ -269,12 +257,15 @@ class Paket {
 
         $preferred_days = array();
 
+	    $tz_obj = new DateTimeZone(  'Europe/Berlin' );
+
         if ( isset( $preferred_services->preferredDay->available ) && $preferred_services->preferredDay->available && isset( $preferred_services->preferredDay->validDays ) ) {
 
         	foreach ( $preferred_services->preferredDay->validDays as $days_key => $days_value ) {
-                $temp_day_time = strtotime( $days_value->start );
-                $day_of_week   = date('N', $temp_day_time );
-                $week_date     = date('Y-m-d', $temp_day_time );
+
+		        $starting_date = new DateTime( $days_value->start, $tz_obj );
+		        $day_of_week   = $starting_date->format( 'N' );
+		        $week_date     = $starting_date->format( 'Y-m-d' );
 
                 $preferred_days[ $week_date ] = $day_of_week_arr[ $day_of_week ];
             }

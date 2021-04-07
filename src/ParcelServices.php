@@ -85,11 +85,6 @@ class ParcelServices {
 					$dhl_order->set_preferred_day( $data['preferred_day'] );
 				}
 
-				if ( ! empty( $data['preferred_time'] ) ) {
-					$dhl_order->set_preferred_time_start( $data['preferred_time_start'] );
-					$dhl_order->set_preferred_time_end( $data['preferred_time_end'] );
-				}
-
 				if ( 'place' === $data['preferred_location_type'] && ! empty( $data['preferred_location'] ) ) {
 					$dhl_order->set_preferred_location( $data['preferred_location'] );
 				} elseif ( 'neighbor' === $data['preferred_location_type'] && ! empty( $data['preferred_location_neighbor_name'] ) && ! empty( $data['preferred_location_neighbor_address'] ) ) {
@@ -335,7 +330,6 @@ class ParcelServices {
 				if ( ! empty( $shipping_postcode ) ) {
 					WC()->session->set( 'dhl_preferred_day_options', Package::get_api()->get_preferred_available_days( $shipping_postcode ) );
 				}
-
 			} catch( Exception $e ) {}
 		}
 	}
@@ -364,19 +358,19 @@ class ParcelServices {
 	}
 
 	public static function is_preferred_day_enabled() {
-		return 'yes' === self::get_setting( 'PreferredDay_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredDay_enable' ) );
 	}
 
 	public static function is_preferred_time_enabled() {
-		return 'yes' === self::get_setting( 'PreferredTime_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredTime_enable' ) );
 	}
 
 	public static function is_preferred_location_enabled() {
-		return 'yes' === self::get_setting( 'PreferredLocation_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredLocation_enable' ) );
 	}
 
 	public static function is_preferred_neighbor_enabled() {
-		return 'yes' === self::get_setting( 'PreferredNeighbour_enable' );
+		return wc_string_to_bool( self::get_setting( 'PreferredNeighbour_enable' ) );
 	}
 
 	protected static function get_setting( $key ) {
@@ -388,6 +382,8 @@ class ParcelServices {
 		if ( $method = wc_gzd_dhl_get_current_shipping_method() ) {
 			if ( $method->has_option( $key ) ) {
 				return $method->get_option( $key );
+			} elseif( strpos( $key, '_enable' ) !== false ) {
+				return false;
 			}
 		}
 

@@ -2,6 +2,9 @@
 
 namespace Vendidero\Germanized\DHL;
 
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
+use Vendidero\Germanized\Shipments\ShippingProvider\Simple;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -10,8 +13,156 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
     public static function install() {
-    	self::create_upload_dir();
+	    $current_version       = get_option( 'woocommerce_gzd_dhl_version', null );
+	    $needs_settings_update = false;
+
+	    self::create_upload_dir();
 		self::create_db();
+
+	    /**
+	     * Older versions did not support custom versioning
+	     */
+	    if ( is_null( $current_version ) ) {
+		    add_option( 'woocommerce_gzd_dhl_version', Package::get_version() );
+		    // Legacy settings -> indicate update necessary
+		    $needs_settings_update = ( get_option( 'woocommerce_gzd_dhl_enable' ) || get_option( 'woocommerce_gzd_deutsche_post_enable' ) ) && ! get_option( 'woocommerce_gzd_migrated_settings' );
+	    } else {
+		    update_option( 'woocommerce_gzd_dhl_version', Package::get_version() );
+	    }
+
+	    if ( $needs_settings_update ) {
+	    	self::migrate_settings();
+	    }
+    }
+
+    private static function migrate_settings() {
+	    global $wpdb;
+
+	    /**
+	     * Make sure to reload shipping providers to make sure our classes were registered accordingly as the
+	     * install script may be called later than on plugins loaded.
+	     */
+	    Helper::instance()->load_shipping_providers();
+
+	    $plugin_options   = $wpdb->get_results( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE 'woocommerce_gzd_dhl_%' OR option_name LIKE 'woocommerce_gzd_deutsche_post_%'" );
+		$dhl              = wc_gzd_get_shipping_provider( 'dhl' );
+	    $deutsche_post    = wc_gzd_get_shipping_provider( 'deutsche_post' );
+	    $excluded_options = array(
+	    	'woocommerce_gzd_dhl_upload_dir_suffix',
+		    'woocommerce_gzd_dhl_enable',
+		    'woocommerce_gzd_dhl_enable_internetmarke',
+		    'woocommerce_gzd_dhl_internetmarke_enable',
+		    'woocommerce_gzd_dhl_version'
+	    );
+
+	    /**
+	     * Error while retrieving shipping provider instance
+	     */
+	    if ( ! is_a( $dhl, '\Vendidero\Germanized\DHL\ShippingProvider\DHL' ) || ! is_a( $deutsche_post, '\Vendidero\Germanized\DHL\ShippingProvider\DeutschePost' ) ) {
+	    	return false;
+	    }
+
+	    foreach( $plugin_options as $option ) {
+	    	$option_name  = $option->option_name;
+
+	    	if ( in_array( $option_name, $excluded_options ) ) {
+	    		continue;
+		    }
+
+			$option_value = get_option( $option->option_name, '' );
+			$is_dp        = strpos( $option_name, '_im_' ) !== false || strpos( $option_name, '_internetmarke_' ) !== false || strpos( $option_name, '_deutsche_post_' ) !== false;
+
+			if ( ! $is_dp ) {
+				$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name );
+
+				if ( strstr( $option_name_clean, 'shipper_' ) || strstr( $option_name_clean, 'return_address_' ) ) {
+					continue;
+				} elseif( 'parcel_pickup_map_api_key' === $option_name_clean ) {
+					self::update_provider_setting( $dhl, 'parcel_pickup_map_api_password', $option_value );
+				} else {
+					self::update_provider_setting( $dhl, $option_name_clean, $option_value );
+				}
+			} else {
+				$option_name_clean = str_replace( 'woocommerce_gzd_deutsche_post_', '', $option_name );
+				$option_name_clean = str_replace( 'woocommerce_gzd_dhl_', '', $option_name_clean );
+				$option_name_clean = str_replace( 'deutsche_post_', '', $option_name_clean );
+				$option_name_clean = str_replace( 'im_', '', $option_name_clean );
+
+				self::update_provider_setting( $deutsche_post, $option_name_clean, $option_value );
+			}
+	    }
+
+	    $deutsche_post->set_label_default_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_default_shipment_weight' ) );
+	    $deutsche_post->set_label_minimum_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_minimum_shipment_weight' ) );
+
+	    $dhl->save();
+	    $deutsche_post->save();
+
+	    $shipper_name = self::get_address_name_parts( 'shipper' );
+
+	    // Update address data
+	    $shipper_address = array(
+		    'first_name'    => $shipper_name['first_name'],
+		    'last_name'     => $shipper_name['last_name'],
+		    'company'       => get_option( 'woocommerce_gzd_dhl_shipper_company' ),
+		    'address_1'     => get_option( 'woocommerce_gzd_dhl_shipper_street' ) . ' ' . get_option( 'woocommerce_gzd_dhl_shipper_street_no' ),
+		    'postcode'      => get_option( 'woocommerce_gzd_dhl_shipper_postcode' ),
+		    'country'       => get_option( 'woocommerce_gzd_dhl_shipper_country' ),
+		    'city'          => get_option( 'woocommerce_gzd_dhl_shipper_city' ),
+		    'phone'         => get_option( 'woocommerce_gzd_dhl_shipper_phone' ),
+		    'email'         => get_option( 'woocommerce_gzd_dhl_shipper_email' ),
+	    );
+
+	    $shipper_address = array_filter( $shipper_address );
+
+	    foreach( $shipper_address as $key => $value ) {
+	    	update_option( 'woocommerce_gzd_shipments_shipper_address_' . $key, $value );
+	    }
+
+	    $return_name = self::get_address_name_parts( 'return_address' );
+
+	    $return_address = array(
+		    'first_name'    => $return_name['first_name'],
+		    'last_name'     => $return_name['last_name'],
+		    'company'       => get_option( 'woocommerce_gzd_dhl_return_address_company' ),
+		    'address_1'     => get_option( 'woocommerce_gzd_dhl_return_address_street' ) . ' ' . get_option( 'woocommerce_gzd_dhl_return_address_street_no' ),
+		    'postcode'      => get_option( 'woocommerce_gzd_dhl_return_address_postcode' ),
+		    'country'       => get_option( 'woocommerce_gzd_dhl_return_address_country' ),
+		    'city'          => get_option( 'woocommerce_gzd_dhl_return_address_city' ),
+		    'phone'         => get_option( 'woocommerce_gzd_dhl_return_address_phone' ),
+		    'email'         => get_option( 'woocommerce_gzd_dhl_return_address_email' ),
+	    );
+
+	    $return_address = array_filter( $return_address );
+
+	    foreach( $return_address as $key => $value ) {
+		    update_option( 'woocommerce_gzd_shipments_return_address_' . $key, $value );
+	    }
+
+	    update_option( 'woocommerce_gzd_migrated_settings', 'yes' );
+
+	    return true;
+    }
+
+    protected static function get_address_name_parts( $address_type = 'shipper' ) {
+	    $sender_name       = explode( " ", get_option( "woocommerce_gzd_dhl_{$address_type}_name" ) );
+	    $sender_name_first = $sender_name;
+	    $sender_first_name = implode( ' ', array_splice( $sender_name_first, 0, ( sizeof( $sender_name ) - 1 ) ) );
+	    $sender_last_name  = $sender_name[ sizeof( $sender_name ) - 1 ];
+
+	    return array(
+	    	'first_name' => $sender_first_name,
+		    'last_name'  => $sender_last_name
+	    );
+    }
+
+	/**
+	 * @param Simple $provider
+	 * @param $key
+	 * @param $value
+	 */
+    protected static function update_provider_setting( $provider, $key, $value ) {
+    	$provider->update_setting( $key, $value );
     }
 
     private static function create_db() {
@@ -49,22 +200,6 @@ class Install {
         }
 
         $tables = "
-CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labels (
-  label_id BIGINT UNSIGNED NOT NULL auto_increment,
-  label_date_created datetime NOT NULL default '0000-00-00 00:00:00',
-  label_date_created_gmt datetime NOT NULL default '0000-00-00 00:00:00',
-  label_shipment_id BIGINT UNSIGNED NOT NULL,
-  label_parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
-  label_number varchar(200) NOT NULL DEFAULT '',
-  label_dhl_product varchar(200) NOT NULL DEFAULT '',
-  label_path varchar(200) NOT NULL DEFAULT '',
-  label_default_path varchar(200) NOT NULL DEFAULT '',
-  label_export_path varchar(200) NOT NULL DEFAULT '',
-  label_type varchar(200) NOT NULL DEFAULT '',
-  PRIMARY KEY  (label_id),
-  KEY label_shipment_id (label_shipment_id),
-  KEY label_parent_id (label_parent_id)
-) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_im_products (
   product_id BIGINT UNSIGNED NOT NULL auto_increment,
   product_im_id BIGINT UNSIGNED NOT NULL,
@@ -105,15 +240,6 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_im_product_services (
   PRIMARY KEY  (product_service_id),
   KEY product_service_product_id (product_service_product_id),
   KEY product_service_product_parent_id (product_service_product_parent_id)
-) $collate;
-CREATE TABLE {$wpdb->prefix}woocommerce_gzd_dhl_labelmeta (
-  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
-  gzd_dhl_label_id BIGINT UNSIGNED NOT NULL,
-  meta_key varchar(255) default NULL,
-  meta_value longtext NULL,
-  PRIMARY KEY  (meta_id),
-  KEY gzd_dhl_label_id (gzd_dhl_label_id),
-  KEY meta_key (meta_key(32))
 ) $collate;";
 
         return $tables;

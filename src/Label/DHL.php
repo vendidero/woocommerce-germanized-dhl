@@ -1,19 +1,14 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
-use DateTimeZone;
-use Vendidero\Germanized\Shipments\Shipment;
-use WC_Data;
-use WC_Data_Store;
-use Exception;
-use WC_DateTime;
+namespace Vendidero\Germanized\DHL\Label;
+use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * DHL ReturnLabel class.
  */
-class SimpleLabel extends Label {
+class DHL extends Label {
 
 	/**
 	 * Stores product data.
@@ -21,9 +16,9 @@ class SimpleLabel extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
+		'default_path'                  => '',
+		'export_path'                   => '',
 		'preferred_day'                 => '',
-		'preferred_time_start'          => '',
-		'preferred_time_end'            => '',
 		'preferred_location'            => '',
 		'preferred_neighbor'            => '',
 		'ident_date_of_birth'           => '',
@@ -40,6 +35,10 @@ class SimpleLabel extends Label {
 
 	public function get_type() {
 		return 'simple';
+	}
+
+	public function get_shipping_provider( $context = 'view' ) {
+		return 'dhl';
 	}
 
 	public function get_return_address( $context = 'view' ) {
@@ -130,36 +129,6 @@ class SimpleLabel extends Label {
 		return $this->get_prop( 'preferred_day', $context );
 	}
 
-	public function get_preferred_time() {
-		$start = $this->get_preferred_time_start();
-		$end   = $this->get_preferred_time_end();
-
-		if ( $start && $end ) {
-			return $start->date( 'H:i' ) . '-' . $end->date( 'H:i' );
-		}
-
-		return null;
-	}
-
-	public function get_preferred_time_start( $context = 'view' ) {
-		return $this->get_prop( 'preferred_time_start', $context );
-	}
-
-	public function get_preferred_time_end( $context = 'view' ) {
-		return $this->get_prop( 'preferred_time_end', $context );
-	}
-
-	public function get_preferred_formatted_time() {
-		$start = $this->get_preferred_time_start();
-		$end   = $this->get_preferred_time_end();
-
-		if ( $start && $end ) {
-			return sprintf( _x( '%s-%s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
-		}
-
-		return null;
-	}
-
 	public function get_preferred_location( $context = 'view' ) {
 		return $this->get_prop( 'preferred_location', $context );
 	}
@@ -195,16 +164,22 @@ class SimpleLabel extends Label {
 	public function has_inlay_return() {
 		$products = wc_gzd_dhl_get_inlay_return_products();
 
-		return ( true === $this->get_has_inlay_return() && in_array( $this->get_dhl_product(), $products ) );
+		return ( true === $this->get_has_inlay_return() && in_array( $this->get_product_id(), $products ) );
 	}
 
 	/**
 	 * Returns a directly linked return label.
 	 *
-	 * @return bool|ReturnLabel
+	 * @return bool|DHLInlayReturn
 	 */
 	public function get_inlay_return_label() {
-		return wc_gzd_dhl_get_return_label_by_parent( $this->get_id() );
+		$children = $this->get_children();
+
+		if ( ! empty( $children ) && is_a( $children[0], '\Vendidero\Germanized\DHL\Label\DHLInlayReturn' ) ) {
+			return $children[0];
+		}
+
+		return false;
 	}
 
 	/**
@@ -248,20 +223,8 @@ class SimpleLabel extends Label {
 		$this->set_prop( 'duties', $duties );
 	}
 
-	public function set_dhl_product( $product ) {
-		$this->set_prop( 'dhl_product', $product );
-	}
-
 	public function set_preferred_day( $day ) {
 		$this->set_date_prop( 'preferred_day', $day );
-	}
-
-	public function set_preferred_time_start( $time ) {
-		$this->set_time_prop( 'preferred_time_start', $time );
-	}
-
-	public function set_preferred_time_end( $time ) {
-		$this->set_time_prop( 'preferred_time_end', $time );
 	}
 
 	public function set_preferred_location( $location ) {
@@ -294,5 +257,133 @@ class SimpleLabel extends Label {
 
 	public function set_visual_min_age( $age ) {
 		$this->set_prop( 'visual_min_age', $age );
+	}
+
+	/**
+	 * @return \WP_Error|true
+	 */
+	public function fetch() {
+		$result = new \WP_Error();
+
+		try {
+			Package::get_api()->get_label( $this );
+		} catch( \Exception $e ) {
+			$errors = explode(PHP_EOL, $e->getMessage() );
+
+			foreach( $errors as $error ) {
+				$result->add( 'dhl-api-error', $error );
+			}
+		}
+
+		if ( wc_gzd_dhl_wp_error_has_errors( $result ) ) {
+			return $result;
+		} else {
+			return true;
+		}
+	}
+
+	public function delete( $force_delete = false ) {
+		if ( $api = Package::get_api() ) {
+			try {
+				$api->get_label_api()->delete_label( $this );
+			} catch( \Exception $e ) {}
+		}
+
+		return parent::delete( $force_delete );
+	}
+
+	public function get_additional_file_types() {
+		return array(
+			'default',
+			'export'
+		);
+	}
+
+	public function get_filename( $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			return $this->get_default_filename();
+		} elseif( 'export' === $file_type ) {
+			return $this->get_export_filename();
+		} else {
+			return parent::get_filename( $file_type );
+		}
+	}
+
+	public function get_file( $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			return $this->get_default_file();
+		} elseif( 'export' === $file_type ) {
+			return $this->get_export_file();
+		} else {
+			return parent::get_file( $file_type );
+		}
+	}
+
+	public function get_path( $context = 'view', $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			return $this->get_default_path( $context );
+		} elseif( 'export' === $file_type ) {
+			return $this->get_export_path( $context );
+		} else {
+			return parent::get_path( $context, $file_type );
+		}
+	}
+
+	public function set_path( $path, $file_type = '' ) {
+		if ( 'default' === $file_type ) {
+			$this->set_default_path( $path );
+		} elseif( 'export' === $file_type ) {
+			$this->set_export_path( $path );
+		} else {
+			parent::set_path( $path, $file_type );
+		}
+	}
+
+	public function get_default_file() {
+		if ( ! $path = $this->get_default_path() ) {
+			return false;
+		}
+
+		return $this->get_file_by_path( $path );
+	}
+
+	public function get_default_filename() {
+		if ( ! $path = $this->get_default_path() ) {
+			return $this->get_new_filename( 'default' );
+		}
+
+		return basename( $path );
+	}
+
+	public function get_export_file() {
+		if ( ! $path = $this->get_export_path() ) {
+			return false;
+		}
+
+		return $this->get_file_by_path( $path );
+	}
+
+	public function get_export_filename() {
+		if ( ! $path = $this->get_export_path() ) {
+			return $this->get_new_filename( 'export' );
+		}
+
+		return basename( $path );
+	}
+
+	public function set_default_path( $path ) {
+		$this->set_prop( 'default_path', $path );
+	}
+
+	public function set_export_path( $path ) {
+		$this->set_prop( 'export_path', $path );
+	}
+
+	public function get_default_path( $context = 'view' ) {
+		return $this->get_prop( 'default_path', $context );
+	}
+
+	public function get_export_path( $context = 'view' ) {
+		return $this->get_prop( 'export_path', $context );
 	}
 }

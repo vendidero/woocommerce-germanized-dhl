@@ -245,7 +245,10 @@ class Order {
 
 	public function get_preferred_day() {
 		if ( $timestamp = $this->get_dhl_prop( 'preferred_day' ) ) {
-			$date = new WC_DateTime( "@{$timestamp}" );
+			$date = new \WC_DateTime();
+			$date->setTimestamp( $timestamp );
+			$date->setTimezone( new \DateTimeZone(  'Europe/Berlin' ) );
+
 			return $date;
 		}
 
@@ -258,7 +261,10 @@ class Order {
 
 	public function get_preferred_time_start() {
 		if ( $timestamp = $this->get_dhl_prop( 'preferred_time_start' ) ) {
-			$date = new WC_DateTime( "@{$timestamp}" );
+			$date = new \WC_DateTime();
+			$date->setTimestamp( $timestamp );
+			$date->setTimezone( new \DateTimeZone(  'Europe/Berlin' ) );
+
 			return $date;
 		}
 
@@ -267,7 +273,10 @@ class Order {
 
 	public function get_preferred_time_end() {
 		if ( $timestamp = $this->get_dhl_prop( 'preferred_time_end' ) ) {
-			$date = new WC_DateTime( "@{$timestamp}" );
+			$date = new \WC_DateTime();
+			$date->setTimestamp( $timestamp );
+			$date->setTimezone( new \DateTimeZone(  'Europe/Berlin' ) );
+
 			return $date;
 		}
 

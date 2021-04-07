@@ -5,6 +5,8 @@ namespace Vendidero\Germanized\DHL\Api;
 use Exception;
 use Vendidero\Germanized\DHL\DeutschePostLabel;
 use Vendidero\Germanized\DHL\DeutschePostReturnLabel;
+use Vendidero\Germanized\DHL\Label\DeutschePost;
+use Vendidero\Germanized\DHL\Label\Label;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -28,7 +30,7 @@ class ImWarenpostIntRest extends Rest {
 	/**
 	 * Updates the label
 	 *
-	 * @param DeutschePostLabel|DeutschePostReturnLabel $label
+	 * @param DeutschePost $label
 	 * @param \stdClass $result
 	 *
 	 * @throws Exception
@@ -43,10 +45,7 @@ class ImWarenpostIntRest extends Rest {
 			throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$filename = wc_gzd_dhl_generate_label_filename( $label, 'dp-wp-int-label' );
-
-		if ( $path = wc_gzd_dhl_upload_data( $filename, $pdf ) ) {
-			$label->set_default_path( $path );
+		if ( $path = $label->upload_label_file( $pdf ) ) {
 			$label->set_path( $path );
 		} else {
 			throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
@@ -67,7 +66,7 @@ class ImWarenpostIntRest extends Rest {
 	 *
 	 * @see https://api-qa.deutschepost.com/dpi-apidoc/index_prod_v1.html#/reference/orders/create-order/create-order
 	 *
-	 * @param DeutschePostLabel|DeutschePostReturnLabel $label
+	 * @param DeutschePost $label
 	 *
 	 * @throws Exception
 	 */
@@ -77,35 +76,33 @@ class ImWarenpostIntRest extends Rest {
 			throw new Exception( _x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$customs_data     = wc_gzd_dhl_get_shipment_customs_data( $label );
+		$customs_data     = wc_gzd_dhl_get_shipment_customs_data( $label, 33 );
 		$positions        = array();
 		$position_index   = 0;
 		$total_value      = 0;
 		$total_net_weight = 0;
 
-		foreach( $customs_data['ExportDocPosition'] as $position ) {
+		foreach( $customs_data['items'] as $position ) {
 			/**
 			 * The Warenpost API expects value and weight to be a per row value, e.g.
 			 * if 2x Product A is included the total weight/value is expected. In contrarian to the DHL customs API.
 			 */
-			$pos_value      = wc_format_decimal( ( $position['customsValue'] * $position['amount'] ), 2 );
-			$pos_net_weight = absint( $position['amount'] * wc_get_weight( $position['netWeightInKG'], 'g', 'kg' ) );
-
-			$total_value += $pos_value;
+			$pos_net_weight   = intval( wc_get_weight( $position['weight_in_kg'], 'g', 'kg' ) );
+			$total_value      += $position['value'];
 			$total_net_weight += $pos_net_weight;
 
 			array_push($positions, array(
 				'contentPieceIndexNumber' => $position_index++,
-				'contentPieceHsCode'      => $position['customsTariffNumber'],
-				'contentPieceDescription' => wc_clean( substr( $position['description'], 0, 33 ) ),
-				'contentPieceValue'       => $pos_value,
+				'contentPieceHsCode'      => $position['tariff_number'],
+				'contentPieceDescription' => $position['description'],
+				'contentPieceValue'       => $position['value'],
 				'contentPieceNetweight'   => $pos_net_weight,
-				'contentPieceOrigin'      => $position['countryCodeOrigin'],
-				'contentPieceAmount'      => $position['amount']
+				'contentPieceOrigin'      => $position['origin_code'],
+				'contentPieceAmount'      => $position['quantity']
 			) );
 		}
 
-		$is_return = is_a( $shipment, 'Vendidero\Germanized\Shipments\ReturnShipment' );
+		$is_return = 'return' === $label->get_type();
 
 		if ( $is_return ) {
 			$sender_name = ( $shipment->get_sender_company() ? $shipment->get_sender_company() . ' ' : '' ) . $shipment->get_formatted_sender_full_name();
@@ -113,15 +110,17 @@ class ImWarenpostIntRest extends Rest {
 			$sender_name = ( Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) . ' ' : '' ) . Package::get_setting( 'shipper_name' );
 		}
 
+		$recipient = $shipment->get_company() ? $shipment->get_company() . ', ' : '' . $shipment->get_formatted_full_name();
+
 		$request_data = array(
 			'customerEkp' => $this->get_ekp(),
 			'orderId'     => null,
 			'items'       => array(
 				array(
 					'id'                  => 0,
-					'product'             => $label->get_dhl_product(),
+					'product'             => $label->get_product_id(),
 					'serviceLevel'        => apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_service_level', 'STANDARD', $label ),
-					'recipient'           => $shipment->get_formatted_full_name(),
+					'recipient'           => $recipient,
 					'recipientPhone'      => $shipment->get_phone(),
 					'recipientEmail'      => $shipment->get_email(),
 					'addressLine1'        => $shipment->get_address_1(),
@@ -134,7 +133,7 @@ class ImWarenpostIntRest extends Rest {
 					'shipmentCurrency'    => get_woocommerce_currency(),
 					'shipmentGrossWeight' => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
 					'senderName'          => $sender_name,
-					'senderAddressLine1'  => $is_return ? $shipment->get_sender_address_1() : Package::get_setting( 'shipper_street' ) . ' ' . Package::get_setting( 'shipper_street_no' ),
+					'senderAddressLine1'  => $is_return ? $shipment->get_sender_address_1() : Package::get_setting( 'shipper_address' ),
 					'senderAddressLine2'  => $is_return ? $shipment->get_sender_address_2() : '',
 					'senderCountry'       => $is_return ? $shipment->get_sender_country() : Package::get_setting( 'shipper_country' ),
 					'senderCity'          => $is_return ? $shipment->get_sender_city() : Package::get_setting( 'shipper_city' ),
@@ -142,7 +141,7 @@ class ImWarenpostIntRest extends Rest {
 					'senderPhone'         => $is_return ? $shipment->get_sender_phone() : Package::get_setting( 'shipper_phone' ),
 					'senderEmail'         => $is_return ? $shipment->get_sender_email() : Package::get_setting( 'shipper_email' ),
 					'returnItemWanted'    => false,
-					'shipmentNaturetype'  => strtoupper( apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_nature_type', ( is_a( $label, 'Vendidero\Germanized\DHL\DeutschePostReturnLabel' ) ? 'RETURN_GOODS' : 'SALE_GOODS' ), $label ) ),
+					'shipmentNaturetype'  => strtoupper( apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_nature_type', ( $is_return ? 'RETURN_GOODS' : 'SALE_GOODS' ), $label ) ),
 					'contents'            => array()
 				)
 			),
@@ -176,9 +175,13 @@ class ImWarenpostIntRest extends Rest {
 			}
 		}
 
-		$transmit_data = 'yes' === Package::get_setting( 'label_force_email_transfer' );
+		$transmit_data = wc_string_to_bool( Package::get_setting( 'label_force_email_transfer' ) );
 
-		if ( ! apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_transmit_communication_data', $transmit_data ) ) {
+		if ( $dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() ) ) {
+			$transmit_data = $dhl_order->supports_email_notification();
+		}
+
+		if ( ! apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_transmit_communication_data', $transmit_data, $label ) ) {
 			if ( $is_return ) {
 				$request_data['senderPhone'] = '';
 				$request_data['senderEmail'] = '';
@@ -262,7 +265,7 @@ class ImWarenpostIntRest extends Rest {
 			$this->remote_header['Accept'] = $this->get_pdf_accept_header();
 		}
 
-		$date = new \DateTime( null, new \DateTimeZone( 'Europe/Berlin' ) );
+		$date = new \DateTime( "now", new \DateTimeZone( 'Europe/Berlin' ) );
 
 		$this->remote_header = array_merge( $this->remote_header, array(
 			'KEY_PHASE'         => $this->get_key_phase(),
@@ -344,7 +347,7 @@ class ImWarenpostIntRest extends Rest {
 
 	protected function get_signature( $date = null ) {
 		if ( ! $date ) {
-			$date = new \DateTime( null, new \DateTimeZone( 'Europe/Berlin' ) );
+			$date = new \DateTime( "now", new \DateTimeZone( 'Europe/Berlin' ) );
 		}
 
 		return substr(

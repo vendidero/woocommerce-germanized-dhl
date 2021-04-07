@@ -1,13 +1,15 @@
 <?php
 
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\DHL\Label;
+
+use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Deutsche Post Label class.
  */
-class DeutschePostLabel extends Label {
+class DeutschePost extends Label {
 
 	/**
 	 * Stores product data.
@@ -21,12 +23,23 @@ class DeutschePostLabel extends Label {
 		'voucher_id'          => '',
 		'original_url'        => '',
 		'manifest_url'        => '',
-		'additional_services' => array(),
 		'wp_int_awb'          => '',
 		'wp_int_barcode'      => '',
 	);
 
+	public function __construct( $data = 0, $legacy = false ) {
+		if ( $legacy ) {
+			$this->extra_data['additional_services'] = array();
+		}
+
+		parent::__construct( $data, $legacy );
+	}
+
 	public function get_type() {
+		return 'simple';
+	}
+
+	public function get_shipping_provider( $context = 'view' ) {
 		return 'deutsche_post';
 	}
 
@@ -48,12 +61,36 @@ class DeutschePostLabel extends Label {
 		return $this->get_prop( 'wp_int_barcode', $context );
 	}
 
+	public function get_services( $context = 'view' ) {
+		if ( $this->legacy ) {
+			return $this->get_additional_services( $context );
+		}
+
+		return parent::get_services( $context );
+	}
+
+	public function set_services( $services ) {
+		if ( $this->legacy ) {
+			$this->set_additional_services( $services );
+		} else {
+			parent::set_services( $services );
+		}
+	}
+
 	public function get_additional_services( $context = 'view' ) {
-		return $this->get_prop( 'additional_services', $context );
+		if ( $this->legacy ) {
+			return $this->get_prop( 'additional_services', $context );
+		} else {
+			return $this->get_services( $context );
+		}
 	}
 
 	public function set_additional_services( $value ) {
-		$this->set_prop( 'additional_services', (array) $value );
+		if ( $this->legacy ) {
+			$this->set_prop( 'additional_services', (array) $value );
+		} else {
+			$this->set_services( $value );
+		}
 	}
 
 	public function set_page_format( $value ) {
@@ -84,10 +121,6 @@ class DeutschePostLabel extends Label {
 		$this->set_prop( 'shop_order_id', $value );
 	}
 
-	public function set_dhl_product( $product ) {
-		$this->set_prop( 'dhl_product', $product );
-	}
-
 	public function get_voucher_id( $context = 'view' ) {
 		return $this->get_prop( 'voucher_id', $context );
 	}
@@ -116,7 +149,7 @@ class DeutschePostLabel extends Label {
 		if ( ! empty( $this->get_wp_int_awb() ) ) {
 			return true;
 		} elseif ( $api = Package::get_internetmarke_api() ) {
-			return $api->is_warenpost_international( $this->get_dhl_product() );
+			return $api->is_warenpost_international( $this->get_product_id() );
 		}
 
 		return false;
@@ -128,12 +161,41 @@ class DeutschePostLabel extends Label {
 
 		if ( ! empty( $voucher_id ) && $voucher_id !== $this->get_number() ) {
 			$is_trackable = true;
-		} elseif ( in_array( $this->get_dhl_product(), [ 195, 196, 197, 198, 199, 200, 1007, 1017, 1027, 1037, 1047, 1057 ] ) ) {
+		} elseif ( in_array( $this->get_product_id(), [ 195, 196, 197, 198, 199, 200, 1007, 1017, 1027, 1037, 1047, 1057 ] ) ) {
 			$is_trackable = true;
-		} elseif( ! empty( $this->get_wp_int_barcode() ) && in_array( 'TRCK', $this->get_additional_services() ) ) {
+		} elseif( ! empty( $this->get_wp_int_barcode() ) && in_array( 'TRCK', $this->get_services() ) ) {
 			$is_trackable = true;
 		}
 
-		return apply_filters( 'woocommerce_gzd_deutsche_post_label_is_trackable', $is_trackable, $this );
+		return apply_filters( "{$this->get_general_hook_prefix()}is_trackable", $is_trackable, $this );
+	}
+
+	/**
+	 * @return \WP_Error|true
+	 */
+	public function fetch() {
+		$result = new \WP_Error();
+
+		try {
+			Package::get_internetmarke_api()->get_label( $this );
+		} catch( \Exception $e ) {
+			$result->add( 'deutsche-post-api-error', $e->getMessage() );
+		}
+
+		if ( wc_gzd_dhl_wp_error_has_errors( $result ) ) {
+			return $result;
+		} else {
+			return true;
+		}
+	}
+
+	public function delete( $force_delete = false ) {
+		if ( $api = Package::get_internetmarke_api() ) {
+			try {
+				$api->delete_label( $this );
+			} catch( \Exception $e ) {}
+		}
+
+		return parent::delete( $force_delete );
 	}
 }

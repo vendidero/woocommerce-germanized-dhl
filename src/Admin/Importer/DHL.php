@@ -13,7 +13,11 @@ class DHL {
 	public static function is_available() {
 		$options  = get_option( 'woocommerce_pr_dhl_paket_settings' );
 		$imported = get_option( 'woocommerc_gzd_dhl_import_finished' );
-		$user     = get_option( 'woocommerce_gzd_dhl_account_number' );
+		$user     = '';
+
+		if ( $dhl = Package::get_dhl_shipping_provider() ) {
+			$user = $dhl->get_customer_number();
+		}
 
 		return ( ( ! empty( $options ) && empty( $user ) && 'yes' !== $imported && Package::base_country_is_supported() ) ? true : false );
 	}
@@ -24,6 +28,11 @@ class DHL {
 
 	public static function import_settings() {
 		$old_settings = (array) get_option( 'woocommerce_pr_dhl_paket_settings' );
+		$dhl          = Package::get_dhl_shipping_provider();
+
+		if ( ! $dhl ) {
+			return false;
+		}
 
 		$settings_mapping = array(
 			'account_num'             => 'account_number',
@@ -39,22 +48,6 @@ class DHL {
 			'default_product_dom'     => 'label_default_product_dom',
 			'default_product_int'     => 'label_default_product_int',
 			'default_print_codeable'  => 'label_address_codeable_only',
-			'shipper_name'            => 'shipper_name',
-			'shipper_company'         => 'shipper_company',
-			'shipper_address'         => 'shipper_street',
-			'shipper_address_no'      => 'shipper_street_no',
-			'shipper_address_city'    => 'shipper_city',
-			'shipper_address_zip'     => 'shipper_postcode',
-			'shipper_phone'           => 'shipper_phone',
-			'shipper_email'           => 'shipper_email',
-			'return_name'             => 'return_address_name',
-			'return_company'          => 'return_address_company',
-			'return_address'          => 'return_address_street',
-			'return_address_no'       => 'return_address_street_no',
-			'return_address_city'     => 'return_address_city',
-			'return_address_zip'      => 'return_address_postcode',
-			'return_phone'            => 'return_address_phone',
-			'return_email'            => 'return_address_email',
 			'bank_holder'             => 'bank_holder',
 			'bank_name'               => 'bank_name',
 			'bank_iban'               => 'bank_iban',
@@ -77,19 +70,55 @@ class DHL {
 			'display_parcelshop'      => 'parcel_pickup_parcelshop_enable',
 			'display_post_office'     => 'parcel_pickup_postoffice_enable',
 			'parcel_limit'            => 'parcel_pickup_map_max_results',
-			'google_maps_api_key'     => 'parcel_pickup_map_api_key',
+			'google_maps_api_key'     => 'parcel_pickup_map_api_password',
 		);
 
 		// Bulk update settings
 		foreach( $settings_mapping as $setting_old_key => $setting_new_key ) {
 			if ( isset( $old_settings[ 'dhl_' . $setting_old_key ] ) ) {
-				update_option( 'woocommerce_gzd_dhl_' . $setting_new_key, $old_settings[ 'dhl_' . $setting_old_key ] );
+				$dhl->update_setting( $setting_new_key, $old_settings[ 'dhl_' . $setting_old_key ] );
+			}
+		}
+
+		/**
+		 * Default address update
+		 */
+		foreach( array( 'shipper', 'return' ) as $address_type ) {
+			$plain_address = array(
+				'company'      => 'company',
+				'address_city' => 'city',
+				'address_zip'  => 'postcode',
+				'phone'        => 'phone',
+				'email'        => 'email',
+			);
+
+			foreach( $plain_address as $prop => $new_prop ) {
+				$prop_name = $address_type . '_' . $prop;
+
+				if ( ! empty( $old_settings[ 'dhl_' . $prop_name ] ) ) {
+					update_option( "woocommerce_gzd_shipments_{$address_type}_address_{$new_prop}", $old_settings[ 'dhl_' . $prop_name ] );
+				}
+			}
+
+			if ( ! empty( $old_settings["dhl_{$address_type}_address"] ) ) {
+				$address_1 = $old_settings["dhl_{$address_type}_address"] . ' ' . isset( $old_settings["dhl_{$address_type}_address_no"] ) ? $old_settings["dhl_{$address_type}_address_no"] : '';
+				update_option( "woocommerce_gzd_shipments_{$address_type}_address_address_1", $address_1 );
+			}
+
+			if ( ! empty( $old_settings["dhl_{$address_type}_name"] ) ) {
+				$name       = explode( " ", $old_settings["dhl_{$address_type}_name"] );
+				$name_first = $name;
+				$first_name = implode( ' ', array_splice( $name_first, 0, ( sizeof( $name ) - 1 ) ) );
+				$last_name  = $name[ sizeof( $name ) - 1 ];
+
+				update_option( "woocommerce_gzd_shipments_{$address_type}_address_first_name", $first_name );
+				update_option( "woocommerce_gzd_shipments_{$address_type}_address_last_name", $last_name );
 			}
 		}
 
 		// Enable maps if API key exists
 		if ( isset( $settings['dhl_google_maps_api_key'] ) && ! empty( $settings['dhl_google_maps_api_key'] ) ) {
-			update_option( 'woocommerce_gzd_parcel_pickup_map_enable', 'yes' );
+			$dhl->update_setting( 'parcel_pickup_map_enable', 'yes' );
 		}
 
 		// Shipper state to country ISO mapping
@@ -100,15 +129,19 @@ class DHL {
 
 		if ( ! empty( $shipper_country ) && ! empty( $isos ) ) {
 			if ( ( $key = array_search( $shipper_country, $isos ) ) !== false ) {
-				update_option( 'woocommerce_gzd_dhl_shipper_country', $key );
+				update_option( "woocommerce_gzd_shipments_shipper_address_country", $key );
 			}
 		}
 
 		if ( ! empty( $return_country ) && ! empty( $isos ) ) {
 			if ( ( $key = array_search( $return_country, $isos ) ) !== false ) {
-				update_option( 'woocommerce_gzd_dhl_return_address_country', $key );
+				update_option( "woocommerce_gzd_shipments_return_address_country", $key );
 			}
 		}
+
+		$dhl->save();
+
+		return true;
 	}
 
 	public static function import_order_data( $limit = 10, $offset = 0 ) {
