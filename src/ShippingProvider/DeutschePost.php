@@ -347,7 +347,7 @@ class DeutschePost extends Auto {
 		}
 
 		if ( empty( $products ) ) {
-			return new \WP_Error( 'dp-label-missing-products', sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
+			return new \WP_Error( 'dp-label-missing-products', sprintf( _x( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
 		}
 
 		$settings = array_merge( $settings, $this->get_available_additional_services( $default_args['product_id'], $default_args['services'] ) );
@@ -533,7 +533,7 @@ class DeutschePost extends Auto {
 			 * In case no other products are available or this is a manual request - return error
 			 */
 			if ( empty( $available_products ) || ( is_admin() && current_user_can( 'manage_woocommerce' ) ) ) {
-				$error->add( 500, sprintf( __( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
+				$error->add( 500, sprintf( _x( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
 			} else {
 				/**
 				 * In case the chosen product is not available - use the first product available instead

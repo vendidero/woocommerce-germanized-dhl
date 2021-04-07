@@ -75,7 +75,7 @@ class DHL {
 
 		// Bulk update settings
 		foreach( $settings_mapping as $setting_old_key => $setting_new_key ) {
-			if ( isset( $old_settings[ 'dhl_' . $setting_old_key ] ) ) {
+			if ( isset( $old_settings[ 'dhl_' . $setting_old_key ] ) && ! empty( $old_settings[ 'dhl_' . $setting_old_key ] ) ) {
 				$dhl->update_setting( $setting_new_key, $old_settings[ 'dhl_' . $setting_old_key ] );
 			}
 		}
@@ -101,7 +101,8 @@ class DHL {
 			}
 
 			if ( ! empty( $old_settings["dhl_{$address_type}_address"] ) ) {
-				$address_1 = $old_settings["dhl_{$address_type}_address"] . ' ' . isset( $old_settings["dhl_{$address_type}_address_no"] ) ? $old_settings["dhl_{$address_type}_address_no"] : '';
+				$address_1 = $old_settings["dhl_{$address_type}_address"] . ' ' . ( isset( $old_settings["dhl_{$address_type}_address_no"] ) ? $old_settings["dhl_{$address_type}_address_no"] : '' );
+
 				update_option( "woocommerce_gzd_shipments_{$address_type}_address_address_1", $address_1 );
 			}
 
