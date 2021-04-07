@@ -139,7 +139,7 @@ class DeutschePost extends Auto {
 		$api      = Package::get_internetmarke_api();
 		$settings = parent::get_label_settings();
 
-		if ( $api && $api->auth() && $api->is_available() ) {
+		if ( $api && $api->is_configured() && $api->auth() && $api->is_available() ) {
 			$api->reload_products();
 
 			$balance      = $api->get_balance( true );

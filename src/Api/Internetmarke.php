@@ -10,7 +10,6 @@ use baltpeter\Internetmarke\PartnerInformation;
 use baltpeter\Internetmarke\PersonName;
 use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
-use Vendidero\Germanized\DHL\Admin\Settings;
 use Vendidero\Germanized\DHL\Label\DeutschePost;
 use Vendidero\Germanized\DHL\Label\DeutschePostReturn;
 use Vendidero\Germanized\DHL\Package;
@@ -77,8 +76,12 @@ class Internetmarke {
 		}
 	}
 
+	public function is_configured() {
+		return Package::get_internetmarke_username() && Package::get_internetmarke_password();
+	}
+
 	public function auth() {
-		if ( Package::get_internetmarke_username() && Package::get_internetmarke_password() ) {
+		if ( $this->is_configured() ) {
 			try {
 				$this->errors->remove( 'authentication' );
 
@@ -771,7 +774,7 @@ class Internetmarke {
 
 			return $this->update_default_label( $label, $stamp );
 		} catch( \Exception $e ) {
-			throw new \Exception( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), Settings::get_settings_url( 'internetmarke' ) ) );
+			throw new \Exception( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) ) );
 		}
 	}
 
