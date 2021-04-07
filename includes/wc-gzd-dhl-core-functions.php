@@ -155,31 +155,34 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 			$category = $item->get_name();
 		}
 
-		$product_value = $product_total < 0.01 ? wc_format_decimal( apply_filters( "woocommerce_gzd_dhl_customs_item_min_price", 0.01, $item, $label, $shipment ), 2 ) : wc_format_decimal( $product_total, 2 );
-
-		$customs_items[ $key ] = apply_filters( 'woocommerce_gzd_dhl_customs_item', array(
-			'description'          => apply_filters( "woocommerce_gzd_dhl_customs_item_description", wc_clean( substr( $item->get_name(), 0, $max_desc_length ) ), $item, $label, $shipment ),
-			'category'             => apply_filters( "woocommerce_gzd_dhl_customs_item_category", $category, $item, $label, $shipment ),
-			'origin_code'          => ( $dhl_product && $dhl_product->get_manufacture_country() ) ? $dhl_product->get_manufacture_country() : Package::get_base_country(),
-			'tariff_number'        => $dhl_product ? $dhl_product->get_hs_code() : '',
-			'quantity'             => intval( $item->get_quantity() ),
-			'weight_in_kg'         => wc_remove_number_precision( $item_weights[ $key ] ),
-			'single_weight_in_kg'  => wc_gzd_dhl_round_customs_item_weight( wc_remove_number_precision( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
-			'weight_in_kg_raw'     => $item_weights[ $key ],
-			'single_value'         => $product_value,
-			'value'                => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
+		$json_item = apply_filters( 'woocommerce_gzd_dhl_customs_item', array(
+			'description'         => wc_clean( substr( $item->get_name(), 0, 255 ) ),
+			'countryCodeOrigin'   => ( $dhl_product && $dhl_product->get_manufacture_country() ) ? $dhl_product->get_manufacture_country() : Package::get_base_country(),
+			'customsTariffNumber' => $dhl_product ? $dhl_product->get_hs_code() : '',
+			'amount'              => intval( $item->get_quantity() ),
+			/**
+			 * netWeightInKG is defined as the weight per item (e.g. 2 items in case the quantity equals 2).
+			 */
+			'netWeightInKG'       => wc_gzd_dhl_round_customs_item_weight( wc_remove_number_precision( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
+			'customsValue'        => $product_total < 0.01 ? wc_format_decimal( apply_filters( 'woocommerce_gzd_dhl_customs_item_min_price', 0.01, $item, $shipment ), 2 ) : wc_format_decimal( $product_total, 2 )
 		), $item, $shipment, $label );
+
+		array_push($customsDetails, $json_item );
 	}
 
-	$item_description = substr( $item_description, 0, $max_desc_length );
+	$item_description = substr( $item_description, 0, 255 );
 
-	return apply_filters( "woocommerce_gzd_dhl_customs_data", array(
-		'shipment_id'             => $shipment->get_id(),
-		'additional_fee'          => wc_format_decimal( $shipment->get_additional_total(), 2 ),
-		'export_type_description' => $item_description,
-		'place_of_commital'       => $shipment->get_country(),
-		'items'                   => $customs_items
-	), $label, $shipment );
+	return apply_filters( 'woocommerce_gzd_dhl_customs_data', array(
+		'invoiceNumber'         => $shipment->get_id(),
+		'additionalFee'         => wc_format_decimal( $shipment->get_additional_total(), 2 ),
+		'exportTypeDescription' => $item_description,
+		'placeOfCommital'       => $shipment->get_country(),
+		'ExportDocPosition'     => $customsDetails
+	), $shipment, $label );
+}
+
+function wc_gzd_dhl_format_preferred_api_time( $time ) {
+	return str_replace( array( ':', '-' ), '', $time );
 }
 
 /**
