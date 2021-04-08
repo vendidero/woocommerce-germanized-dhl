@@ -567,7 +567,6 @@ class ParcelLocator {
 	}
 
 	public static function validate_checkout() {
-
 		if ( ! self::is_available() ) {
 			return;
 		}
@@ -582,6 +581,10 @@ class ParcelLocator {
 
 		$shipping_country      = isset( $data['shipping_country'] ) ? $data['shipping_country'] : '';
 		$shipping_address_type = isset( $data['shipping_address_type'] ) ? wc_clean( $data['shipping_address_type'] ) : 'regular';
+
+		if ( empty( $shipping_address_type ) ) {
+			$shipping_address_type = 'regular';
+		}
 
 		// Not a supported country
 		if ( ! in_array( $shipping_country, self::get_supported_countries() ) ) {
