@@ -81,7 +81,7 @@ class Internetmarke {
 	}
 
 	public function auth() {
-		if ( $this->is_configured() ) {
+		if ( $this->is_configured() && ! $this->has_startup_error() ) {
 			try {
 				$this->errors->remove( 'authentication' );
 
@@ -131,7 +131,7 @@ class Internetmarke {
 	}
 
 	public function is_available() {
-		return ! $this->has_authentication_error() && ! $this->has_startup_error();
+		return ! $this->has_authentication_error() && ! $this->has_startup_error() && is_a( $this->api, '\baltpeter\Internetmarke\Service' );
 	}
 
 	public function get_user() {

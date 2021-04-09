@@ -49,6 +49,13 @@ class Ajax {
 			wp_die( -1 );
 		}
 
+		if ( ! Package::get_internetmarke_api()->is_available() ) {
+			wp_send_json( array(
+				'success'  => false,
+				'messages' => Package::get_internetmarke_api()->get_errors()->get_error_messages(),
+			) );
+		}
+
 		$selected_services   = isset( $_POST['selected_services'] ) ? wc_clean( $_POST['selected_services'] ) : array();
 		$im_product_id       = absint( $_POST['product_id'] );
 		$shipment_id         = absint( $_POST['shipment_id'] );

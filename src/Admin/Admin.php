@@ -57,7 +57,7 @@ class Admin {
 	    if ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-product-refresh' === $_GET['action'] ) {
 	        if ( wp_verify_nonce( $_GET['_wpnonce'], 'wc-gzd-dhl-refresh-im-products' ) ) {
 	            $result       = Package::get_internetmarke_api()->update_products();
-	            $settings_url = add_query_arg( array( 'im-refresh-type' => 'products' ), Settings::get_settings_url( 'internetmarke' ) );
+	            $settings_url = add_query_arg( array( 'im-refresh-type' => 'products' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) );
 
 	            if ( is_wp_error( $result ) ) {
                     $settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
@@ -71,7 +71,7 @@ class Admin {
         } elseif ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-page-formats-refresh' === $_GET['action'] ) {
 			if ( wp_verify_nonce( $_GET['_wpnonce'], 'wc-gzd-dhl-refresh-im-page-formats' ) ) {
 				$result       = Package::get_internetmarke_api()->get_page_formats( true );
-				$settings_url = add_query_arg( array( 'im-refresh-type' => 'formats' ), Settings::get_settings_url( 'internetmarke' ) );
+				$settings_url = add_query_arg( array( 'im-refresh-type' => 'formats' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) );
 
 				if ( is_wp_error( $result ) ) {
 					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );

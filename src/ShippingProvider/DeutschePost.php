@@ -271,6 +271,17 @@ class DeutschePost extends Auto {
 		return $options;
 	}
 
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_label_fields( $shipment ) {
+		if ( ! Package::get_internetmarke_api()->is_available() ) {
+			return Package::get_internetmarke_api()->get_errors();
+		}
+
+		return parent::get_label_fields( $shipment );
+	}
+
 	protected function get_portokasse_charge_button() {
 		if ( ! Package::get_internetmarke_api()->get_user() ) {
 			return '';
