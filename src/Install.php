@@ -16,7 +16,6 @@ class Install {
 	    $current_version       = get_option( 'woocommerce_gzd_dhl_version', null );
 	    $needs_settings_update = false;
 
-	    self::create_upload_dir();
 		self::create_db();
 
 	    /**
@@ -170,24 +169,6 @@ class Install {
 	    $wpdb->hide_errors();
 	    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	    dbDelta( self::get_schema() );
-    }
-
-    private static function create_upload_dir() {
-    	Package::maybe_set_upload_dir();
-
-	    $dir = Package::get_upload_dir();
-
-	    if ( ! @is_dir( $dir['basedir'] ) ) {
-	    	@mkdir( $dir['basedir'] );
-	    }
-
-	    if ( ! file_exists( trailingslashit( $dir['basedir'] ) . '.htaccess' ) ) {
-		    @file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' );
-	    }
-
-	    if ( ! file_exists( trailingslashit( $dir['basedir'] ) . 'index.php' ) ) {
-		    @touch( trailingslashit( $dir['basedir'] ) . 'index.php' );
-	    }
     }
 
     private static function get_schema() {

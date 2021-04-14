@@ -774,7 +774,7 @@ class Package {
 		    $file_path       = get_transient( $inner_transient );
 
 		    if ( $file_path ) {
-			    $file_path = self::get_file_by_path( $file_path );
+			    $file_path = \Vendidero\Germanized\Shipments\Package::get_file_by_path( $file_path );
 		    }
 
 		    if ( ! $file_path || ! file_exists( $file_path ) ) {
@@ -798,7 +798,7 @@ class Package {
 	    $alternate_file = apply_filters( 'woocommerce_gzd_dhl_alternate_wsdl_file', false, $wsdl_link );
 
 	    if ( ( $files_exist && $file_path ) || $alternate_file ) {
-		    $wsdl_link = $alternate_file ? $alternate_file : self::get_file_by_path( $file_path );
+		    $wsdl_link = $alternate_file ? $alternate_file : \Vendidero\Germanized\Shipments\Package::get_file_by_path( $file_path );
 	    } else {
 
 	    	if ( ! function_exists( 'download_url' ) ) {
@@ -822,7 +822,7 @@ class Package {
 
 			    if ( ! is_wp_error( $tmp_file ) ) {
 
-				    $uploads    = Package::get_upload_dir();
+				    $uploads    = \Vendidero\Germanized\Shipments\Package::get_upload_dir();
 				    $new_file   = $uploads['path'] . "/$new_file_name";
 				    $has_copied = @copy( $tmp_file, $new_file );
 
@@ -846,7 +846,7 @@ class Package {
 								    $file_path = $uploads['path'] . "/$file";
 
 								    if ( file_exists( $file_path ) ) {
-									    set_transient( $transient, self::get_relative_upload_dir( $file_path ), $transient_valid );
+									    set_transient( $transient, \Vendidero\Germanized\Shipments\Package::get_relative_upload_dir( $file_path ), $transient_valid );
 
 									    if ( $file === $main_file ) {
 										    $new_wsdl_link = $file_path;
@@ -867,7 +867,7 @@ class Package {
 						    $file_path = $uploads['path'] . "/$main_file";
 
 						    if ( file_exists( $file_path ) ) {
-							    set_transient( $transient, self::get_relative_upload_dir( $file_path ), $transient_valid );
+							    set_transient( $transient, \Vendidero\Germanized\Shipments\Package::get_relative_upload_dir( $file_path ), $transient_valid );
 							    $wsdl_link = $file_path;
 						    }
 					    }
