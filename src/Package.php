@@ -24,7 +24,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.5.0';
+    const VERSION = '1.5.1';
 
     public static $upload_dir_suffix = '';
 
@@ -54,13 +54,18 @@ class Package {
     }
 
     public static function on_shipments_init() {
-	    // Add shipping provider
-	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
 
 	    if ( ! self::has_dependencies() ) {
 		    return;
 	    }
 
+	    // Add shipping provider
+	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
+
+	    // Legacy data store
+	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
+
+	    self::includes();
 	    self::define_tables();
 	    self::maybe_set_upload_dir();
 
@@ -71,8 +76,6 @@ class Package {
 			    add_action( 'admin_notices', array( __CLASS__, 'load_dependencies_notice' ) );
 		    }
 	    }
-
-	    self::includes();
     }
 
     public static function load_dependencies_notice() {
@@ -227,9 +230,6 @@ class Package {
     }
 
     public static function init_hooks() {
-        // Legacy data store
-	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
-
 	    // Filter templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 

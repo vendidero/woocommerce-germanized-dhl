@@ -254,14 +254,14 @@ class DeutschePost extends Auto {
 
 				array( 'type' => 'sectionend', 'id' => 'deutsche_post_print_options' )
 			) );
-		} elseif ( $api->has_errors() ) {
+		} elseif ( $api && $api->has_errors() ) {
 			$settings = array_merge( $settings, array(
 				array( 'title' => _x( 'API Error', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'deutsche_post_api_error', 'desc' => '<div class="notice inline notice-error"><p>' . implode( ", ", $api->get_errors()->get_error_messages() ) . '</p></div>' ),
 				array( 'type' => 'sectionend', 'id' => 'deutsche_post_api_error' )
 			) );
 		}
 
-		return $settings;
+		return $settings;   
 	}
 
 	protected function get_product_select_options() {
