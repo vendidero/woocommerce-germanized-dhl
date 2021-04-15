@@ -261,7 +261,7 @@ class DeutschePost extends Auto {
 			) );
 		}
 
-		return $settings;   
+		return $settings;
 	}
 
 	protected function get_product_select_options() {
@@ -452,6 +452,19 @@ class DeutschePost extends Auto {
 		} else {
 			return $this->get_shipment_setting( $shipment, 'label_default_product_int' );
 		}
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_available_label_services( $shipment ) {
+		$services = array();
+
+		if ( $api = Package::get_internetmarke_api()->get_product_list() ) {
+			$services = array_keys( $api->get_additional_services() );
+		}
+
+		return $services;
 	}
 
 	protected function get_default_label_props( $shipment ) {
