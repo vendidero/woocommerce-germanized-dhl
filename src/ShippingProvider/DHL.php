@@ -1011,6 +1011,7 @@ class DHL extends Auto {
 			'title'             => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ),
 			'type'              => 'text',
 			'default'           => '',
+			'id'                => 'participation_return',
 			'value'             => $this->get_setting( 'participation_return', '' ),
 			'custom_attributes'	=> array( 'maxlength' => '2' ),
 		);
@@ -1098,6 +1099,17 @@ class DHL extends Auto {
 		);
 
 		return $settings;
+	}
+
+	protected function get_shipping_method_setting_sections() {
+		/**
+		 * Exclude preferred section from method settings.
+		 * Calling  WC()->payment_gateways()->payment_gateways() could potentially lead to problems
+		 * in case the shipping methods are being loaded from within a gateway constructor (e.g. WC Cash on Pickup)
+		 */
+		$sections = array_diff( parent::get_shipping_method_setting_sections(), array( 'preferred' ) );
+
+		return $sections;
 	}
 
 	protected function get_preferred_settings() {
