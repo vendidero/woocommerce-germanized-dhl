@@ -98,7 +98,7 @@ class DeutschePost extends Auto {
 		return Package::get_available_countries();
 	}
 
-	protected function get_general_settings() {
+	protected function get_general_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'deutsche_post_general_options' ),
 
@@ -130,14 +130,14 @@ class DeutschePost extends Auto {
 			array( 'title' => _x( 'Tracking', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'tracking_options' ),
 		) );
 
-		$general_settings = parent::get_general_settings();
+		$general_settings = parent::get_general_settings( $for_shipping_method );
 
 		return array_merge( $settings, $general_settings );
 	}
 
-	protected function get_label_settings() {
+	protected function get_label_settings( $for_shipping_method = false ) {
 		$api      = Package::get_internetmarke_api();
-		$settings = parent::get_label_settings();
+		$settings = parent::get_label_settings( $for_shipping_method );
 
 		if ( $api && $api->is_configured() && $api->auth() && $api->is_available() ) {
 			$api->reload_products();

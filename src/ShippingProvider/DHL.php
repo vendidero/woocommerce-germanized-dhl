@@ -926,7 +926,7 @@ class DHL extends Auto {
 		return Package::get_available_countries();
 	}
 
-	protected function get_general_settings() {
+	protected function get_general_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_general_options' ),
 
@@ -1023,12 +1023,12 @@ class DHL extends Auto {
 			array( 'title' => _x( 'Tracking', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'tracking_options' ),
 		) );
 
-		$general_settings = parent::get_general_settings();
+		$general_settings = parent::get_general_settings( $for_shipping_method );
 
 		return array_merge( $settings, $general_settings );
 	}
 
-	protected function get_pickup_settings() {
+	protected function get_pickup_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_pickup_options', 'allow_override' => true ),
 
@@ -1101,21 +1101,14 @@ class DHL extends Auto {
 		return $settings;
 	}
 
-	protected function get_shipping_method_setting_sections() {
+	protected function get_preferred_settings( $for_shipping_method = false ) {
+		$wc_gateway_titles = array();
+
 		/**
-		 * Exclude preferred section from method settings.
 		 * Calling  WC()->payment_gateways()->payment_gateways() could potentially lead to problems
 		 * in case the shipping methods are being loaded from within a gateway constructor (e.g. WC Cash on Pickup)
 		 */
-		$sections = array_diff( parent::get_shipping_method_setting_sections(), array( 'preferred' ) );
-
-		return $sections;
-	}
-
-	protected function get_preferred_settings() {
-		$wc_gateway_titles = array();
-
-		if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
+		if ( ! $for_shipping_method && function_exists( 'WC' ) && WC()->payment_gateways() ) {
 			$wc_payment_gateways = WC()->payment_gateways()->payment_gateways();
 			$wc_gateway_titles   = wp_list_pluck( $wc_payment_gateways, 'method_title', 'id' );
 		}
@@ -1272,7 +1265,7 @@ class DHL extends Auto {
 		return $settings;
 	}
 
-	protected function get_label_settings() {
+	protected function get_label_settings( $for_shipping_method = false ) {
 		$select_dhl_product_dom = wc_gzd_dhl_get_products_domestic();
 		$select_dhl_product_int = wc_gzd_dhl_get_products_international();
 		$duties                 = wc_gzd_dhl_get_duties();
@@ -1348,7 +1341,7 @@ class DHL extends Auto {
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_dhl_label_options' ),
 		);
 
-		$settings = array_merge( $settings, parent::get_label_settings() );
+		$settings = array_merge( $settings, parent::get_label_settings( $for_shipping_method ) );
 
 		$settings = array_merge( $settings, array(
 			array( 'title' => _x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_retoure_options', 'desc' => sprintf( _x( 'Adjust handling of return shipments through the DHL Retoure API. Make sure that your %s contains DHL Retoure Online.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . Package::get_geschaeftskunden_portal_url() . '">' . _x(  'contract', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) ),
