@@ -1,0 +1,230 @@
+{
+    "packages": [
+        {
+            "name": "automattic/jetpack-autoloader",
+            "version": "v2.7.1",
+            "version_normalized": "2.7.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Automattic/jetpack-autoloader.git",
+                "reference": "5437697a56aefbdf707849b9833e1b36093d7a73"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Automattic/jetpack-autoloader/zipball/5437697a56aefbdf707849b9833e1b36093d7a73",
+                "reference": "5437697a56aefbdf707849b9833e1b36093d7a73",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^1.1 || ^2.0"
+            },
+            "require-dev": {
+                "yoast/phpunit-polyfills": "0.2.0"
+            },
+            "time": "2020-12-18T22:33:59+00:00",
+            "type": "composer-plugin",
+            "extra": {
+                "class": "Automattic\\Jetpack\\Autoloader\\CustomAutoloaderPlugin"
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "classmap": [
+                    "src/AutoloadGenerator.php"
+                ],
+                "psr-4": {
+                    "Automattic\\Jetpack\\Autoloader\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Creates a custom autoloader for a plugin or theme.",
+            "support": {
+                "source": "https://github.com/Automattic/jetpack-autoloader/tree/v2.7.1"
+            },
+            "install-path": "../automattic/jetpack-autoloader"
+        },
+        {
+            "name": "baltpeter/internetmarke-php",
+            "version": "v0.5.0",
+            "version_normalized": "0.5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/baltpeter/internetmarke-php.git",
+                "reference": "7657ee5a55eb80c77a35e35ce71c465364d73ab4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/baltpeter/internetmarke-php/zipball/7657ee5a55eb80c77a35e35ce71c465364d73ab4",
+                "reference": "7657ee5a55eb80c77a35e35ce71c465364d73ab4",
+                "shasum": ""
+            },
+            "require": {
+                "myclabs/deep-copy": "^1.8"
+            },
+            "time": "2019-07-31T10:13:23+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "baltpeter\\Internetmarke\\": "src/baltpeter/Internetmarke"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Benjamin Altpeter",
+                    "email": "hi@bn.al"
+                }
+            ],
+            "description": "A simple PHP wrapper for the Deutsche Post Internetmarke web service",
+            "support": {
+                "issues": "https://github.com/baltpeter/internetmarke-php/issues",
+                "source": "https://github.com/baltpeter/internetmarke-php/tree/master"
+            },
+            "install-path": "../baltpeter/internetmarke-php"
+        },
+        {
+            "name": "myclabs/deep-copy",
+            "version": "1.10.2",
+            "version_normalized": "1.10.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/myclabs/DeepCopy.git",
+                "reference": "776f831124e9c62e1a2c601ecc52e776d8bb7220"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/776f831124e9c62e1a2c601ecc52e776d8bb7220",
+                "reference": "776f831124e9c62e1a2c601ecc52e776d8bb7220",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1 || ^8.0"
+            },
+            "replace": {
+                "myclabs/deep-copy": "self.version"
+            },
+            "require-dev": {
+                "doctrine/collections": "^1.0",
+                "doctrine/common": "^2.6",
+                "phpunit/phpunit": "^7.1"
+            },
+            "time": "2020-11-13T09:40:50+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "DeepCopy\\": "src/DeepCopy/"
+                },
+                "files": [
+                    "src/DeepCopy/deep_copy.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Create deep copies (clones) of your objects",
+            "keywords": [
+                "clone",
+                "copy",
+                "duplicate",
+                "object",
+                "object graph"
+            ],
+            "support": {
+                "issues": "https://github.com/myclabs/DeepCopy/issues",
+                "source": "https://github.com/myclabs/DeepCopy/tree/1.10.2"
+            },
+            "funding": [
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/myclabs/deep-copy",
+                    "type": "tidelift"
+                }
+            ],
+            "install-path": "../myclabs/deep-copy"
+        },
+        {
+            "name": "wsdltophp/wssecurity",
+            "version": "1.2.2",
+            "version_normalized": "1.2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/WsdlToPhp/WsSecurity.git",
+                "reference": "6a450af3cd462cbf73fdb3a09e80322da893af4f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/WsdlToPhp/WsSecurity/zipball/6a450af3cd462cbf73fdb3a09e80322da893af4f",
+                "reference": "6a450af3cd462cbf73fdb3a09e80322da893af4f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-soap": "*",
+                "php": ">=5.4"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.0",
+                "phpunit/phpunit": "^4.8 || ^6.0"
+            },
+            "time": "2019-04-09T08:40:37+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "WsdlToPhp\\WsSecurity\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mikaël DELSOL",
+                    "email": "contact@wsdltophp.com",
+                    "homepage": "https://www.wsdltophp.com",
+                    "role": "Owner"
+                },
+                {
+                    "name": "Alexey Anisimov",
+                    "email": "mne@lexa.in",
+                    "role": "Contributor"
+                },
+                {
+                    "name": "Tom Vaughan",
+                    "email": "tom.vaughan@farpoint.com",
+                    "role": "Contributor"
+                },
+                {
+                    "name": "NtlBldrv",
+                    "role": "Contributor"
+                },
+                {
+                    "name": "baijunyao",
+                    "email": "baijunyao@baijunyao.com",
+                    "role": "Contributor"
+                }
+            ],
+            "description": "Allows to easily add Ws Security header to a SOAP Request",
+            "keywords": [
+                "php",
+                "soap",
+                "wsse"
+            ],
+            "support": {
+                "email": "contact@wsdltophp.com",
+                "issues": "https://github.com/WsdlToPhp/WsSecurity/issues",
+                "source": "https://github.com/WsdlToPhp/WsSecurity/tree/master"
+            },
+            "install-path": "../wsdltophp/wssecurity"
+        }
+    ],
+    "dev": false,
+    "dev-package-names": []
+}
