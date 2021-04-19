@@ -6,7 +6,6 @@ use baltpeter\Internetmarke\Address;
 use baltpeter\Internetmarke\CompanyName;
 use baltpeter\Internetmarke\Name;
 use baltpeter\Internetmarke\PageFormat;
-use baltpeter\Internetmarke\PartnerInformation;
 use baltpeter\Internetmarke\PersonName;
 use baltpeter\Internetmarke\Service;
 use baltpeter\Internetmarke\User;
@@ -21,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 class Internetmarke {
 
 	/**
-	 * @var PartnerInformation|null
+	 * @var ImPartnerInformation|null
 	 */
 	protected $partner = null;
 
@@ -58,7 +57,7 @@ class Internetmarke {
 	protected $page_formats = null;
 
 	public function __construct() {
-		$this->partner = new PartnerInformation( Package::get_internetmarke_partner_id(), Package::get_internetmarke_key_phase(), Package::get_internetmarke_token() );
+		$this->partner = new ImPartnerInformation( Package::get_internetmarke_partner_id(), Package::get_internetmarke_key_phase(), Package::get_internetmarke_token() );
 		$this->errors  = new \WP_Error();
 
 		try {
