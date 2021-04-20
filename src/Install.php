@@ -91,8 +91,8 @@ class Install {
 			}
 	    }
 
-	    $deutsche_post->set_label_default_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_default_shipment_weight' ) );
-	    $deutsche_post->set_label_minimum_shipment_weight( get_option( 'woocommerce_gzd_dhl_label_minimum_shipment_weight' ) );
+	    $deutsche_post->set_label_default_shipment_weight( get_option( 'woocommerce_gzd_deutsche_post_label_default_shipment_weight' ) );
+	    $deutsche_post->set_label_minimum_shipment_weight( get_option( 'woocommerce_gzd_deutsche_post_label_minimum_shipment_weight' ) );
 
 	    $dhl->save();
 	    $deutsche_post->save();
