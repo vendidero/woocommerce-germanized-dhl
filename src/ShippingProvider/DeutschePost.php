@@ -14,6 +14,10 @@ defined( 'ABSPATH' ) || exit;
 
 class DeutschePost extends Auto {
 
+	protected function get_default_label_minimum_shipment_weight() {
+		return 0.01;
+	}
+
 	public function supports_customer_return_requests() {
 		return true;
 	}

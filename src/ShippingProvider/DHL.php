@@ -15,6 +15,10 @@ defined( 'ABSPATH' ) || exit;
 
 class DHL extends Auto {
 
+	protected function get_default_label_default_shipment_weight() {
+		return 2;
+	}
+
 	public function get_title( $context = 'view' ) {
 		return _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' );
 	}
