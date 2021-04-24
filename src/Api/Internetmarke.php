@@ -412,7 +412,7 @@ class Internetmarke {
 		$options = array();
 
 		foreach( $formats as $format ) {
-			if ( ! $format->isIsAddressPossible() ) {
+			if ( apply_filters( 'woocommerce_gzd_deutsche_post_exclude_page_format', ! $format->isIsAddressPossible(), $format ) ) {
 				continue;
 			}
 
