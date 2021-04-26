@@ -23,7 +23,7 @@ class DeutschePost extends Auto {
 	}
 
 	public function get_help_link() {
-		return 'https://vendidero.de/dokumentation/woocommerce-germanized/post-dhl';
+		return 'https://vendidero.de/dokumentation/woocommerce-germanized/versanddienstleister';
 	}
 
 	public function get_signup_link() {
