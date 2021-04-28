@@ -666,7 +666,7 @@ class Internetmarke {
 		$person_name = new PersonName( '', '', $this->get_shipment_address_prop( $shipment, 'first_name', $address_type ), $this->get_shipment_address_prop( $shipment, 'last_name', $address_type ) );
 
 		if ( $this->get_shipment_address_prop( $shipment, 'company', $address_type ) ) {
-			$name = new Name( null, new CompanyName( $this->get_shipment_address_prop( $shipment, 'company', $address_type ), $receiver_person_name ) );
+			$name = new Name( null, new CompanyName( $this->get_shipment_address_prop( $shipment, 'company', $address_type ), $person_name ) );
 		} else {
 			$name = new Name( $person_name, null );
 		}

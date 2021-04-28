@@ -786,11 +786,12 @@ class DHL extends Auto {
 			$needs_additional_total = true;
 
 			foreach( $shipments as $shipment ) {
-				if ( $existing_label = wc_gzd_dhl_get_shipment_label( $shipment, 'simple' ) ) {
-
-					if ( $existing_label->cod_includes_additional_total() ) {
-						$needs_additional_total = false;
-						break;
+				if ( $existing_label = $shipment->get_label() ) {
+					if ( is_a( $existing_label, '\Vendidero\Germanized\DHL\Label\DHL' ) ) {
+						if ( $existing_label->cod_includes_additional_total() ) {
+							$needs_additional_total = false;
+							break;
+						}
 					}
 				}
 			}

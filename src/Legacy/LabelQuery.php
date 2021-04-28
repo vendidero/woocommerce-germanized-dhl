@@ -71,6 +71,10 @@ class LabelQuery extends WC_Object_Query {
      * @throws \Exception When WC_Data_Store validation fails.
      */
     public function get_labels() {
+    	if ( ! \Vendidero\Germanized\DHL\Package::legacy_label_table_exists() ) {
+    		return array();
+	    }
+
 	    /**
 	     * Filter to adjust query paramaters for a DHL label query.
 	     *

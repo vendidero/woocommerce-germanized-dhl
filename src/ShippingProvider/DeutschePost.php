@@ -18,6 +18,10 @@ class DeutschePost extends Auto {
 		return 0.01;
 	}
 
+	protected function get_default_label_default_shipment_weight() {
+		return 0.5;
+	}
+
 	public function supports_customer_return_requests() {
 		return true;
 	}

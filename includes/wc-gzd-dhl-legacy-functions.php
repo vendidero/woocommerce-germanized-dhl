@@ -51,8 +51,7 @@ function wc_gzd_dhl_get_label( $the_label = false ) {
 function wc_gzd_dhl_get_shipment_label( $the_shipment, $type = '' ) {
 	$shipment_id = \Vendidero\Germanized\Shipments\ShipmentFactory::get_shipment_id( $the_shipment );
 
-	if ( $shipment_id ) {
-
+	if ( $shipment_id && \Vendidero\Germanized\DHL\Package::legacy_label_table_exists() ) {
 		$args = array(
 			'shipment_id' => $shipment_id,
 		);

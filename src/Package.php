@@ -184,6 +184,19 @@ class Package {
         }
     }
 
+    public static function legacy_label_table_exists() {
+	    global $wpdb;
+
+	    $table_name = $wpdb->prefix . 'woocommerce_gzd_dhl_labels';
+	    $query      = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) );
+
+	    if ( ! $wpdb->get_var( $query ) == $table_name ) {
+		    return false;
+	    }
+
+	    return true;
+    }
+
     public static function maybe_set_upload_dir() {
         // Create a dir suffix
         if ( ! get_option( 'woocommerce_gzd_dhl_upload_dir_suffix', false ) ) {
