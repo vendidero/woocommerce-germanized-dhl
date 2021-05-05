@@ -217,8 +217,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
      * Remove a shipment from the database.
      *
      * @since 3.0.0
-     * @param \Vendidero\Germanized\DHL\Legacy\Label $label Label object.
-     * @param bool                $force_delete Unused param.
+     * @param \Vendidero\Germanized\DHL\Label\Label|\Vendidero\Germanized\DHL\Label\ReturnLabel $label Label object.
+     * @param bool $force_delete Unused param.
      */
     public function delete( &$label, $force_delete = false ) {
         global $wpdb;
@@ -228,13 +228,17 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
             wp_delete_file( $file );
         }
 
-	    if ( $file_default = $label->get_default_file() ) {
-		    wp_delete_file( $file_default );
-	    }
-
-        if ( $file_export = $label->get_export_file() ) {
-            wp_delete_file( $file_export );
+        if ( is_callable( array( $label, 'get_default_file' ) ) ) {
+	        if ( $file_default = $label->get_default_file() ) {
+		        wp_delete_file( $file_default );
+	        }
         }
+
+	    if ( is_callable( array( $label, 'get_export_file' ) ) ) {
+		    if ( $file_export = $label->get_export_file() ) {
+			    wp_delete_file( $file_export );
+		    }
+	    }
 
         $wpdb->delete( $wpdb->gzd_dhl_labels, array( 'label_id' => $label->get_id() ), array( '%d' ) );
         $wpdb->delete( $wpdb->gzd_dhl_labelmeta, array( 'gzd_dhl_label_id' => $label->get_id() ), array( '%d' ) );
@@ -242,7 +246,6 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
         $this->clear_caches( $label );
 
 	    if ( 'simple' === $label->get_type() ) {
-
 		    if ( $return = $label->get_inlay_return_label() ) {
 			    $return->delete( $force_delete );
 		    }
