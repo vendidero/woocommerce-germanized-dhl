@@ -317,7 +317,6 @@ class LabelSoap extends Soap {
         $bank_data = array();
 
         foreach( $label->get_services() as $service ) {
-
             $services[ $service ] = array(
                 'active' => 1
             );
@@ -374,6 +373,16 @@ class LabelSoap extends Soap {
 		            }
 		            break;
             }
+        }
+
+	    /**
+	     * Endorsement option (Vorausverfügung)
+	     */
+        if ( 'V53WPAK' === $label->get_product_id() ) {
+        	$services['Endorsement'] = array(
+        		'active' => 1,
+		        'type'   => wc_gzd_dhl_get_label_endorsement_type( $label, $shipment )
+	        );
         }
 
         $dhl_label_body = array(
@@ -616,6 +625,13 @@ class LabelSoap extends Soap {
 		             */
 		            'customsValue'        => $item_data['single_value']
 	            );
+            }
+
+	        /**
+	         * In case the customs item total weight is greater than label weight (e.g. due to rounding issues) replace it
+	         */
+            if ( $customs_label_data['item_total_weight_in_kg'] > $label->get_weight() ) {
+	            $dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['ShipmentItem']['weightInKG'] = wc_format_decimal( $customs_label_data['item_total_weight_in_kg'] ) + $shipment->get_packaging_weight();
             }
 
             $customs_data = array(

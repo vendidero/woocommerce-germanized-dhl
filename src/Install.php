@@ -18,6 +18,10 @@ class Install {
 
 		self::create_db();
 
+		if ( ! is_null( $current_version ) ) {
+			self::update( $current_version );
+		}
+
 	    /**
 	     * Older versions did not support custom versioning
 	     */
@@ -31,6 +35,32 @@ class Install {
 
 	    if ( $needs_settings_update ) {
 	    	self::migrate_settings();
+	    }
+    }
+
+    private static function update( $current_version ) {
+	    if ( version_compare( $current_version, '1.5.6', '<' ) ) {
+		    Helper::instance()->load_shipping_providers();
+
+		    $dhl = wc_gzd_get_shipping_provider( 'dhl' );
+
+		    if ( ! is_a( $dhl, '\Vendidero\Germanized\DHL\ShippingProvider\DHL' ) ) {
+			    return;
+		    }
+
+		    $int_product = $dhl->get_setting( 'label_default_product_int' );
+		    $eu_product  = $dhl->get_setting( 'label_default_product_eu' );
+
+		    if ( empty( $eu_product ) ) {
+			    if ( ! empty( $int_product ) && in_array( $int_product, array_keys( wc_gzd_dhl_get_products_eu() ) ) ) {
+				    $dhl->update_setting( 'label_default_product_eu', $int_product );
+				    $dhl->update_setting( 'label_default_product_int', 'V53WPAK' );
+			    } elseif( ! empty( $int_product ) && in_array( $int_product, array_keys( wc_gzd_dhl_get_products_international() ) ) ) {
+				    $dhl->update_setting( 'label_default_product_eu', 'V55PAK' );
+			    }
+
+			    $dhl->save();
+		    }
 	    }
     }
 

@@ -749,8 +749,22 @@ class DHL extends Auto {
 		if ( 'simple' === $shipment->get_type() ) {
 			if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
 				return $this->get_shipment_setting( $shipment, 'label_default_product_dom' );
+			} elseif ( Package::is_eu_shipment( $shipment->get_country() ) ) {
+				$product = $this->get_shipment_setting( $shipment, 'label_default_product_eu' );
+
+				if ( ! empty( $product ) && ! in_array( $product, array_keys( wc_gzd_dhl_get_products_eu() ) ) ) {
+					$product = 'V55PAK';
+				}
+
+				return $product;
 			} else {
-				return $this->get_shipment_setting( $shipment, 'label_default_product_int' );
+				$product = $this->get_shipment_setting( $shipment, 'label_default_product_int' );
+
+				if ( ! empty( $product ) && ! in_array( $product, array_keys( wc_gzd_dhl_get_products_international() ) ) ) {
+					$product = 'V53WPAK';
+				}
+
+				return $product;
 			}
 		}
 
@@ -1001,7 +1015,7 @@ class DHL extends Auto {
 
 		$dhl_products = array();
 
-		foreach( ( wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_international() ) as $product => $title ) {
+		foreach( ( wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_eu() + wc_gzd_dhl_get_products_international() ) as $product => $title ) {
 			$dhl_products[] = array(
 				'title'             => $title,
 				'type'              => 'text',
@@ -1273,6 +1287,7 @@ class DHL extends Auto {
 	protected function get_label_settings( $for_shipping_method = false ) {
 		$select_dhl_product_dom = wc_gzd_dhl_get_products_domestic();
 		$select_dhl_product_int = wc_gzd_dhl_get_products_international();
+		$select_dhl_product_eu  = wc_gzd_dhl_get_products_eu();
 		$duties                 = wc_gzd_dhl_get_duties();
 		$ref_placeholders       = wc_gzd_dhl_get_label_payment_ref_placeholder();
 		$ref_placeholders_str   = implode( ', ', array_keys( $ref_placeholders ) );
@@ -1292,9 +1307,20 @@ class DHL extends Auto {
 			),
 
 			array(
-				'title'             => _x( 'Int. Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'EU Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'select',
 				'default'           => 'V55PAK',
+				'value'             => $this->get_setting( 'label_default_product_eu', 'V55PAK' ),
+				'id'                => 'label_default_product_eu',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default DHL shipping service for EU shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'options'           => $select_dhl_product_eu,
+				'class'             => 'wc-enhanced-select',
+			),
+
+			array(
+				'title'             => _x( 'Int. Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'select',
+				'default'           => 'V53WPAK',
 				'value'             => $this->get_setting( 'label_default_product_int', 'V55PAK' ),
 				'id'                => 'label_default_product_int',
 				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default DHL shipping service for cross-border shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',

@@ -128,6 +128,8 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 		}
 	}
 
+	$total_weight = 0;
+
 	foreach ( $shipment->get_items() as $key => $item ) {
 		$item_description .= ! empty( $item_description ) ? ', ' : '';
 		$item_description .= $item->get_name();
@@ -169,6 +171,8 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 			'single_value'         => $product_value,
 			'value'                => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
 		), $item, $shipment, $label );
+
+		$total_weight += (float) $customs_items[ $key ]['weight_in_kg'];
 	}
 
 	$item_description = substr( $item_description, 0, $max_desc_length );
@@ -178,7 +182,8 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 		'additional_fee'          => wc_format_decimal( $shipment->get_additional_total(), 2 ),
 		'export_type_description' => $item_description,
 		'place_of_commital'       => $shipment->get_country(),
-		'items'                   => $customs_items
+		'items'                   => $customs_items,
+		'item_total_weight_in_kg' => $total_weight,
 	), $label, $shipment );
 }
 
@@ -292,6 +297,26 @@ function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	$ref = apply_filters( 'woocommerce_gzd_dhl_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
 
 	return sanitize_text_field( substr( $ref, 0, 35 ) );
+}
+
+function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
+	/**
+	 * Filter to adjust the endorsement type for internation shipments.
+	 *
+	 * @param string         $text The endorsement type: IMMEDIATE or AFTER_DEADLINE.
+	 * @param Label\Label    $label The label instance.
+	 * @param SimpleShipment $shipment The shipment instance.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/DHL
+	 */
+	$type = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_endorsement_type', 'IMMEDIATE', $label, $shipment ) );
+
+	if ( ! in_array( $type, array( 'IMMEDIATE', 'AFTER_DEADLINE' ) ) ) {
+		$type = 'IMMEDIATE';
+	}
+
+	return $type;
 }
 
 function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
@@ -609,7 +634,7 @@ function wc_gzd_dhl_product_supports_service( $product, $service ) {
 function wc_gzd_dhl_get_service_product_attributes( $service ) {
 	$products_supported = array();
 
-	foreach( array_keys( array_merge( wc_gzd_dhl_get_products_domestic(), wc_gzd_dhl_get_products_international() ) ) as $product ) {
+	foreach( array_keys( array_merge( wc_gzd_dhl_get_products_domestic(), wc_gzd_dhl_get_products_eu(), wc_gzd_dhl_get_products_international() ) ) as $product ) {
 		if ( wc_gzd_dhl_product_supports_service( $product, $service ) ) {
 			$products_supported[] = $product;
 		}
@@ -824,13 +849,31 @@ function wc_gzd_dhl_get_im_product_title( $product_name ) {
 }
 
 function wc_gzd_dhl_get_products_international() {
+	$country = Package::get_base_country();
 
+	$germany_int = array(
+		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
+	);
+
+	$dhl_prod_int = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_int = $germany_int;
+			break;
+		default:
+			break;
+	}
+
+	return $dhl_prod_int;
+}
+
+function wc_gzd_dhl_get_products_eu() {
 	$country = Package::get_base_country();
 
 	$germany_int =  array(
 		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
-		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
 
 	$dhl_prod_int = array();
@@ -849,6 +892,8 @@ function wc_gzd_dhl_get_products_international() {
 function wc_gzd_dhl_get_products( $shipping_country ) {
 	if ( Package::is_shipping_domestic( $shipping_country ) ) {
 		return wc_gzd_dhl_get_products_domestic();
+	} elseif ( Package::is_eu_shipment( $shipping_country ) ) {
+		return wc_gzd_dhl_get_products_eu();
 	} else {
 		return wc_gzd_dhl_get_products_international();
 	}
@@ -886,6 +931,8 @@ function wc_gzd_dhl_get_default_return_receiver_slug( $country ) {
 function wc_gzd_dhl_get_default_product( $country, $shipment = false ) {
 	if ( Package::is_shipping_domestic( $country ) ) {
 		return Package::get_setting( 'label_default_product_dom', $shipment );
+	} elseif ( Package::is_eu_shipment( $country ) ) {
+		return Package::get_setting( 'label_default_product_eu', $shipment );
 	} else {
 		return Package::get_setting( 'label_default_product_int', $shipment );
 	}
