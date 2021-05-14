@@ -872,6 +872,7 @@ function wc_gzd_dhl_get_products_eu() {
 	$country = Package::get_base_country();
 
 	$germany_int =  array(
+		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
