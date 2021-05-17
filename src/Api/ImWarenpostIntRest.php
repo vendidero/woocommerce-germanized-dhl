@@ -110,8 +110,11 @@ class ImWarenpostIntRest extends Rest {
 			$sender_name = ( Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) . ' ' : '' ) . Package::get_setting( 'shipper_name' );
 		}
 
-		$recipient = $shipment->get_company() ? $shipment->get_company() . ', ' : '' . $shipment->get_formatted_full_name();
+		$recipient = ( $shipment->get_company() ? $shipment->get_company() . ', ' : '' ) . $shipment->get_formatted_full_name();
 
+		/**
+		 * @see https://api-qa.deutschepost.com/dpi-apidoc/#/reference/orders/create-order/create-order
+		 */
 		$request_data = array(
 			'customerEkp' => $this->get_ekp(),
 			'orderId'     => null,
@@ -120,11 +123,11 @@ class ImWarenpostIntRest extends Rest {
 					'id'                  => 0,
 					'product'             => $label->get_product_id(),
 					'serviceLevel'        => apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_service_level', 'STANDARD', $label ),
-					'recipient'           => $recipient,
+					'recipient'           => substr( $recipient, 0, 30 ),
 					'recipientPhone'      => $shipment->get_phone(),
 					'recipientEmail'      => $shipment->get_email(),
-					'addressLine1'        => $shipment->get_address_1(),
-					'addressLine2'        => $shipment->get_address_2(),
+					'addressLine1'        => substr( $shipment->get_address_1(), 0, 30 ),
+					'addressLine2'        => substr( $shipment->get_address_2(), 0, 30 ),
 					'city'                => $shipment->get_city(),
 					'state'               => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() ),
 					'postalCode'          => $shipment->get_postcode(),
@@ -132,9 +135,9 @@ class ImWarenpostIntRest extends Rest {
 					'shipmentAmount'      => wc_format_decimal( $shipment->get_total() + $shipment->get_additional_total(), 2 ),
 					'shipmentCurrency'    => get_woocommerce_currency(),
 					'shipmentGrossWeight' => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
-					'senderName'          => $sender_name,
-					'senderAddressLine1'  => $is_return ? $shipment->get_sender_address_1() : Package::get_setting( 'shipper_address' ),
-					'senderAddressLine2'  => $is_return ? $shipment->get_sender_address_2() : '',
+					'senderName'          => substr( $sender_name, 0, 40 ),
+					'senderAddressLine1'  => substr( ( $is_return ? $shipment->get_sender_address_1() : Package::get_setting( 'shipper_address' ) ), 0, 35 ),
+					'senderAddressLine2'  => substr( ( $is_return ? $shipment->get_sender_address_2() : '' ), 0, 35 ),
 					'senderCountry'       => $is_return ? $shipment->get_sender_country() : Package::get_setting( 'shipper_country' ),
 					'senderCity'          => $is_return ? $shipment->get_sender_city() : Package::get_setting( 'shipper_city' ),
 					'senderPostalCode'    => $is_return ? $shipment->get_sender_postcode() : Package::get_setting( 'shipper_postcode' ),
