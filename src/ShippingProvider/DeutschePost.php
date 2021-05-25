@@ -48,6 +48,10 @@ class DeutschePost extends Auto {
 	 * @return bool
 	 */
 	public function supports_customer_returns( $order = false ) {
+		if ( is_numeric( $order ) ) {
+			$order = wc_get_order( $order );
+		}
+
 		/**
 		 * Return labels are only supported for DE
 		 */
@@ -549,7 +553,7 @@ class DeutschePost extends Auto {
 			}
 		}
 
-		$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment, false );
+		$available_products = wc_gzd_dhl_get_deutsche_post_products( $shipment, true );
 
 		/**
 		 * Force the product to check to parent id because some services might not be explicitly added as
