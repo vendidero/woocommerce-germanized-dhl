@@ -127,7 +127,7 @@ class LabelSoap extends Soap {
 	 * @throws Exception
 	 */
     protected function update_label( &$label, $status, $response_body ) {
-	    if ( 0 !== $status->statusCode ) {
+	    if ( 0 !== $status->statusCode && $status->statusText !== 'ok' ) {
 		    if ( isset( $response_body->LabelData->Status ) && isset( $response_body->LabelData->Status->statusMessage ) ) {
 			    $messages = (array) $response_body->LabelData->Status->statusMessage;
 			    $messages = implode( "\n", array_unique( $messages ) );
