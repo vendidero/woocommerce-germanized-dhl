@@ -175,7 +175,7 @@ class DeutschePost extends Auto {
 
 				array( 'type' => 'sectionend', 'id' => 'deutsche_post_portokasse_options' ),
 
-				array( 'title' => _x( 'Products', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'deutsche_post_product_options' ),
+				array( 'title' => _x( 'Products', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'deutsche_post_product_options', 'allow_override' => true ),
 
 				array(
 					'title'    => _x( 'Available Products', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -186,6 +186,7 @@ class DeutschePost extends Auto {
 					'value'    => $this->get_setting( 'available_products', $default_available_products ),
 					'options'  => $this->get_product_select_options(),
 					'default'  => $default_available_products,
+					'allow_override' => false
 				),
 			) );
 
