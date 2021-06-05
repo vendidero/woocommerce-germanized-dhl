@@ -154,8 +154,8 @@ class DeutschePost extends Auto {
 		if ( $api && $api->is_configured() && $api->auth() && $api->is_available() ) {
 			$api->reload_products();
 
-			$balance      = $api->get_balance( true );
-			$settings_url = $this->get_edit_link( 'label' );
+			$balance                    = $api->get_balance( true );
+			$settings_url               = $this->get_edit_link( 'label' );
 			$default_available_products = $api->get_default_available_products();
 
 			$settings = array_merge( $settings, array(
