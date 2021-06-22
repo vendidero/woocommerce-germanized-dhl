@@ -110,7 +110,12 @@ class ImWarenpostIntRest extends Rest {
 			$sender_name = ( Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) . ' ' : '' ) . Package::get_setting( 'shipper_name' );
 		}
 
-		$recipient = ( $shipment->get_company() ? $shipment->get_company() . ', ' : '' ) . $shipment->get_formatted_full_name();
+		$recipient_name = $shipment->get_formatted_full_name();
+		$recipient      = $recipient_name;
+
+		if ( $shipment->get_company() ) {
+			$recipient = empty( $recipient_name ) ? $shipment->get_company() : $shipment->get_company() . ', ' . $recipient_name;
+		}
 
 		/**
 		 * @see https://api-qa.deutschepost.com/dpi-apidoc/#/reference/orders/create-order/create-order
