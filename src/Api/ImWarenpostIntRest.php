@@ -115,6 +115,13 @@ class ImWarenpostIntRest extends Rest {
 
 		if ( $shipment->get_company() ) {
 			$recipient = empty( $recipient_name ) ? $shipment->get_company() : $shipment->get_company() . ', ' . $recipient_name;
+
+			/**
+			 * In case company + name exceeds length - use company name only
+			 */
+			if ( ! empty( $recipient_name ) && strlen( $recipient ) > 30 ) {
+				$recipient = $shipment->get_company();
+			}
 		}
 
 		/**
