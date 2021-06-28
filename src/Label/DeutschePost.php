@@ -158,10 +158,13 @@ class DeutschePost extends Label {
 	public function is_trackable() {
 		$voucher_id   = $this->get_voucher_id();
 		$is_trackable = false;
+		$services     = $this->get_additional_services();
 
 		if ( ! empty( $voucher_id ) && $voucher_id !== $this->get_number() ) {
 			$is_trackable = true;
 		} elseif ( in_array( $this->get_product_id(), [ 195, 196, 197, 198, 199, 200, 1007, 1017, 1027, 1037, 1047, 1057 ] ) ) {
+			$is_trackable = true;
+		} elseif ( ! empty( $services ) && ! empty( array_intersect( array( 'ESEW', 'ESCH', 'ESEH' ), $services ) ) ) {
 			$is_trackable = true;
 		} elseif( ! empty( $this->get_wp_int_barcode() ) && in_array( 'TRCK', $this->get_services() ) ) {
 			$is_trackable = true;
