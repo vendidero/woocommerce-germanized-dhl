@@ -283,6 +283,12 @@ function wc_gzd_dhl_get_label_reference( $reference_text, $placeholders = array(
 	return str_replace( array_keys( $placeholders ), array_values( $placeholders ), $reference_text );
 }
 
+/**
+ * @param Label\Label $label
+ * @param Shipment $shipment
+ *
+ * @return string
+ */
 function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	/**
 	 * Filter to adjust the customer reference field placed on the DHL label. Maximum characeter length: 35.
@@ -294,7 +300,7 @@ function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/DHL
 	 */
-	$ref = apply_filters( 'woocommerce_gzd_dhl_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
+	$ref = apply_filters( 'woocommerce_gzd_dhl_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ), array( '{shipment_id}' => $shipment->get_shipment_number(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
 
 	return sanitize_text_field( substr( $ref, 0, 35 ) );
 }

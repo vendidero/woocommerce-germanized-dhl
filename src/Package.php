@@ -12,6 +12,7 @@ use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\ShipmentItem;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -44,6 +45,12 @@ class Package {
      * Init the package - load the REST API Server class.
      */
     public static function init() {
+
+	    if ( self::has_dependencies() ) {
+		    // Add shipping provider
+		    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
+	    }
+
 	    /**
 	     * Make sure provider is loaded after main shipments module.
 	     */
@@ -59,9 +66,6 @@ class Package {
 	    if ( ! self::has_dependencies() ) {
 		    return;
 	    }
-
-	    // Add shipping provider
-	    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
 
 	    // Legacy data store
 	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
@@ -212,13 +216,7 @@ class Package {
     }
 
 	public static function is_dhl_enabled() {
-		$is_enabled = false;
-
-		if ( $provider = self::get_dhl_shipping_provider() ) {
-			$is_enabled = $provider->is_activated();
-		}
-
-		return $is_enabled;
+		return Helper::instance()->is_shipping_provider_activated( 'dhl' );
 	}
     
     public static function get_country_iso_alpha3( $country_code ) {
@@ -252,7 +250,7 @@ class Package {
 	         * Additional services are only available for DHL products
 	         */
 	        if ( self::is_dhl_enabled() && ParcelServices::is_enabled() ) {
-	        	ParcelServices::init();
+		        ParcelServices::init();
 	        }
 
 	        Ajax::init();
@@ -498,13 +496,7 @@ class Package {
 	}
 
 	public static function is_deutsche_post_enabled() {
-    	$is_enabled = false;
-
-    	if ( $provider = self::get_deutsche_post_shipping_provider() ) {
-    	    $is_enabled = $provider->is_activated();
-	    }
-
-    	return $is_enabled;
+		return Helper::instance()->is_shipping_provider_activated( 'deutsche_post' );
 	}
 
 	public static function get_internetmarke_username() {
