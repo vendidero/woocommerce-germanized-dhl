@@ -1026,35 +1026,24 @@ class Package {
 	/**
 	 * Function return whether the sender and receiver country is the same territory
 	 */
-	public static function is_shipping_domestic( $country_receiver ) {
-		// If base is US territory
-		if ( in_array( self::get_base_country(), self::get_us_territories() ) ) {
-			// ...and destination is US territory, then it is "domestic"
-			if ( in_array( $country_receiver, self::get_us_territories() ) ) {
-				return true;
-			} else {
-				return false;
-			}
-		} elseif ( $country_receiver == self::get_base_country() ) {
-			return true;
-		} else {
-			return false;
+	public static function is_shipping_domestic( $country_receiver, $postcode = '' ) {
+		$is_domestic = \Vendidero\Germanized\Shipments\Package::is_shipping_domestic( $country_receiver, $postcode );
+
+		/**
+		 * Shipments from DE to Helgoland are not treated as crossborder
+		 */
+		if ( ! $is_domestic && 'DE' === $country_receiver && \Vendidero\Germanized\Shipments\Package::base_country_belongs_to_eu_customs_area() ) {
+		    $is_domestic = true;
 		}
+
+		return $is_domestic;
 	}
 
 	/**
 	 * Check if it is an EU shipment
 	 */
-	public static function is_eu_shipment( $country_receiver ) {
-		if ( self::is_shipping_domestic( $country_receiver ) ) {
-			return false;
-		}
-
-        if ( in_array( $country_receiver, self::get_eu_countries() ) ) {
-            return true;
-        } else {
-            return false;
-        }
+	public static function is_eu_shipment( $country_receiver, $postcode = '' ) {
+        return \Vendidero\Germanized\Shipments\Package::is_shipping_inner_eu_country( $country_receiver, $postcode );
 	}
 
 	protected static function get_eu_countries() {
@@ -1070,21 +1059,16 @@ class Package {
 	/**
 	 * Function return whether the sender and receiver country is "crossborder" i.e. needs CUSTOMS declarations (outside EU)
 	 */
-	public static function is_crossborder_shipment( $country_receiver ) {
-		if ( self::is_shipping_domestic( $country_receiver ) ) {
-			return false;
+	public static function is_crossborder_shipment( $country_receiver, $postcode = '' ) {
+		$is_crossborder = \Vendidero\Germanized\Shipments\Package::is_shipping_international( $country_receiver, $postcode );
+
+		/**
+		 * Shipments from DE to Helgoland are not treated as crossborder
+		 */
+		if ( $is_crossborder && 'DE' === $country_receiver && \Vendidero\Germanized\Shipments\Package::base_country_belongs_to_eu_customs_area() ) {
+		    $is_crossborder = false;
 		}
 
-		// Is sender country in EU...
-		if ( in_array( self::get_base_country(), self::get_eu_countries() ) ) {
-			// ... and receiver country is in EU means NOT crossborder!
-			if ( in_array( $country_receiver, self::get_eu_countries() ) ) {
-				return false;
-			} else {
-				return true;
-			}
-		} else {
-			return true;
-		}
+		return $is_crossborder;
 	}
 }

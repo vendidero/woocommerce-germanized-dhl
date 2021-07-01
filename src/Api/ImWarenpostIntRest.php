@@ -174,7 +174,7 @@ class ImWarenpostIntRest extends Rest {
 		);
 
 		// Do only add customs data in case it is a non-EU shipment
-		if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			$request_data['items'][0]['contents'] = $positions;
 
 			/**

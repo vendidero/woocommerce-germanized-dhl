@@ -452,15 +452,17 @@ class DeutschePost extends Auto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_default_label_product( $shipment ) {
-		$country = $shipment->get_country();
+		$country  = $shipment->get_country();
+		$postcode = $shipment->get_postcode();
 
 		if ( 'return' === $shipment->get_type() ) {
-			$country = $shipment->get_sender_country();
+			$country  = $shipment->get_sender_country();
+			$postcode = $shipment->get_sender_postcode();
 		}
 
-		if ( Package::is_shipping_domestic( $country ) ) {
+		if ( Package::is_shipping_domestic( $country, $postcode ) ) {
 			return $this->get_shipment_setting( $shipment, 'label_default_product_dom' );
-		} elseif( Package::is_eu_shipment( $country ) ) {
+		} elseif( Package::is_eu_shipment( $country, $postcode ) ) {
 			return $this->get_shipment_setting( $shipment, 'label_default_product_eu' );
 		} else {
 			return $this->get_shipment_setting( $shipment, 'label_default_product_int' );

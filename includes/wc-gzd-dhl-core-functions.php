@@ -565,7 +565,7 @@ function wc_gzd_dhl_get_label_shipment_address_addition( $shipment ) {
 function wc_gzd_dhl_get_label_shipment_street_number( $shipment ) {
 	$street_number = $shipment->get_address_street_number();
 
-	if ( ! Package::is_shipping_domestic( $shipment->get_country() ) ) {
+	if ( ! Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 
 		if ( empty( $street_number ) ) {
 			/**
@@ -590,7 +590,7 @@ function wc_gzd_dhl_get_label_shipment_street_number( $shipment ) {
 function wc_gzd_dhl_get_return_label_sender_street_number( $label ) {
 	$street_number = $label->get_sender_street_number();
 
-	if ( ! Package::is_shipping_domestic( $label->get_sender_country() ) ) {
+	if ( ! Package::is_shipping_domestic( $label->get_sender_country(), $label->get_sender_postcode() ) ) {
 		if ( empty( $street_number ) ) {
 			/**
 			 * This filter is documented in includes/wc-gzd-dhl-core-functions.php
@@ -656,15 +656,17 @@ function wc_gzd_dhl_get_service_product_attributes( $service ) {
  * @return array
  */
 function wc_gzd_dhl_get_deutsche_post_products( $shipment, $parent_only = true ) {
-	$country = $shipment->get_country();
+	$country  = $shipment->get_country();
+	$postcode = $shipment->get_postcode();
 
 	if ( 'return' === $shipment->get_type() ) {
-		$country = $shipment->get_sender_country();
+		$country  = $shipment->get_sender_country();
+		$postcode = $shipment->get_sender_postcode();
 	}
 
-	if ( Package::is_shipping_domestic( $country ) ) {
+	if ( Package::is_shipping_domestic( $country, $postcode ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment, $parent_only );
-	} elseif ( Package::is_eu_shipment( $country ) ) {
+	} elseif ( Package::is_eu_shipment( $country, $postcode ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment, $parent_only );
 	} else {
 		return wc_gzd_dhl_get_deutsche_post_products_international( $shipment, $parent_only );
@@ -737,7 +739,7 @@ function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false, $parent_on
  * @return array
  */
 function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false, $parent_only = true ) {
-	if ( $shipment && Package::is_eu_shipment( $shipment->get_country() ) ) {
+	if ( $shipment && Package::is_eu_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment );
 	} else {
 		$international = Package::get_internetmarke_api()->get_available_products( array(
@@ -895,18 +897,18 @@ function wc_gzd_dhl_get_products_eu() {
 	return $dhl_prod_int;
 }
 
-function wc_gzd_dhl_get_products( $shipping_country ) {
-	if ( Package::is_shipping_domestic( $shipping_country ) ) {
+function wc_gzd_dhl_get_products( $shipping_country, $shipping_postcode = '' ) {
+	if ( Package::is_shipping_domestic( $shipping_country, $shipping_postcode ) ) {
 		return wc_gzd_dhl_get_products_domestic();
-	} elseif ( Package::is_eu_shipment( $shipping_country ) ) {
+	} elseif ( Package::is_eu_shipment( $shipping_country, $shipping_postcode ) ) {
 		return wc_gzd_dhl_get_products_eu();
 	} else {
 		return wc_gzd_dhl_get_products_international();
 	}
 }
 
-function wc_gzd_dhl_get_return_products( $shipping_country ) {
-	if ( Package::is_shipping_domestic( $shipping_country ) ) {
+function wc_gzd_dhl_get_return_products( $shipping_country, $shipping_postcode = '' ) {
+	if ( Package::is_shipping_domestic( $shipping_country, $shipping_postcode ) ) {
 		return wc_gzd_dhl_get_return_products_domestic();
 	} else {
 		return wc_gzd_dhl_get_return_products_international();

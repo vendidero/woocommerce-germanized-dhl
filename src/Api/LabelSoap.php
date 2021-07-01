@@ -601,7 +601,7 @@ class LabelSoap extends Soap {
             $dhl_label_body['ShipmentOrder']['PrintOnlyIfCodeable'] = array( 'active' => 1 );
         }
 
-        if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+        if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 
             if ( sizeof( $shipment->get_items() ) > self::DHL_MAX_ITEMS ) {
                 throw new Exception( sprintf( _x( 'Only %s shipment items can be processed, your shipment has %s items.', 'dhl', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, sizeof( $shipment->get_items() ) ) );

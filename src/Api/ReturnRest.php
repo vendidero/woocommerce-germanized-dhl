@@ -77,7 +77,7 @@ class ReturnRest extends Rest {
 			'returnDocumentType' => 'SHIPMENT_LABEL'
 		);
 
-		if ( Package::is_crossborder_shipment( $label->get_sender_country() ) ) {
+		if ( Package::is_crossborder_shipment( $label->get_sender_country(), $label->get_sender_postcode() ) ) {
 			$items          = array();
 			$customs_data   = wc_gzd_dhl_get_shipment_customs_data( $label );
 			$shipment_items = $shipment->get_items();

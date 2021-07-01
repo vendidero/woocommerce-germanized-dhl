@@ -165,7 +165,7 @@ class DHL extends Auto {
 			) );
 		}
 
-		if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			$settings = array_merge( $settings, array(
 				array(
 					'id'          => 'duties',
@@ -211,7 +211,7 @@ class DHL extends Auto {
 			)
 		);
 
-		if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
+		if ( Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			$preferred_days = array();
 
 			try {
@@ -454,7 +454,7 @@ class DHL extends Auto {
 					'type'          => 'columns_end',
 				),
 			) );
-		} elseif( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+		} elseif( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			$services = array_merge( $services, array(
 				array(
 					'id'          		=> 'service_Premium',
@@ -688,7 +688,7 @@ class DHL extends Auto {
 		}
 
 		// We don't need duties for non-cross-border shipments
-		if ( ! Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+		if ( ! Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			unset( $args['duties'] );
 		}
 
@@ -747,9 +747,9 @@ class DHL extends Auto {
 	 */
 	public function get_default_label_product( $shipment ) {
 		if ( 'simple' === $shipment->get_type() ) {
-			if ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
+			if ( Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 				return $this->get_shipment_setting( $shipment, 'label_default_product_dom' );
-			} elseif ( Package::is_eu_shipment( $shipment->get_country() ) ) {
+			} elseif ( Package::is_eu_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 				$product = $this->get_shipment_setting( $shipment, 'label_default_product_eu' );
 
 				if ( ! empty( $product ) && ! in_array( $product, array_keys( wc_gzd_dhl_get_products_eu() ) ) ) {
@@ -816,11 +816,11 @@ class DHL extends Auto {
 			}
 		}
 
-		if ( Package::is_crossborder_shipment( $shipment->get_country() ) ) {
+		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 
 			$defaults['duties'] = $this->get_shipment_setting( $shipment, 'label_default_duty' );
 
-		} elseif ( Package::is_shipping_domestic( $shipment->get_country() ) ) {
+		} elseif ( Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 
 			if ( Package::base_country_supports( 'services' ) ) {
 
@@ -907,7 +907,7 @@ class DHL extends Auto {
 			}
 		}
 
-		if ( ! Package::is_shipping_domestic( $shipment->get_country() ) ) {
+		if ( ! Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 
 			foreach( wc_gzd_dhl_get_international_services() as $service ) {
 
@@ -931,7 +931,7 @@ class DHL extends Auto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_available_label_products( $shipment ) {
-		return wc_gzd_dhl_get_products( $shipment->get_country() );
+		return wc_gzd_dhl_get_products( $shipment->get_country(), $shipment->get_postcode() );
 	}
 
 	/**
