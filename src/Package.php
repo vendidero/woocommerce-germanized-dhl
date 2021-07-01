@@ -263,24 +263,7 @@ class Package {
 
 	    // Register additional label types
 	    add_filter( 'woocommerce_gzd_shipment_label_types', array( __CLASS__, 'register_label_types' ), 10 );
-
-	    // Sync shipment items
-	    add_action( 'woocommerce_gzd_shipment_item_synced', array( __CLASS__, 'sync_item_meta' ), 10, 3 );
     }
-
-	/**
-	 * @param ShipmentItem   $item
-	 * @param \WC_Order_Item $order_item
-	 * @param $args
-	 */
-	public static function sync_item_meta( $item, $order_item, $args ) {
-		if ( $product = $item->get_product() ) {
-			$dhl_product = wc_gzd_dhl_get_product( $product );
-
-			$item->update_meta_data( '_dhl_hs_code', $dhl_product->get_hs_code() );
-			$item->update_meta_data( '_dhl_manufacture_country', $dhl_product->get_manufacture_country() );
-		}
-	}
 
 	public static function register_label_types( $types ) {
         $types[] = 'inlay_return';

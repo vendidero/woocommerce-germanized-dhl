@@ -28,10 +28,6 @@ class Admin {
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
 
-	    // Product Options
-		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ), 9 );
-		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
-
 		// Receiver ID options
         add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ), 10 );
         add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'save_receiver_ids' ), 10, 3 );
@@ -170,29 +166,6 @@ class Admin {
 		$html = ob_get_clean();
 
 		echo $html;
-    }
-
-	public static function product_options() {
-		global $post, $thepostid;
-
-		$thepostid     = $post->ID;
-		$_product      = wc_get_product( $thepostid );
-		$dhl_product   = wc_gzd_dhl_get_product( $_product );
-
-		$countries = WC()->countries->get_countries();
-		$countries = array_merge( array( '0' => _x( 'Select a country', 'dhl', 'woocommerce-germanized-dhl' )  ), $countries );
-
-        woocommerce_wp_text_input( array( 'id' => '_dhl_hs_code', 'label' => _x( 'HS-Code (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The HS Code is a number assigned to every possible commodity that can be imported or exported from any country.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
-        woocommerce_wp_select( array( 'options' => $countries, 'id' => '_dhl_manufacture_country', 'label' => _x( 'Country of manufacture (DHL)', 'dhl', 'woocommerce-germanized-dhl' ), 'desc_tip' => true, 'description' => _x( 'The country of manufacture is needed for customs of international shipping.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
-	}
-
-    public static function save_product( $product ) {
-	    $hs_code = isset( $_POST['_dhl_hs_code'] ) ? wc_clean( $_POST['_dhl_hs_code'] ) : '';
-	    $country = isset( $_POST['_dhl_manufacture_country'] ) ? wc_clean( $_POST['_dhl_manufacture_country'] ) : '';
-
-	    $dhl_product = wc_gzd_dhl_get_product( $product );
-	    $dhl_product->set_hs_code( $hs_code );
-	    $dhl_product->set_manufacture_country( $country );
     }
 
 	public static function add_template_check( $check ) {

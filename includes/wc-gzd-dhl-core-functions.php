@@ -534,14 +534,13 @@ function wc_gzd_dhl_format_label_state( $state, $country ) {
 	return $state;
 }
 
+/**
+ * @param $the_product
+ *
+ * @return \Vendidero\Germanized\Shipments\Product
+ */
 function wc_gzd_dhl_get_product( $the_product ) {
-	if ( ! is_a( $the_product, '\Vendidero\Germanized\DHL\Product' ) ) {
-		$product = new Product( $the_product );
-	} else {
-		$product = $the_product;
-	}
-
-	return $product;
+	return wc_gzd_shipments_get_product( $the_product );
 }
 
 /**
