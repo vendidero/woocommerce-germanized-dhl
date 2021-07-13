@@ -37,154 +37,21 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 		return false;
 	}
 
-	$customs_items    = array();
-	$item_description = '';
-	$total_weight     = wc_gzd_dhl_round_customs_item_weight( wc_add_number_precision( $label->get_net_weight() ) );
-	$item_weights     = array();
-	$shipment_items   = $shipment->get_items();
+	$customs_data = $label->get_customs_data( $max_desc_length );
 
-	foreach ( $shipment_items as $key => $item ) {
-		$per_item_weight     = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
-		$per_item_weight     = wc_add_number_precision( $per_item_weight );
-		$per_item_weight     = $per_item_weight * $item->get_quantity();
-		$per_item_min_weight = 1 * $item->get_quantity();
+	foreach( $customs_data['items'] as $key => $item ) {
+		if ( $shipment_item = $shipment->get_item( $key ) ) {
+			/**
+			 * Apply legacy filters
+			 */
+			$item['description'] = apply_filters( "woocommerce_gzd_dhl_customs_item_description", $item['description'], $shipment_item, $label, $shipment );
+			$item['category']    = apply_filters( "woocommerce_gzd_dhl_customs_item_category", $item['category'], $shipment_item, $label, $shipment );
 
-		/**
-		 * Set min weight to 0.01 to prevent missing weight error messages
-		 * for really small product weights.
-		 */
-		if ( $per_item_weight < $per_item_min_weight ) {
-			$per_item_weight = $per_item_min_weight;
-		}
-
-		$item_weights[ $key ] = $per_item_weight;
-	}
-
-	$item_total_weight = array_sum( $item_weights );
-	$item_count        = sizeof( $item_weights );
-
-	/**
-	 * Discrepancies detected between item weights an total shipment weight.
-	 * Try to distribute the mismatch between items.
-	 */
-	if ( $item_total_weight != $total_weight ) {
-		$diff     = $total_weight - $item_total_weight;
-		$diff_abs = abs( $diff );
-
-		if ( $diff_abs > 0 ) {
-			$per_item_diff         = $diff / $item_count;
-			// Round down to int
-			$per_item_diff_rounded = wc_gzd_dhl_round_customs_item_weight( $per_item_diff );
-			$diff_applied          = 0;
-
-			if ( abs( $per_item_diff_rounded ) > 0 ) {
-				foreach( $item_weights as $key => $weight ) {
-					$shipment_item      = $shipment_items[ $key ];
-					$item_min_weight    = 1 * $shipment_item->get_quantity();
-
-					$item_weight_before = $item_weights[ $key ];
-					$new_item_weight    = $item_weights[ $key ] += $per_item_diff_rounded;
-					$item_diff_applied  = $per_item_diff_rounded;
-
-					/**
-					 * In case the diff is negative make sure we are not
-					 * subtracting more than available as min weight per item.
-					 */
-					if ( $new_item_weight <= $item_min_weight ) {
-						$new_item_weight   = $item_min_weight;
-						$item_diff_applied = $item_min_weight - $item_weight_before;
-					}
-
-					$item_weights[ $key ] = $new_item_weight;
-					$diff_applied += $item_diff_applied;
-				}
-			}
-
-			// Check rounding diff and apply the diff to one item
-			$diff_left = $diff - $diff_applied;
-
-			if ( abs( $diff_left ) > 0 ) {
-				foreach( $item_weights as $key => $weight ) {
-					$shipment_item   = $shipment_items[ $key ];
-					$item_min_weight = 1 * $shipment_item->get_quantity();
-
-					if ( $diff_left > 0 ) {
-						/**
-						 * Add the diff left to the first item and stop.
-						 */
-						$item_weights[ $key ] += $diff_left;
-						break;
-					} else {
-						/**
-						 * Remove the diff left from the first item with a weight greater than 0.01 to prevent 0 weights.
-						 */
-						if ( $weight > $item_min_weight ) {
-							$item_weights[ $key ] += $diff_left;
-							break;
-						}
-					}
-				}
-			}
+			$customs_data['items'][ $key ] = apply_filters( 'woocommerce_gzd_dhl_customs_item', $item, $shipment_item, $shipment, $label );
 		}
 	}
 
-	$total_weight = 0;
-
-	foreach ( $shipment->get_items() as $key => $item ) {
-		$item_description .= ! empty( $item_description ) ? ', ' : '';
-		$item_description .= $item->get_name();
-
-		// Use total before discounts for customs
-		$product_total = floatval( ( $item->get_subtotal() / $item->get_quantity() ) );
-		$dhl_product   = false;
-		$product       = $item->get_product();
-
-		if ( $product ) {
-			$dhl_product = wc_gzd_dhl_get_product( $product );
-		}
-
-		if ( $product_total < 0.01 ) {
-			// Use the order item subtotal amount as fallback
-			if ( ( $order_item = $item->get_order_item() ) && ( $order = $shipment->get_order() ) ) {
-				$order_item_subtotal = $order->get_line_subtotal( $order_item, true );
-				$product_total       = floatval( ( $order_item_subtotal / $item->get_quantity() ) );
-			}
-		}
-
-		$category = $dhl_product ? $dhl_product->get_main_category() : $item->get_name();
-
-		if ( empty( $category ) ) {
-			$category = $item->get_name();
-		}
-
-		$product_value = $product_total < 0.01 ? wc_format_decimal( apply_filters( "woocommerce_gzd_dhl_customs_item_min_price", 0.01, $item, $label, $shipment ), 2 ) : wc_format_decimal( $product_total, 2 );
-
-		$customs_items[ $key ] = apply_filters( 'woocommerce_gzd_dhl_customs_item', array(
-			'description'          => apply_filters( "woocommerce_gzd_dhl_customs_item_description", wc_clean( substr( $item->get_name(), 0, $max_desc_length ) ), $item, $label, $shipment ),
-			'category'             => apply_filters( "woocommerce_gzd_dhl_customs_item_category", $category, $item, $label, $shipment ),
-			'origin_code'          => ( $dhl_product && $dhl_product->get_manufacture_country() ) ? $dhl_product->get_manufacture_country() : Package::get_base_country(),
-			'tariff_number'        => $dhl_product ? $dhl_product->get_hs_code() : '',
-			'quantity'             => intval( $item->get_quantity() ),
-			'weight_in_kg'         => wc_remove_number_precision( $item_weights[ $key ] ),
-			'single_weight_in_kg'  => wc_gzd_dhl_round_customs_item_weight( wc_remove_number_precision( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
-			'weight_in_kg_raw'     => $item_weights[ $key ],
-			'single_value'         => $product_value,
-			'value'                => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
-		), $item, $shipment, $label );
-
-		$total_weight += (float) $customs_items[ $key ]['weight_in_kg'];
-	}
-
-	$item_description = substr( $item_description, 0, $max_desc_length );
-
-	return apply_filters( "woocommerce_gzd_dhl_customs_data", array(
-		'shipment_id'             => $shipment->get_id(),
-		'additional_fee'          => wc_format_decimal( $shipment->get_additional_total(), 2 ),
-		'export_type_description' => $item_description,
-		'place_of_commital'       => $shipment->get_country(),
-		'items'                   => $customs_items,
-		'item_total_weight_in_kg' => $total_weight,
-	), $label, $shipment );
+	return apply_filters( "woocommerce_gzd_dhl_customs_data", $label->get_customs_data( $max_desc_length ), $label, $shipment );
 }
 
 function wc_gzd_dhl_format_preferred_api_time( $time ) {
