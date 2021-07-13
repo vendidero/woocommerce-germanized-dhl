@@ -11,7 +11,6 @@ use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
-use Vendidero\Germanized\Shipments\ShipmentItem;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 defined( 'ABSPATH' ) || exit;
@@ -26,7 +25,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.5.9';
+    const VERSION = '1.5.10';
 
     public static $upload_dir_suffix = '';
 
