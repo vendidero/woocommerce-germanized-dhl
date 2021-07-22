@@ -35,7 +35,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
 
 		<?php if ( ! empty( $preferred_day_options ) && $preferred_day_enabled ) : ?>
             <div class="dhl-preferred-service-item dhl-preferred-service-day">
-                <div class="dhl-preferred-service-title"><?php _ex( 'Preferred day: Delivery at your preferred day.', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Choose one of the displayed days as your preferred day for your parcel delivery. Other days are not possible due to delivery processes.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
+                <div class="dhl-preferred-service-title"><?php _ex( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Choose one of the displayed days as your delivery day for your parcel delivery. Other days are not possible due to delivery processes.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
 
                 <?php if ( ! empty( $preferred_day_cost ) ) : ?>
                     <div class="dhl-preferred-service-cost">
@@ -62,7 +62,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
 
 		<?php if ( $preferred_location_enabled || $preferred_neighbor_enabled ) : ?>
             <div class="dhl-preferred-service-item dhl-preferred-service-location">
-                <div class="dhl-preferred-service-title"><?php _ex( 'Preferred location or neighbor', 'dhl', 'woocommerce-germanized-dhl' ); ?></div>
+                <div class="dhl-preferred-service-title"><?php _ex( 'Drop-off location or neighbor', 'dhl', 'woocommerce-germanized-dhl' ); ?></div>
 
                 <div class="dhl-preferred-service-data">
                     <ul class="dhl-preferred-location-types">
@@ -86,7 +86,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
 
                     <?php if ( $preferred_location_enabled ) : ?>
                         <div class="dhl-preferred-service-item dhl-preferred-service-location-data dhl-preferred-service-location-place dhl-hidden">
-                            <div class="dhl-preferred-service-title"><?php _ex(  'Preferred location: Delivery to your preferred drop-off location', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Choose a weather-protected and non-visible place on your property, where we can deposit the parcel in your absence.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
+                            <div class="dhl-preferred-service-title"><?php _ex(  'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Choose a weather-protected and non-visible place on your property, where we can deposit the parcel in your absence.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
                             <div class="dhl-preferred-service-data">
                                 <input type="text" name="dhl_preferred_location" id="dhl-preferred-location" class="" value="<?php echo esc_attr( $preferred_location ); ?>" maxlength="80" placeholder="<?php echo esc_attr( _x( 'e.g. Garage, Terrace', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>" />
                             </div>
@@ -95,7 +95,7 @@ Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-d
 
 	                <?php if ( $preferred_neighbor_enabled ) : ?>
                         <div class="dhl-preferred-service-item dhl-preferred-service-location-data dhl-preferred-service-location-neighbor dhl-hidden">
-                            <div class="dhl-preferred-service-title"><?php _ex(  'Preferred neighbour: Delivery to a neighbour of your choice', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Determine a person in your immediate neighborhood whom we can hand out your parcel in your absence. This person should live in the same building, directly opposite or next door.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
+                            <div class="dhl-preferred-service-title"><?php _ex(  'Neighbor', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Determine a person in your immediate neighborhood whom we can hand out your parcel in your absence. This person should live in the same building, directly opposite or next door.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></div>
                             <div class="dhl-preferred-service-data">
                                 <input type="text" name="dhl_preferred_location_neighbor_name" id="dhl-preferred-location-neighbor-name" class="" value="<?php echo esc_attr( $preferred_location_neighbor_name ); ?>" maxlength="25" placeholder="<?php echo esc_attr( _x( 'First name, last name of neighbor', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>" />
                                 <input type="text" name="dhl_preferred_location_neighbor_address" id="dhl-preferred-location-neighbor-address" class="" value="<?php echo esc_attr( $preferred_location_neighbor_address ); ?>" maxlength="55" placeholder="<?php echo esc_attr( _x( 'Street, number, postal code, city', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>" />
