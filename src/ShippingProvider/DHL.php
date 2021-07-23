@@ -469,8 +469,9 @@ class DHL extends Auto {
 		}
 
 		$settings[] = array(
-			'type' => 'services_start',
-			'id'   => '',
+			'type'         => 'services_start',
+			'hide_default' => ! empty( $default_args['services'] ) ? false : true,
+			'id'           => '',
 		);
 
 		$settings = array_merge( $settings, $services );
