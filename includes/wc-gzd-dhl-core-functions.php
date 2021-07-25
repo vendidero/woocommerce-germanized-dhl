@@ -51,7 +51,7 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 		}
 	}
 
-	return apply_filters( "woocommerce_gzd_dhl_customs_data", $label->get_customs_data( $max_desc_length ), $label, $shipment );
+	return apply_filters( "woocommerce_gzd_dhl_customs_data", $customs_data, $label, $shipment );
 }
 
 function wc_gzd_dhl_format_preferred_api_time( $time ) {
