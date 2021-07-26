@@ -446,7 +446,7 @@ class Package {
     }
 
     public static function get_internetmarke_products_url() {
-        return 'https://prodws.deutschepost.de:8443/ProdWSProvider_1_1/prodws?wsdl';
+        return 'https://prodws.deutschepost.de/ProdWSProvider_1_1/prodws?wsdl';
     }
 
     public static function get_internetmarke_refund_url() {
