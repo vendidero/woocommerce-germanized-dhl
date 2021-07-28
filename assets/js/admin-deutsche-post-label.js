@@ -18,8 +18,8 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         getSelectedAdditionalServices: function() {
-            var selectedIds = $( "#wc-gzd-shipment-label-wrapper-additional-services :input:checked" ).map( function () {
-                return $( this ).val();
+            var selectedIds = $( "#wc-gzd-shipment-label-wrapper-additional-services :input:checked" ).map( function() {
+                return $( this ).attr( 'name' ).replace( 'service_', '' );
             }).get();
 
             return selectedIds;

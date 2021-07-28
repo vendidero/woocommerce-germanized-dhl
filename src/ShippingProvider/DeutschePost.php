@@ -405,12 +405,10 @@ class DeutschePost extends Auto {
 		foreach( $services as $service ) {
 			$settings[] = array(
 				'id'            => 'service_' . $service,
-				'name'          => 'services[]',
 				'wrapper_class' => 'form-field-checkbox',
 				'type'          => 'checkbox',
 				'label'         => \Vendidero\Germanized\DHL\Package::get_internetmarke_api()->get_product_list()->get_additional_service_title( $service ),
-				'cbvalue'       => $service,
-				'value'         => in_array( $service, $selected_services ) ? $service : '',
+				'value'         => in_array( $service, $selected_services ) ? 'yes' : 'no',
 			);
 		}
 

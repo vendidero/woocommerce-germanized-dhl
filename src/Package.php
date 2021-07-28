@@ -44,7 +44,6 @@ class Package {
      * Init the package - load the REST API Server class.
      */
     public static function init() {
-
 	    if ( self::has_dependencies() ) {
 		    // Add shipping provider
 		    add_filter( 'woocommerce_gzd_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 10, 1 );
