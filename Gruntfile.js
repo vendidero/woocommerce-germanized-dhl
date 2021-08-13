@@ -14,27 +14,6 @@ module.exports = function( grunt ) {
             php: 'includes'
         },
 
-        // JavaScript linting with JSHint.
-        jshint: {
-            options: {
-                jshintrc: '.jshintrc'
-            },
-            all: [
-                '<%= dirs.js %>/*.js',
-                '!<%= dirs.js %>/*.min.js'
-            ]
-        },
-
-        // Sass linting with Stylelint.
-        stylelint: {
-            options: {
-                configFile: '.stylelintrc'
-            },
-            all: [
-                '<%= dirs.css %>/*.scss'
-            ]
-        },
-
         // Minify .js files.
         uglify: {
             options: {
@@ -118,27 +97,10 @@ module.exports = function( grunt ) {
             }
         },
 
-        // PHP Code Sniffer.
-        phpcs: {
-            options: {
-                bin: 'vendor/bin/phpcs'
-            },
-            dist: {
-                src:  [
-                    '**/*.php', // Include all php files.
-                    '!includes/libraries/**',
-                    '!node_modules/**',
-                    '!tests/cli/**',
-                    '!tmp/**',
-                    '!vendor/**'
-                ]
-            }
-        },
-
         // Check textdomain errors.
         checktextdomain: {
             options:{
-                text_domain: 'woocommerce-germanized-dhl',
+                text_domain: 'woocommerce-germanized-shipments',
                 keywords: [
                     '__:1,2d',
                     '_e:1,2d',
@@ -184,23 +146,17 @@ module.exports = function( grunt ) {
         }
     });
 
-    // Load NPM tasks to be used here.
+    // Load NPM tasks to be used here
     grunt.loadNpmTasks( 'grunt-sass' );
     grunt.loadNpmTasks( 'grunt-shell' );
-    grunt.loadNpmTasks( 'grunt-phpcs' );
     grunt.loadNpmTasks( 'grunt-rtlcss' );
     grunt.loadNpmTasks( 'grunt-postcss' );
-    grunt.loadNpmTasks( 'grunt-stylelint' );
-    grunt.loadNpmTasks( 'grunt-wp-i18n' );
-    grunt.loadNpmTasks( 'grunt-checktextdomain' );
-    grunt.loadNpmTasks( 'grunt-contrib-jshint' );
     grunt.loadNpmTasks( 'grunt-contrib-uglify' );
     grunt.loadNpmTasks( 'grunt-contrib-cssmin' );
     grunt.loadNpmTasks( 'grunt-contrib-concat' );
     grunt.loadNpmTasks( 'grunt-contrib-copy' );
     grunt.loadNpmTasks( 'grunt-contrib-watch' );
     grunt.loadNpmTasks( 'grunt-contrib-clean' );
-    grunt.loadNpmTasks( 'grunt-prompt' );
 
     // Register tasks.
     grunt.registerTask( 'default', [
@@ -222,10 +178,6 @@ module.exports = function( grunt ) {
     grunt.registerTask( 'assets', [
         'js',
         'css'
-    ]);
-
-    grunt.registerTask( 'i18n', [
-        'checktextdomain'
     ]);
 
     // Only an alias to 'default' task.

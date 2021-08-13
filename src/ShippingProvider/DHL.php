@@ -151,7 +151,7 @@ class DHL extends Auto {
 		$dhl_order    = wc_gzd_dhl_get_order( $shipment->get_order() );
 		$default_args = $this->get_default_label_props( $shipment );
 
-		if ( $dhl_order->has_cod_payment() ) {
+		if ( $dhl_order && $dhl_order->has_cod_payment() ) {
 			$settings = array_merge( $settings, array(
 				array(
 					'id'          => 'cod_total',
@@ -231,7 +231,7 @@ class DHL extends Auto {
 				'type'        => 'select'
 			) ) );
 
-			if ( $dhl_order->has_preferred_location() ) {
+			if ( $dhl_order && $dhl_order->has_preferred_location() ) {
 				$settings = array_merge( $settings, array( array(
 					'id'          		=> 'preferred_location',
 					'label'       		=> _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -243,7 +243,7 @@ class DHL extends Auto {
 				) ) );
 			}
 
-			if ( $dhl_order->has_preferred_neighbor() ) {
+			if ( $dhl_order && $dhl_order->has_preferred_neighbor() ) {
 				$settings = array_merge( $settings, array( array(
 					'id'          		=> 'preferred_neighbor',
 					'label'       		=> _x( 'Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -368,7 +368,7 @@ class DHL extends Auto {
 				),
 			) );
 
-			if ( $dhl_order->supports_email_notification() ) {
+			if ( $dhl_order && $dhl_order->supports_email_notification() ) {
 				$services = array_merge( $services, array(
 					array(
 						'id'          		=> 'service_ParcelOutletRouting',
@@ -382,7 +382,7 @@ class DHL extends Auto {
 				) );
 			}
 
-			if ( ! $dhl_order->has_preferred_neighbor() ) {
+			if ( $dhl_order && ! $dhl_order->has_preferred_neighbor() ) {
 				$services = array_merge( $services, array(
 					array(
 						'id'          		=> 'service_NoNeighbourDelivery',
@@ -845,7 +845,7 @@ class DHL extends Auto {
 						$defaults['visual_min_age'] = $visual_min_age;
 					}
 
-					if ( $dhl_order->needs_age_verification() && 'yes' === $this->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
+					if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
 						$defaults['services'][]     = 'VisualCheckOfAge';
 						$defaults['visual_min_age'] = $dhl_order->get_min_age();
 					}
