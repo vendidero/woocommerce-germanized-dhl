@@ -753,7 +753,7 @@ class Internetmarke {
 				 * @since 3.4.5
 				 * @package Vendidero/Germanized/DHL
 				 */
-				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_position_x', Package::get_setting( 'deutsche_post_label_position_x' ), $label, $shipment ),
+				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_position_x', $label->get_position_x(), $label, $shipment ),
 				/**
 				 * Adjust the Deutsche Post (Internetmarke) label print Y position.
 				 *
@@ -764,7 +764,7 @@ class Internetmarke {
 				 * @since 3.4.5
 				 * @package Vendidero/Germanized/DHL
 				 */
-				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_position_y', Package::get_setting( 'deutsche_post_label_position_y' ), $label, $shipment ),
+				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_position_y', $label->get_position_y(), $label, $shipment ),
 				apply_filters( 'woocommerce_gzd_deutsche_post_label_api_page_number', 1, $label, $shipment )
 			);
 

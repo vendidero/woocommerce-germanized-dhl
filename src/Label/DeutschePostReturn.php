@@ -17,6 +17,8 @@ class DeutschePostReturn extends DeutschePost implements ShipmentReturnLabel {
 	 */
 	protected $extra_data = array(
 		'page_format'    => '',
+		'position_x'     => 0,
+		'position_y'     => 0,
 		'shop_order_id'  => '',
 		'stamp_total'    => 0,
 		'voucher_id'     => '',

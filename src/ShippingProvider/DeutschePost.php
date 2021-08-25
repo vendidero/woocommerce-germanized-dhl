@@ -385,6 +385,30 @@ class DeutschePost extends Auto {
 					'type'        => 'select',
 					'options'	  => Package::get_internetmarke_api()->get_page_format_list(),
 					'value'       => isset( $default_args['page_format'] ) ? $default_args['page_format'] : '',
+				),
+				array(
+					'id'          	=> '',
+					'type'          => 'columns',
+				),
+				array(
+					'id'                => 'position_x',
+					'label'             => _x( 'Print X-Position', 'dhl', 'woocommerce-germanized-dhl' ),
+					'description'       => '',
+					'type'              => 'number',
+					'wrapper_class'     => 'column col-6',
+					'style'             => 'width: 100%;',
+					'custom_attributes' => array( 'min' => 0, 'step' => 1 ),
+					'value'             => isset( $default_args['position_x'] ) ? $default_args['position_x'] : 1,
+				),
+				array(
+					'id'                => 'position_y',
+					'label'             => _x( 'Print Y-Position', 'dhl', 'woocommerce-germanized-dhl' ),
+					'description'       => '',
+					'type'              => 'number',
+					'wrapper_class'     => 'column col-6',
+					'style'             => 'width: 100%;',
+					'custom_attributes' => array( 'min' => 0, 'step' => 1 ),
+					'value'             => isset( $default_args['position_y'] ) ? $default_args['position_y'] : 1,
 				)
 			) );
 		}
@@ -507,6 +531,8 @@ class DeutschePost extends Auto {
 	protected function get_default_simple_label_props( $shipment ) {
 		$defaults = array(
 			'page_format' => $this->get_shipment_setting( $shipment, 'label_default_page_format' ),
+			'position_x'  => $this->get_shipment_setting( $shipment, 'label_position_x' ),
+			'position_y'  => $this->get_shipment_setting( $shipment, 'label_position_y' ),
 			'stamp_total' => 0,
 			'services'    => array(),
 		);

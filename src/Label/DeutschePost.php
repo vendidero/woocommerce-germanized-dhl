@@ -18,6 +18,8 @@ class DeutschePost extends Label {
 	 */
 	protected $extra_data = array(
 		'page_format'         => '',
+		'position_x'          => 1,
+		'position_y'          => 1,
 		'shop_order_id'       => '',
 		'stamp_total'         => 0,
 		'voucher_id'          => '',
@@ -51,6 +53,14 @@ class DeutschePost extends Label {
 
 	public function get_page_format( $context = 'view' ) {
 		return $this->get_prop( 'page_format', $context );
+	}
+
+	public function get_position_x( $context = 'view' ) {
+		return $this->get_prop( 'position_x', $context );
+	}
+
+	public function get_position_y( $context = 'view' ) {
+		return $this->get_prop( 'position_y', $context );
 	}
 
 	public function get_wp_int_awb( $context = 'view' ) {
@@ -95,6 +105,14 @@ class DeutschePost extends Label {
 
 	public function set_page_format( $value ) {
 		$this->set_prop( 'page_format', $value );
+	}
+
+	public function set_position_x( $value ) {
+		$this->set_prop( 'position_x', absint( $value ) );
+	}
+
+	public function set_position_y( $value ) {
+		$this->set_prop( 'position_y', absint( $value ) );
 	}
 
 	public function set_wp_int_awb( $value ) {
