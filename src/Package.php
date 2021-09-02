@@ -25,7 +25,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.5.12';
+    const VERSION = '1.6.0';
 
     public static $upload_dir_suffix = '';
 
