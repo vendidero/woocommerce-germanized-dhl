@@ -184,7 +184,7 @@ class DeutschePost extends Label {
 			$is_trackable = true;
 		} elseif ( ! empty( $services ) && ! empty( array_intersect( array( 'ESEW', 'ESCH', 'ESEH' ), $services ) ) ) {
 			$is_trackable = true;
-		} elseif( ! empty( $this->get_wp_int_barcode() ) && in_array( 'TRCK', $this->get_services() ) ) {
+		} elseif( ! empty( $this->get_wp_int_barcode() ) && ( in_array( 'TRCK', $this->get_services() ) || 'RC' === strtoupper( substr( $this->get_wp_int_barcode(), 0, 2 ) ) ) ) {
 			$is_trackable = true;
 		}
 
