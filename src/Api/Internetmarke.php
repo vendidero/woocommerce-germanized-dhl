@@ -90,7 +90,7 @@ class Internetmarke {
 			}
 		}
 
-		if ( ! $this->has_authentication_error() ) {
+		if ( ! $this->has_authentication_error() && $this->user ) {
 			return true;
 		} else {
 			return false;
@@ -138,7 +138,7 @@ class Internetmarke {
 			$this->auth();
 		}
 
-		if ( $this->user ) {
+		if ( $this->user && ! is_null( $this->user ) ) {
 			return $this->user;
 		} else {
 			return false;
