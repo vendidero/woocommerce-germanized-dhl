@@ -307,7 +307,8 @@ class LabelSoap extends Soap {
      * @throws Exception
      */
     protected function get_create_label_request( $label ) {
-        $shipment = $label->get_shipment();
+        $shipment     = $label->get_shipment();
+        $dhl_provider = Package::get_dhl_shipping_provider();
 
         if ( ! $shipment ) {
             throw new Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
@@ -487,7 +488,7 @@ class LabelSoap extends Soap {
 	     * @since 3.0.5
 	     * @package Vendidero/Germanized/DHL
 	     */
-	    $shipper_reference = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_reference', '', $label );
+	    $shipper_reference = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_reference', $dhl_provider->has_custom_shipper_reference() ? $dhl_provider->get_label_custom_shipper_reference() : '', $label );
 
 	    if ( ! empty( $shipper_reference ) ) {
 		    $dhl_label_body['ShipmentOrder']['Shipment']['ShipperReference'] = $shipper_reference;

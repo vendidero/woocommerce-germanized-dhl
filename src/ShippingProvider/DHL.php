@@ -94,6 +94,21 @@ class DHL extends Auto {
 		$this->update_meta_data( 'label_retoure_enable', wc_bool_to_string( $enable ) );
 	}
 
+	public function get_label_custom_shipper_reference( $context = 'view' ) {
+		return $this->get_meta( 'label_custom_shipper_reference', true, $context );
+	}
+
+	public function set_label_custom_shipper_reference( $ref ) {
+		$this->update_meta_data( 'label_custom_shipper_reference', $ref );
+	}
+
+	public function has_custom_shipper_reference() {
+		$ref     = $this->get_label_custom_shipper_reference();
+		$has_ref = wc_string_to_bool( $this->get_meta( 'label_use_custom_shipper', true ) );
+
+		return $has_ref && ! empty( $ref );
+	}
+
 	public function get_retoure_receiver_ids( $context = 'view' ) {
 		$ids = (array) $this->get_meta( 'retoure_receiver_ids', true, $context );
 
@@ -1361,6 +1376,28 @@ class DHL extends Auto {
 				'allow_override'    => false,
 				'type' 		        => 'gzd_toggle',
 			),
+
+			array(
+				'title' 	        => _x( 'Custom shipper', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => _x( 'Use a custom shipper address managed within your DHL business profile.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose this option if you want to use a <a href="%s" target="_blank">custom address</a> profile managed within your DHL business profile as shipper reference for your labels.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
+				'id' 		        => 'label_use_custom_shipper',
+				'value'             => $this->get_setting( 'label_use_custom_shipper', 'no' ),
+				'default'	        => 'no',
+				'allow_override'    => false,
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title' 	        => _x( 'Shipper reference', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc' 		        => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Insert the <a href="%s" target="_blank">address reference</a> you have chosen within the DHL business portal for your custom shipper address.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
+				'id' 		        => 'label_custom_shipper_reference',
+				'value'             => $this->get_setting( 'label_custom_shipper_reference', '' ),
+				'default'	        => '',
+				'allow_override'    => false,
+				'type' 		        => 'text',
+				'custom_attributes'	=> array( 'data-show_if_label_use_custom_shipper' => 'yes' )
+			),
+
 			array(
 				'title' 	        => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc' 		        => _x( 'Additionally create inlay return labels for shipments that support returns.', 'dhl', 'woocommerce-germanized-dhl' ),
