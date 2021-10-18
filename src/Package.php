@@ -737,6 +737,27 @@ class Package {
 	    }
     }
 
+    public static function get_core_wsdl_file( $file ) {
+        $local_file = trailingslashit( self::get_path() ) . 'assets/wsdl/' . $file;
+
+        if ( file_exists( $local_file ) ) {
+            return $local_file;
+        }
+
+        return false;
+    }
+
+	/**
+     * Retrieves a local, cached, WSDL file by a WSDL link.
+     * In case the file exists in core direction (assets/wsdl) prefer this file otherwise
+     * try to download and cache the WSDL file locally for 14 days.
+     *
+     * In case of enabled debug mode - use WSDL link instead of cached files.
+     *
+	 * @param $wsdl_link
+	 *
+	 * @return false|mixed|string|void
+	 */
     public static function get_wsdl_file( $wsdl_link ) {
         if ( self::is_debug_mode() ) {
             return $wsdl_link;
@@ -754,11 +775,12 @@ class Package {
 		    );
 	    }
 
-	    $file_link       = $wsdl_link;
-	    $transient       = 'wc_gzd_dhl_wsdl_' . sanitize_key( $main_file );
-	    $new_file_name   = $main_file;
-	    $files_exist     = true;
-	    $is_zip          = false;
+	    $file_link     = $wsdl_link;
+	    $transient     = 'wc_gzd_dhl_wsdl_' . sanitize_key( $main_file );
+	    $new_file_name = $main_file;
+	    $files_exist   = true;
+	    $is_zip        = false;
+	    $is_core_file  = false;
 
 	    // Renew files every 14 days
 	    $transient_valid = DAY_IN_SECONDS * 14;
@@ -769,23 +791,28 @@ class Package {
 	    	$is_zip        = true;
 	    }
 
-	    /**
-	     * Check if all required files exist locally
-	     */
-	    foreach( $required_files as $file ) {
-		    $inner_transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $file );
-		    $file_path       = get_transient( $inner_transient );
+	    if ( $file_path = self::get_core_wsdl_file( $main_file ) ) {
+            $files_exist  = true;
+            $is_core_file = true;
+	    } else {
+		    /**
+		     * Check if all required files exist locally
+		     */
+		    foreach( $required_files as $file ) {
+			    $inner_transient = 'wc_gzd_dhl_wsdl_' . sanitize_key( $file );
+			    $file_path       = get_transient( $inner_transient );
 
-		    if ( $file_path ) {
-			    $file_path = \Vendidero\Germanized\Shipments\Package::get_file_by_path( $file_path );
+			    if ( $file_path ) {
+				    $file_path = \Vendidero\Germanized\Shipments\Package::get_file_by_path( $file_path );
+			    }
+
+			    if ( ! $file_path || ! file_exists( $file_path ) ) {
+				    $files_exist = false;
+			    }
 		    }
 
-		    if ( ! $file_path || ! file_exists( $file_path ) ) {
-			    $files_exist = false;
-		    }
+		    $file_path = get_transient( $transient );
 	    }
-
-	    $file_path = get_transient( $transient );
 
 	    /**
 	     * This filter may be used to force loading an alternate (local) WSDL file
@@ -801,7 +828,11 @@ class Package {
 	    $alternate_file = apply_filters( 'woocommerce_gzd_dhl_alternate_wsdl_file', false, $wsdl_link );
 
 	    if ( ( $files_exist && $file_path ) || $alternate_file ) {
-		    $wsdl_link = $alternate_file ? $alternate_file : \Vendidero\Germanized\Shipments\Package::get_file_by_path( $file_path );
+	        if ( $is_core_file ) {
+		        $wsdl_link = $alternate_file ? $alternate_file : $file_path;
+	        } else {
+		        $wsdl_link = $alternate_file ? $alternate_file : \Vendidero\Germanized\Shipments\Package::get_file_by_path( $file_path );
+	        }
 	    } else {
 
 	    	if ( ! function_exists( 'download_url' ) ) {
@@ -826,11 +857,10 @@ class Package {
 			    if ( ! is_wp_error( $tmp_file ) ) {
 
 				    $uploads    = \Vendidero\Germanized\Shipments\Package::get_upload_dir();
-				    $new_file   = $uploads['path'] . "/$new_file_name";
+				    $new_file   = trailingslashit( $uploads['path'] ) . $new_file_name;
 				    $has_copied = @copy( $tmp_file, $new_file );
 
 				    if ( $has_copied ) {
-
 				    	if ( $is_zip ) {
 						    global $wp_filesystem;
 

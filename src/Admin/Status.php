@@ -24,8 +24,8 @@ class Status {
 				</tr>
 			</thead>
 			<tbody>
-			<?php foreach( self::get_urls_to_ping() as $url ) :
-				$result = self::test_url( $url );
+			<?php foreach( self::get_urls_to_ping() as $url => $response_code ) :
+				$result = self::test_url( $url, $response_code );
 				?>
 				<tr>
 					<td style="width: 50%" data-export-label="<?php echo esc_attr( $url ); ?>"><code style=""><?php echo $url; ?></code></td>
@@ -51,7 +51,7 @@ class Status {
 		return $tabs;
 	}
 
-	protected static function test_url( $url ) {
+	protected static function test_url( $url, $response_code = 200 ) {
 		$transient_name    = 'woocommerce_gzd_dhl_test_remote_get_' . $url;
 		$get_response_code = get_transient( $transient_name );
 
@@ -65,7 +65,7 @@ class Status {
 			set_transient( $transient_name, $get_response_code, HOUR_IN_SECONDS );
 		}
 
-		$get_response_successful = ! is_wp_error( $get_response_code ) && ! empty( $get_response_code );
+		$get_response_successful = ! is_wp_error( $get_response_code ) && $response_code === absint( $get_response_code );
 
 		return $get_response_successful;
 	}
@@ -75,18 +75,18 @@ class Status {
 
 		if ( Package::is_dhl_enabled() ) {
 			$urls = array_merge( $urls, array(
-				Package::get_gk_api_url(),
-				Package::get_rest_url(),
-				Package::get_cig_url(),
+				Package::get_gk_api_url() => 200,
+				Package::get_rest_url()   => 401,
+				Package::get_cig_url()    => 401,
 			) );
 		}
 
 		if ( Package::is_deutsche_post_enabled() ) {
 			$urls = array_merge( $urls, array(
-				Package::get_warenpost_international_rest_url(),
-				Package::get_internetmarke_main_url(),
-				Package::get_internetmarke_refund_url(),
-				Package::get_internetmarke_products_url()
+				Package::get_warenpost_international_rest_url() => 404,
+				Package::get_internetmarke_main_url()           => 200,
+				Package::get_internetmarke_refund_url()         => 200,
+				Package::get_internetmarke_products_url()       => 200
 			) );
 		}
 
