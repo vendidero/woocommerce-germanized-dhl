@@ -511,15 +511,32 @@ class LabelSoap extends Soap {
 	    if ( ! empty( $shipper_reference ) ) {
 		    $dhl_label_body['ShipmentOrder']['Shipment']['ShipperReference'] = $shipper_reference;
 	    } else {
-	    	$name1         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) : Package::get_setting( 'shipper_name' ), $label );
-	    	$name2         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_name' ) : '', $label );
-	    	$street_number = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', Package::get_setting( 'shipper_street_number' ), $label );
-	    	$street        = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_name', Package::get_setting( 'shipper_street' ), $label );
-	    	$zip           = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', Package::get_setting( 'shipper_postcode' ), $label );
-	    	$city          = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', Package::get_setting( 'shipper_city' ), $label );
+	    	$name1         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', $dhl_provider->get_shipper_company() ? $dhl_provider->get_shipper_company() : $dhl_provider->get_shipper_formatted_full_name(), $label );
+	    	$name2         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', $dhl_provider->get_shipper_company() ? $dhl_provider->get_shipper_formatted_full_name() : '', $label );
+	    	$street_number = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', $dhl_provider->get_shipper_street_number(), $label );
+	    	$street        = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_name', $dhl_provider->get_shipper_street(), $label );
+	    	$zip           = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', $dhl_provider->get_shipper_postcode(), $label );
+	    	$city          = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', $dhl_provider->get_shipper_city(), $label );
 
-	    	if ( empty( $street ) || empty( $street_number ) || empty( $name1 ) || empty( $city ) ) {
-			    throw new Exception( sprintf( _x( 'Your shipper address is incomplete. Please validate your <a href="%s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=address' ) ) );
+	    	$fields_necessary = array(
+	    		'street'        => $street,
+			    'street_number' => $street_number,
+			    'full_name'     => $name1,
+			    'postcode'      => $zip,
+			    'city'          => $city
+		    );
+
+		    $address_fields         = wc_gzd_get_shipment_setting_default_address_fields();
+		    $missing_address_fields = array();
+
+	    	foreach( $fields_necessary as $field => $value ) {
+	    		if ( empty( $value ) && array_key_exists( $field, $address_fields ) ) {
+				    $missing_address_fields[] = $address_fields[ $field ];
+			    }
+		    }
+
+	    	if ( ! empty( $missing_address_fields ) ) {
+			    throw new Exception( sprintf( _x( 'Your shipper address is incomplete (%1$s). Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), implode( ', ', $missing_address_fields ), admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=address' ) ) );
 		    }
 
 		    $dhl_label_body['ShipmentOrder']['Shipment']['Shipper'] = array(
