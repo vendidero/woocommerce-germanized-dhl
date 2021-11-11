@@ -102,14 +102,8 @@ class ImWarenpostIntRest extends Rest {
 			) );
 		}
 
-		$is_return = 'return' === $label->get_type();
-
-		if ( $is_return ) {
-			$sender_name = ( $shipment->get_sender_company() ? $shipment->get_sender_company() . ' ' : '' ) . $shipment->get_formatted_sender_full_name();
-		} else {
-			$sender_name = ( Package::get_setting( 'shipper_company' ) ? Package::get_setting( 'shipper_company' ) . ' ' : '' ) . Package::get_setting( 'shipper_name' );
-		}
-
+		$is_return      = 'return' === $label->get_type();
+		$sender_name    = ( $shipment->get_sender_company() ? $shipment->get_sender_company() . ' ' : '' ) . $shipment->get_formatted_sender_full_name();
 		$recipient_name = $shipment->get_formatted_full_name();
 		$recipient      = $recipient_name;
 
@@ -148,13 +142,13 @@ class ImWarenpostIntRest extends Rest {
 					'shipmentCurrency'    => get_woocommerce_currency(),
 					'shipmentGrossWeight' => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
 					'senderName'          => mb_substr( $sender_name, 0, 40 ),
-					'senderAddressLine1'  => mb_substr( ( $is_return ? $shipment->get_sender_address_1() : Package::get_setting( 'shipper_address' ) ), 0, 35 ),
-					'senderAddressLine2'  => mb_substr( ( $is_return ? $shipment->get_sender_address_2() : '' ), 0, 35 ),
-					'senderCountry'       => $is_return ? $shipment->get_sender_country() : Package::get_setting( 'shipper_country' ),
-					'senderCity'          => $is_return ? $shipment->get_sender_city() : Package::get_setting( 'shipper_city' ),
-					'senderPostalCode'    => $is_return ? $shipment->get_sender_postcode() : Package::get_setting( 'shipper_postcode' ),
-					'senderPhone'         => $is_return ? $shipment->get_sender_phone() : Package::get_setting( 'shipper_phone' ),
-					'senderEmail'         => $is_return ? $shipment->get_sender_email() : Package::get_setting( 'shipper_email' ),
+					'senderAddressLine1'  => mb_substr( $shipment->get_sender_address_1(), 0, 35 ),
+					'senderAddressLine2'  => mb_substr( $shipment->get_sender_address_2(), 0, 35 ),
+					'senderCountry'       => $shipment->get_sender_country(),
+					'senderCity'          => $shipment->get_sender_city(),
+					'senderPostalCode'    => $shipment->get_sender_postcode(),
+					'senderPhone'         => $shipment->get_sender_phone(),
+					'senderEmail'         => $shipment->get_sender_email(),
 					'returnItemWanted'    => false,
 					'shipmentNaturetype'  => strtoupper( apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_nature_type', ( $is_return ? 'RETURN_GOODS' : 'SALE_GOODS' ), $label ) ),
 					'contents'            => array()
@@ -169,7 +163,7 @@ class ImWarenpostIntRest extends Rest {
 				'pickupLocation'  => null,
 				'pickupDate'      => null,
 				'pickupTimeSlot'  => null,
-				'telephoneNumber' => null
+				'telephoneNumber' => $shipment->get_sender_phone()
 			)
 		);
 

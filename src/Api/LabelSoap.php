@@ -511,14 +511,18 @@ class LabelSoap extends Soap {
 	    if ( ! empty( $shipper_reference ) ) {
 		    $dhl_label_body['ShipmentOrder']['Shipment']['ShipperReference'] = $shipper_reference;
 	    } else {
-	    	$name1         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', $dhl_provider->get_shipper_company() ? $dhl_provider->get_shipper_company() : $dhl_provider->get_shipper_formatted_full_name(), $label );
-	    	$name2         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', $dhl_provider->get_shipper_company() ? $dhl_provider->get_shipper_formatted_full_name() : '', $label );
-	    	$street_number = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', $dhl_provider->get_shipper_street_number(), $label );
-	    	$street        = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_name', $dhl_provider->get_shipper_street(), $label );
-	    	$zip           = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', $dhl_provider->get_shipper_postcode(), $label );
-	    	$city          = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', $dhl_provider->get_shipper_city(), $label );
+	    	$name1         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', $shipment->get_sender_company() ? $shipment->get_sender_company(): $shipment->get_formatted_sender_full_name(), $label );
+	    	$name2         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', $shipment->get_sender_company() ? $shipment->get_formatted_sender_full_name() : '', $label );
+	    	$street_number = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', $shipment->get_sender_address_street_number(), $label );
+	    	$street        = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_name', $shipment->get_sender_address_street(), $label );
+	    	$zip           = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', $shipment->get_sender_postcode(), $label );
+	    	$city          = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', $shipment->get_sender_city(), $label );
+		    $phone         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_phone', $shipment->get_sender_phone(), $label );
+		    $email         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_email', $shipment->get_sender_email(), $label );
+		    $country       = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_country', $shipment->get_sender_country(), $label );
+		    $state         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_state', $shipment->get_sender_state(), $label );
 
-	    	$fields_necessary = array(
+		    $fields_necessary = array(
 	    		'street'        => $street,
 			    'street_number' => $street_number,
 			    'full_name'     => $name1,
@@ -550,14 +554,14 @@ class LabelSoap extends Soap {
 				    'zip'          => $zip,
 				    'city'         => $city,
 				    'Origin'       => array(
-					    'countryISOCode' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_country', Package::get_setting( 'shipper_country' ), $label ),
-					    'state'          => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_state', wc_gzd_dhl_format_label_state( Package::get_setting( 'shipper_state' ), Package::get_setting( 'shipper_country' ) ), $label ),
+					    'countryISOCode' => $country,
+					    'state'          => wc_gzd_dhl_format_label_state( $state, $country ),
 				    )
 			    ),
 			    'Communication' => array(
-				    'phone'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_phone', Package::get_setting( 'contact_phone' ), $label ),
-				    'email'         => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_email', Package::get_setting( 'contact_email' ), $label ),
-				    'contactPerson' => apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_contact_person', Package::get_setting( 'shipper_name' ), $label ),
+				    'phone'         => $phone,
+				    'email'         => $email,
+				    'contactPerson' => $shipment->get_formatted_sender_full_name(),
 			    )
 		    );
 	    }

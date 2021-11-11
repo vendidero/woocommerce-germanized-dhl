@@ -691,22 +691,6 @@ class Internetmarke {
 		return $named_address;
 	}
 
-	protected function get_setting_address_data() {
-		$person_name    = new PersonName( '', '', Package::get_setting( 'shipper_first_name' ), Package::get_setting( 'shipper_last_name' ) );
-		$sender_country = Package::get_country_iso_alpha3( Package::get_setting( 'shipper_country' ) );
-
-		if ( Package::get_setting( 'shipper_company' ) ) {
-			$name = new Name( null, new CompanyName( Package::get_setting( 'shipper_company' ), $person_name ) );
-		} else {
-			$name = new Name( $person_name, null );
-		}
-
-		$address = new Address( '', Package::get_setting( 'shipper_street' ), Package::get_setting( 'shipper_street_number' ), Package::get_setting( 'shipper_postcode' ), Package::get_setting( 'shipper_city' ), $sender_country );
-		$sender  = new \baltpeter\Internetmarke\NamedAddress( $name, $address );
-
-		return $sender;
-	}
-
 	/**
 	 * @param DeutschePost|DeutschePostReturn $label
 	 */
@@ -717,17 +701,9 @@ class Internetmarke {
 			throw new \Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
-		if ( 'return' === $label->get_type() ) {
-			$sender   = $this->get_shipment_address_data( $shipment, 'sender' );
-			$receiver = $this->get_setting_address_data();
-
-			$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
-		} else {
-			$sender   = $this->get_setting_address_data();
-			$receiver = $this->get_shipment_address_data( $shipment );
-
-			$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
-		}
+		$sender           = $this->get_shipment_address_data( $shipment, 'sender' );
+		$receiver         = $this->get_shipment_address_data( $shipment );
+		$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
 
 		if ( ! $this->auth() ) {
 			throw new \Exception( $this->get_authentication_error() );
