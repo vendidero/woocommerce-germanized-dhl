@@ -148,15 +148,15 @@ class DeutschePost extends Auto {
 	}
 
 	protected function get_label_settings( $for_shipping_method = false ) {
-		$api      = Package::get_internetmarke_api();
+		$im       = Package::get_internetmarke_api();
 		$settings = parent::get_label_settings( $for_shipping_method );
 
-		if ( $api && $api->is_configured() && $api->auth() && $api->is_available() ) {
-			$api->reload_products();
+		if ( $im && $im->is_configured() && $im->auth() && $im->is_available() ) {
+			$im->reload_products();
 
-			$balance                    = $api->get_balance( true );
+			$balance                    = $im->get_balance( true );
 			$settings_url               = $this->get_edit_link( 'label' );
-			$default_available_products = $api->get_default_available_products();
+			$default_available_products = $im->get_default_available_products();
 
 			$settings = array_merge( $settings, array(
 				array( 'title' => _x( 'Portokasse', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'deutsche_post_portokasse_options' ),
@@ -267,9 +267,9 @@ class DeutschePost extends Auto {
 
 				array( 'type' => 'sectionend', 'id' => 'deutsche_post_print_options' )
 			) );
-		} elseif ( $api && $api->has_errors() ) {
+		} elseif ( $im && $im->has_errors() ) {
 			$settings = array_merge( $settings, array(
-				array( 'title' => _x( 'API Error', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'deutsche_post_api_error', 'desc' => '<div class="notice inline notice-error"><p>' . implode( ", ", $api->get_errors()->get_error_messages() ) . '</p></div>' ),
+				array( 'title' => _x( 'API Error', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'deutsche_post_api_error', 'desc' => '<div class="notice inline notice-error"><p>' . implode( ", ", $im->get_errors()->get_error_messages() ) . '</p></div>' ),
 				array( 'type' => 'sectionend', 'id' => 'deutsche_post_api_error' )
 			) );
 		}
@@ -497,8 +497,8 @@ class DeutschePost extends Auto {
 	public function get_available_label_services( $shipment ) {
 		$services = array();
 
-		if ( $api = Package::get_internetmarke_api()->get_product_list() ) {
-			$services = array_keys( $api->get_additional_services() );
+		if ( $im = Package::get_internetmarke_api()->get_product_list() ) {
+			$services = array_keys( $im->get_additional_services() );
 		}
 
 		return $services;

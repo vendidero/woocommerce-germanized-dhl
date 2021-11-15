@@ -60,18 +60,44 @@ class Internetmarke {
 		$this->partner = new ImPartnerInformation( Package::get_internetmarke_partner_id(), Package::get_internetmarke_key_phase(), Package::get_internetmarke_token() );
 		$this->errors  = new \WP_Error();
 
-		try {
-			if ( ! Package::has_load_dependencies() ) {
-				throw new \Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ) );
-			}
-
-			$this->api = new Service( $this->partner, array(), Package::get_wsdl_file( Package::get_internetmarke_main_url() ) );
-		} catch( \Exception $e ) {
-			$this->errors->add( 'startup', sprintf( _x( 'Error while instantiating main Internetmarke API: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
-		}
-
 		if ( ! Package::is_deutsche_post_enabled() ) {
 			$this->errors->add( 'startup', _x( 'Internetmarke is disabled. Please enable Internetmarke.', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
+	}
+
+	public function get_api( $auth = false ) {
+		if ( is_null( $this->api ) ) {
+			try {
+				if ( ! Package::has_load_dependencies() ) {
+					throw new \Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ) );
+				}
+
+				$this->api = new Service( $this->partner, array(), Package::get_wsdl_file( Package::get_internetmarke_main_url() ) );
+			} catch( \Exception $e ) {
+				$this->api = null;
+				$this->errors->add( 'startup', sprintf( _x( 'Error while instantiating main Internetmarke API: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
+			}
+		}
+
+		if ( $auth ) {
+			if ( is_null( $this->user ) && $this->api && $this->is_configured() ) {
+				try {
+					$this->errors->remove( 'authentication' );
+
+					$this->user = $this->api->authenticateUser( Package::get_internetmarke_username(), Package::get_internetmarke_password() );
+				} catch( \Exception $e ) {
+					$this->user = null;
+					$this->errors->add( 'authentication', _x( 'Wrong username or password', 'dhl', 'woocommerce-germanized-dhl' ) );
+				}
+			}
+
+			if ( ! $this->has_authentication_error() && $this->user ) {
+				return $this->api;
+			} else {
+				return false;
+			}
+		} else {
+			return $this->api ? $this->api : false;
 		}
 	}
 
@@ -80,21 +106,7 @@ class Internetmarke {
 	}
 
 	public function auth() {
-		if ( $this->is_configured() && ! $this->has_startup_error() ) {
-			try {
-				$this->errors->remove( 'authentication' );
-
-				$this->user = $this->api->authenticateUser( Package::get_internetmarke_username(), Package::get_internetmarke_password() );
-			} catch( \Exception $e ) {
-				$this->errors->add( 'authentication', _x( 'Wrong username or password', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-		}
-
-		if ( ! $this->has_authentication_error() && $this->user ) {
-			return true;
-		} else {
-			return false;
-		}
+		return $this->get_api( true );
 	}
 
 	public function has_authentication_error() {
@@ -121,6 +133,14 @@ class Internetmarke {
 		return $error;
 	}
 
+	public function get_error_message() {
+		if ( $this->has_errors() ) {
+			return $this->get_startup_error() ? $this->get_startup_error() : $this->get_authentication_error();
+		}
+
+		return false;
+	}
+
 	public function has_errors() {
 		return wc_gzd_dhl_wp_error_has_errors( $this->errors ) ? true : false;
 	}
@@ -130,7 +150,7 @@ class Internetmarke {
 	}
 
 	public function is_available() {
-		return ! $this->has_authentication_error() && ! $this->has_startup_error() && is_a( $this->api, '\baltpeter\Internetmarke\Service' );
+		return $this->get_api( true );
 	}
 
 	public function get_user() {
@@ -389,7 +409,11 @@ class Internetmarke {
 				$this->page_formats = array();
 
 				try {
-					$this->page_formats = $this->api->retrievePageFormats();
+					if ( ! $api = $this->get_api() ) {
+						throw new \Exception( $this->get_error_message() );
+					}
+
+					$this->page_formats = $api->retrievePageFormats();
 
 					set_transient( 'wc_gzd_dhl_im_page_formats', $this->page_formats, DAY_IN_SECONDS );
 				} catch( \Exception $e ) {
@@ -456,14 +480,16 @@ class Internetmarke {
 		$preview_url = false;
 
 		try {
-			if ( $this->is_warenpost_international( $product_id ) ) {
-				if ( $this->is_warenpost_international_eu( $product_id ) ) {
-					$preview_url = trailingslashit( Package::get_assets_url() ) . 'img/wp-int-eu-preview.png';
+			if ( $api = $this->get_api( true ) ) {
+				if ( $this->is_warenpost_international( $product_id ) ) {
+					if ( $this->is_warenpost_international_eu( $product_id ) ) {
+						$preview_url = trailingslashit( Package::get_assets_url() ) . 'img/wp-int-eu-preview.png';
+					} else {
+						$preview_url = trailingslashit( Package::get_assets_url() ) . 'img/wp-int-preview.png';
+					}
 				} else {
-					$preview_url = trailingslashit( Package::get_assets_url() ) . 'img/wp-int-preview.png';
+					$preview_url = $api->retrievePreviewVoucherPng( $product_id, $address_type, $image_id );
 				}
-			} else {
-				$preview_url = $this->api->retrievePreviewVoucherPng( $product_id, $address_type, $image_id );
 			}
 		} catch( \Exception $e ) {}
 
@@ -527,12 +553,12 @@ class Internetmarke {
 		if ( empty( $label->get_shop_order_id() ) ) {
 			return $this->create_default_label( $label );
 		} else {
-			if ( ! $this->auth() ) {
+			if ( ! $api = $this->get_api( true ) ) {
 				throw new \Exception( $this->get_authentication_error() );
 			}
 
 			try {
-				$stamp = $this->api->retrieveOrder( $this->get_user()->getUserToken(), $label->get_shop_order_id() );
+				$stamp = $api->retrieveOrder( $this->get_user()->getUserToken(), $label->get_shop_order_id() );
 			} catch( \Exception $e ) {
 				return $this->create_default_label( $label );
 			}
@@ -705,12 +731,12 @@ class Internetmarke {
 		$receiver         = $this->get_shipment_address_data( $shipment );
 		$address_binding  = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
 
-		if ( ! $this->auth() ) {
-			throw new \Exception( $this->get_authentication_error() );
+		if ( ! $api = $this->get_api( true ) ) {
+			throw new \Exception( $this->get_error_message() );
 		}
 
 		try {
-			$shop_order_id = $this->api->createShopOrderId( $this->get_user()->getUserToken() );
+			$shop_order_id = $api->createShopOrderId( $this->get_user()->getUserToken() );
 
 			if ( ! $shop_order_id ) {
 				throw new \Exception( _x( 'Error while generating shop order id.', 'dhl', 'woocommerce-germanized-dhl' ) );
@@ -745,7 +771,7 @@ class Internetmarke {
 			);
 
 			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_product_id(), null, $address_binding, $position, 'AddressZone' );
-			$stamp      = $this->api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_page_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
+			$stamp      = $api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_page_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
 
 			return $this->update_default_label( $label, $stamp );
 		} catch( \Exception $e ) {
