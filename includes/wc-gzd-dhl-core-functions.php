@@ -228,12 +228,8 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
  * @return false|\Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod
  */
 function wc_gzd_dhl_get_current_shipping_method() {
-	$chosen_shipping_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods' ) : array();
-
-	if ( ! empty( $chosen_shipping_methods ) ) {
-		$method = wc_gzd_dhl_get_shipping_method( $chosen_shipping_methods[0] );
-
-		return $method;
+	if ( $current = wc_gzd_get_current_shipping_method_id() ) {
+		return wc_gzd_dhl_get_shipping_method( $current );
 	}
 
 	return false;
