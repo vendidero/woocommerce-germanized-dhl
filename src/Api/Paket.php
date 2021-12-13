@@ -195,23 +195,19 @@ class Paket {
 
 	    $tz_obj           = new DateTimeZone(  'Europe/Berlin' );
 	    $starting_date    = new DateTime( "now", $tz_obj );
+	    $days_added       = 0;
 
 	    // Add preparation days
 	    if ( ! empty( $preparation_days ) ) {
-		    $days_added = 0;
-
 	    	while ( ! $this->is_working_day( $starting_date ) || $days_added < $preparation_days ) {
 			    $starting_date->add( new DateInterval('P1D' ) );
 			    $days_added++;
 		    }
 	    }
 
-	    // In case current date lies after cutoff time -> add one working day
-	    if ( $starting_date->format( 'Hi' ) > str_replace( ':', '', $cutoff_time ) ) {
-		    while ( ! $this->is_working_day( $starting_date ) ) {
-			    $starting_date->add( new DateInterval('P1D' ) );
-			    break;
-		    }
+	    // In case no preparation days have been added and current time is greater than cutoff time -> add one working day
+	    if ( $days_added <= 0 && $starting_date->format( 'Hi' ) > str_replace( ':', '', $cutoff_time ) ) {
+		    $starting_date->add( new \DateInterval('P1D' ) );
 	    }
 
 	    // Add days as long as starting date is excluded or is not a working day
