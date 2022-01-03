@@ -61,6 +61,16 @@ class ImWarenpostIntRest extends Rest {
 		return $label;
 	}
 
+	protected function clean_state( $string ) {
+		// Remove han chinese chars
+		$string = preg_replace( "/\p{Han}+/u", '', $string );
+		$string = str_replace( array( '(', ')', '/' ), '', $string );
+		// Remove double white spaces
+		$string = preg_replace('/\s+/', ' ', $string );
+
+		return trim( $string );
+	}
+
 	/**
 	 * Creates a new order based on the given data
 	 *
@@ -135,7 +145,7 @@ class ImWarenpostIntRest extends Rest {
 					'addressLine1'        => mb_substr( $shipment->get_address_1(), 0, 30 ),
 					'addressLine2'        => mb_substr( $shipment->get_address_2(), 0, 30 ),
 					'city'                => $shipment->get_city(),
-					'state'               => mb_substr( wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() ), 0, 20 ),
+					'state'               => mb_substr( $this->clean_state( wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() ) ), 0, 20 ),
 					'postalCode'          => $shipment->get_postcode(),
 					'destinationCountry'  => $shipment->get_country(),
 					'shipmentAmount'      => wc_format_decimal( $shipment->get_total() + $shipment->get_additional_total(), 2 ),
