@@ -787,7 +787,7 @@ class ParcelLocator {
 		$disable_method_check = ( is_account_page() || is_admin() );
 		$is_forced_checkout   = isset( $_POST['is_checkout'] ) ? wc_string_to_bool( $_POST['is_checkout'] ) : true;
 
-		if ( is_ajax() && $is_forced_checkout ) {
+		if ( wp_doing_ajax() && $is_forced_checkout ) {
 			$disable_method_check = false;
 		}
 

@@ -113,7 +113,7 @@ class ParcelServices {
 	 * @param \WC_Cart $cart
 	 */
 	public static function add_fees( $cart ) {
-		if ( ! $_POST || ( is_admin() && ! is_ajax() ) ) {
+		if ( ! $_POST || ( is_admin() && ! wp_doing_ajax() ) ) {
 			return;
 		}
 
