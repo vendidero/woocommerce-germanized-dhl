@@ -24,10 +24,15 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 .on( 'change.dhl', self.wrapper + ' #ship-to-different-address-checkbox', self.onChangeShipping )
                 .on( 'change.dhl', self.wrapper + ' #shipping_country', self.refreshAvailability );
 
+            $( document ).on( 'change', '.payment_methods .input-radio', self.triggerCheckoutRefresh );
             $( document.body ).on( 'updated_checkout', self.afterRefreshCheckout );
 
             self.refreshAvailability();
             self.refreshAddressType();
+        },
+
+        triggerCheckoutRefresh: function() {
+            $( document.body ).trigger( 'update_checkout' );
         },
 
         isCheckout: function() {
@@ -326,6 +331,16 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             return self.isAvailable() && $( self.wrapper + ' #shipping_address_type' ).val() === 'dhl';
         },
 
+        getPaymentMethod: function() {
+            var $selected = $( '.payment_methods .input-radio:checked' );
+
+            if ( $selected ) {
+                return $selected.val();
+            }
+
+            return '';
+        },
+
         getShippingMethod: function( pwithInstanceId ) {
             var current        = '';
             var withInstanceId = pwithInstanceId ? pwithInstanceId : true;
@@ -376,8 +391,13 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             var self            = germanized.dhl_parcel_locator,
                 shippingCountry = $( self.wrapper + ' #shipping_country' ).val(),
                 shippingMethod  = self.getShippingMethod(),
+                paymentMethod   = self.getPaymentMethod(),
                 methodData      = self.getShippingMethodData( shippingMethod ),
                 isAvailable     = true;
+
+            if ( $.inArray( paymentMethod, self.params.excluded_gateways ) !== -1 ) {
+                isAvailable = false;
+            }
 
             if ( $.inArray( shippingCountry, self.params.supported_countries ) === -1 ) {
                 isAvailable = false;

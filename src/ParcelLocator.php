@@ -283,6 +283,19 @@ class ParcelLocator {
 		return $codes;
 	}
 
+	public static function get_excluded_gateways() {
+		/**
+		 * Filter to disable DHL parcel shop delivery for certain gateways.
+		 *
+		 * @param array $gateways Array of gateway IDs to exclude.
+		 *
+		 * @package Vendidero/Germanized/DHL
+		 */
+		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_excluded_gateways', array( 'cod' ) );
+
+		return $codes;
+	}
+
 	/**
 	 * @param $data
 	 * @param $type
@@ -729,6 +742,7 @@ class ParcelLocator {
 				'parcel_locator_nonce'      => wp_create_nonce('dhl-parcel-locator' ),
 				'parcel_locator_data_nonce' => wp_create_nonce('dhl-parcel-locator-shipping-data' ),
 				'supported_countries'       => self::get_supported_countries(),
+				'excluded_gateways'         => self::get_excluded_gateways(),
 				'methods'                   => is_checkout() ? self::get_shipping_method_data() : array(),
 				'is_checkout'               => is_checkout(),
 				'pickup_types'              => wc_gzd_dhl_get_pickup_types(),
