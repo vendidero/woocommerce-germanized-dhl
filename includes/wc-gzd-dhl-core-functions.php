@@ -484,6 +484,10 @@ function wc_gzd_dhl_get_product_services( $product ) {
 			'ParcelOutletRouting',
 			'GoGreen'
 		) );
+	} elseif ( 'V66WPI' === $product ) {
+		$services = array_intersect( $services, array(
+			'Premium',
+		) );
 	}
 
 	return $services;
@@ -619,15 +623,19 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false,
  * @param string $type
  *
  * @return mixed|string|void
+ * @see https://entwickler.dhl.de/group/ep/grundlagen2
  */
 function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	$available = array(
 		'A4',
 		'910-300-700',
 		'910-300-700-oZ',
+		'910-300-710',
 		'910-300-600',
 		'910-300-610',
-		'910-300-710',
+		'910-300-400',
+		'910-300-410',
+		'910-300-300',
 	);
 
 	/**
@@ -723,6 +731,7 @@ function wc_gzd_dhl_get_products_international() {
 
 	$germany_int = array(
 		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V66WPI'  => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
 
 	$dhl_prod_int = array();
@@ -745,6 +754,7 @@ function wc_gzd_dhl_get_products_eu() {
 		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V66WPI'  => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
 
 	$dhl_prod_int = array();
