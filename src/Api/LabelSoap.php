@@ -35,7 +35,7 @@ class LabelSoap extends Soap {
 	 * @return string
 	 */
 	protected function get_wsdl_file( $wsdl_link ) {
-		$core_file = Package::get_core_wsdl_file( 'geschaeftskundenversand-api-3.1.8.wsdl' );
+		$core_file = Package::get_core_wsdl_file( 'geschaeftskundenversand-api-3.2.0.wsdl' );
 
 		if ( $core_file ) {
 			return $core_file;
@@ -65,7 +65,7 @@ class LabelSoap extends Soap {
 			$soap_request = array(
 				'Version'            => array(
 					'majorRelease'   => '3',
-					'minorRelease'   => '1'
+					'minorRelease'   => '2'
 				),
 				'shipmentNumber'     => $label->get_number(),
 				'labelResponseType'  => 'B64',
@@ -248,7 +248,7 @@ class LabelSoap extends Soap {
         $soap_request =	array(
             'Version'          => array(
                 'majorRelease' => '3',
-                'minorRelease' => '1'
+                'minorRelease' => '2'
             ),
             'shipmentNumber'   => $label->get_number()
         );
@@ -407,7 +407,7 @@ class LabelSoap extends Soap {
         $dhl_label_body = array(
             'Version'            => array(
                 'majorRelease'   => '3',
-                'minorRelease'   => '1'
+                'minorRelease'   => '2'
             ),
             'labelResponseType'  => 'B64',
             'ShipmentOrder'      => array (

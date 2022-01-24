@@ -664,7 +664,7 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	/**
 	 * Warenpost format
 	 */
-	if ( 'V62WP' === $label->get_product_id() ) {
+	if ( in_array( $label->get_product_id(), array( 'V62WP', 'V66WPI' ) ) ) {
 		$available[] = '100x70mm';
 	}
 
@@ -726,13 +726,27 @@ function wc_gzd_dhl_get_im_product_title( $product_name ) {
 	return $title;
 }
 
+function wc_gzd_dhl_is_warenpost_international_available() {
+	$now     = new DateTime();
+	$release = new DateTime( "2022-02-01" );
+
+	if ( $now > $release ) {
+		return true;
+	}
+
+	return false;
+}
+
 function wc_gzd_dhl_get_products_international() {
 	$country = Package::get_base_country();
 
 	$germany_int = array(
 		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
-		'V66WPI'  => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' );
+	}
 
 	$dhl_prod_int = array();
 
@@ -754,8 +768,11 @@ function wc_gzd_dhl_get_products_eu() {
 		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
-		'V66WPI'  => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' );
+	}
 
 	$dhl_prod_int = array();
 
