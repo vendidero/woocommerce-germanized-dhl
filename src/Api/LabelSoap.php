@@ -65,7 +65,7 @@ class LabelSoap extends Soap {
 			$soap_request = array(
 				'Version'            => array(
 					'majorRelease'   => '3',
-					'minorRelease'   => '2'
+					'minorRelease'   => '1'
 				),
 				'shipmentNumber'     => $label->get_number(),
 				'labelResponseType'  => 'B64',
@@ -248,7 +248,7 @@ class LabelSoap extends Soap {
         $soap_request =	array(
             'Version'          => array(
                 'majorRelease' => '3',
-                'minorRelease' => '2'
+                'minorRelease' => '1'
             ),
             'shipmentNumber'   => $label->get_number()
         );
@@ -407,7 +407,7 @@ class LabelSoap extends Soap {
         $dhl_label_body = array(
             'Version'            => array(
                 'majorRelease'   => '3',
-                'minorRelease'   => '2'
+                'minorRelease'   => '1'
             ),
             'labelResponseType'  => 'B64',
             'ShipmentOrder'      => array (
