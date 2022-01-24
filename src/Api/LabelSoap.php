@@ -35,7 +35,7 @@ class LabelSoap extends Soap {
 	 * @return string
 	 */
 	protected function get_wsdl_file( $wsdl_link ) {
-		$core_file = Package::get_core_wsdl_file( 'geschaeftskundenversand-api-3.1.8.wsdl' );
+		$core_file = Package::get_core_wsdl_file( 'geschaeftskundenversand-api-3.2.0.wsdl' );
 
 		if ( $core_file ) {
 			return $core_file;

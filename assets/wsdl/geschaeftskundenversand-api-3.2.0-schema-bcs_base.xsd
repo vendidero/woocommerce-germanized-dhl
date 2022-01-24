@@ -5,7 +5,7 @@
         xmlns:cis="http://dhl.de/webservice/cisbase"
         targetNamespace="http://dhl.de/webservices/businesscustomershipping/3.0">
 	  <import namespace="http://dhl.de/webservice/cisbase"
-           schemaLocation="geschaeftskundenversand-api-3.1.8-schema-cis_base.xsd"/>
+           schemaLocation="geschaeftskundenversand-api-3.2.0-schema-cis_base.xsd"/>
 	  <simpleType name="SequenceNumber">
 		    <annotation>
 			      <documentation>A sequence number defined by the (soap-) client. The
@@ -1426,9 +1426,9 @@
 						Determines the DHL Paket product to be ordered.
 						V01PAK: DHL PAKET;
 						V53WPAK: DHL PAKET International;
-						V54EPAK: DHL
-						Europaket;
-						V62WP: DHL Warenpost
+						V54EPAK: DHL Europaket;
+						V62WP: Warenpost;
+						V66WPI: Warenpost International
 					</documentation>
 				        </annotation>
 			      </element>
@@ -1892,7 +1892,7 @@
 			      <xs:simpleType>
 				        <xs:restriction base="xs:string">
 					          <xs:enumeration value="IMMEDIATE"/>
-					          <xs:enumeration value="AFTER_DEADLINE"/>
+					          <xs:enumeration value="ABANDONMENT"/>
 				        </xs:restriction>
 			      </xs:simpleType>
 		    </xs:attribute>

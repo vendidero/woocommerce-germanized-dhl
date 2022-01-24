@@ -484,6 +484,10 @@ function wc_gzd_dhl_get_product_services( $product ) {
 			'ParcelOutletRouting',
 			'GoGreen'
 		) );
+	} elseif ( 'V66WPI' === $product ) {
+		$services = array_intersect( $services, array(
+			'Premium',
+		) );
 	}
 
 	return $services;
@@ -619,15 +623,19 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false,
  * @param string $type
  *
  * @return mixed|string|void
+ * @see https://entwickler.dhl.de/group/ep/grundlagen2
  */
 function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	$available = array(
 		'A4',
 		'910-300-700',
 		'910-300-700-oZ',
+		'910-300-710',
 		'910-300-600',
 		'910-300-610',
-		'910-300-710',
+		'910-300-400',
+		'910-300-410',
+		'910-300-300',
 	);
 
 	/**
@@ -656,7 +664,7 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	/**
 	 * Warenpost format
 	 */
-	if ( 'V62WP' === $label->get_product_id() ) {
+	if ( in_array( $label->get_product_id(), array( 'V62WP', 'V66WPI' ) ) ) {
 		$available[] = '100x70mm';
 	}
 
@@ -718,12 +726,27 @@ function wc_gzd_dhl_get_im_product_title( $product_name ) {
 	return $title;
 }
 
+function wc_gzd_dhl_is_warenpost_international_available() {
+	$now     = new DateTime();
+	$release = new DateTime( "2022-02-01" );
+
+	if ( $now > $release ) {
+		return true;
+	}
+
+	return false;
+}
+
 function wc_gzd_dhl_get_products_international() {
 	$country = Package::get_base_country();
 
 	$germany_int = array(
 		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' );
+	}
 
 	$dhl_prod_int = array();
 
@@ -746,6 +769,10 @@ function wc_gzd_dhl_get_products_eu() {
 		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
 		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' );
+	}
 
 	$dhl_prod_int = array();
 
