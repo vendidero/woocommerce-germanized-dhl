@@ -13,11 +13,38 @@ class ParcelServices {
 
 	public static function init() {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'add_scripts' ) );
-		add_action( 'woocommerce_review_order_after_shipping', array( __CLASS__, 'add_fields' ), 100 );
 		add_action( 'woocommerce_cart_calculate_fees', array( __CLASS__, 'add_fees' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( __CLASS__, 'validate' ), 10, 2 );
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'create_order' ), 10 );
 		add_filter( 'woocommerce_get_order_item_totals', array( __CLASS__, 'order_totals' ), 10, 2 );
+
+		add_action( 'woocommerce_review_order_after_payment', array( __CLASS__, 'maybe_output_fields' ), 500 );
+		add_action( 'woocommerce_review_order_before_payment', array( __CLASS__, 'maybe_output_fields_before_submit' ), 500 );
+
+		add_action( 'woocommerce_gzd_dhl_preferred_service_fields', array( __CLASS__, 'add_fields' ) );
+		add_filter( 'woocommerce_update_order_review_fragments', array( __CLASS__, 'fragments' ), 10 );
+	}
+
+	public static function fragments( $fragments ) {
+		ob_start();
+		self::add_fields();
+		$html = ob_get_clean();
+
+		$fragments['.dhl-preferred-service-content'] = $html;
+
+		return $fragments;
+	}
+
+	public static function maybe_output_fields() {
+		if ( function_exists( 'wc_gzd_checkout_adjustments_disabled' ) && ! wc_gzd_checkout_adjustments_disabled() ) {
+			do_action( 'woocommerce_gzd_dhl_preferred_service_fields' );
+		}
+	}
+
+	public static function maybe_output_fields_before_submit() {
+		if ( ( function_exists( 'wc_gzd_checkout_adjustments_disabled' ) && wc_gzd_checkout_adjustments_disabled() ) || ! function_exists( 'wc_gzd_checkout_adjustments_disabled' ) ) {
+			do_action( 'woocommerce_gzd_dhl_preferred_service_fields' );
+		}
 	}
 
 	public static function order_totals( $total_rows, $order ) {
@@ -334,12 +361,14 @@ class ParcelServices {
 		}
 	}
 
-	public static function add_fields() {
+	public static function add_fields( $with_wrapper = true ) {
 		$post_data = array();
 
 		if ( isset( $_POST['post_data'] ) ) {
 			parse_str( $_POST['post_data'], $post_data );
 		}
+
+		echo '<div class="dhl-preferred-service-content">';
 
 		if ( self::is_preferred_available( true ) ) {
 			$data = self::get_data( $post_data );
@@ -351,6 +380,8 @@ class ParcelServices {
 
 			wc_get_template( 'checkout/dhl/preferred-services.php', $data, Package::get_template_path(), Package::get_path() . '/templates/' );
 		}
+
+		echo '</div>';
 	}
 
 	public static function is_enabled() {
