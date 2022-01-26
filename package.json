@@ -1,7 +1,7 @@
 {
   "name": "woocommerce-germanized-dhl",
   "title": "DHL for Germanized",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "homepage": "https://vendidero.de",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "package-plugin": "./bin/build-plugin-zip.sh"
   },
   "devDependencies": {
-    "tar": ">=4.4.18",
+    "tar": ">=6.1.9",
     "autoprefixer": "^9.0.0",
     "babel": "6.23.0",
     "babel-cli": "^6.18.0",
