@@ -25,6 +25,10 @@ class ParcelServices {
 		add_filter( 'woocommerce_update_order_review_fragments', array( __CLASS__, 'fragments' ), 10 );
 	}
 
+	protected static function cart_needs_shipping() {
+		return WC()->cart && WC()->cart->needs_shipping();
+	}
+
 	public static function fragments( $fragments ) {
 		ob_start();
 		self::add_fields();
@@ -125,7 +129,7 @@ class ParcelServices {
 	public static function validate( $data, $errors ) {
 		$posted_data = $_POST;
 
-		if ( self::is_preferred_available() ) {
+		if ( self::cart_needs_shipping() && self::is_preferred_available() ) {
 			$data = self::get_data( $posted_data );
 
 			if ( wc_gzd_dhl_wp_error_has_errors( $data['errors'] ) ) {
@@ -151,7 +155,7 @@ class ParcelServices {
 			$post_data = $_POST;
 		}
 
-		if ( self::is_preferred_available( true ) ) {
+		if ( self::cart_needs_shipping() && self::is_preferred_available( true ) ) {
 			$data = self::get_data( $post_data );
 
 			try {
@@ -247,7 +251,6 @@ class ParcelServices {
 
 		// Preferred options are only for Germany customers
 		if ( self::is_enabled() && 'DE' === $customer_country ) {
-
 			if ( self::is_preferred_enabled() ) {
 				$display_preferred = true;
 			}
@@ -370,7 +373,7 @@ class ParcelServices {
 
 		echo '<div class="dhl-preferred-service-content">';
 
-		if ( self::is_preferred_available( true ) ) {
+		if ( self::cart_needs_shipping() && self::is_preferred_available( true ) ) {
 			$data = self::get_data( $post_data );
 
 			self::refresh_day_session();
