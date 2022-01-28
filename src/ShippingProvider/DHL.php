@@ -1417,7 +1417,7 @@ class DHL extends Auto {
 
 			array(
 				'title' 	        => _x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc' 		        => _x( 'Enable creating labels for return shipments.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By enabling this option you might generate retoure labels for return shipments and send them to your customer via email.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'desc' 		        => _x( 'Create retoure labels to return shipments.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By enabling this option you might generate retoure labels for return shipments and send them to your customer via email.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 				'id' 		        => 'label_retoure_enable',
 				'value'             => wc_bool_to_string( $this->enable_retoure() ),
 				'default'	        => 'yes',
