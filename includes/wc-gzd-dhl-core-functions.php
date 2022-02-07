@@ -727,14 +727,7 @@ function wc_gzd_dhl_get_im_product_title( $product_name ) {
 }
 
 function wc_gzd_dhl_is_warenpost_international_available() {
-	$now     = new DateTime();
-	$release = new DateTime( "2022-02-01" );
-
-	if ( $now > $release ) {
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 function wc_gzd_dhl_get_products_international() {
