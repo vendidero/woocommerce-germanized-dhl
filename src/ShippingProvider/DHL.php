@@ -469,7 +469,10 @@ class DHL extends Auto {
 					'type'          => 'columns_end',
 				),
 			) );
-		} elseif( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
+		} else {
+			/**
+			 * Premium service is only available for non-domestic shipments (e.g. Paket International, WaPo International)
+			 */
 			$services = array_merge( $services, array(
 				array(
 					'id'          		=> 'service_Premium',
