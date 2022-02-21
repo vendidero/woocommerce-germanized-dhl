@@ -74,7 +74,7 @@ class LabelSoap extends Soap {
 						    'Shipper'         => array(
 							    'Name'    => 'Test',
 							    'Address' => array(
-								    'streetName' => 'Musterstr. 12',
+								    'streetName' => 'Street 1',
 								    'zip'        => '12345',
 								    'city'       => 'Berlin',
 								    'Origin'     => array(
@@ -85,7 +85,7 @@ class LabelSoap extends Soap {
 						    'Receiver'        => array(
 							    'name1'   => 'test1',
 							    'Address' => array(
-								    'streetName' => 'Musterstr. 12',
+								    'streetName' => 'Street 2',
 								    'zip'        => '12345',
 								    'city'       => 'Berlin',
 								    'Origin'     => array(

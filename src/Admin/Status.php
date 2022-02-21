@@ -75,7 +75,6 @@ class Status {
 
 		if ( Package::is_dhl_enabled() ) {
 			$urls = array_merge( $urls, array(
-				Package::get_gk_api_url() => 200,
 				Package::get_rest_url()   => 401,
 				Package::get_cig_url()    => 401,
 			) );
