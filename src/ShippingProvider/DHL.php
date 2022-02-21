@@ -964,7 +964,22 @@ class DHL extends Auto {
 		return Package::get_available_countries();
 	}
 
+	protected function get_connection_status_html() {
+		$username = wc_string_to_bool( $this->get_setting( 'sandbox_mode', 'no' ) ) ? $this->get_setting( 'api_sandbox_username', '' ) : $this->get_setting( 'api_username', '' );
+
+		if ( empty( $username ) ) {
+			return '';
+		}
+
+		$response  = Package::get_api()->test_connection();
+		$has_error = is_wp_error( $response ) ? true : false;
+
+		return '<span class="wc-gzd-shipment-api-connection-status ' . ( $has_error ? 'connection-status-error' : 'connection-status-success' ) . '">' . ( sprintf( _x( 'Status: %1$s', 'dhl', 'woocommerce-germanized-dhl' ), ( $has_error ? $response->get_error_message() : _x( 'Connected', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ) . '</span>';
+	}
+
 	protected function get_general_settings( $for_shipping_method = false ) {
+		$connection_status_html = ! $for_shipping_method ? $this->get_connection_status_html() : '';
+
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_general_options' ),
 
@@ -980,7 +995,7 @@ class DHL extends Auto {
 
 			array( 'type' => 'sectionend', 'id' => 'dhl_general_options' ),
 
-			array( 'title' => _x( 'API', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_api_options' ),
+			array( 'title' => _x( 'API', 'dhl', 'woocommerce-germanized-dhl' ), 'type' => 'title', 'id' => 'dhl_api_options', 'desc' => $connection_status_html ),
 
 			array(
 				'title' 	=> _x( 'Enable Sandbox', 'dhl', 'woocommerce-germanized-dhl' ),

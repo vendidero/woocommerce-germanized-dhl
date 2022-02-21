@@ -49,7 +49,72 @@ class LabelSoap extends Soap {
     }
 
     public function test_connection() {
+		$error = new \WP_Error();
 
+	    try {
+		    $soap_client = $this->get_access_token();
+		    $response    = $soap_client->validateShipment( array(
+				    'Version'           => array(
+					    'majorRelease' => '3',
+					    'minorRelease' => '1'
+				    ),
+				    'labelResponseType' => 'URL',
+				    'labelFormat'       => '',
+				    'ShipmentOrder'     => array(
+					    'sequenceNumber' => '',
+					    'Shipment'       => array(
+						    'ShipmentDetails' => array(
+							    'product'       => 'V01PAK',
+							    'accountNumber' => '12345678901234',
+							    'shipmentDate'  => '2020-12-29',
+							    'ShipmentItem'  => array(
+								    'weightInKG' => 5,
+							    )
+						    ),
+						    'Shipper'         => array(
+							    'Name'    => 'Test',
+							    'Address' => array(
+								    'streetName' => 'Musterstr. 12',
+								    'zip'        => '12345',
+								    'city'       => 'Berlin',
+								    'Origin'     => array(
+									    'countryISOCode' => 'DE'
+								    ),
+							    ),
+						    ),
+						    'Receiver'        => array(
+							    'name1'   => 'test1',
+							    'Address' => array(
+								    'streetName' => 'Musterstr. 12',
+								    'zip'        => '12345',
+								    'city'       => 'Berlin',
+								    'Origin'     => array(
+									    'countryISOCode' => 'DE'
+								    ),
+							    ),
+						    ),
+					    ),
+				    ),
+			    )
+		    );
+
+			if ( isset( $response->Status, $response->Status->statusCode ) ) {
+				if ( 1001 === (int) $response->Status->statusCode ) {
+					throw new \Exception( 'Unauthorized' );
+				}
+			}
+	    } catch ( Exception $e ) {
+		    switch( $e->getMessage() ) {
+			    case "Unauthorized":
+				    $error->add( 'unauthorized', _x( 'Your DHL API credentials seem to be invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				    break;
+			    default:
+				    $error->add( $e->getCode(), $e->getMessage() );
+				    break;
+		    }
+	    }
+
+		return wc_gzd_shipment_wp_error_has_errors( $error ) ? $error : true;
     }
 
 	/**
