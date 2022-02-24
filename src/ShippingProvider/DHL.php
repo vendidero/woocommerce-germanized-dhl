@@ -978,7 +978,7 @@ class DHL extends Auto {
 	}
 
 	protected function get_general_settings( $for_shipping_method = false ) {
-		$connection_status_html = ! $for_shipping_method ? $this->get_connection_status_html() : '';
+		$connection_status_html = ( ! $for_shipping_method && $this->is_activated() ) ? $this->get_connection_status_html() : '';
 
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'dhl_general_options' ),
