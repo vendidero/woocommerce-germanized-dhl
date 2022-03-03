@@ -386,4 +386,17 @@ class DHL extends Label {
 	public function get_export_path( $context = 'view' ) {
 		return $this->get_prop( 'export_path', $context );
 	}
+
+	public function is_trackable() {
+		$is_trackable = true;
+
+		/**
+		 * WaPo International without premium does not support tracking
+		 */
+		if ( 'V66WPI' === $this->get_product_id() && ! in_array( 'Premium', $this->get_services() ) ) {
+			$is_trackable = false;
+		}
+
+		return apply_filters( "{$this->get_general_hook_prefix()}is_trackable", $is_trackable, $this );
+	}
 }
