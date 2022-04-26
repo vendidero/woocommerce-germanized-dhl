@@ -25,7 +25,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.6.9';
+    const VERSION = '1.6.10';
 
     public static $upload_dir_suffix = '';
 
@@ -457,7 +457,7 @@ class Package {
     }
 
     public static function get_internetmarke_token() {
-    	return 'l4e0TNkqpGKd0YIhyuz3m4vzEek1iZY4';
+    	return 'XfQwh0tsdDF81IfpCKEPigk1US46rabN';
     }
 
     public static function get_internetmarke_key_phase() {
