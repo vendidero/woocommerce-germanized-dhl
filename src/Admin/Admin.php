@@ -169,14 +169,7 @@ class Admin {
     }
 
 	public static function add_template_check( $check ) {
-		$check['dhl'] = array(
-			'title'             => _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' ),
-			'path'              => Package::get_path() . '/templates',
-			'template_path'     => Package::get_template_path(),
-			'outdated_help_url' => $check['germanized']['outdated_help_url'],
-			'files'             => array(),
-			'has_outdated'      => false,
-		);
+		$check['germanized']['path'][] = Package::get_path() . '/templates';
 
 		return $check;
     }
