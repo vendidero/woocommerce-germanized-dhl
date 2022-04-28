@@ -576,7 +576,7 @@ class LabelSoap extends Soap {
 	    if ( ! empty( $shipper_reference ) ) {
 		    $dhl_label_body['ShipmentOrder']['Shipment']['ShipperReference'] = $shipper_reference;
 	    } else {
-	    	$name1         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', $shipment->get_sender_company() ? $shipment->get_sender_company(): $shipment->get_formatted_sender_full_name(), $label );
+	    	$name1         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', $shipment->get_sender_company() ? $shipment->get_sender_company() : $shipment->get_formatted_sender_full_name(), $label );
 	    	$name2         = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', $shipment->get_sender_company() ? $shipment->get_formatted_sender_full_name() : '', $label );
 	    	$street_number = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_number', $shipment->get_sender_address_street_number(), $label );
 	    	$street        = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street_name', $shipment->get_sender_address_street(), $label );

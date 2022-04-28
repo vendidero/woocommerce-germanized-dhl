@@ -700,7 +700,7 @@ class Internetmarke {
 		$additional = $this->get_shipment_address_prop( $shipment, 'address_2', $address_type );
 
 		if ( 'simple' === $shipment->get_type() && $shipment->send_to_external_pickup( 'packstation' ) ) {
-			$additional = ParcelLocator::get_postnumber_by_shipment( $shipment );
+			$additional = ( empty( $additional ) ? '' : $additional . ' ' ) . ParcelLocator::get_postnumber_by_shipment( $shipment );
 		}
 
 		$address = new Address(
