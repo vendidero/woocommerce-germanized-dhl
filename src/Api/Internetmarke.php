@@ -206,7 +206,7 @@ class Internetmarke {
 			/**
 			 * Refresh product data once per day.
 			 */
-			set_transient( 'wc_gzd_dhl_im_products_expire', DAY_IN_SECONDS );
+			set_transient( 'wc_gzd_dhl_im_products_expire', 'yes', DAY_IN_SECONDS );
 		}
 	}
 
