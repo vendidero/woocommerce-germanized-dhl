@@ -151,6 +151,7 @@ class DeutschePost extends Auto {
 		$im                  = Package::get_internetmarke_api();
 		$settings            = parent::get_label_settings( $for_shipping_method );
 		$settings_url        = $this->get_edit_link( 'label' );
+		$screen              = function_exists( 'get_current_screen' ) ? get_current_screen() : false;
 		$page_format_options = array();
 		$product_options     = array(
 			'available'         => array(),
@@ -161,9 +162,9 @@ class DeutschePost extends Auto {
 		);
 
 		/**
-		 * Do only allow calling IM API during admin requests.
+		 * Do only allow calling IM API during admin setting requests.
 		 */
-		if ( is_admin() ) {
+		if ( is_admin() && $screen && 'woocommerce_page_wc-settings' === $screen->id ) {
 			if ( $im && $im->is_configured() && $im->auth() && $im->is_available() ) {
 				$im->reload_products();
 
