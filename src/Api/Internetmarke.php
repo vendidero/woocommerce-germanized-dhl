@@ -191,7 +191,7 @@ class Internetmarke {
 
 	protected function load_products() {
 		if ( is_null( $this->products ) ) {
-			$this->products = new ImProductList();
+			$this->products = new ImProductList( $this );
 		}
 
 		$transient = get_transient( 'wc_gzd_dhl_im_products_expire' );
@@ -223,9 +223,21 @@ class Internetmarke {
 	}
 
 	public function get_default_available_products() {
-		$this->load_products();
-
-		return $this->products->get_default_available_products();
+		return array(
+			'11',
+			'21',
+			'31',
+			'282',
+			'290',
+			'10246',
+			'10247',
+			'10248',
+			'10249',
+			'10254',
+			'10255',
+			'10256',
+			'10257',
+		);
 	}
 
 	public function get_available_products( $filters = array() ) {

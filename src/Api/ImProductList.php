@@ -15,7 +15,14 @@ class ImProductList {
 
 	protected $available_products = null;
 
-	public function __construct() {}
+	/**
+	 * @var Internetmarke
+	 */
+	protected $im = null;
+
+	public function __construct( $im ) {
+		$this->im = $im;
+	}
 
 	public function get_products( $filters = array() ) {
 		if ( is_null( $this->products ) ) {
@@ -35,31 +42,13 @@ class ImProductList {
 		$this->products = $products;
 	}
 
-	public function get_default_available_products() {
-		return array(
-			'11',
-			'21',
-			'31',
-			'282',
-			'290',
-			'10246',
-			'10247',
-			'10248',
-			'10249',
-			'10254',
-			'10255',
-			'10256',
-			'10257',
-		);
-	}
-
 	protected function load_available_products() {
 		global $wpdb;
 
 		$available_products = Package::get_setting( 'deutsche_post_available_products' );
 
 		if ( empty( $available_products ) ) {
-			$available_products = $this->get_default_available_products();
+			$available_products = $this->im->get_default_available_products();
 		}
 
 		if ( ! empty( $available_products ) ) {

@@ -155,7 +155,7 @@ class DeutschePost extends Auto {
 		$page_format_options = array();
 		$product_options     = array(
 			'available'         => array(),
-			'default_available' => array(),
+			'default_available' => $im ? $im->get_default_available_products() : array(),
 			'dom'               => array(),
 			'eu'                => array(),
 			'int'               => array(),
@@ -172,7 +172,7 @@ class DeutschePost extends Auto {
 
 				$product_options = array(
 					'available'         => $this->get_product_select_options(),
-					'default_available' => $im->get_default_available_products(),
+					'default_available' => $im ? $im->get_default_available_products() : array(),
 					'dom'               => wc_gzd_dhl_get_deutsche_post_products_domestic( false, false ),
 					'eu'                => wc_gzd_dhl_get_deutsche_post_products_eu( false, false ),
 					'int'               => wc_gzd_dhl_get_deutsche_post_products_international( false, false ),
