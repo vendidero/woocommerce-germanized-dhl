@@ -24,7 +24,7 @@ window.germanized.dhl_preferred_services = window.germanized.dhl_preferred_servi
                 .on( 'change', '.dhl-preferred-service-content .dhl-preferred-service-times input', self.triggerCheckoutRefresh );
 
             if ( self.params.payment_gateways_excluded ) {
-                $( document ).on( 'change', '.payment_methods .input-radio', self.triggerCheckoutRefresh );
+                $( document.body ).on( 'payment_method_selected', self.triggerCheckoutRefresh );
             }
 
             self.afterRefreshCheckout();

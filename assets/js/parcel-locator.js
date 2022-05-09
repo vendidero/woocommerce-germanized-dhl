@@ -24,7 +24,7 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 .on( 'change.dhl', self.wrapper + ' #ship-to-different-address-checkbox', self.onChangeShipping )
                 .on( 'change.dhl', self.wrapper + ' #shipping_country', self.refreshAvailability );
 
-            $( document ).on( 'change', '.payment_methods .input-radio', self.triggerCheckoutRefresh );
+            $( document.body ).on( 'payment_method_selected', self.triggerCheckoutRefresh );
             $( document.body ).on( 'updated_checkout', self.afterRefreshCheckout );
 
             self.refreshAvailability();
