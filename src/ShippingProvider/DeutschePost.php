@@ -217,7 +217,7 @@ class DeutschePost extends Auto {
 					'title'    => _x( 'Available Products', 'dhl', 'woocommerce-germanized-dhl' ),
 					'id'       => 'available_products',
 					'class'    => 'wc-enhanced-select',
-					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) . '</div>',
+					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) ) . '</div>',
 					'type'     => 'multiselect',
 					'value'    => $this->get_setting( 'available_products', $product_options['default_available'] ),
 					'options'  => $product_options['available'],
@@ -268,7 +268,7 @@ class DeutschePost extends Auto {
 					'title'    => _x( 'Default Format', 'dhl', 'woocommerce-germanized-dhl' ),
 					'id'       => 'label_default_page_format',
 					'class'    => 'wc-enhanced-select',
-					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) . '</div>',
+					'desc'     => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) ) . '</div>',
 					'type'     => 'select',
 					'value'    => $this->get_setting( 'label_default_page_format', 1 ),
 					'options'  => $page_format_options,
@@ -396,7 +396,7 @@ class DeutschePost extends Auto {
 		}
 
 		if ( empty( $products ) ) {
-			return new \WP_Error( 'dp-label-missing-products', sprintf( _x( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
+			return new \WP_Error( 'dp-label-missing-products', sprintf( _x( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( $this->get_edit_link( 'label' ) ) ) );
 		}
 
 		$settings = array_merge( $settings, $this->get_available_additional_services( $default_args['product_id'], $default_args['services'] ) );
@@ -621,7 +621,7 @@ class DeutschePost extends Auto {
 			 * In case no other products are available or this is a manual request - return error
 			 */
 			if ( empty( $available_products ) || ( is_admin() && current_user_can( 'manage_woocommerce' ) ) ) {
-				$error->add( 500, sprintf( _x( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), $this->get_edit_link( 'label' ) ) );
+				$error->add( 500, sprintf( _x( 'Sorry but none of your selected <a href="%s">Deutsche Post Products</a> is available for this shipment. Please verify your shipment data (e.g. weight) and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( $this->get_edit_link( 'label' ) ) ) );
 			} else {
 				/**
 				 * In case the chosen product is not available - use the first product available instead

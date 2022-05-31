@@ -69,7 +69,7 @@ abstract class Rest {
         Package::log( 'GET URL: ' . $wp_request_url );
 
         $wp_dhl_rest_response = wp_remote_get(
-            $wp_request_url,
+            esc_url_raw( $wp_request_url ),
             array(
             	'headers' => $wp_request_headers,
                 'timeout' => 30
@@ -141,7 +141,7 @@ abstract class Rest {
 		Package::log( 'POST URL: ' . $wp_request_url );
 
 		$wp_dhl_rest_response = wp_remote_post(
-			$wp_request_url,
+			esc_url_raw( $wp_request_url ),
 			array(
 				'headers' => $wp_request_headers,
 				'timeout' => 100,

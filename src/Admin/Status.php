@@ -56,7 +56,7 @@ class Status {
 		$get_response_code = get_transient( $transient_name );
 
 		if ( false === $get_response_code || is_wp_error( $get_response_code ) ) {
-			$response = wp_remote_get( $url );
+			$response = wp_remote_get( esc_url_raw( $url ) );
 
 			if ( ! is_wp_error( $response ) ) {
 				$get_response_code = $response['response']['code'];

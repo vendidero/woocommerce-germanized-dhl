@@ -605,7 +605,7 @@ class LabelSoap extends Soap {
 		    }
 
 	    	if ( ! empty( $missing_address_fields ) ) {
-			    throw new Exception( sprintf( _x( 'Your shipper address is incomplete (%1$s). Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), implode( ', ', $missing_address_fields ), admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=address' ) ) );
+			    throw new Exception( sprintf( _x( 'Your shipper address is incomplete (%1$s). Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), implode( ', ', $missing_address_fields ), esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=address' ) ) ) );
 		    }
 
 		    $dhl_label_body['ShipmentOrder']['Shipment']['Shipper'] = array(

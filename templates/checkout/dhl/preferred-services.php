@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/DHL/Templates
- * @version 1.0.0
+ * @version 1.0.1
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 	<td colspan="2" class="dhl-preferred-service-content">
         <div class="dhl-preferred-service-item dhl-preferred-service-header">
             <div class="dhl-preferred-service-logo">
-                <img src="<?php echo $logo_url; ?>" alt="DHL logo" class="dhl-co-logo">
+                <img src="<?php echo esc_url( $logo_url ); ?>" alt="DHL logo" class="dhl-co-logo">
             </div>
             <div class="dhl-preferred-service-title">
 		        <?php _ex('DHL Preferred Delivery. Delivered just as you wish.', 'dhl', 'woocommerce-germanized-dhl' ); ?>

@@ -69,7 +69,7 @@ class Internetmarke {
 		if ( is_null( $this->api ) ) {
 			try {
 				if ( ! Package::has_load_dependencies() ) {
-					throw new \Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ) );
+					throw new \Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%s">installed</a>.', 'dhl', 'woocommerce-germanize-dhl' ), 'https://www.php.net/manual/class.soapclient.php', esc_url( admin_url( 'admin.php?page=wc-status' ) ) ) );
 				}
 
 				$this->api = new Service( $this->partner, array(), Package::get_wsdl_file( Package::get_internetmarke_main_url() ) );
@@ -787,7 +787,7 @@ class Internetmarke {
 
 			return $this->update_default_label( $label, $stamp );
 		} catch( \Exception $e ) {
-			throw new \Exception( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) ) );
+			throw new \Exception( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) ) ) );
 		}
 	}
 

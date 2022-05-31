@@ -1018,7 +1018,7 @@ class ParcelLocator {
 		if ( self::has_map() ) {
 			return '<a class="dhl-parcel-finder-link gzd-dhl-parcel-shop-modal" href="javascript:;">' . $text . '</a>';
 		} else {
-			return '<a href="' . self::get_pickup_locator_link() . '" class="dhl-parcel-finder-link dhl-parcel-finder-plain-link" target="_blank">' . $text . '</a>';
+			return '<a href="' . esc_url( self::get_pickup_locator_link() ) . '" class="dhl-parcel-finder-link dhl-parcel-finder-plain-link" target="_blank">' . $text . '</a>';
 		}
 	}
 
@@ -1127,7 +1127,7 @@ class ParcelLocator {
 				) );
 			}
 		} catch ( Exception $e ) {
-			$error = sprintf( _x( 'There was an error while communicating with DHL. Please manually find a %s or %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . self::get_pickup_locator_link() . '" target="_blank">' . _x( 'DHL location', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>', '<a class="dhl-retry-search" href="#">' . _x(  'retry', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' );
+			$error = sprintf( _x( 'There was an error while communicating with DHL. Please manually find a %s or %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . esc_url( self::get_pickup_locator_link() ) . '" target="_blank">' . _x( 'DHL location', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>', '<a class="dhl-retry-search" href="#">' . _x(  'retry', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' );
 
 			wp_send_json( array(
 				'success' => false,
