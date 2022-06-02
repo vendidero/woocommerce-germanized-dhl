@@ -12,7 +12,7 @@ class ImProductsSoap extends \SoapClient {
 	public function __construct( $options = array(), $wsdl = null ) {
 		$options = array_merge( array( 'features' => SOAP_SINGLE_ELEMENT_ARRAYS ), $options );
 
-		if ( $wsdl === null ) {
+		if ( null === $wsdl ) {
 			$wsdl = Package::get_internetmarke_products_url();
 		}
 
@@ -25,15 +25,15 @@ class ImProductsSoap extends \SoapClient {
 		return WsSecurity::createWsSecuritySoapHeader( Package::get_internetmarke_product_username(), Package::get_internetmarke_product_password() );
 	}
 
-	public function getProducts( $dedicatedProducts = 1 ) {
+	public function get_products( $dedicated_products = 1 ) {
 		return $this->__soapCall(
 			'getProductList',
 			array(
 				'getProductListRequest' => array(
 					'mandantID'         => Package::get_internetmarke_product_mandant_id(),
-					'dedicatedProducts' => $dedicatedProducts,
-					'responseMode'      => 0
-				)
+					'dedicatedProducts' => $dedicated_products,
+					'responseMode'      => 0,
+				),
 			)
 		);
 	}

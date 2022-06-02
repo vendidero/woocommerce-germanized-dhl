@@ -36,7 +36,7 @@ abstract class ReturnLabel extends \Vendidero\Germanized\Shipments\Labels\Return
 		/**
 		 * Legacy object support
 		 */
-		if ( $this->legacy && $this->get_id() <= 0 and $label_id > 0 ) {
+		if ( $this->legacy && $this->get_id() <= 0 && $label_id > 0 ) {
 			$data_store = WC_Data_Store::load( 'dhl-legacy-label' );
 
 			// If we have an ID, load the user from the DB.

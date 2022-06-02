@@ -57,13 +57,16 @@ class ImProductList {
 			$available_products = array();
 		}
 
-		$available_products = array_map( function( $p ) {
-			return "'" . esc_sql( $p ) . "'";
-		}, $available_products );
+		$available_products = array_map(
+			function( $p ) {
+				return "'" . esc_sql( $p ) . "'";
+			},
+			$available_products
+		);
 
 		$available_products = implode( ',', $available_products );
 
-		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code IN ($available_products)" );
+		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code IN ($available_products)" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		$this->available_products = $products;
 	}
@@ -75,7 +78,7 @@ class ImProductList {
 		$results  = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_product_services} WHERE product_service_product_id = %d", $product_id ) );
 
 		if ( ! empty( $results ) ) {
-			foreach( $results as $result ) {
+			foreach ( $results as $result ) {
 				$services[] = $result->product_service_slug;
 			}
 		}
@@ -103,38 +106,38 @@ class ImProductList {
 		if ( empty( $services ) ) {
 			$query .= " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id";
 		} else {
-			foreach( $services as $service ) {
+			foreach ( $services as $service ) {
 				$count++;
 
-				$query .= $wpdb->prepare( " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug = %s", $service );
+				$query .= $wpdb->prepare( " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug = %s", $service ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 		}
 
-		$query .= $wpdb->prepare(" WHERE {$wpdb->gzd_dhl_im_products}.product_parent_id = %d", $parent_id );
+		$query .= $wpdb->prepare( " WHERE {$wpdb->gzd_dhl_im_products}.product_parent_id = %d", $parent_id );
 
 		if ( empty( $services ) ) {
-			$query .= $wpdb->prepare(" AND {$wpdb->gzd_dhl_im_products}.product_service_count = %d", 1 );
+			$query .= $wpdb->prepare( " AND {$wpdb->gzd_dhl_im_products}.product_service_count = %d", 1 );
 		}
 
-		$results            = $wpdb->get_results( $query );
+		$results            = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$available_services = array();
 
 		if ( ! empty( $results ) ) {
-			foreach( $results as $result ) {
+			foreach ( $results as $result ) {
 				$product_id       = $result->product_id;
 				$product_services = $wpdb->get_results( $wpdb->prepare( "SELECT product_service_slug FROM {$wpdb->gzd_dhl_im_product_services} WHERE {$wpdb->gzd_dhl_im_product_services}.product_service_product_id = %d", $product_id ) );
 
 				if ( ! empty( $product_services ) ) {
-					foreach( $product_services as $product_service ) {
+					foreach ( $product_services as $product_service ) {
 						$service_slug = $product_service->product_service_slug;
 
-						if ( ! in_array( $service_slug, $available_services ) ) {
+						if ( ! in_array( $service_slug, $available_services, true ) ) {
 							$available_services[] = $service_slug;
 						}
 					}
 				}
 			}
- 		}
+		}
 
 		return $available_services;
 	}
@@ -161,25 +164,28 @@ class ImProductList {
 		$count = 0;
 
 		if ( ! empty( $services ) ) {
-			foreach( $services as $service ) {
+			foreach ( $services as $service ) {
 				$count++;
-				$query .= $wpdb->prepare( " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug = %s", $service );
+				$query .= $wpdb->prepare( " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug = %s", $service ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 
-			$all_services = array_map( function( $p ) {
-				return "'" . esc_sql( $p ) . "'";
-			}, $services );
+			$all_services = array_map(
+				function( $p ) {
+					return "'" . esc_sql( $p ) . "'";
+				},
+				$services
+			);
 
 			$all_services = implode( ',', $all_services );
 
 			// Add a left join which must be NULL making sure that no other services are linked to that product.
 			$query .= " LEFT JOIN {$wpdb->gzd_dhl_im_product_services} S ON {$wpdb->gzd_dhl_im_products}.product_id = S.product_service_product_id AND S.product_service_slug NOT IN ($all_services)";
-			$query .= $wpdb->prepare(" WHERE {$wpdb->gzd_dhl_im_products}.product_parent_id = %d AND S.product_service_id IS NULL LIMIT 1", $parent_id );
+			$query .= $wpdb->prepare( " WHERE {$wpdb->gzd_dhl_im_products}.product_parent_id = %d AND S.product_service_id IS NULL LIMIT 1", $parent_id );
 		} else {
-			$query .= $wpdb->prepare(" WHERE {$wpdb->gzd_dhl_im_products}.product_id = %d AND {$wpdb->gzd_dhl_im_products}.product_parent_id = %d LIMIT 1", $parent_id, 0 );
+			$query .= $wpdb->prepare( " WHERE {$wpdb->gzd_dhl_im_products}.product_id = %d AND {$wpdb->gzd_dhl_im_products}.product_parent_id = %d LIMIT 1", $parent_id, 0 );
 		}
 
-		$result = $wpdb->get_row( $query );
+		$result = $wpdb->get_row( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		if ( ! empty( $result ) ) {
 			return $result;
@@ -210,7 +216,7 @@ class ImProductList {
 		$products = wp_list_filter( $products, $filters );
 
 		if ( false !== $shipment_weight ) {
-			foreach( $products as $key => $product ) {
+			foreach ( $products as $key => $product ) {
 				if ( 0 !== $product->product_weight_min ) {
 					if ( $product->product_weight_min > $shipment_weight ) {
 						unset( $products[ $key ] );
@@ -228,7 +234,7 @@ class ImProductList {
 		}
 
 		return array_values( $products );
- 	}
+	}
 
 	public function get_base_products() {
 		return self::get_products( array( 'product_parent_id' => 0 ) );
@@ -254,11 +260,11 @@ class ImProductList {
 		$information_text = '';
 
 		foreach ( $stamp_type as $stamp ) {
-			if  ( $stamp->name == 'Internetmarke' ) {
-				foreach ( $stamp->propertyList as $properties ) {
+			if ( 'Internetmarke' === $stamp->name ) {
+				foreach ( $stamp->propertyList as $properties ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					foreach ( $properties as $property ) {
-						if ( $property->name == 'InformationText' ) {
-							$information_text = $property->propertyValue->alphanumericValue->fixValue;
+						if ( 'InformationText' === $property->name ) {
+							$information_text = $property->propertyValue->alphanumericValue->fixValue; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						}
 					}
 				}
@@ -278,9 +284,9 @@ class ImProductList {
 		if ( property_exists( $dimensions, $type ) ) {
 			$d = $dimensions->{ $type };
 
-			$data["product_{$type}_min"]  = property_exists( $d, 'minValue' ) ? $d->minValue : null;
-			$data["product_{$type}_max"]  = property_exists( $d, 'maxValue' ) ? $d->maxValue : null;
-			$data["product_{$type}_unit"] = property_exists( $d, 'unit' ) ? $d->unit : null;
+			$data[ "product_{$type}_min" ]  = property_exists( $d, 'minValue' ) ? $d->minValue : null; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$data[ "product_{$type}_max" ]  = property_exists( $d, 'maxValue' ) ? $d->maxValue : null; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$data[ "product_{$type}_unit" ] = property_exists( $d, 'unit' ) ? $d->unit : null; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		}
 
 		return $data;
@@ -308,14 +314,14 @@ class ImProductList {
 
 	protected function get_additional_service_identifiers() {
 		return array(
-			'+ einschreiben einwurf'                           => 'ESEW',
-			'+ einschreiben + einwurf'                         => 'ESEW',
-			'+ einschreiben + eigenhändig'                     => 'ESEH',
-			'+ einschreiben'                                   => 'ESCH',
-			'+ zusatzentgelt mbf'                              => 'ZMBF',
-			'+ prio'                                           => 'PRIO',
-			'unterschrift'                                     => 'USFT',
-			'tracked'                                          => 'TRCK',
+			'+ einschreiben einwurf'       => 'ESEW',
+			'+ einschreiben + einwurf'     => 'ESEW',
+			'+ einschreiben + eigenhändig' => 'ESEH',
+			'+ einschreiben'               => 'ESCH',
+			'+ zusatzentgelt mbf'          => 'ZMBF',
+			'+ prio'                       => 'PRIO',
+			'unterschrift'                 => 'USFT',
+			'tracked'                      => 'TRCK',
 		);
 	}
 
@@ -329,7 +335,7 @@ class ImProductList {
 		$additional_services = $this->get_additional_service_identifiers();
 		$slug                = str_replace( 'integral', '', $slug );
 
-		foreach( array_keys( $additional_services ) as $identifier ) {
+		foreach ( array_keys( $additional_services ) as $identifier ) {
 			$slug = str_replace( $identifier, ' ', $slug );
 		}
 
@@ -340,14 +346,14 @@ class ImProductList {
 		$service_slugs    = array();
 		$has_einschreiben = false;
 
-		foreach( $this->get_additional_service_identifiers() as $identifier => $service ) {
+		foreach ( $this->get_additional_service_identifiers() as $identifier => $service ) {
 			if ( strpos( $slug, $identifier ) !== false ) {
 				if ( strpos( $identifier, 'einschreiben' ) !== false ) {
 					if ( ! $has_einschreiben ) {
 						$has_einschreiben = true;
-						$service_slugs[] = $service;
+						$service_slugs[]  = $service;
 					}
-				} elseif( strpos( $slug, $identifier ) !== false ) {
+				} elseif ( strpos( $slug, $identifier ) !== false ) {
 					$service_slugs[] = $service;
 				}
 			}
@@ -372,40 +378,40 @@ class ImProductList {
 
 		try {
 			$product_soap = new ImProductsSoap( array(), Package::get_wsdl_file( Package::get_internetmarke_products_url() ) );
-			$product_list = $product_soap->getProducts();
+			$product_list = $product_soap->get_products();
 
 			$wpdb->query( "TRUNCATE TABLE {$wpdb->gzd_dhl_im_products}" );
 			$wpdb->query( "TRUNCATE TABLE {$wpdb->gzd_dhl_im_product_services}" );
 
 			$products = array(
-				'sales'      => $product_list->Response->salesProductList->SalesProduct,
-				'additional' => $product_list->Response->additionalProductList->AdditionalProduct,
-				'basic'      => $product_list->Response->basicProductList->BasicProduct
+				'sales'      => $product_list->Response->salesProductList->SalesProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				'additional' => $product_list->Response->additionalProductList->AdditionalProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				'basic'      => $product_list->Response->basicProductList->BasicProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			);
 
 			$products_with_additional_service = array();
 
-			foreach( $products as $product_type => $inner_products ) {
-				foreach( $inner_products as $product ) {
+			foreach ( $products as $product_type => $inner_products ) {
+				foreach ( $inner_products as $product ) {
 
-					$extended_identifier = $product->extendedIdentifier;
-					$extern_identifier   = property_exists( $extended_identifier, 'externIdentifier' ) ? $extended_identifier->externIdentifier[0] : new \stdClass();
+					$extended_identifier = $product->extendedIdentifier; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$extern_identifier   = property_exists( $extended_identifier, 'externIdentifier' ) ? $extended_identifier->externIdentifier[0] : new \stdClass(); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 					if ( ! property_exists( $extern_identifier, 'id' ) || empty( $extern_identifier->id ) ) {
 						continue;
 					}
 
 					$to_insert = array(
-						'product_im_id'                 => $extended_identifier->{'ProdWS-ID'},
-						'product_code'                  => property_exists( $extern_identifier, 'id' ) ? $extern_identifier->id : $extended_identifier->{'ProdWS-ID'},
-						'product_name'                  => property_exists( $extern_identifier, 'name' ) ? $extern_identifier->name : $extended_identifier->name,
-						'product_type'                  => $product_type,
-						'product_annotation'            => property_exists( $extended_identifier, 'annotation' ) ? $extended_identifier->annotation : '',
-						'product_description'           => property_exists( $extended_identifier, 'description' ) ? $extended_identifier->description : '',
-						'product_destination'           => $extended_identifier->destination,
-						'product_price'                 => property_exists( $product->priceDefinition, 'price' ) ? Package::eur_to_cents( $product->priceDefinition->price->calculatedGrossPrice->value ) : Package::eur_to_cents( $product->priceDefinition->grossPrice->value ),
-						'product_information_text'      => property_exists( $product, 'stampTypeList' ) ? $this->get_information_text( (array) $product->stampTypeList->stampType ) : '',
-						'product_is_wp_int'             => false,
+						'product_im_id'            => $extended_identifier->{'ProdWS-ID'},
+						'product_code'             => property_exists( $extern_identifier, 'id' ) ? $extern_identifier->id : $extended_identifier->{'ProdWS-ID'},
+						'product_name'             => property_exists( $extern_identifier, 'name' ) ? $extern_identifier->name : $extended_identifier->name,
+						'product_type'             => $product_type,
+						'product_annotation'       => property_exists( $extended_identifier, 'annotation' ) ? $extended_identifier->annotation : '',
+						'product_description'      => property_exists( $extended_identifier, 'description' ) ? $extended_identifier->description : '',
+						'product_destination'      => $extended_identifier->destination,
+						'product_price'            => property_exists( $product->priceDefinition, 'price' ) ? Package::eur_to_cents( $product->priceDefinition->price->calculatedGrossPrice->value ) : Package::eur_to_cents( $product->priceDefinition->grossPrice->value ), // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						'product_information_text' => property_exists( $product, 'stampTypeList' ) ? $this->get_information_text( (array) $product->stampTypeList->stampType ) : '', // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						'product_is_wp_int'        => false,
 					);
 
 					$product_slug = $this->sanitize_product_slug( $to_insert['product_name'] );
@@ -433,7 +439,7 @@ class ImProductList {
 					}
 
 					if ( property_exists( $product, 'dimensionList' ) ) {
-						$dimensions = $product->dimensionList;
+						$dimensions = $product->dimensionList; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 						$to_insert = array_merge( $to_insert, $this->get_dimensions( $dimensions, 'width' ) );
 						$to_insert = array_merge( $to_insert, $this->get_dimensions( $dimensions, 'height' ) );
@@ -446,6 +452,9 @@ class ImProductList {
 
 					$to_insert['product_slug'] = $this->sanitize_product_slug( $to_insert['product_name'] );
 
+					/**
+					 * Sanitize data.
+					 */
 					$to_insert = array_map( 'wc_clean', $to_insert );
 
 					/**
@@ -461,14 +470,14 @@ class ImProductList {
 				}
 			}
 
-			foreach( $products_with_additional_service as $product_to_insert ) {
+			foreach ( $products_with_additional_service as $product_to_insert ) {
 				$product_base_slug = $this->get_product_base_slug( $product_to_insert['product_slug'] );
 				$parent_product    = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_slug = %s", $product_base_slug ) );
 				$service_slugs     = $this->get_product_service_slugs( $product_to_insert['product_slug'] );
 
 				if ( ! empty( $parent_product ) && ! empty( $service_slugs ) ) {
 					$product_to_insert['product_parent_id']     = $parent_product->product_id;
-					$product_to_insert['product_service_count'] = sizeof( $service_slugs );
+					$product_to_insert['product_service_count'] = count( $service_slugs );
 				}
 
 				$wpdb->insert( $wpdb->gzd_dhl_im_products, $product_to_insert );
@@ -476,19 +485,18 @@ class ImProductList {
 				$product_id = $wpdb->insert_id;
 
 				if ( $product_id && ! empty( $parent_product ) && ! empty( $service_slugs ) ) {
-					foreach( $service_slugs as $service_slug ) {
+					foreach ( $service_slugs as $service_slug ) {
 						$service_insert = array(
-							'product_service_product_id'        => $product_id,
+							'product_service_product_id' => $product_id,
 							'product_service_product_parent_id' => $parent_product->product_id,
-							'product_service_slug'              => $service_slug,
+							'product_service_slug'       => $service_slug,
 						);
 
 						$wpdb->insert( $wpdb->gzd_dhl_im_product_services, $service_insert );
 					}
 				}
 			}
-
-		} catch( \Exception $e ) {
+		} catch ( \Exception $e ) {
 			$result->add( 'soap', $e->getMessage() );
 		}
 

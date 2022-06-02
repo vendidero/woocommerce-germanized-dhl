@@ -33,7 +33,7 @@ class Ajax {
 
 	public static function suppress_errors() {
 		if ( ! WP_DEBUG || ( WP_DEBUG && ! WP_DEBUG_DISPLAY ) ) {
-			@ini_set( 'display_errors', 0 ); // Turn off display_errors during AJAX events to prevent malformed JSON.
+			@ini_set( 'display_errors', 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.PHP.IniSet.display_errors_Blacklisted
 		}
 
 		$GLOBALS['wpdb']->hide_errors();
@@ -50,18 +50,20 @@ class Ajax {
 		}
 
 		if ( ! Package::get_internetmarke_api()->is_available() ) {
-			wp_send_json( array(
-				'success'  => false,
-				'messages' => Package::get_internetmarke_api()->get_errors()->get_error_messages(),
-			) );
+			wp_send_json(
+				array(
+					'success'  => false,
+					'messages' => Package::get_internetmarke_api()->get_errors()->get_error_messages(),
+				)
+			);
 		}
 
-		$selected_services   = isset( $_POST['selected_services'] ) ? wc_clean( $_POST['selected_services'] ) : array();
-		$im_product_id       = absint( $_POST['product_id'] );
-		$shipment_id         = absint( $_POST['shipment_id'] );
-		$product_id          = $im_product_id;
-		$is_wp_int           = false;
-		$response            = array(
+		$selected_services = isset( $_POST['selected_services'] ) ? wc_clean( wp_unslash( $_POST['selected_services'] ) ) : array();
+		$im_product_id     = absint( $_POST['product_id'] );
+		$shipment_id       = absint( $_POST['shipment_id'] );
+		$product_id        = $im_product_id;
+		$is_wp_int         = false;
+		$response          = array(
 			'success'      => true,
 			'preview_url'  => '',
 			'preview_data' => array(),

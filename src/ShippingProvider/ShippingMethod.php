@@ -10,9 +10,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Shipment Order
  *
- * @class 		WC_GZD_Shipment_Order
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       WC_GZD_Shipment_Order
+ * @version     1.0.0
+ * @author      Vendidero
  */
 class ShippingMethod {
 
@@ -80,7 +80,7 @@ class ShippingMethod {
 	public function is_preferred_service_enabled( $service ) {
 		$services = $this->get_enabled_preferred_services();
 
-		return in_array( $service, $services ) && $this->is_dhl_enabled();
+		return in_array( $service, $services, true ) && $this->is_dhl_enabled();
 	}
 
 	/**

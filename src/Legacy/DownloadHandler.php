@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Legacy;
+
 use WC_Download_Handler;
 
 defined( 'ABSPATH' ) || exit;
@@ -11,11 +12,14 @@ defined( 'ABSPATH' ) || exit;
 class DownloadHandler {
 
 	protected static function parse_args( $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'force'             => false,
-			'file_type'         => '',
-			'check_permissions' => true,
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'force'             => false,
+				'file_type'         => '',
+				'check_permissions' => true,
+			)
+		);
 
 		$args['force'] = wc_string_to_bool( $args['force'] );
 
@@ -50,10 +54,10 @@ class DownloadHandler {
 		if ( ob_get_level() ) {
 			$levels = ob_get_level();
 			for ( $i = 0; $i < $levels; $i++ ) {
-				@ob_end_clean(); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+				@ob_end_clean(); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			}
 		} else {
-			@ob_end_clean(); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+			@ob_end_clean(); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		}
 
 		wc_nocache_headers();
@@ -64,7 +68,7 @@ class DownloadHandler {
 		header( 'Content-Disposition: inline; filename="' . $filename . '";' );
 		header( 'Content-Transfer-Encoding: binary' );
 
-		$file_size = @filesize( $file_path ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+		$file_size = @filesize( $file_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 		if ( ! $file_size ) {
 			return;
@@ -72,7 +76,7 @@ class DownloadHandler {
 
 		header( 'Content-Length: ' . $file_size );
 
-		@readfile( $file_path );
+		@readfile( $file_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_read_readfile
 		exit();
 	}
 }

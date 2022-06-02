@@ -13,10 +13,6 @@ defined( 'ABSPATH' ) || exit;
 
 class ImWarenpostIntRest extends Rest {
 
-	public function __construct() {
-		parent::__construct();
-	}
-
 	public function get_base_url() {
 		return self::is_sandbox() ? 'https://api-qa.deutschepost.com' : Package::get_warenpost_international_rest_url();
 	}
@@ -36,7 +32,7 @@ class ImWarenpostIntRest extends Rest {
 	 * @throws Exception
 	 */
 	public function update_label( &$label, $result ) {
-		$order_id = wc_clean( $result->orderId );
+		$order_id = wc_clean( $result->orderId ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$awb      = wc_clean( $result->shipments[0]->awb );
 		$barcode  = wc_clean( $result->shipments[0]->items[0]->barcode );
 		$pdf      = $this->get_pdf( $awb );
@@ -63,10 +59,10 @@ class ImWarenpostIntRest extends Rest {
 
 	protected function clean_state( $string ) {
 		// Remove han chinese chars
-		$string = preg_replace( "/\p{Han}+/u", '', $string );
+		$string = preg_replace( '/\p{Han}+/u', '', $string );
 		$string = str_replace( array( '(', ')', '/' ), '', $string );
 		// Remove double white spaces
-		$string = preg_replace('/\s+/', ' ', $string );
+		$string = preg_replace( '/\s+/', ' ', $string );
 
 		return trim( $string );
 	}
@@ -80,7 +76,7 @@ class ImWarenpostIntRest extends Rest {
 	 *
 	 * @throws Exception
 	 */
-	public function create_label( &$label )  {
+	public function create_label( &$label ) {
 
 		if ( ! $shipment = $label->get_shipment() ) {
 			throw new Exception( _x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
@@ -92,24 +88,27 @@ class ImWarenpostIntRest extends Rest {
 		$total_value      = 0;
 		$total_net_weight = 0;
 
-		foreach( $customs_data['items'] as $position ) {
+		foreach ( $customs_data['items'] as $position ) {
 			/**
 			 * The Warenpost API expects value and weight to be a per row value, e.g.
 			 * if 2x Product A is included the total weight/value is expected. In contrarian to the DHL customs API.
 			 */
-			$pos_net_weight   = intval( wc_get_weight( $position['weight_in_kg'], 'g', 'kg' ) );
+			$pos_net_weight    = intval( wc_get_weight( $position['weight_in_kg'], 'g', 'kg' ) );
 			$total_value      += $position['value'];
 			$total_net_weight += $pos_net_weight;
 
-			array_push($positions, array(
-				'contentPieceIndexNumber' => $position_index++,
-				'contentPieceHsCode'      => $position['tariff_number'],
-				'contentPieceDescription' => $position['description'],
-				'contentPieceValue'       => $position['value'],
-				'contentPieceNetweight'   => $pos_net_weight,
-				'contentPieceOrigin'      => $position['origin_code'],
-				'contentPieceAmount'      => $position['quantity']
-			) );
+			array_push(
+				$positions,
+				array(
+					'contentPieceIndexNumber' => $position_index++,
+					'contentPieceHsCode'      => $position['tariff_number'],
+					'contentPieceDescription' => $position['description'],
+					'contentPieceValue'       => $position['value'],
+					'contentPieceNetweight'   => $pos_net_weight,
+					'contentPieceOrigin'      => $position['origin_code'],
+					'contentPieceAmount'      => $position['quantity'],
+				)
+			);
 		}
 
 		$is_return      = 'return' === $label->get_type();
@@ -161,11 +160,11 @@ class ImWarenpostIntRest extends Rest {
 					'senderEmail'         => $shipment->get_sender_email(),
 					'returnItemWanted'    => false,
 					'shipmentNaturetype'  => strtoupper( apply_filters( 'woocommerce_gzd_deutsche_post_label_api_customs_shipment_nature_type', ( $is_return ? 'RETURN_GOODS' : 'SALE_GOODS' ), $label ) ),
-					'contents'            => array()
-				)
+					'contents'            => array(),
+				),
 			),
 			'orderStatus' => 'FINALIZE',
-			'paperwork' => array(
+			'paperwork'   => array(
 				'contactName'     => $sender_name,
 				'awbCopyCount'    => 1,
 				'jobReference'    => null,
@@ -173,8 +172,8 @@ class ImWarenpostIntRest extends Rest {
 				'pickupLocation'  => null,
 				'pickupDate'      => null,
 				'pickupTimeSlot'  => null,
-				'telephoneNumber' => $shipment->get_sender_phone()
-			)
+				'telephoneNumber' => $shipment->get_sender_phone(),
+			),
 		);
 
 		// Do only add customs data in case it is a non-EU shipment
@@ -211,7 +210,7 @@ class ImWarenpostIntRest extends Rest {
 		}
 
 		$request_data = $this->walk_recursive_remove( $request_data );
-		$result       = $this->post_request( '/dpi/shipping/v1/orders', json_encode( $request_data, JSON_PRETTY_PRINT ) );
+		$result       = $this->post_request( '/dpi/shipping/v1/orders', json_encode( $request_data, JSON_PRETTY_PRINT ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 
 		if ( isset( $result->shipments ) ) {
 			return $this->update_label( $label, $result );
@@ -228,7 +227,7 @@ class ImWarenpostIntRest extends Rest {
 		} else {
 			$response_body = $this->get_request( '/v1/auth/accesstoken', array(), 'xml' );
 
-			$reg_exp_ut = "/<userToken>(.+?)<\/userToken>/";
+			$reg_exp_ut = '/<userToken>(.+?)<\/userToken>/';
 
 			if ( preg_match( $reg_exp_ut, $response_body, $match_ut ) ) {
 				$user_token = $match_ut[1];
@@ -284,14 +283,17 @@ class ImWarenpostIntRest extends Rest {
 			$this->remote_header['Accept'] = $this->get_pdf_accept_header();
 		}
 
-		$date = new \DateTime( "now", new \DateTimeZone( 'Europe/Berlin' ) );
+		$date = new \DateTime( 'now', new \DateTimeZone( 'Europe/Berlin' ) );
 
-		$this->remote_header = array_merge( $this->remote_header, array(
-			'KEY_PHASE'         => $this->get_key_phase(),
-			'PARTNER_ID'        => $this->get_partner_id(),
-			'REQUEST_TIMESTAMP' => $date->format( 'dmY-His' ),
-			'PARTNER_SIGNATURE' => $this->get_signature( $date ),
-		) );
+		$this->remote_header = array_merge(
+			$this->remote_header,
+			array(
+				'KEY_PHASE'         => $this->get_key_phase(),
+				'PARTNER_ID'        => $this->get_partner_id(),
+				'REQUEST_TIMESTAMP' => $date->format( 'dmY-His' ),
+				'PARTNER_SIGNATURE' => $this->get_signature( $date ),
+			)
+		);
 	}
 
 	protected function get_ekp() {
@@ -317,7 +319,7 @@ class ImWarenpostIntRest extends Rest {
 	protected function get_basic_auth_encode( $user, $pass ) {
 		$pass = htmlentities( $pass, ENT_XML1 );
 
-		return base64_encode( $user . ':' . $pass );
+		return base64_encode( $user . ':' . $pass ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 	}
 
 	protected function handle_get_response( $response_code, $response_body ) {
@@ -339,7 +341,7 @@ class ImWarenpostIntRest extends Rest {
 				$error_message = '';
 
 				if ( isset( $response_body->messages ) ) {
-					foreach( $response_body->messages as $message ) {
+					foreach ( $response_body->messages as $message ) {
 						$error_message .= ( ! empty( $error_message ) ? ', ' : '' ) . $message;
 					}
 				}
@@ -366,7 +368,7 @@ class ImWarenpostIntRest extends Rest {
 
 	protected function get_signature( $date = null ) {
 		if ( ! $date ) {
-			$date = new \DateTime( "now", new \DateTimeZone( 'Europe/Berlin' ) );
+			$date = new \DateTime( 'now', new \DateTimeZone( 'Europe/Berlin' ) );
 		}
 
 		return substr(
@@ -375,9 +377,9 @@ class ImWarenpostIntRest extends Rest {
 					'::',
 					array(
 						$this->get_partner_id(),
-						$date->format('dmY-His'),
+						$date->format( 'dmY-His' ),
 						$this->get_key_phase(),
-						$this->get_partner_token()
+						$this->get_partner_token(),
 					)
 				)
 			),

@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Admin\Importer;
+
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -74,7 +75,7 @@ class DHL {
 		);
 
 		// Bulk update settings
-		foreach( $settings_mapping as $setting_old_key => $setting_new_key ) {
+		foreach ( $settings_mapping as $setting_old_key => $setting_new_key ) {
 			if ( isset( $old_settings[ 'dhl_' . $setting_old_key ] ) && ! empty( $old_settings[ 'dhl_' . $setting_old_key ] ) ) {
 				$dhl->update_setting( $setting_new_key, $old_settings[ 'dhl_' . $setting_old_key ] );
 			}
@@ -83,7 +84,7 @@ class DHL {
 		/**
 		 * Default address update
 		 */
-		foreach( array( 'shipper', 'return' ) as $address_type ) {
+		foreach ( array( 'shipper', 'return' ) as $address_type ) {
 			$plain_address = array(
 				'company'      => 'company',
 				'address_city' => 'city',
@@ -92,7 +93,7 @@ class DHL {
 				'email'        => 'email',
 			);
 
-			foreach( $plain_address as $prop => $new_prop ) {
+			foreach ( $plain_address as $prop => $new_prop ) {
 				$prop_name = $address_type . '_' . $prop;
 
 				if ( ! empty( $old_settings[ 'dhl_' . $prop_name ] ) ) {
@@ -100,17 +101,17 @@ class DHL {
 				}
 			}
 
-			if ( ! empty( $old_settings["dhl_{$address_type}_address"] ) ) {
-				$address_1 = $old_settings["dhl_{$address_type}_address"] . ' ' . ( isset( $old_settings["dhl_{$address_type}_address_no"] ) ? $old_settings["dhl_{$address_type}_address_no"] : '' );
+			if ( ! empty( $old_settings[ "dhl_{$address_type}_address" ] ) ) {
+				$address_1 = $old_settings[ "dhl_{$address_type}_address" ] . ' ' . ( isset( $old_settings[ "dhl_{$address_type}_address_no" ] ) ? $old_settings[ "dhl_{$address_type}_address_no" ] : '' );
 
 				update_option( "woocommerce_gzd_shipments_{$address_type}_address_address_1", $address_1 );
 			}
 
-			if ( ! empty( $old_settings["dhl_{$address_type}_name"] ) ) {
-				$name       = explode( " ", $old_settings["dhl_{$address_type}_name"] );
+			if ( ! empty( $old_settings[ "dhl_{$address_type}_name" ] ) ) {
+				$name       = explode( ' ', $old_settings[ "dhl_{$address_type}_name" ] );
 				$name_first = $name;
-				$first_name = implode( ' ', array_splice( $name_first, 0, ( sizeof( $name ) - 1 ) ) );
-				$last_name  = $name[ sizeof( $name ) - 1 ];
+				$first_name = implode( ' ', array_splice( $name_first, 0, ( count( $name ) - 1 ) ) );
+				$last_name  = $name[ count( $name ) - 1 ];
 
 				update_option( "woocommerce_gzd_shipments_{$address_type}_address_first_name", $first_name );
 				update_option( "woocommerce_gzd_shipments_{$address_type}_address_last_name", $last_name );
@@ -129,14 +130,14 @@ class DHL {
 		$isos            = ( $countries ) ? $countries->get_countries() : array();
 
 		if ( ! empty( $shipper_country ) && ! empty( $isos ) ) {
-			if ( ( $key = array_search( $shipper_country, $isos ) ) !== false ) {
-				update_option( "woocommerce_gzd_shipments_shipper_address_country", $key );
+			if ( ( $key = array_search( $shipper_country, $isos, true ) ) !== false ) {
+				update_option( 'woocommerce_gzd_shipments_shipper_address_country', $key );
 			}
 		}
 
 		if ( ! empty( $return_country ) && ! empty( $isos ) ) {
-			if ( ( $key = array_search( $return_country, $isos ) ) !== false ) {
-				update_option( "woocommerce_gzd_shipments_return_address_country", $key );
+			if ( ( $key = array_search( $return_country, $isos, true ) ) !== false ) {
+				update_option( 'woocommerce_gzd_shipments_return_address_country', $key );
 			}
 		}
 
@@ -147,16 +148,18 @@ class DHL {
 
 	public static function import_order_data( $limit = 10, $offset = 0 ) {
 
-		$orders = wc_get_orders( array(
-			'limit'   => $limit,
-			'offset'  => $offset,
-			'orderby' => 'date',
-			'order'   => 'DESC',
-			'type'    => 'shop_order'
-		) );
+		$orders = wc_get_orders(
+			array(
+				'limit'   => $limit,
+				'offset'  => $offset,
+				'orderby' => 'date',
+				'order'   => 'DESC',
+				'type'    => 'shop_order',
+			)
+		);
 
 		if ( ! empty( $orders ) ) {
-			foreach( $orders as $order ) {
+			foreach ( $orders as $order ) {
 
 				if ( ! $order->get_meta( '_shipping_address_type' ) ) {
 
@@ -181,7 +184,7 @@ class DHL {
 		$pos_ps = stripos( $order->get_shipping_address_1(), 'Packstation' );
 		$pos_fl = stripos( $order->get_shipping_address_1(), 'Postfiliale' );
 
-		if ( $pos_ps !== false || $pos_fl !== false ) {
+		if ( false !== $pos_ps || false !== $pos_fl ) {
 			return true;
 		}
 

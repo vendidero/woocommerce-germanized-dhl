@@ -43,10 +43,10 @@ class ReturnRest extends Rest {
 		$label->get_sender_country();
 
 		$request_args = array(
-			'receiverId'        => $label->get_receiver_id(),
-			"customerReference" => wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ),
-			"shipmentReference" => '',
-			"senderAddress"     => array(
+			'receiverId'         => $label->get_receiver_id(),
+			'customerReference'  => wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ),
+			'shipmentReference'  => '',
+			'senderAddress'      => array(
 				'name1'       => $label->get_sender_company() ? $label->get_sender_company() : $label->get_sender_formatted_full_name(),
 				'name2'       => $label->get_sender_company() ? $label->get_sender_formatted_full_name() : '',
 				/**
@@ -72,9 +72,9 @@ class ReturnRest extends Rest {
 			),
 			'email'              => Package::get_setting( 'return_email' ),
 			'telephoneNumber'    => Package::get_setting( 'return_phone' ),
-			"weightInGrams"      => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
+			'weightInGrams'      => wc_get_weight( $label->get_weight(), 'g', 'kg' ),
 			'value'              => $shipment->get_total(),
-			'returnDocumentType' => 'SHIPMENT_LABEL'
+			'returnDocumentType' => 'SHIPMENT_LABEL',
 		);
 
 		if ( Package::is_crossborder_shipment( $label->get_sender_country(), $label->get_sender_postcode() ) ) {
@@ -82,7 +82,7 @@ class ReturnRest extends Rest {
 			$customs_data   = wc_gzd_dhl_get_shipment_customs_data( $label );
 			$shipment_items = $shipment->get_items();
 
-			foreach( $customs_data['items'] as $key => $customs_item ) {
+			foreach ( $customs_data['items'] as $key => $customs_item ) {
 				$shipment_item = $shipment_items[ $key ];
 
 				$items[] = array(
@@ -102,12 +102,16 @@ class ReturnRest extends Rest {
 				);
 			}
 
-			$request_args['customsDocument'] = apply_filters( 'woocommerce_gzd_dhl_retoure_customs_data', array(
-				'currency'               => $order ? $order->get_currency() : 'EUR',
-				'originalShipmentNumber' => $shipment->get_order_number(),
-				'originalOperator'       => $shipment->get_shipping_provider(),
-				'positions'              => $items,
-			), $label );
+			$request_args['customsDocument'] = apply_filters(
+				'woocommerce_gzd_dhl_retoure_customs_data',
+				array(
+					'currency'               => $order ? $order->get_currency() : 'EUR',
+					'originalShipmentNumber' => $shipment->get_order_number(),
+					'originalOperator'       => $shipment->get_shipping_provider(),
+					'positions'              => $items,
+				),
+				$label
+			);
 		}
 
 		return $request_args;
@@ -116,9 +120,9 @@ class ReturnRest extends Rest {
 	public function create_return_label( &$label ) {
 		try {
 			$request_args = $this->get_request_args( $label );
-			$result       = $this->post_request( '/returns/', json_encode( $request_args ) );
+			$result       = $this->post_request( '/returns/', wp_json_encode( $request_args ) );
 
-			Package::log( '"returns" called with: ' . print_r( $request_args, true ) );
+			Package::log( '"returns" called with: ' . print_r( $request_args, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 		} catch ( Exception $e ) {
 			Package::log( 'Response Error: ' . $e->getMessage() );
 			throw $e;
@@ -136,11 +140,11 @@ class ReturnRest extends Rest {
 	 */
 	protected function update_return_label( $label, $response_body ) {
 		try {
-			if ( isset( $response_body->shipmentNumber ) ) {
-				$label->set_number( $response_body->shipmentNumber );
+			if ( isset( $response_body->shipmentNumber ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$label->set_number( $response_body->shipmentNumber ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			}
 
-			$default_file = base64_decode( $response_body->labelData );
+			$default_file = base64_decode( $response_body->labelData ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase,WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 			// Store the downloaded label as default file
 			$path = $label->upload_label_file( $default_file );
@@ -148,7 +152,7 @@ class ReturnRest extends Rest {
 			if ( ! $path ) {
 				throw new Exception( 'Error while uploading the return label' );
 			}
-		} catch( Exception $e ) {
+		} catch ( Exception $e ) {
 			// Delete the label dues to errors.
 			$label->delete();
 
@@ -159,7 +163,7 @@ class ReturnRest extends Rest {
 	}
 
 	protected function get_retoure_auth() {
-		return base64_encode( Package::get_retoure_api_user() . ':' . Package::get_retoure_api_signature() );
+		return base64_encode( Package::get_retoure_api_user() . ':' . Package::get_retoure_api_signature() ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 	}
 
 	protected function set_header( $authorization = '', $request_type = 'GET', $endpoint = '' ) {

@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Admin\Importer;
+
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -41,7 +42,7 @@ class Internetmarke {
 		}
 
 		// Bulk update settings
-		foreach( $settings_mapping as $setting_old_key => $setting_new_key ) {
+		foreach ( $settings_mapping as $setting_old_key => $setting_new_key ) {
 			if ( isset( $old_settings[ $setting_old_key ] ) ) {
 				$deutsche_post->update_setting( $setting_new_key, $old_settings[ $setting_old_key ] );
 			}

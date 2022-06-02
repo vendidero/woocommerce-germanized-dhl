@@ -40,7 +40,7 @@ abstract class Label extends \Vendidero\Germanized\Shipments\Labels\Label {
 		/**
 		 * Legacy object support
 		 */
-		if ( $this->legacy && $this->get_id() <= 0 and $label_id > 0 ) {
+		if ( $this->legacy && $this->get_id() <= 0 && $label_id > 0 ) {
 			$data_store = WC_Data_Store::load( 'dhl-legacy-label' );
 
 			// If we have an ID, load the user from the DB.
@@ -72,17 +72,19 @@ abstract class Label extends \Vendidero\Germanized\Shipments\Labels\Label {
 		if ( ! $this->legacy ) {
 			return parent::get_children();
 		} else {
-			return wc_gzd_dhl_get_labels( array(
-				'parent_id' => $this->get_id(),
-			) );
+			return wc_gzd_dhl_get_labels(
+				array(
+					'parent_id' => $this->get_id(),
+				)
+			);
 		}
 	}
 
-    /*
-    |--------------------------------------------------------------------------
-    | Setters
-    |--------------------------------------------------------------------------
-    */
+	/*
+	|--------------------------------------------------------------------------
+	| Setters
+	|--------------------------------------------------------------------------
+	*/
 	protected function set_time_prop( $prop, $value ) {
 		try {
 
@@ -140,7 +142,7 @@ abstract class Label extends \Vendidero\Germanized\Shipments\Labels\Label {
 		$end   = $this->get_preferred_time_end();
 
 		if ( $start && $end ) {
-			return sprintf( _x( '%s-%s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
+			return sprintf( _x( '%1$s-%2$s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
 		}
 
 		return null;

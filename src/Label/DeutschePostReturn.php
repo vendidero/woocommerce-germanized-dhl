@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Label;
+
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 
 defined( 'ABSPATH' ) || exit;
@@ -24,7 +25,7 @@ class DeutschePostReturn extends DeutschePost implements ShipmentReturnLabel {
 		'voucher_id'     => '',
 		'original_url'   => '',
 		'manifest_url'   => '',
-		'sender_address' => array()
+		'sender_address' => array(),
 	);
 
 	protected function get_hook_prefix() {

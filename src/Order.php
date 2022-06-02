@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL;
+
 use Exception;
 use WC_Order;
 use WC_Customer;
@@ -11,9 +12,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Shipment Order
  *
- * @class 		WC_GZD_Shipment_Order
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       WC_GZD_Shipment_Order
+ * @version     1.0.0
+ * @author      Vendidero
  */
 class Order {
 
@@ -60,7 +61,7 @@ class Order {
 				}
 
 				if ( $datetime ) {
-					$value = strtotime( date( $format, $datetime->getOffsetTimestamp() ) );
+					$value = strtotime( date( $format, $datetime->getOffsetTimestamp() ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 				}
 			}
 		} catch ( Exception $e ) {} // @codingStandardsIgnoreLine.
@@ -114,35 +115,35 @@ class Order {
 					if ( $preferred_day ) {
 						return strtotime( $preferred_day );
 					}
-				} elseif( 'preferred_time_start' === $prop || 'preferred_time_end' === $prop ) {
+				} elseif ( 'preferred_time_start' === $prop || 'preferred_time_end' === $prop ) {
 					$preferred_time = isset( $meta['pr_dhl_preferred_time'] ) ? $meta['pr_dhl_preferred_time'] : false;
 
 					if ( $preferred_time ) {
 						$preferred_time_start_part = substr( $preferred_time, 0, 4 );
 						$preferred_time_start      = implode( ':', str_split( $preferred_time_start_part, 2 ) );
 
-						$preferred_time_end_part   = substr( $preferred_time, 4, 8 );
-						$preferred_time_end        = implode( ':', str_split( $preferred_time_end_part, 2 ) );
+						$preferred_time_end_part = substr( $preferred_time, 4, 8 );
+						$preferred_time_end      = implode( ':', str_split( $preferred_time_end_part, 2 ) );
 
 						if ( 'preferred_time_start' === $prop ) {
 							return strtotime( $preferred_time_start );
-						} elseif( 'preferred_time_end' === $prop ) {
+						} elseif ( 'preferred_time_end' === $prop ) {
 							return strtotime( $preferred_time_end );
 						}
 					}
-				} elseif( 'preferred_neighbor' === $prop ) {
+				} elseif ( 'preferred_neighbor' === $prop ) {
 					$has_neighbor = ( isset( $meta['pr_dhl_preferred_location_neighbor'] ) && 'preferred_neighbor' === $meta['pr_dhl_preferred_location_neighbor'] ) ? true : false;
 
 					if ( $has_neighbor ) {
 						return ( isset( $meta['pr_dhl_preferred_neighbour_name'] ) ? $meta['pr_dhl_preferred_neighbour_name'] : '' );
 					}
-				} elseif( 'preferred_neighbor_address' === $prop ) {
+				} elseif ( 'preferred_neighbor_address' === $prop ) {
 					$has_neighbor = ( isset( $meta['pr_dhl_preferred_location_neighbor'] ) && 'preferred_neighbor' === $meta['pr_dhl_preferred_location_neighbor'] ) ? true : false;
 
 					if ( $has_neighbor ) {
 						return ( isset( $meta['pr_dhl_preferred_neighbour_address'] ) ? $meta['pr_dhl_preferred_neighbour_address'] : '' );
 					}
-				} elseif( 'preferred_location' === $prop ) {
+				} elseif ( 'preferred_location' === $prop ) {
 					$has_location = ( isset( $meta['pr_dhl_preferred_location_neighbor'] ) && 'preferred_location' === $meta['pr_dhl_preferred_location_neighbor'] ) ? true : false;
 
 					if ( $has_location ) {
@@ -247,7 +248,7 @@ class Order {
 		if ( $timestamp = $this->get_dhl_prop( 'preferred_day' ) ) {
 			$date = new \WC_DateTime();
 			$date->setTimestamp( $timestamp );
-			$date->setTimezone( new \DateTimeZone(  'Europe/Berlin' ) );
+			$date->setTimezone( new \DateTimeZone( 'Europe/Berlin' ) );
 
 			return $date;
 		}
@@ -263,7 +264,7 @@ class Order {
 		if ( $timestamp = $this->get_dhl_prop( 'preferred_time_start' ) ) {
 			$date = new \WC_DateTime();
 			$date->setTimestamp( $timestamp );
-			$date->setTimezone( new \DateTimeZone(  'Europe/Berlin' ) );
+			$date->setTimezone( new \DateTimeZone( 'Europe/Berlin' ) );
 
 			return $date;
 		}
@@ -275,7 +276,7 @@ class Order {
 		if ( $timestamp = $this->get_dhl_prop( 'preferred_time_end' ) ) {
 			$date = new \WC_DateTime();
 			$date->setTimestamp( $timestamp );
-			$date->setTimezone( new \DateTimeZone(  'Europe/Berlin' ) );
+			$date->setTimezone( new \DateTimeZone( 'Europe/Berlin' ) );
 
 			return $date;
 		}
@@ -303,7 +304,7 @@ class Order {
 		$end   = $this->get_preferred_time_end();
 
 		if ( $start && $end ) {
-			return sprintf( _x( '%s-%s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
+			return sprintf( _x( '%1$s-%2$s', 'dhl time-span', 'woocommerce-germanized-dhl' ), $start->date( 'H' ), $end->date( 'H' ) );
 		}
 
 		return null;

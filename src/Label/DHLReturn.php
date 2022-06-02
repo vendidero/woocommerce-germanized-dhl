@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Label;
+
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 
@@ -18,7 +19,7 @@ class DHLReturn extends ReturnLabel {
 	 */
 	protected $extra_data = array(
 		'receiver_slug'  => '',
-		'sender_address' => array()
+		'sender_address' => array(),
 	);
 
 	protected function get_hook_prefix() {
@@ -73,10 +74,10 @@ class DHLReturn extends ReturnLabel {
 
 		try {
 			Package::get_api()->get_return_label( $this );
-		} catch( \Exception $e ) {
-			$errors = explode(PHP_EOL, $e->getMessage() );
+		} catch ( \Exception $e ) {
+			$errors = explode( PHP_EOL, $e->getMessage() );
 
-			foreach( $errors as $error ) {
+			foreach ( $errors as $error ) {
 				$result->add( 'dhl-api-error', $error );
 			}
 		}

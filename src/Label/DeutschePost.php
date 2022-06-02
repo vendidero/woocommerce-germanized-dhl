@@ -17,16 +17,16 @@ class DeutschePost extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'page_format'         => '',
-		'position_x'          => 1,
-		'position_y'          => 1,
-		'shop_order_id'       => '',
-		'stamp_total'         => 0,
-		'voucher_id'          => '',
-		'original_url'        => '',
-		'manifest_url'        => '',
-		'wp_int_awb'          => '',
-		'wp_int_barcode'      => '',
+		'page_format'    => '',
+		'position_x'     => 1,
+		'position_y'     => 1,
+		'shop_order_id'  => '',
+		'stamp_total'    => 0,
+		'voucher_id'     => '',
+		'original_url'   => '',
+		'manifest_url'   => '',
+		'wp_int_awb'     => '',
+		'wp_int_barcode' => '',
 	);
 
 	public function __construct( $data = 0, $legacy = false ) {
@@ -180,11 +180,11 @@ class DeutschePost extends Label {
 
 		if ( ! empty( $voucher_id ) && $voucher_id !== $this->get_number() ) {
 			$is_trackable = true;
-		} elseif ( in_array( $this->get_product_id(), [ 1, 21, 11, 31, 195, 196, 197, 198, 199, 200, 1007, 1017, 1027, 1037, 1047, 1057 ] ) ) {
+		} elseif ( in_array( (int) $this->get_product_id(), array( 1, 21, 11, 31, 195, 196, 197, 198, 199, 200, 1007, 1017, 1027, 1037, 1047, 1057 ), true ) ) {
 			$is_trackable = true;
 		} elseif ( ! empty( $services ) && ! empty( array_intersect( array( 'ESEW', 'ESCH', 'ESEH' ), $services ) ) ) {
 			$is_trackable = true;
-		} elseif( ! empty( $this->get_wp_int_barcode() ) && ( in_array( 'TRCK', $this->get_services() ) || 'RC' === strtoupper( substr( $this->get_wp_int_barcode(), 0, 2 ) ) ) ) {
+		} elseif ( ! empty( $this->get_wp_int_barcode() ) && ( in_array( 'TRCK', $this->get_services(), true ) || 'RC' === strtoupper( substr( $this->get_wp_int_barcode(), 0, 2 ) ) ) ) {
 			$is_trackable = true;
 		}
 
@@ -199,7 +199,7 @@ class DeutschePost extends Label {
 
 		try {
 			Package::get_internetmarke_api()->get_label( $this );
-		} catch( \Exception $e ) {
+		} catch ( \Exception $e ) {
 			$result->add( 'deutsche-post-api-error', $e->getMessage() );
 		}
 
@@ -214,7 +214,8 @@ class DeutschePost extends Label {
 		if ( $api = Package::get_internetmarke_api() ) {
 			try {
 				$api->delete_label( $this );
-			} catch( \Exception $e ) {}
+			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			}
 		}
 
 		return parent::delete( $force_delete );

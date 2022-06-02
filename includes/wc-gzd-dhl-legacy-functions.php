@@ -28,7 +28,7 @@ function wc_gzd_legacy_dhl_get_label_types() {
 		'simple',
 		'return',
 		'deutsche_post',
-		'deutsche_post_return'
+		'deutsche_post_return',
 	);
 }
 
@@ -122,8 +122,8 @@ function _wc_gzd_dhl_legacy_label( $label, $the_label, $shipping_provider, $type
 
 				try {
 					$label = new $classname( $label_id, true );
-				} catch( Exception $e ) {
-					wc_caught_exception( $e, __FUNCTION__, func_get_args() );
+				} catch ( Exception $e ) {
+					wc_caught_exception( $e, __FUNCTION__, array( $label, $the_label, $shipping_provider, $type ) );
 					$label = false;
 				}
 			}
@@ -224,7 +224,7 @@ function wc_gzd_dhl_create_label( $shipment, $args = false ) {
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL
 		 */
-		do_action( "woocommerce_gzd_dhl_after_create_label", $label );
+		do_action( 'woocommerce_gzd_dhl_after_create_label', $label );
 
 	} catch ( Exception $e ) {
 		return new WP_Error( 'error', $e->getMessage() );
@@ -295,10 +295,12 @@ function wc_gzd_dhl_upload_data( $filename, $bits, $relative = true ) {
 function wc_gzd_dhl_get_return_label_by_parent( $label_parent_id ) {
 	wc_deprecated_function( 'wc_gzd_dhl_get_return_label_by_parent', '1.5' );
 
-	$labels = wc_gzd_dhl_get_labels( array(
-		'parent_id' => $label_parent_id,
-		'type'      => 'return',
-	) );
+	$labels = wc_gzd_dhl_get_labels(
+		array(
+			'parent_id' => $label_parent_id,
+			'type'      => 'return',
+		)
+	);
 
 	if ( ! empty( $labels ) ) {
 		return $labels[0];

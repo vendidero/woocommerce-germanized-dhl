@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\DHL\Label;
+
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -82,7 +83,7 @@ class DHL extends Label {
 	}
 
 	public function get_return_formatted_full_name() {
-		return sprintf( _x( '%1$s', 'dhl full name', 'woocommerce-germanized-dhl' ), $this->get_return_name() );
+		return sprintf( _x( '%1$s', 'dhl full name', 'woocommerce-germanized-dhl' ), $this->get_return_name() ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
 	}
 
 	public function get_return_postcode( $context = 'view' ) {
@@ -164,7 +165,7 @@ class DHL extends Label {
 	public function has_inlay_return() {
 		$products = wc_gzd_dhl_get_inlay_return_products();
 
-		return ( true === $this->get_has_inlay_return() && in_array( $this->get_product_id(), $products ) );
+		return ( true === $this->get_has_inlay_return() && in_array( $this->get_product_id(), $products ) ); // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
 	}
 
 	/**
@@ -267,10 +268,10 @@ class DHL extends Label {
 
 		try {
 			Package::get_api()->get_label( $this );
-		} catch( \Exception $e ) {
-			$errors = explode(PHP_EOL, $e->getMessage() );
+		} catch ( \Exception $e ) {
+			$errors = explode( PHP_EOL, $e->getMessage() );
 
-			foreach( $errors as $error ) {
+			foreach ( $errors as $error ) {
 				$result->add( 'dhl-api-error', $error );
 			}
 		}
@@ -286,7 +287,8 @@ class DHL extends Label {
 		if ( $api = Package::get_api() ) {
 			try {
 				$api->get_label_api()->delete_label( $this );
-			} catch( \Exception $e ) {}
+			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			}
 		}
 
 		return parent::delete( $force_delete );
@@ -295,14 +297,14 @@ class DHL extends Label {
 	public function get_additional_file_types() {
 		return array(
 			'default',
-			'export'
+			'export',
 		);
 	}
 
 	public function get_filename( $file_type = '' ) {
 		if ( 'default' === $file_type ) {
 			return $this->get_default_filename();
-		} elseif( 'export' === $file_type ) {
+		} elseif ( 'export' === $file_type ) {
 			return $this->get_export_filename();
 		} else {
 			return parent::get_filename( $file_type );
@@ -312,7 +314,7 @@ class DHL extends Label {
 	public function get_file( $file_type = '' ) {
 		if ( 'default' === $file_type ) {
 			return $this->get_default_file();
-		} elseif( 'export' === $file_type ) {
+		} elseif ( 'export' === $file_type ) {
 			return $this->get_export_file();
 		} else {
 			return parent::get_file( $file_type );
@@ -322,7 +324,7 @@ class DHL extends Label {
 	public function get_path( $context = 'view', $file_type = '' ) {
 		if ( 'default' === $file_type ) {
 			return $this->get_default_path( $context );
-		} elseif( 'export' === $file_type ) {
+		} elseif ( 'export' === $file_type ) {
 			return $this->get_export_path( $context );
 		} else {
 			return parent::get_path( $context, $file_type );
@@ -332,7 +334,7 @@ class DHL extends Label {
 	public function set_path( $path, $file_type = '' ) {
 		if ( 'default' === $file_type ) {
 			$this->set_default_path( $path );
-		} elseif( 'export' === $file_type ) {
+		} elseif ( 'export' === $file_type ) {
 			$this->set_export_path( $path );
 		} else {
 			parent::set_path( $path, $file_type );
@@ -393,7 +395,7 @@ class DHL extends Label {
 		/**
 		 * WaPo International without premium does not support tracking
 		 */
-		if ( 'V66WPI' === $this->get_product_id() && ! in_array( 'Premium', $this->get_services() ) ) {
+		if ( 'V66WPI' === $this->get_product_id() && ! in_array( 'Premium', $this->get_services(), true ) ) {
 			$is_trackable = false;
 		}
 

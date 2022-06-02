@@ -19,7 +19,7 @@ class ImRefundSoap extends \SoapClient {
 		$this->partner_information = $partner_information;
 		$options                   = array_merge( array( 'features' => SOAP_SINGLE_ELEMENT_ARRAYS ), $options );
 
-		if ( $wsdl === null ) {
+		if ( null === $wsdl ) {
 			$wsdl = Package::get_internetmarke_refund_url();
 		}
 
@@ -34,12 +34,15 @@ class ImRefundSoap extends \SoapClient {
 	 * @return User
 	 */
 	public function authenticateUser( $username, $password ) {
-		$result = $this->__soapCall( 'authenticateUser', array(
-			'AuthenticateUserRequest' => array(
-				'username' => $username,
-				'password' => $password
+		$result = $this->__soapCall(
+			'authenticateUser',
+			array(
+				'AuthenticateUserRequest' => array(
+					'username' => $username,
+					'password' => $password,
+				),
 			)
-		) );
+		);
 
 		return User::fromStdObject( $result );
 	}
@@ -50,11 +53,14 @@ class ImRefundSoap extends \SoapClient {
 	 * @return int
 	 */
 	public function createRetoureId() {
-		$result = $this->__soapCall( 'createRetoureId', array(
-			'CreateRetoureIdRequest' => ''
-		) );
+		$result = $this->__soapCall(
+			'createRetoureId',
+			array(
+				'CreateRetoureIdRequest' => '',
+			)
+		);
 
-		return $result->shopRetoureId;
+		return $result->shopRetoureId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 	}
 
 	/**
@@ -73,9 +79,9 @@ class ImRefundSoap extends \SoapClient {
 				'userToken'     => $user_token,
 				'shopRetoureId' => $shop_retoure_id,
 				'shoppingCart'  => array(
-					'shopOrderId' => $shop_order_id
-				)
-			)
+					'shopOrderId' => $shop_order_id,
+				),
+			),
 		);
 
 		if ( ! empty( $voucher_set ) ) {
@@ -86,8 +92,8 @@ class ImRefundSoap extends \SoapClient {
 			}
 		}
 
-		$result = $this->__soapCall('retoureVouchers', $data );
+		$result = $this->__soapCall( 'retoureVouchers', $data );
 
-		return $result->retoureTransactionId;
+		return $result->retoureTransactionId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 	}
 }
