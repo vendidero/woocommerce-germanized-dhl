@@ -165,7 +165,10 @@ class DeutschePost extends Auto {
 	}
 
 	private function is_save_settings_request() {
-		return isset( $_POST['available_products'] ) && isset( $_GET['provider'] ) && 'deutsche_post' === wc_clean( wp_unslash( $_GET['provider'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
+		$is_settings_save             = ( isset( $_POST['available_products'] ) && isset( $_GET['provider'] ) && 'deutsche_post' === wc_clean( wp_unslash( $_GET['provider'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
+		$is_ajax_shipping_method_save = wp_doing_ajax() && isset( $_GET['action'] ) && 'woocommerce_shipping_zone_methods_save_settings' === wc_clean( wp_unslash( $_GET['action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
+
+		return $is_ajax_shipping_method_save || $is_settings_save;
 	}
 
 	protected function get_label_settings( $for_shipping_method = false ) {
