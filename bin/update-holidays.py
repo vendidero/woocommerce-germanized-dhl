@@ -30,5 +30,5 @@ with open( "i18n/holidays.php", "w" ) as holiday_file:
  * @version 1.0.0
  */
 defined( 'ABSPATH' ) || exit;
-""" + holiday_array )
+""" + holiday_array + "\n" )
     holiday_file.close()

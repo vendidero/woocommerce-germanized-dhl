@@ -164,6 +164,10 @@ class DeutschePost extends Auto {
 		return array_merge( $settings, $general_settings );
 	}
 
+	private function is_save_settings_request() {
+		return isset( $_POST['available_products'] ) && isset( $_GET['provider'] ) && 'deutsche_post' === wc_clean( wp_unslash( $_GET['provider'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
+	}
+
 	protected function get_label_settings( $for_shipping_method = false ) {
 		$im                  = Package::get_internetmarke_api();
 		$settings            = parent::get_label_settings( $for_shipping_method );
@@ -179,9 +183,9 @@ class DeutschePost extends Auto {
 		);
 
 		/**
-		 * Do only allow calling IM API during admin setting requests.
+		 * Do only allow calling IM API during admin setting (save) requests.
 		 */
-		if ( is_admin() && $screen && 'woocommerce_page_wc-settings' === $screen->id ) {
+		if ( is_admin() && ( ( $screen && 'woocommerce_page_wc-settings' === $screen->id ) || $this->is_save_settings_request() ) ) {
 			if ( $im && $im->is_configured() && $im->auth() && $im->is_available() ) {
 				$im->reload_products();
 
