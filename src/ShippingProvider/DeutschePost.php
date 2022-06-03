@@ -222,8 +222,7 @@ class DeutschePost extends Auto {
 
 							array(
 								'title' => _x( 'Charge (€)', 'dhl', 'woocommerce-germanized-dhl' ),
-								'type'  => 'html',
-								'html'  => $this->get_portokasse_charge_button(),
+								'type'  => 'dp_charge',
 							),
 
 							array(

@@ -32,6 +32,7 @@ class Admin {
 		// Receiver ID options
 		add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ), 10 );
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'save_receiver_ids' ), 10, 3 );
+		add_action( 'woocommerce_admin_field_dp_charge', array( __CLASS__, 'output_dp_charge_field' ), 10 );
 
 		add_action( 'admin_init', array( __CLASS__, 'refresh_im_data' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'refresh_im_notices' ) );
@@ -108,6 +109,30 @@ class Admin {
 		}
 
 		return $receiver;
+	}
+
+	public static function output_dp_charge_field( $option ) {
+		if ( ! Package::get_internetmarke_api()->get_user() ) {
+			return;
+		}
+
+		$balance      = Package::get_internetmarke_api()->get_balance();
+		$user_token   = Package::get_internetmarke_api()->get_user()->getUserToken();
+		$settings_url = Package::get_deutsche_post_shipping_provider()->get_edit_link();
+		?>
+
+		<tr valign="top">
+			<th scope="row" class="titledesc"><?php echo esc_html_x( 'Charge (€)', 'dhl', 'woocommerce-germanized-dhl' ); ?></th>
+			<td class="forminp forminp-custom" id="woocommerce_gzd_dhl_im_portokasse_charge_wrapper">
+				<input type="text" placeholder="10.00" style="max-width: 150px; margin-right: 10px;" class="wc-input-price short" name="woocommerce_gzd_dhl_im_portokasse_charge_amount" id="woocommerce_gzd_dhl_im_portokasse_charge_amount" />
+
+				<a id="woocommerce_gzd_dhl_im_portokasse_charge" class="button button-secondary" data-url="https://portokasse.deutschepost.de/portokasse/marketplace/enter-app-payment" data-success_url="<?php echo esc_url( add_query_arg( array( 'wallet-charge-success' => 'yes' ), $settings_url ) ); ?>" data-cancel_url="<?php echo esc_url( add_query_arg( array( 'wallet-charge-success' => 'no' ), $settings_url ) ); ?>" data-partner_id="<?php echo esc_attr( Package::get_internetmarke_partner_id() ); ?>" data-key_phase="<?php echo esc_attr( Package::get_internetmarke_key_phase() ); ?>" data-user_token="<?php echo esc_attr( $user_token ); ?>" data-schluessel_dpwn_partner="<?php echo esc_attr( Package::get_internetmarke_token() ); ?>" data-wallet="<?php echo esc_attr( $balance ); ?>">
+					<?php echo esc_html_x( 'Charge Portokasse', 'dhl', 'woocommerce-germanized-dhl' ); ?>
+				</a>
+				<p class="description"><?php echo sprintf( esc_html_x( 'The minimum amount is %s', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( 10, array( 'currency' => 'EUR' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+			</td>
+		</tr>
+		<?php
 	}
 
 	public static function output_receiver_ids_field( $option ) {
