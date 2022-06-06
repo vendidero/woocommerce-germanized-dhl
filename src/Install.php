@@ -127,7 +127,13 @@ class Install {
 		$dhl->save();
 		$deutsche_post->save();
 
-		$shipper_name = self::get_address_name_parts( 'shipper' );
+		$shipper_name  = self::get_address_name_parts( 'shipper' );
+		$base_location = wc_get_base_location();
+		$state_suffix  = '';
+
+		if ( version_compare( get_option( 'woocommerce_version' ), '6.3.1', '>=' ) ) {
+			$state_suffix = ! empty( $base_location['state'] ) ? ':' . $base_location['state'] : ':DE-BE';
+		}
 
 		// Update address data
 		$shipper_address = array(
@@ -145,6 +151,17 @@ class Install {
 		$shipper_address = array_filter( $shipper_address );
 
 		foreach ( $shipper_address as $key => $value ) {
+			if ( 'country' === $key ) {
+				$country_data = wc_format_country_state_string( $value );
+
+				/**
+				 * Append a state suffix if not exists.
+				 */
+				if ( ! empty( $state_suffix ) && empty( $country_data['state'] ) ) {
+					$value = $value . $state_suffix;
+				}
+			}
+
 			update_option( 'woocommerce_gzd_shipments_shipper_address_' . $key, $value );
 		}
 
@@ -165,6 +182,17 @@ class Install {
 		$return_address = array_filter( $return_address );
 
 		foreach ( $return_address as $key => $value ) {
+			if ( 'country' === $key ) {
+				$country_data = wc_format_country_state_string( $value );
+
+				/**
+				 * Append a state suffix if not exists.
+				 */
+				if ( ! empty( $state_suffix ) && empty( $country_data['state'] ) ) {
+					$value = $value . $state_suffix;
+				}
+			}
+
 			update_option( 'woocommerce_gzd_shipments_return_address_' . $key, $value );
 		}
 
