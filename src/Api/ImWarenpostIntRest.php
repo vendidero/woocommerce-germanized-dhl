@@ -3,8 +3,6 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Exception;
-use Vendidero\Germanized\DHL\DeutschePostLabel;
-use Vendidero\Germanized\DHL\DeutschePostReturnLabel;
 use Vendidero\Germanized\DHL\Label\DeutschePost;
 use Vendidero\Germanized\DHL\Label\Label;
 use Vendidero\Germanized\DHL\Package;

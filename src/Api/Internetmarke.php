@@ -543,20 +543,27 @@ class Internetmarke {
 	 * @return mixed
 	 */
 	protected function create_or_update_wp_int_label( &$label ) {
-		if ( empty( $label->get_wp_int_awb() ) ) {
-			return $this->get_wp_int_api()->create_label( $label );
+		$today                      = new \DateTime();
+		$discontinued_starting_from = new \DateTime( '2022-07-01' );
+
+		if ( $today >= $discontinued_starting_from ) {
+			throw new \Exception( sprintf( _x( 'The Deutsche Post WP International API was discontinued. Please use the <a href="%s">DHL API</a> for Warenpost labels instead.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/dokument/dhl-integration-einrichten' ) ) );
 		} else {
-			try {
-				$pdf = $this->get_wp_int_api()->get_pdf( $label->get_wp_int_awb() );
-
-				if ( ! $pdf ) {
-					throw new \Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
-				}
-			} catch ( \Exception $e ) {
+			if ( empty( $label->get_wp_int_awb() ) ) {
 				return $this->get_wp_int_api()->create_label( $label );
-			}
+			} else {
+				try {
+					$pdf = $this->get_wp_int_api()->get_pdf( $label->get_wp_int_awb() );
 
-			return true;
+					if ( ! $pdf ) {
+						throw new \Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
+					}
+				} catch ( \Exception $e ) {
+					return $this->get_wp_int_api()->create_label( $label );
+				}
+
+				return true;
+			}
 		}
 	}
 
