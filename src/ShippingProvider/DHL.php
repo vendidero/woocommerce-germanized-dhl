@@ -1145,7 +1145,10 @@ class DHL extends Auto {
 				'id'                => 'participation_' . $product,
 				'default'           => '',
 				'value'             => $this->get_setting( 'participation_' . $product, '' ),
-				'custom_attributes' => array( 'maxlength' => '2' ),
+				'custom_attributes' => array(
+					'maxlength' => 14,
+					'minlength' => 2,
+				),
 			);
 		}
 

@@ -366,7 +366,16 @@ class LabelSoap extends Soap {
 		$product_number = preg_match( '!\d+!', $dhl_product, $matches );
 
 		if ( $product_number ) {
-			$account_number = Package::get_setting( 'account_number' ) . $matches[0] . Package::get_participation_number( $dhl_product );
+			$participation_number = Package::get_participation_number( $dhl_product );
+			$account_base         = Package::get_setting( 'account_number' );
+
+			// Participation number contains account number too
+			if ( strlen( $participation_number ) >= 12 ) {
+				$account_base         = substr( $participation_number, 0, 10 ); // First 10 chars
+				$participation_number = substr( $participation_number, -2 ); // Last 2 chars
+			}
+
+			$account_number = $account_base . $matches[0] . $participation_number;
 
 			return $account_number;
 		} else {
