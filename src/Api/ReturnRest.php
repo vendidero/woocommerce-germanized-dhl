@@ -99,6 +99,7 @@ class ReturnRest extends Rest {
 					'originCountry'       => $customs_item['origin_code'],
 					'articleReference'    => apply_filters( 'woocommerce_gzd_dhl_retoure_customs_article_reference', $customs_item['category'], $shipment_item, $label ),
 					'tarifNumber'         => $customs_item['tariff_number'],
+					'currency'            => in_array( strtoupper( $customs_data['currency'] ), array( 'EUR', 'GBP', 'CHF' ), true ) ? strtoupper( $customs_data['currency'] ) : 'EUR',
 				);
 			}
 

@@ -753,6 +753,7 @@ class LabelSoap extends Soap {
 				'placeOfCommital'            => $customs_label_data['place_of_commital'],
 				'addresseesCustomsReference' => $customs_label_data['receiver_customs_ref_number'],
 				'sendersCustomsReference'    => $customs_label_data['sender_customs_ref_number'],
+				'customsCurrency'            => strtoupper( $customs_label_data['currency'] ),
 				'ExportDocPosition'          => $customs_items,
 				/**
 				 * Filter to allow adjusting the export type of a DHL label (for customs). Could be:
