@@ -27,7 +27,7 @@ class DeutschePost extends Auto {
 	}
 
 	public function get_help_link() {
-		return 'https://vendidero.de/dokumentation/woocommerce-germanized/versanddienstleister';
+		return 'https://vendidero.de/dokument/internetmarke-integration-einrichten';
 	}
 
 	public function get_signup_link() {
