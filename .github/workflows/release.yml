@@ -1,0 +1,104 @@
+---
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Version (falls back to the next version available)'
+        required: false
+jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: "Get latest GitHub Release"
+        id: last_release
+        uses: InsonusK/get-latest-release@v1.0.1
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
+          view_top: 1
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+      - name: Increase version
+        id: increase_version
+        run: |
+          CUR_V=${{ steps.last_release.outputs.tag_name }}
+          LAST_VERSION=$(sed 's/[^0-9.]//g' <<< "$CUR_V")
+          echo "Latest version -> $LAST_VERSION"
+          NEXT_VERSION=$(echo $LAST_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
+          echo ::set-output name=version::$NEXT_VERSION
+      - name: Next GitHub version
+        run: echo "Version increased -> ${{ steps.increase_version.outputs.version }}"
+      - name: Set version
+        id: set_version
+        run: |
+          if [ "${{ github.event.inputs.versionName }}" == "" ]; then
+            echo ::set-output name=version::${{ steps.increase_version.outputs.version }}
+          else
+            echo ::set-output name=version::${{ github.event.inputs.versionName }}
+          fi
+      - name: Maybe bump version
+        id: "bump_version"
+        run: |
+          # make file runnable, might not be necessary
+          chmod +x "bin/bump-version.sh"
+          echo "::set-output name=VERSION::$(bin/bump-version.sh -s -v ${{ steps.set_version.outputs.version }})"
+      - name: Validate version
+        run: echo "Next release version will be -> ${{ steps.bump_version.outputs.VERSION }}"
+      - name: Commit version
+        id: commit_version
+        run: |
+          git add .
+          git diff-index --quiet HEAD || git commit -m 'Version bump' --no-verify && git push -f
+      - name: Create release branch
+        run: git checkout -b release/v${{ steps.bump_version.outputs.VERSION }}
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, mysql, mysqli, pdo_mysql, bcmath, soap, intl, gd, exif, iconv, imagick
+          ini-values: post_max_size=256M, short_open_tag=On #optional, setup php.ini configuration
+          coverage: xdebug #optional, setup coverage driver
+      - name: Composer install
+        run: composer install --no-dev && composer dump-autoload
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Build Project
+        run: |
+          npm install
+          npm run build
+      - name: Commit build
+        id: make-commit
+        run: |
+          git add vendor/. --force
+          git add .
+          git commit -m "Adding /vendor directory to release" --no-verify
+          git add assets/. --force
+          git add .
+          git diff-index --quiet HEAD || git commit -m 'Adding /assets directory with compiled and minified files to release' --no-verify
+      - name: Push new branch
+        run: git push origin release/v${{ steps.bump_version.outputs.VERSION }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.bump_version.outputs.VERSION }}
+          release_name: ${{ steps.bump_version.outputs.VERSION }}
+          body: "Release of version ${{ steps.bump_version.outputs.VERSION }}. See readme.txt for details."
+          draft: false
+          prerelease: false
+          commitish: release/v${{ steps.bump_version.outputs.VERSION }}
+      - name: Remove branch
+        run: git checkout master && git branch -D release/v${{ steps.bump_version.outputs.VERSION }} && git push origin --delete release/v${{ steps.bump_version.outputs.VERSION }}
+    env:
+      NODE_VERSION: "12.x"
+      APP_VERSION: "1.0.O"
