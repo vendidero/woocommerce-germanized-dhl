@@ -43,6 +43,10 @@ class Paket {
 		$this->country_code = $country_code;
 	}
 
+	/**
+	 * @return LabelSoap|null
+	 * @throws Exception
+	 */
 	public function get_label_api() {
 		$error_message = '';
 
@@ -67,6 +71,10 @@ class Paket {
 		return $this->label_api;
 	}
 
+	/**
+	 * @return FinderSoap|null
+	 * @throws Exception
+	 */
 	public function get_finder_api() {
 		if ( is_null( $this->finder_api ) ) {
 			try {
@@ -83,6 +91,10 @@ class Paket {
 		return $this->finder_api;
 	}
 
+	/**
+	 * @return ReturnRest|null
+	 * @throws Exception
+	 */
 	public function get_return_api() {
 		if ( is_null( $this->return_api ) ) {
 			try {
@@ -99,6 +111,10 @@ class Paket {
 		return $this->return_api;
 	}
 
+	/**
+	 * @return ParcelRest|null
+	 * @throws Exception
+	 */
 	public function get_parcel_api() {
 		if ( is_null( $this->parcel_api ) ) {
 			try {
@@ -119,8 +135,18 @@ class Paket {
 		return $this->country_code;
 	}
 
+	/**
+	 * @return bool|\WP_Error
+	 */
 	public function test_connection() {
-		return $this->get_label_api()->test_connection();
+		try {
+			return $this->get_label_api()->test_connection();
+		} catch( \Exception $e ) {
+			$error = new \WP_Error();
+			$error->add( $e->getCode(), $e->getMessage() );
+
+			return $error;
+		}
 	}
 
 	public function get_parcel_location( $address, $types = array() ) {
