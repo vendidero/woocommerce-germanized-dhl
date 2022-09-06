@@ -154,7 +154,7 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
             var self       = germanized.dhl_parcel_locator,
                 addressVal = $( self.wrapper + ' #shipping_address_1' ).val().toLowerCase();
 
-            if ( addressVal.indexOf( self.params.i18n.packstation.toLowerCase() ) >= 0 ) {
+            if ( addressVal.indexOf( self.params.i18n.packstation.toLowerCase() ) >= 0 || $.isNumeric( addressVal ) ) {
                 return true;
             }
 

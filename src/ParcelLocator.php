@@ -34,7 +34,7 @@ class ParcelLocator {
 		 */
 		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'manipulate_checkout_fields' ), 10 );
 		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'validate_checkout' ), 20 );
-		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'maybe_remove_order_data' ), 10, 2 );
+		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'maybe_adjust_order_data' ), 10, 2 );
 		add_filter( 'woocommerce_get_order_address', array( __CLASS__, 'add_order_address_data' ), 10, 3 );
 		add_filter( 'woocommerce_update_order_review_fragments', array( __CLASS__, 'refresh_shipping_data_session' ), 10 );
 		add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_refresh_shipping_data', array( __CLASS__, 'ajax_refresh_shipping_data' ) );
@@ -150,7 +150,6 @@ class ParcelLocator {
 	}
 
 	public static function validate_address_postnumber( $value ) {
-
 		if ( ! self::is_available() ) {
 			return $value;
 		}
@@ -185,7 +184,6 @@ class ParcelLocator {
 	}
 
 	public static function validate_address_fields( $value ) {
-
 		if ( ! self::is_available() ) {
 			return $value;
 		}
@@ -264,10 +262,22 @@ class ParcelLocator {
 	 * @param WC_Order $order
 	 * @param $data
 	 */
-	public static function maybe_remove_order_data( $order, $data ) {
+	public static function maybe_adjust_order_data( $order, $data ) {
 		if ( ! self::order_has_pickup( $order ) ) {
 			$order->delete_meta_data( '_shipping_dhl_postnumber' );
 			$order->update_meta_data( '_shipping_dhl_address_type', 'regular' );
+		} else {
+			$pickup_type = self::get_pickup_type_by_order( $order );
+			$address_1   = $order->get_shipping_address_1();
+
+			if ( 'packstation' === $pickup_type && ! strstr( $address_1, 'packstation' ) ) {
+				$pickup_number = preg_replace( '/[^0-9]/', '', $address_1 );
+
+				/**
+				 * Format shipping address as Packstation {number} in case the prefix is missing.
+				 */
+				$order->set_shipping_address_1( sprintf( '%s %s', wc_gzd_dhl_get_pickup_type( 'packstation' ), $pickup_number ) );
+			}
 		}
 	}
 
@@ -422,6 +432,17 @@ class ParcelLocator {
 					if ( wc_gzd_dhl_is_pickup_type( $address, $pickup_tmp_type ) ) {
 						$pickup_type = $pickup_tmp_type;
 						break;
+					}
+				}
+
+				/**
+				 * Allow falling back to packstation in case a number only has been provided
+				 */
+				if ( 'dhl' === self::get_shipping_address_type_by_order( $order ) && empty( $pickup_type ) ) {
+					$pickup_number = preg_replace( '/[^0-9]/', '', $address );
+
+					if ( ! empty( $pickup_number ) ) {
+						$pickup_type = 'packstation';
 					}
 				}
 			}
@@ -611,7 +632,6 @@ class ParcelLocator {
 		}
 
 		if ( 'dhl' === $shipping_address_type ) {
-
 			$args = array(
 				'address_1'  => isset( $data['shipping_address_1'] ) ? wc_clean( $data['shipping_address_1'] ) : '',
 				'postnumber' => isset( $data['shipping_dhl_postnumber'] ) ? wc_clean( $data['shipping_dhl_postnumber'] ) : '',
@@ -701,6 +721,9 @@ class ParcelLocator {
 			if ( ! self::is_postoffice_enabled() ) {
 				$error->add( 'validation', _x( 'Sorry, but delivery to post offices is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
+		} elseif ( ! empty( $pickup_number ) && self::is_packstation_enabled() ) {
+			// Fallback to packstation in case a number only has been added
+			$is_packstation = true;
 		} else {
 			// Try validation
 			$valid = false;
@@ -724,7 +747,6 @@ class ParcelLocator {
 	}
 
 	public static function add_inline_styles() {
-
 		// load scripts on checkout page only
 		if ( ! is_checkout() && ! is_wc_endpoint_url( 'edit-address' ) ) {
 			return;
@@ -1093,7 +1115,6 @@ class ParcelLocator {
 	}
 
 	public static function ajax_search() {
-
 		check_ajax_referer( 'dhl-parcel-finder', 'security' );
 
 		$parcelfinder_country  = isset( $_POST['dhl_parcelfinder_country'] ) ? wc_clean( wp_unslash( $_POST['dhl_parcelfinder_country'] ) ) : Package::get_base_country();
