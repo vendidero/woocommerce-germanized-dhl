@@ -235,6 +235,10 @@ class ParcelLocator {
 					return true;
 				}
 			}
+
+			if ( is_numeric( $shipment->get_address_1() ) && in_array( 'packstation', $types ) ) {
+				return true;
+			}
 		}
 
 		return $send_to_pickup;
