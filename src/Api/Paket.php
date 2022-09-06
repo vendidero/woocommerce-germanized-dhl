@@ -141,7 +141,7 @@ class Paket {
 	public function test_connection() {
 		try {
 			return $this->get_label_api()->test_connection();
-		} catch( \Exception $e ) {
+		} catch ( \Exception $e ) {
 			$error = new \WP_Error();
 			$error->add( $e->getCode(), $e->getMessage() );
 

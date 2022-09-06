@@ -42,19 +42,19 @@ class Admin {
 
 	public static function add_notices() {
 		if ( current_user_can( 'manage_woocommerce' ) ) {
-            if ( isset( $_GET['im-refresh-type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                ?>
-                <div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>">
-                    <p><?php echo ( isset( $_GET['success'] ) ? esc_html_x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : wp_kses_post( sprintf( _x( 'Error while refreshing data. Please make sure that the Internetmarke API URL can be <a href="%s">accessed</a>.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( admin_url( 'admin.php?page=wc-status&tab=dhl' ) ) ) ) );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p>
-                </div>
-                <?php
-            } elseif ( isset( $_GET['has-imported'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	            ?>
-                <div class="notice fade updated">
-                    <p><?php echo wp_kses_post( sprintf( _x( 'New to DHL in Germanized? Learn how to <a href="%s" target="_blank">easily create DHL labels</a> to your shipments.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/dokument/dhl-labels-zu-sendungen-erstellen' ) ) );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p>
-                </div>
-	            <?php
-            }
+			if ( isset( $_GET['im-refresh-type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				?>
+				<div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>">
+					<p><?php echo ( isset( $_GET['success'] ) ? esc_html_x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : wp_kses_post( sprintf( _x( 'Error while refreshing data. Please make sure that the Internetmarke API URL can be <a href="%s">accessed</a>.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( admin_url( 'admin.php?page=wc-status&tab=dhl' ) ) ) ) );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p>
+				</div>
+				<?php
+			} elseif ( isset( $_GET['has-imported'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				?>
+				<div class="notice fade updated">
+					<p><?php echo wp_kses_post( sprintf( _x( 'New to DHL in Germanized? Learn how to <a href="%s" target="_blank">easily create DHL labels</a> to your shipments.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/dokument/dhl-labels-zu-sendungen-erstellen' ) ) );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p>
+				</div>
+				<?php
+			}
 		}
 	}
 

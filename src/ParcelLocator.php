@@ -236,7 +236,7 @@ class ParcelLocator {
 				}
 			}
 
-			if ( is_numeric( $shipment->get_address_1() ) && in_array( 'packstation', $types ) ) {
+			if ( is_numeric( $shipment->get_address_1() ) && in_array( 'packstation', $types, true ) ) {
 				return true;
 			}
 		}
