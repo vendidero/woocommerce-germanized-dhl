@@ -350,6 +350,10 @@ class DHL extends Auto {
 					),
 					array(
 						'id'   => '',
+						'type' => 'columns_end',
+					),
+					array(
+						'id'   => '',
 						'type' => 'columns',
 					),
 					array(
@@ -369,6 +373,10 @@ class DHL extends Auto {
 						'type'          => 'text',
 						'wrapper_class' => 'show-if-has-return column col-6',
 						'value'         => isset( $default_args['return_address']['city'] ) ? $default_args['return_address']['city'] : '',
+					),
+					array(
+						'id'   => '',
+						'type' => 'columns_end',
 					),
 					array(
 						'id'   => '',
@@ -480,8 +488,9 @@ class DHL extends Auto {
 						'wrapper_class'     => 'form-field-checkbox',
 					),
 					array(
-						'id'   => '',
-						'type' => 'columns',
+						'id'    => '',
+						'type'  => 'columns',
+						'class' => 'show-if-ident-check show-if'
 					),
 					array(
 						'id'                => 'ident_date_of_birth',
@@ -494,14 +503,14 @@ class DHL extends Auto {
 							'maxlength' => 10,
 						),
 						'class'             => 'short date-picker',
-						'wrapper_class'     => 'show-if-ident-check column col-6',
+						'wrapper_class'     => 'column col-6',
 						'type'              => 'text',
 					),
 					array(
 						'id'            => 'ident_min_age',
 						'label'         => _x( 'Minimum age', 'dhl', 'woocommerce-germanized-dhl' ),
 						'description'   => '',
-						'wrapper_class' => 'show-if-ident-check column col-6',
+						'wrapper_class' => 'column col-6',
 						'type'          => 'select',
 						'value'         => isset( $default_args['ident_min_age'] ) ? $default_args['ident_min_age'] : '',
 						'options'       => wc_gzd_dhl_get_ident_min_ages(),
