@@ -804,6 +804,12 @@ function wc_gzd_dhl_get_products_international() {
 	return $dhl_prod_int;
 }
 
+function wc_gzd_dhl_get_product_title( $product_id ) {
+	$products = wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_eu() + wc_gzd_dhl_get_products_international();
+
+	return array_key_exists( $product_id, $products ) ? $products[ $product_id ] : $product_id;
+}
+
 function wc_gzd_dhl_get_products_eu() {
 	$country = Package::get_base_country();
 

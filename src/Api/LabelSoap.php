@@ -377,6 +377,10 @@ class LabelSoap extends Soap {
 
 			$account_number = $account_base . $matches[0] . $participation_number;
 
+			if ( strlen( $account_number ) !== 14 ) {
+				throw new Exception( sprintf( _x( 'Either your customer number or the participation number for <strong>%1$s</strong> is missing. Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( wc_gzd_dhl_get_product_title( $dhl_product ) ), esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=dhl' ) ) ) );
+			}
+
 			return $account_number;
 		} else {
 			throw new Exception( _x( 'Could not create account number - no product number.', 'dhl', 'woocommerce-germanized-dhl' ) );
@@ -476,6 +480,8 @@ class LabelSoap extends Soap {
 			);
 		}
 
+		$account_number = self::get_account_number( $label->get_product_id() );
+
 		$dhl_label_body = array(
 			'Version'           => array(
 				'majorRelease' => '3',
@@ -487,7 +493,7 @@ class LabelSoap extends Soap {
 				'Shipment'       => array(
 					'ShipmentDetails' => array(
 						'product'           => $label->get_product_id(),
-						'accountNumber'     => self::get_account_number( $label->get_product_id() ),
+						'accountNumber'     => $account_number,
 						'customerReference' => wc_gzd_dhl_get_label_customer_reference( $label, $shipment ),
 						'shipmentDate'      => Package::get_date_de_timezone( 'Y-m-d' ),
 						'ShipmentItem'      => array(

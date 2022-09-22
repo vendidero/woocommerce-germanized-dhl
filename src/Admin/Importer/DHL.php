@@ -43,6 +43,8 @@ class DHL {
 			'participation_V55PAK'    => 'participation_V55PAK',
 			'participation_V54EPAK'   => 'participation_V54EPAK',
 			'participation_V53WPAK'   => 'participation_V53WPAK',
+			'participation_V62WP'     => 'participation_V62WP',
+			'participation_V66WPI'    => 'participation_V66WPI',
 			'participation_return'    => 'participation_return',
 			'api_user'                => 'api_username',
 			'api_pwd'                 => 'api_password',

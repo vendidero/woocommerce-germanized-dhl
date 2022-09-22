@@ -490,7 +490,7 @@ class DHL extends Auto {
 					array(
 						'id'    => '',
 						'type'  => 'columns',
-						'class' => 'show-if-ident-check show-if'
+						'class' => 'show-if-ident-check show-if',
 					),
 					array(
 						'id'                => 'ident_date_of_birth',
