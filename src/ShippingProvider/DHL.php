@@ -742,30 +742,23 @@ class DHL extends Auto {
 			}
 		}
 
-		if ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'IdentCheck' ) ) {
-			if ( ! empty( $args['ident_min_age'] ) && wc_gzd_dhl_is_valid_ident_min_age( $args['ident_min_age'] ) ) {
-				$args['services'] = array_merge( $args['services'], array( 'IdentCheck' ) );
+		if ( in_array( 'IdentCheck', $args['services'], true ) && wc_gzd_dhl_product_supports_service( $args['product_id'], 'IdentCheck' ) ) {
+			if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
+				$error->add( 500, _x( 'The ident min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 
-			if ( in_array( 'IdentCheck', $args['services'], true ) ) {
-				if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
-					$error->add( 500, _x( 'The ident min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			if ( ! empty( $args['ident_date_of_birth'] ) ) {
+				if ( ! wc_gzd_dhl_is_valid_datetime( $args['ident_date_of_birth'], 'Y-m-d' ) ) {
+					$error->add( 500, _x( 'There was an error parsing the date of birth for the identity check.', 'dhl', 'woocommerce-germanized-dhl' ) );
 				}
+			}
 
-				if ( ! empty( $args['ident_date_of_birth'] ) ) {
-					if ( ! wc_gzd_dhl_is_valid_datetime( $args['ident_date_of_birth'], 'Y-m-d' ) ) {
-						$error->add( 500, _x( 'There was an error parsing the date of birth for the identity check.', 'dhl', 'woocommerce-germanized-dhl' ) );
-					}
-				}
-
-				if ( empty( $args['ident_date_of_birth'] ) && empty( $args['ident_min_age'] ) ) {
-					$error->add( 500, _x( 'Either a minimum age or a date of birth must be added to the ident check.', 'dhl', 'woocommerce-germanized-dhl' ) );
-				}
-			} else {
-				unset( $args['ident_min_age'] );
-				unset( $args['ident_date_of_birth'] );
+			if ( empty( $args['ident_date_of_birth'] ) && empty( $args['ident_min_age'] ) ) {
+				$error->add( 500, _x( 'Either a minimum age or a date of birth must be added to the ident check.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		} else {
+			$args['services'] = array_diff( $args['services'], array( 'IdentCheck' ) );
+
 			unset( $args['ident_min_age'] );
 			unset( $args['ident_date_of_birth'] );
 		}
