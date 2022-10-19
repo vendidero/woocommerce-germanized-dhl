@@ -196,11 +196,11 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
                 parcelShops = self.parcelShops;
 
             var uluru = {
-                lat: parcelShops[0].location.latitude,
-                lng: parcelShops[0].location.longitude
+                lat: parcelShops[0].place.geo.latitude,
+                lng: parcelShops[0].place.geo.longitude
             };
 
-            var map = new google.maps.Map( document.getElementById('dhl-parcel-finder-map' ), {
+            var map = new google.maps.Map( document.getElementById( 'dhl-parcel-finder-map' ), {
                 zoom: 13,
                 center: uluru
             });
@@ -210,8 +210,8 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
             $.each( parcelShops, function( key, value ) {
 
                 var uluru = {
-                    lat: value.location.latitude,
-                    lng: value.location.longitude
+                    lat: value.place.geo.latitude,
+                    lng: value.place.geo.longitude
                 };
 
                 var markerIcon = self.params.packstation_icon,
@@ -259,12 +259,11 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
 
         onSelectShop: function() {
             var self         = germanized.dhl_parcel_finder,
-                parcelShopId = parseInt( $( this ).attr( 'id' ) ),
+                parcelShopId = $( this ).attr( 'id' ),
                 $addressType = $( self.wrapper + ' #shipping_address_type' );
 
             $.each( self.parcelShops, function( key, value ) {
-                if ( parseInt( value.id ) === parcelShopId ) {
-
+                if ( value.gzd_result_id === parcelShopId ) {
                     var isPackstation = 'packstation' === value.gzd_type;
 
                     $( self.wrapper + ' #shipping_first_name' ).val( $( self.wrapper + ' #shipping_first_name' ).val().length > 0 ? $( self.wrapper + ' #shipping_first_name' ).val() : $( self.wrapper + ' #billing_first_name' ).val() );
@@ -272,8 +271,8 @@ window.germanized.dhl_parcel_finder = window.germanized.dhl_parcel_finder || {};
 
                     $( self.wrapper + ' #shipping_address_1' ).val( value.gzd_name );
                     $( self.wrapper + ' #shipping_address_2' ).val( '' );
-                    $( self.wrapper + ' #shipping_postcode' ).val( value.address.zip );
-                    $( self.wrapper + ' #shipping_city' ).val( value.address.city );
+                    $( self.wrapper + ' #shipping_postcode' ).val( value.place.address.postalCode );
+                    $( self.wrapper + ' #shipping_city' ).val( value.place.address.addressLocality );
 
                     $addressType.val( 'dhl' ).trigger( 'change' );
 

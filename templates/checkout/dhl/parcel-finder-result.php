@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/DHL/Templates
- * @version 1.0.2
+ * @version 1.1.0
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -21,8 +21,18 @@ defined( 'ABSPATH' ) || exit;
 	<h4 class="parcel-title"><?php echo esc_html( $result->gzd_name ); ?></h4>
 	<div id="bodyContent">
 		<address>
-			<?php echo esc_html( $result->address->street ); ?> <?php echo esc_html( $result->address->streetNo ); ?><br/>
-			<?php echo esc_html( $result->address->zip ); ?> <?php echo esc_html( $result->address->city ); ?><br/>
+			<?php
+			echo wp_kses_post(
+				WC()->countries->get_formatted_address(
+					array(
+						'address_1' => $result->place->address->streetAddress,
+						'postcode'  => $result->place->address->postalCode,
+						'city'      => $result->place->address->addressLocality,
+						'country'   => $result->place->address->countryCode,
+					)
+				)
+			);
+			?>
 		</address>
 
 		<?php if ( 'packstation' !== $result->gzd_type ) : ?>
@@ -37,8 +47,8 @@ defined( 'ABSPATH' ) || exit;
 			<div class="parcel-services">
 				<h5 class="parcel-subtitle"><?php echo esc_html_x( 'Services', 'dhl', 'woocommerce-germanized-dhl' ); ?></h5>
 
-				<?php echo esc_html_x( 'Handicap Accessible', 'dhl', 'woocommerce-germanized-dhl' ); ?>: <?php echo ( ( $result->hasHandicappedAccess ) ? esc_html_x( 'Yes', 'dhl', 'woocommerce-germanized-dhl' ) : esc_html_x( 'No', 'dhl', 'woocommerce-germanized-dhl' ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase ?><br/>
-				<?php echo esc_html_x( 'Parking', 'dhl', 'woocommerce-germanized-dhl' ); ?>: <?php echo ( ( $result->hasParkingArea ) ? esc_html_x( 'Yes', 'dhl', 'woocommerce-germanized-dhl' ) : esc_html_x( 'No', 'dhl', 'woocommerce-germanized-dhl' ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase ?><br/>
+				<?php echo esc_html_x( 'Handicap Accessible', 'dhl', 'woocommerce-germanized-dhl' ); ?>: <?php echo ( in_array( 'handicapped-access', $result->serviceTypes, true ) ? esc_html_x( 'Yes', 'dhl', 'woocommerce-germanized-dhl' ) : esc_html_x( 'No', 'dhl', 'woocommerce-germanized-dhl' ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase ?><br/>
+				<?php echo esc_html_x( 'Parking', 'dhl', 'woocommerce-germanized-dhl' ); ?>: <?php echo ( ( in_array( 'parking', $result->serviceTypes, true ) ) ? esc_html_x( 'Yes', 'dhl', 'woocommerce-germanized-dhl' ) : esc_html_x( 'No', 'dhl', 'woocommerce-germanized-dhl' ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase ?><br/>
 			</div>
 		<?php endif; ?>
 

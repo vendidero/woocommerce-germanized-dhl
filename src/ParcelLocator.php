@@ -899,9 +899,13 @@ class ParcelLocator {
 	}
 
 	public static function has_map( $check_shipping_method = true ) {
-		$api_key = self::get_setting( 'map_api_password', false );
+		if ( Package::is_debug_mode() ) {
+			return ( 'yes' === self::get_setting( 'map_enable', $check_shipping_method ) && Package::is_dhl_enabled() );
+		} else {
+			$api_key = self::get_setting( 'map_api_password', false );
 
-		return ( 'yes' === self::get_setting( 'map_enable', $check_shipping_method ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
+			return ( 'yes' === self::get_setting( 'map_enable', $check_shipping_method ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
+		}
 	}
 
 	public static function get_max_results() {
