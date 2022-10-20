@@ -23,7 +23,7 @@ class Paket {
 	protected $label_api = null;
 
 	/**
-	 * @var null|FinderSoap
+	 * @var null|LocationFinder
 	 */
 	protected $finder_api = null;
 
@@ -72,13 +72,13 @@ class Paket {
 	}
 
 	/**
-	 * @return FinderSoap|null
+	 * @return LocationFinder|null
 	 * @throws Exception
 	 */
 	public function get_finder_api() {
 		if ( is_null( $this->finder_api ) ) {
 			try {
-				$this->finder_api = new FinderSoap();
+				$this->finder_api = new LocationFinder();
 			} catch ( Exception $e ) {
 				$this->finder_api = null;
 			}
