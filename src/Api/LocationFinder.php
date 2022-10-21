@@ -68,11 +68,14 @@ class LocationFinder extends Rest {
 	public function find_by_id( $keyword, $country, $postcode ) {
 		$keyword_id = ParcelLocator::extract_pickup_keyword_id( $keyword );
 
-		$result = $this->get_request( '/find-by-keyword-id', array(
-			'keywordId'   => $keyword_id,
-			'countryCode' => $country,
-			'postalCode'  => $postcode,
-		) );
+		$result = $this->get_request(
+			'/find-by-keyword-id',
+			array(
+				'keywordId'   => $keyword_id,
+				'countryCode' => $country,
+				'postalCode'  => $postcode,
+			)
+		);
 
 		if ( ! empty( $result->url ) ) {
 			$this->adjust_location_result( $result );
