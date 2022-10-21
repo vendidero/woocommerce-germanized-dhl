@@ -98,15 +98,15 @@ abstract class Rest {
 				break;
 			case '400':
 				$error_message = str_replace( '/', ' / ', isset( $response_body->statusText ) ? $response_body->statusText : '' ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				throw new Exception( _x( '400 - ', 'dhl', 'woocommerce-germanized-dhl' ) . $error_message );
+				throw new Exception( _x( '400 - ', 'dhl', 'woocommerce-germanized-dhl' ) . $error_message, $response_code );
 			case '401':
-				throw new Exception( _x( '401 - Unauthorized Access - Invalid token or Authentication Header parameter', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( _x( '401 - Unauthorized Access - Invalid token or Authentication Header parameter', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
 			case '408':
-				throw new Exception( _x( '408 - Request Timeout', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( _x( '408 - Request Timeout', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
 			case '429':
-				throw new Exception( _x( '429 - Too many requests in given amount of time', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( _x( '429 - Too many requests in given amount of time', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
 			case '503':
-				throw new Exception( _x( '503 - Service Unavailable', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( _x( '503 - Service Unavailable', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
 			default:
 				if ( empty( $response_body->statusText ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$error_message = _x( 'GET error or timeout occured. Please try again later.', 'dhl', 'woocommerce-germanized-dhl' );
@@ -116,7 +116,7 @@ abstract class Rest {
 
 				Package::log( 'GET Error: ' . $response_code . ' - ' . $error_message );
 
-				throw new Exception( $response_code . ' - ' . $error_message );
+				throw new Exception( $response_code . ' - ' . $error_message, $response_code );
 		}
 	}
 

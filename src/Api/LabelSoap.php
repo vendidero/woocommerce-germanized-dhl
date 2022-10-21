@@ -655,36 +655,40 @@ class LabelSoap extends Soap {
 			$dhl_label_body['labelFormatRetoure'] = $label_custom_return_format;
 		}
 
-		if ( $shipment->send_to_external_pickup( array_keys( wc_gzd_dhl_get_pickup_types() ) ) ) {
-			// Address is NOT needed if using a parcel shop
-			unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Address'] );
+		if ( $shipment->send_to_external_pickup() ) {
+			if ( 'DE' === $shipment->get_country() ) {
+				// Address is NOT needed if using a parcel shop
+				unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Address'] );
 
-			$parcel_shop = array(
-				'zip'    => $shipment->get_postcode(),
-				'city'   => $shipment->get_city(),
-				'Origin' => array(
-					'countryISOCode' => $shipment->get_country(),
-					'state'          => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() ),
-				),
-			);
+				$parcel_shop = array(
+					'zip'    => $shipment->get_postcode(),
+					'city'   => $shipment->get_city(),
+					'Origin' => array(
+						'countryISOCode' => $shipment->get_country(),
+						'state'          => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() ),
+					),
+				);
 
-			$address_number = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
+				$address_number = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
 
-			if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
-				$parcel_shop['postNumber']        = ParcelLocator::get_postnumber_by_shipment( $shipment );
-				$parcel_shop['packstationNumber'] = $address_number;
+				if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
+					$parcel_shop['postNumber']        = ParcelLocator::get_postnumber_by_shipment( $shipment );
+					$parcel_shop['packstationNumber'] = $address_number;
 
-				$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Packstation'] = $parcel_shop;
-			}
-
-			if ( $shipment->send_to_external_pickup( 'postoffice' ) || $shipment->send_to_external_pickup( 'parcelshop' ) ) {
-				if ( $post_number = ParcelLocator::get_postnumber_by_shipment( $shipment ) ) {
-					$parcel_shop['postNumber'] = $post_number;
-					unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] );
+					$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Packstation'] = $parcel_shop;
 				}
 
-				$parcel_shop['postfilialNumber']                                        = $address_number;
-				$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Postfiliale'] = $parcel_shop;
+				if ( $shipment->send_to_external_pickup( 'postoffice' ) || $shipment->send_to_external_pickup( 'parcelshop' ) ) {
+					if ( $post_number = ParcelLocator::get_postnumber_by_shipment( $shipment ) ) {
+						$parcel_shop['postNumber'] = $post_number;
+						unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] );
+					}
+
+					$parcel_shop['postfilialNumber']                                        = $address_number;
+					$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Postfiliale'] = $parcel_shop;
+				}
+			} else {
+				$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] = $shipment->get_email();
 			}
 		}
 

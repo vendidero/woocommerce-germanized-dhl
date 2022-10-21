@@ -143,7 +143,10 @@ class ParcelLocator {
 		}
 
 		if ( isset( $_POST['shipping_address_type'] ) && 'dhl' === $_POST['shipping_address_type'] ) {
-			$fields['shipping_address_1']['label'] = self::get_pickup_type_address_label();
+			$country   = isset( $_POST['shipping_address_type'] ) ? wc_clean( wp_unslash( $_POST['shipping_country'] ) ) : '';
+			$field_key = self::get_pickup_address_field_by_country( $country );
+
+			$fields["shipping_{$field_key}"]['label'] = self::get_pickup_type_address_label();
 		}
 
 		return $fields;
@@ -165,6 +168,7 @@ class ParcelLocator {
 		if ( 'dhl' === $shipping_address_type ) {
 			$args = array(
 				'address_1'  => isset( $_POST['shipping_address_1'] ) ? wc_clean( wp_unslash( $_POST['shipping_address_1'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				'address_2'  => isset( $_POST['shipping_address_2'] ) ? wc_clean( wp_unslash( $_POST['shipping_address_2'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				'postnumber' => isset( $_POST['shipping_dhl_postnumber'] ) ? wc_clean( wp_unslash( $_POST['shipping_dhl_postnumber'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				'postcode'   => isset( $_POST['shipping_postcode'] ) ? wc_clean( wp_unslash( $_POST['shipping_postcode'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				'city'       => isset( $_POST['shipping_city'] ) ? wc_clean( wp_unslash( $_POST['shipping_city'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -203,6 +207,7 @@ class ParcelLocator {
 		if ( 'dhl' === $shipping_address_type ) {
 			$args = array(
 				'address_1'  => isset( $_POST['shipping_address_1'] ) ? wc_clean( wp_unslash( $_POST['shipping_address_1'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				'address_2'  => isset( $_POST['shipping_address_2'] ) ? wc_clean( wp_unslash( $_POST['shipping_address_2'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				'postnumber' => isset( $_POST['shipping_dhl_postnumber'] ) ? wc_clean( wp_unslash( $_POST['shipping_dhl_postnumber'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				'postcode'   => isset( $_POST['shipping_postcode'] ) ? wc_clean( wp_unslash( $_POST['shipping_postcode'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				'city'       => isset( $_POST['shipping_city'] ) ? wc_clean( wp_unslash( $_POST['shipping_city'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -230,13 +235,18 @@ class ParcelLocator {
 		$data = $shipment->get_address();
 
 		if ( isset( $data['address_type'] ) && 'dhl' === $data['address_type'] ) {
-			foreach ( $types as $type ) {
-				if ( wc_gzd_dhl_is_pickup_type( $shipment->get_address_1(), $type ) ) {
-					return true;
-				}
-			}
+			$address_field_key = self::get_pickup_address_field_by_country( $shipment->get_country() );
+			$address_getter    = "get_{$address_field_key}";
+			$address_field_val = is_callable( array( $shipment, $address_getter ) ) ? $shipment->{$address_getter}() : '';
+			$keyword_id        = self::extract_pickup_keyword_id( $address_field_val );
 
-			if ( is_numeric( $shipment->get_address_1() ) && in_array( 'packstation', $types, true ) ) {
+			if ( ! empty( $types ) ) {
+				foreach ( $types as $type ) {
+					if ( wc_gzd_dhl_is_pickup_type( $address_field_val, $type ) ) {
+						return true;
+					}
+				}
+			} elseif ( ! empty( $keyword_id ) ) {
 				return true;
 			}
 		}
@@ -270,22 +280,12 @@ class ParcelLocator {
 		if ( ! self::order_has_pickup( $order ) ) {
 			$order->delete_meta_data( '_shipping_dhl_postnumber' );
 			$order->update_meta_data( '_shipping_dhl_address_type', 'regular' );
-		} else {
-			$pickup_type = self::get_pickup_type_by_order( $order );
-			$address_1   = $order->get_shipping_address_1();
-
-			if ( 'packstation' === $pickup_type && ! strstr( $address_1, 'packstation' ) ) {
-				$pickup_number = preg_replace( '/[^0-9]/', '', $address_1 );
-
-				/**
-				 * Format shipping address as Packstation {number} in case the prefix is missing.
-				 */
-				$order->set_shipping_address_1( sprintf( '%s %s', wc_gzd_dhl_get_pickup_type( 'packstation' ), $pickup_number ) );
-			}
 		}
 	}
 
 	public static function get_supported_countries() {
+		$countries = WC()->countries ? WC()->countries->get_european_union_countries() : array();
+
 		/**
 		 * Filter to enable DHL parcel shop delivery for certain countries.
 		 *
@@ -293,7 +293,7 @@ class ParcelLocator {
 		 *
 		 * @package Vendidero/Germanized/DHL
 		 */
-		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_countries', array( 'DE', 'AT' ) );
+		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_countries', $countries );
 
 		return $codes;
 	}
@@ -400,6 +400,25 @@ class ParcelLocator {
 		return $address_type;
 	}
 
+	public static function get_pickup_address_by_order( $order ) {
+		if ( is_numeric( $order ) ) {
+			$order = wc_get_order( $order );
+		}
+
+		$address = '';
+
+		if ( $order ) {
+			$address_field        = self::get_pickup_address_field_by_country( $order->get_shipping_country() );
+			$address_field_getter = 'get_shipping_' . $address_field;
+
+			if ( is_callable( array( $order, $address_field_getter ) ) ) {
+				$address = $order->{$address_field_getter}();
+			}
+		}
+
+		return $address;
+	}
+
 	public static function order_has_pickup( $order ) {
 		if ( is_numeric( $order ) ) {
 			$order = wc_get_order( $order );
@@ -409,11 +428,10 @@ class ParcelLocator {
 
 		if ( $order ) {
 			$address_type = self::get_shipping_address_type_by_order( $order );
-			$number       = self::get_postnumber_by_order( $order );
-			$type         = self::get_pickup_type_by_order( $order );
+			$keyword_id   = self::extract_pickup_keyword_id( self::get_pickup_address_by_order( $order ) );
 			$country      = $order->get_shipping_country();
 
-			if ( ! empty( $country ) && in_array( $country, self::get_supported_countries(), true ) && 'dhl' === $address_type && ! empty( $number ) && ! empty( $type ) ) {
+			if ( ! empty( $country ) && in_array( $country, self::get_supported_countries(), true ) && 'dhl' === $address_type && ! empty( $keyword_id ) ) {
 				$has_pickup = true;
 			}
 		}
@@ -429,24 +447,25 @@ class ParcelLocator {
 		$pickup_type = '';
 
 		if ( $order ) {
-			if ( $address = $order->get_shipping_address_1() ) {
-				$pickup_types = wc_gzd_dhl_get_pickup_types();
+			if ( 'dhl' === self::get_shipping_address_type_by_order( $order ) ) {
+				$address_value = self::get_pickup_address_by_order( $order );
 
-				foreach ( $pickup_types as $pickup_tmp_type => $label ) {
-					if ( wc_gzd_dhl_is_pickup_type( $address, $pickup_tmp_type ) ) {
-						$pickup_type = $pickup_tmp_type;
-						break;
+				if ( $address_value ) {
+					$pickup_types = wc_gzd_dhl_get_pickup_types();
+
+					foreach ( $pickup_types as $pickup_tmp_type => $label ) {
+						if ( wc_gzd_dhl_is_pickup_type( $address_value, $pickup_tmp_type ) ) {
+							$pickup_type = $pickup_tmp_type;
+							break;
+						}
 					}
-				}
 
-				/**
-				 * Allow falling back to packstation in case a number only has been provided
-				 */
-				if ( 'dhl' === self::get_shipping_address_type_by_order( $order ) && empty( $pickup_type ) ) {
-					$pickup_number = preg_replace( '/[^0-9]/', '', $address );
+					if ( empty( $pickup_type ) ) {
+						$pickup_number = preg_replace( '/[^0-9]/', '', $address_value );
 
-					if ( ! empty( $pickup_number ) ) {
-						$pickup_type = 'packstation';
+						if ( ! empty( $pickup_number ) ) {
+							$pickup_type = 'packstation';
+						}
 					}
 				}
 			}
@@ -497,7 +516,6 @@ class ParcelLocator {
 	}
 
 	public static function set_formatted_billing_address( $fields, $order ) {
-
 		if ( ! empty( $fields ) && is_array( $fields ) ) {
 			$fields['dhl_postnumber'] = '';
 		}
@@ -638,6 +656,7 @@ class ParcelLocator {
 		if ( 'dhl' === $shipping_address_type ) {
 			$args = array(
 				'address_1'  => isset( $data['shipping_address_1'] ) ? wc_clean( $data['shipping_address_1'] ) : '',
+				'address_2'  => isset( $data['shipping_address_2'] ) ? wc_clean( $data['shipping_address_2'] ) : '',
 				'postnumber' => isset( $data['shipping_dhl_postnumber'] ) ? wc_clean( $data['shipping_dhl_postnumber'] ) : '',
 				'postcode'   => isset( $data['shipping_postcode'] ) ? wc_clean( $data['shipping_postcode'] ) : '',
 				'city'       => isset( $data['shipping_city'] ) ? wc_clean( $data['shipping_city'] ) : '',
@@ -683,6 +702,7 @@ class ParcelLocator {
 			$args,
 			array(
 				'address_1'  => '',
+				'address_2'  => '',
 				'postnumber' => '',
 				'postcode'   => '',
 				'city'       => '',
@@ -701,50 +721,49 @@ class ParcelLocator {
 
 		$error          = new WP_Error();
 		$is_packstation = false;
-		$pickup_number  = preg_replace( '/[^0-9]/', '', $args['address_1'] );
+		$field_key      = self::get_pickup_address_field_by_country( $args['country'] );
+		$keyword_id     = self::extract_pickup_keyword_id( $args[ $field_key ] );
 
 		/**
 		 * A number is required for the packstation/parcelshop/postoffice
 		 */
-		if ( empty( $pickup_number ) && ! empty( $args['address_1'] ) ) {
-			$error->add( 'validation', sprintf( _x( 'Please provide a valid number within the %s field.', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( ' / ' ) ) );
-		}
-
-		if ( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'packstation' ) ) {
-			$is_packstation = true;
-
-			if ( ! self::is_packstation_enabled() ) {
-				$error->add( 'validation', _x( 'Sorry, but delivery to packstation is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
-				$is_packstation = false;
-			}
-		} elseif ( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'parcelshop' ) ) {
-			if ( ! self::is_parcelshop_enabled() ) {
-				$error->add( 'validation', _x( 'Sorry, but delivery to parcel shops is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-		} elseif ( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'postoffice' ) ) {
-			if ( ! self::is_postoffice_enabled() ) {
-				$error->add( 'validation', _x( 'Sorry, but delivery to post offices is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-		} elseif ( ! empty( $pickup_number ) && self::is_packstation_enabled() ) {
-			// Fallback to packstation in case a number only has been added
-			$is_packstation = true;
+		if ( empty( $keyword_id ) ) {
+			$error->add( 'validation', sprintf( _x( 'Please provide a valid pickup location within the %s field.', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( ' / ' ) ) );
 		} else {
-			// Try validation
-			$valid = false;
+			$result = self::is_valid_pickup_address( $args, true );
 
-			if ( ! $valid ) {
-				$error->add( 'validation', sprintf( _x( 'Please indicate shipment to %1$s by one of the following values: %2$s.', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( ' / ' ), implode( ', ', array_unique( array_values( self::get_available_pickup_types() ) ) ) ) );
+			if ( is_wp_error( $result ) ) {
+				$error = $result;
+			} else {
+				if ( 'DE' === $args['country'] ) {
+					if ( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'packstation' ) ) {
+						$is_packstation = true;
+
+						if ( ! self::is_packstation_enabled() ) {
+							$error->add( 'validation', _x( 'Sorry, but delivery to packstation is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
+							$is_packstation = false;
+						}
+					} elseif ( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'parcelshop' ) ) {
+						if ( ! self::is_parcelshop_enabled() ) {
+							$error->add( 'validation', _x( 'Sorry, but delivery to parcel shops is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
+						}
+					} elseif ( wc_gzd_dhl_is_pickup_type( $args['address_1'], 'postoffice' ) ) {
+						if ( ! self::is_postoffice_enabled() ) {
+							$error->add( 'validation', _x( 'Sorry, but delivery to post offices is not available.', 'dhl', 'woocommerce-germanized-dhl' ) );
+						}
+					}
+
+					if ( $has_postnumber && ! empty( $args['postnumber'] ) ) {
+						$post_number_len = strlen( $args['postnumber'] );
+
+						if ( $post_number_len < 6 || $post_number_len > 12 ) {
+							$error->add( 'validation', _x( 'Your DHL customer number (Post number) is not valid. Please check your number.', 'dhl', 'woocommerce-germanized-dhl' ) );
+						}
+					} elseif ( ( $is_packstation || $has_postnumber ) && empty( $args['postnumber'] ) ) {
+						$error->add( 'validation', _x( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'dhl', 'woocommerce-germanized-dhl' ) );
+					}
+				}
 			}
-		}
-
-		if ( $has_postnumber && ! empty( $args['postnumber'] ) ) {
-			$post_number_len = strlen( $args['postnumber'] );
-
-			if ( $post_number_len < 6 || $post_number_len > 12 ) {
-				$error->add( 'validation', _x( 'Your DHL customer number (Post number) is not valid. Please check your number.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-		} elseif ( ( $is_packstation || $has_postnumber ) && empty( $args['postnumber'] ) ) {
-			$error->add( 'validation', _x( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return wc_gzd_dhl_wp_error_has_errors( $error ) ? $error : true;
@@ -775,6 +794,7 @@ class ParcelLocator {
 					'parcel_locator_nonce'      => wp_create_nonce( 'dhl-parcel-locator' ),
 					'parcel_locator_data_nonce' => wp_create_nonce( 'dhl-parcel-locator-shipping-data' ),
 					'supported_countries'       => self::get_supported_countries(),
+					'pickup_address_field_keys' => self::get_pickup_address_fields(),
 					'excluded_gateways'         => self::get_excluded_gateways(),
 					'methods'                   => is_checkout() ? self::get_shipping_method_data() : array(),
 					'is_checkout'               => is_checkout(),
@@ -812,7 +832,6 @@ class ParcelLocator {
 	}
 
 	public static function add_scripts() {
-
 		// load scripts on checkout page only
 		if ( ! is_checkout() && ! is_wc_endpoint_url( 'edit-address' ) ) {
 			return;
@@ -823,6 +842,8 @@ class ParcelLocator {
 
 		if ( is_checkout() ) {
 			array_push( $deps, 'wc-checkout' );
+		} else {
+			$deps = array_merge( $deps, array( 'woocommerce', 'wc-address-i18n' ) );
 		}
 
 		wp_register_script( 'wc-gzd-parcel-locator-dhl', Package::get_assets_url() . '/js/parcel-locator' . $suffix . '.js', $deps, Package::get_version(), true );
@@ -1014,6 +1035,13 @@ class ParcelLocator {
 			$fields['shipping_address_1']['custom_attributes']['data-placeholder-dhl']     = self::get_pickup_type_address_placeholder();
 			$fields['shipping_address_1']['custom_attributes']['data-placeholder-regular'] = isset( $fields['shipping_address_1']['placeholder'] ) ? $fields['shipping_address_1']['placeholder'] : '';
 			$fields['shipping_address_1']['custom_attributes']['data-desc-dhl']            = self::get_button();
+
+			$fields['shipping_address_2']['custom_attributes']                             = ( isset( $fields['shipping_address_2']['custom_attributes'] ) ? $fields['shipping_address_2']['custom_attributes'] : array() );
+			$fields['shipping_address_2']['custom_attributes']['data-label-dhl']           = self::get_pickup_type_address_label();
+			$fields['shipping_address_2']['custom_attributes']['data-label-regular']       = $fields['shipping_address_2']['label'];
+			$fields['shipping_address_2']['custom_attributes']['data-placeholder-dhl']     = self::get_pickup_type_address_placeholder();
+			$fields['shipping_address_2']['custom_attributes']['data-placeholder-regular'] = isset( $fields['shipping_address_2']['placeholder'] ) ? $fields['shipping_address_2']['placeholder'] : '';
+			$fields['shipping_address_2']['custom_attributes']['data-desc-dhl']            = self::get_button();
 		}
 
 		return $fields;
@@ -1104,22 +1132,156 @@ class ParcelLocator {
 		);
 	}
 
-	public static function ajax_validate_address() {
+	public static function extract_pickup_keyword_id( $str ) {
+		$keyword_id = '';
 
+		preg_match_all( '/([A-Z]{2}-)?[0-9]+/', $str, $matches );
+
+		if ( $matches && count( $matches ) > 0 ) {
+			if ( isset( $matches[0][0] ) ) {
+				$keyword_id = $matches[0][0];
+			}
+		}
+
+		return $keyword_id;
+	}
+
+	public static function get_pickup_address_field_by_country( $country = '' ) {
+		$country = '' === $country ? Package::get_base_country() : $country;
+
+		return 'DE' === $country ? 'address_1' : 'address_2';
+	}
+
+	public static function get_pickup_address_fields() {
+		$countries = array();
+
+		foreach( self::get_supported_countries() as $country ) {
+			$countries[ $country ] = self::get_pickup_address_field_by_country( $country );
+		}
+
+		return $countries;
+	}
+
+	public static function is_valid_pickup_address( $args, $report_invalid_address = false ) {
+		$address_data = wp_parse_args( $args, array(
+			'country'    => Package::get_base_country(),
+			'address_1'  => '',
+			'address_2'  => '',
+			'postcode'   => '',
+		) );
+
+		foreach( $address_data as $address_k => $address_d ) {
+			$address_data[ $address_k ] = trim( $address_d );
+		}
+
+		$address_field  = self::get_pickup_address_field_by_country( $args['country'] );
+		$error          = new WP_Error();
+		$pickup_address = array(
+			'name'     => $address_data[ $address_field ],
+			'address'  => $address_data['address_1'],
+			'postcode' => $address_data['postcode'],
+			'city'     => $address_data['city'],
+		);
+
+		$keyword_id = self::extract_pickup_keyword_id( $address_data[ $address_field ] );
+
+		if ( ! empty( $address_data[ $address_field ] ) && ! empty( $address_data['postcode'] ) && ! empty( $keyword_id ) ) {
+			$cache_key      = 'woocommerce_gzd_dhl_pickup_' . sanitize_key( $keyword_id ) . '_' . sanitize_key( $address_data['country'] ) . '_' . $address_data['postcode'];
+			$pickup_address = get_transient( $cache_key );
+
+			if ( false === $pickup_address ) {
+				try {
+					$result = Package::get_api()->get_finder_api()->find_by_id( $keyword_id, $address_data['country'], $address_data['postcode'] );
+
+					$pickup_address = array(
+						'name'     => trim( $result->gzd_name ),
+						'address'  => trim( $result->place->address->streetAddress ),
+						'postcode' => trim( $result->place->address->postalCode ),
+						'city'     => trim( $result->place->address->addressLocality )
+					);
+
+					set_transient( $cache_key, $pickup_address, DAY_IN_SECONDS );
+				} catch( \Exception $e ) {
+					if ( 404 === $e->getCode() ) {
+						$error->add( 'pickup', sprintf( _x( 'The pickup location you\'ve chosen cannot be found.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
+
+						set_transient( $cache_key, array(), DAY_IN_SECONDS );
+					}
+				}
+			} elseif ( empty( $pickup_address ) ) {
+				$error->add( 'pickup', sprintf( _x( 'The pickup location you\'ve chosen cannot be found.', 'dhl', 'woocommerce-germanized-dhl' ) ) );
+			}
+
+			if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
+				return $error;
+			}
+
+			if ( $report_invalid_address ) {
+				if ( 'address_1' !== $address_field ) {
+					if ( $pickup_address['address'] !== $address_data['address_1'] ) {
+						$error->add( 'pickup_address', sprintf( _x( 'Your pickup address seems invalid. Did you mean %s?', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( $pickup_address['address'] ) ) );
+					}
+				}
+
+				if ( $pickup_address['city'] !== $address_data['city'] ) {
+					$error->add( 'pickup_city', sprintf( _x( 'Your pickup city seems invalid. Did you mean %s?', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( $pickup_address['city'] ) ) );
+				}
+			}
+
+			if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
+				return $error;
+			}
+
+			return $pickup_address;
+		}
+
+		if ( wc_gzd_dhl_wp_error_has_errors( $error ) ) {
+			return $error;
+		}
+
+		return $pickup_address;
+	}
+
+	public static function ajax_validate_address() {
 		check_ajax_referer( 'dhl-parcel-locator', 'security' );
 
-		$country  = isset( $_POST['country'] ) ? wc_clean( wp_unslash( $_POST['country'] ) ) : Package::get_base_country();
-		$postcode = isset( $_POST['postcode'] ) ? wc_clean( wp_unslash( $_POST['postcode'] ) ) : '';
-		$city     = isset( $_POST['city'] ) ? wc_clean( wp_unslash( $_POST['city'] ) ) : '';
-		$address  = isset( $_POST['address'] ) ? wc_clean( wp_unslash( $_POST['address'] ) ) : '';
+		$address      = isset( $_POST['address'] ) ? wc_clean( wp_unslash( $_POST['address'] ) ) : '';
+		$address_data = wp_parse_args( $address, array(
+			'country'    => Package::get_base_country(),
+			'address_1'  => '',
+			'address_2'  => '',
+			'postcode'   => '',
+		) );
 
-		wp_send_json(
-			array(
-				'valid'   => true,
-				'address' => $address,
-				'success' => true,
-			)
+		$address_field  = self::get_pickup_address_field_by_country( $address_data['country'] );
+
+		$response = array(
+			'valid'      => true,
+			'address_1'  => $address_data['address_1'],
+			'address_2'  => $address_data['address_2'],
+			'success'    => true,
+			'messages'   => '',
 		);
+
+		$result = self::is_valid_pickup_address( $address_data );
+
+		if ( is_wp_error( $result ) ) {
+			$response['valid']    = false;
+			$response['messages'] = '';
+
+			foreach( $result->get_error_messages() as $message ) {
+				$response['messages'] .= '<li>' . wp_kses_post( $message ) . '</li>';
+			}
+		} else {
+			$response[ $address_field ] = $result['name'];
+
+			if ( 'DE' !== $address_data['country'] ) {
+				$response['address_1'] = $result['address'];
+				$response['city']      = $result['city'];
+			}
+		}
+
+		wp_send_json( $response );
 	}
 
 	public static function ajax_search() {

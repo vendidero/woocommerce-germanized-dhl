@@ -65,6 +65,59 @@ class LocationFinder extends Rest {
 		return implode( ':', $time_expl );
 	}
 
+	public function find_by_id( $keyword, $country, $postcode ) {
+		$keyword_id = ParcelLocator::extract_pickup_keyword_id( $keyword );
+
+		$result = $this->get_request( '/find-by-keyword-id', array(
+			'keywordId'   => $keyword_id,
+			'countryCode' => $country,
+			'postalCode'  => $postcode,
+		) );
+
+		if ( ! empty( $result->url ) ) {
+			$this->adjust_location_result( $result );
+
+			return $result;
+		} else {
+			return false;
+		}
+	}
+
+	protected function adjust_location_result( $result ) {
+		$api_types = array(
+			'locker'       => 'packstation',
+			'servicepoint' => 'parcelshop',
+			'postoffice'   => 'postoffice',
+		);
+
+		// Lets assume it is a postoffice by default
+		$result->gzd_type          = 'postoffice';
+		$result->gzd_id            = isset( $result->location->keywordId ) ? wc_clean( $result->location->keywordId ) : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$result->gzd_result_id     = wc_clean( $result->url );
+		$result->gzd_opening_hours = array();
+
+		if ( isset( $result->location->type ) && array_key_exists( $result->location->type, $api_types ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$result->gzd_type = $api_types[ $result->location->type ];
+		}
+
+		$result->gzd_name = sprintf( _x( '%1$s %2$s', 'dhl location name', 'woocommerce-germanized-dhl' ), wc_clean( $result->location->keyword ), wc_clean( $result->location->keywordId ) );
+
+		if ( isset( $result->openingHours ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			foreach ( $result->openingHours as $opening_data ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				if ( ! isset( $result->gzd_opening_hours[ $opening_data->dayOfWeek ] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$result->gzd_opening_hours[ $opening_data->dayOfWeek ] = array( // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						'weekday'   => $this->get_translated_weekday( $opening_data->dayOfWeek ), // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						'time_html' => $this->get_time_string( wc_clean( $opening_data->opens ) ) . ' - ' . $this->get_time_string( wc_clean( $opening_data->closes ) ), // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					);
+				} else {
+					$result->gzd_opening_hours[ $opening_data->dayOfWeek ]['time_html'] .= ', ' . $this->get_time_string( wc_clean( $opening_data->opens ) ) . ' - ' . $this->get_time_string( wc_clean( $opening_data->closes ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				}
+			}
+		}
+
+		$result->html_content = wc_get_template_html( 'checkout/dhl/parcel-finder-result.php', array( 'result' => $result ) );
+	}
+
 	/**
 	 * @param $address
 	 * @param $types
@@ -114,12 +167,6 @@ class LocationFinder extends Rest {
 			throw new Exception( _x( 'At least shipping city or zip is required.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
-		$api_types = array(
-			'locker'       => 'packstation',
-			'servicepoint' => 'parcelshop',
-			'postoffice'   => 'postoffice',
-		);
-
 		$args = array(
 			'countryCode'     => $address['country'],
 			'addressLocality' => $address['city'],
@@ -140,37 +187,12 @@ class LocationFinder extends Rest {
 
 		if ( isset( $response->locations ) ) {
 			foreach ( $response->locations as $result ) {
-				// Lets assume it is a postoffice by default
-				$result->gzd_type          = 'postoffice';
-				$result->gzd_id            = isset( $result->location->keywordId ) ? wc_clean( $result->location->keywordId ) : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				$result->gzd_result_id     = wc_clean( $result->url );
-				$result->gzd_opening_hours = array();
-
-				if ( isset( $result->location->type ) && array_key_exists( $result->location->type, $api_types ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$result->gzd_type = $api_types[ $result->location->type ];
-				}
-
-				$result->gzd_name = sprintf( _x( '%1$s %2$s', 'dhl location name', 'woocommerce-germanized-dhl' ), wc_clean( $result->location->keyword ), wc_clean( $result->location->keywordId ) );
-
-				if ( isset( $result->openingHours ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					foreach ( $result->openingHours as $opening_data ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-						if ( ! isset( $result->gzd_opening_hours[ $opening_data->dayOfWeek ] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-							$result->gzd_opening_hours[ $opening_data->dayOfWeek ] = array( // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-								'weekday'   => $this->get_translated_weekday( $opening_data->dayOfWeek ), // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-								'time_html' => $this->get_time_string( wc_clean( $opening_data->opens ) ) . ' - ' . $this->get_time_string( wc_clean( $opening_data->closes ) ), // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-							);
-						} else {
-							$result->gzd_opening_hours[ $opening_data->dayOfWeek ]['time_html'] .= ', ' . $this->get_time_string( wc_clean( $opening_data->opens ) ) . ' - ' . $this->get_time_string( wc_clean( $opening_data->closes ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-						}
-					}
-				}
+				$this->adjust_location_result( $result );
 
 				// Not supporting this type
 				if ( ! in_array( $result->gzd_type, $types, true ) ) {
 					continue;
 				}
-
-				$result->html_content = wc_get_template_html( 'checkout/dhl/parcel-finder-result.php', array( 'result' => $result ) );
 
 				if ( count( $results ) >= $limit ) {
 					break;
