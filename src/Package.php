@@ -652,11 +652,7 @@ class Package {
 	}
 
 	public static function get_gk_api_url() {
-		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.2/geschaeftskundenversand-api-3.2.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.2/geschaeftskundenversand-api-3.2.wsdl';
-	}
-
-	public static function get_parcel_finder_api_url() {
-		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/standortsuche-api/1.1/standortsuche-api-1.1.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/standortsuche-api/1.1/standortsuche-api-1.1.wsdl';
+		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl';
 	}
 
 	public static function get_business_portal_url() {

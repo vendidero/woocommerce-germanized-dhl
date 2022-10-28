@@ -21,7 +21,8 @@ window.germanized.dhl_preferred_services = window.germanized.dhl_preferred_servi
                 .on( 'change', '.dhl-preferred-service-content .dhl-preferred-location-types input', self.onChangeLocationType )
                 .on( 'change', '.woocommerce-checkout #billing_postcode', self.triggerCheckoutRefresh )
                 .on( 'change', '.woocommerce-checkout #shipping_postcode', self.triggerCheckoutRefresh )
-                .on( 'change', '.dhl-preferred-service-content .dhl-preferred-service-times input', self.triggerCheckoutRefresh );
+                .on( 'change', '.dhl-preferred-service-content .dhl-preferred-service-times input', self.triggerCheckoutRefresh )
+                .on( 'change', '.dhl-preferred-service-content .dhl-preferred-delivery-types input', self.triggerCheckoutRefresh );
 
             if ( self.params.payment_gateways_excluded ) {
                 $( document.body ).on( 'payment_method_selected', self.triggerCheckoutRefresh );

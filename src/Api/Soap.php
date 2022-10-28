@@ -78,7 +78,7 @@ abstract class Soap {
 			}
 
 			// Explicitly allow street_number fields to equal 0
-			if ( empty( $v ) && ( ! in_array( $k, array( 'minorRelease', 'streetNumber', 'houseNumber', 'zip' ), true ) ) ) {
+			if ( empty( $v ) && ( ! in_array( $k, array( 'minorRelease', 'streetNumber', 'houseNumber', 'zip', 'active' ), true ) ) ) {
 				unset( $array[ $k ] );
 			}
 		}

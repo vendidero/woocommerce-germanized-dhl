@@ -22,6 +22,7 @@ class DHL extends Label {
 		'preferred_day'                 => '',
 		'preferred_location'            => '',
 		'preferred_neighbor'            => '',
+		'preferred_delivery_type'       => '',
 		'ident_date_of_birth'           => '',
 		'ident_min_age'                 => '',
 		'visual_min_age'                => '',
@@ -130,6 +131,10 @@ class DHL extends Label {
 		return $this->get_prop( 'preferred_day', $context );
 	}
 
+	public function get_preferred_delivery_type( $context = 'view' ) {
+		return $this->get_prop( 'preferred_delivery_type', $context );
+	}
+
 	public function get_preferred_location( $context = 'view' ) {
 		return $this->get_prop( 'preferred_location', $context );
 	}
@@ -226,6 +231,10 @@ class DHL extends Label {
 
 	public function set_preferred_day( $day ) {
 		$this->set_date_prop( 'preferred_day', $day );
+	}
+
+	public function set_preferred_delivery_type( $delivery_type ) {
+		$this->set_date_prop( 'preferred_delivery_type', $delivery_type );
 	}
 
 	public function set_preferred_location( $location ) {

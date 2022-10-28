@@ -142,7 +142,7 @@
         text-align: center;
         cursor: help;
         content: "?"; }
-    .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-location-types {
+    .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-location-types, .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-delivery-types {
       list-style: none;
       margin: 0;
       margin-bottom: 1em;
@@ -150,7 +150,7 @@
       flex-wrap: wrap;
       justify-content: flex-start;
       align-items: center; }
-      .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-location-types li {
+      .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-location-types li, .dhl-preferred-service-content .dhl-preferred-service-item .dhl-preferred-delivery-types li {
         margin-right: 1em; }
     .dhl-preferred-service-content .dhl-preferred-service-item.dhl-preferred-service-header .dhl-preferred-service-title {
       font-size: 1.1em; }

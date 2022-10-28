@@ -81,6 +81,13 @@ class ParcelServices {
 					'value' => $dhl_order->get_preferred_neighbor_formatted_address(),
 				);
 			}
+
+			if ( $dhl_order->has_preferred_delivery_type() ) {
+				$new_rows['preferred_delivery_type'] = array(
+					'label' => _x( 'Delivery Type', 'dhl', 'woocommerce-germanized-dhl' ),
+					'value' => self::get_preferred_delivery_type_title( $dhl_order->get_preferred_delivery_type() ),
+				);
+			}
 		}
 
 		if ( ! empty( $new_rows ) ) {
@@ -105,16 +112,18 @@ class ParcelServices {
 	}
 
 	public static function create_order( $order ) {
-		$posted_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-
-		if ( self::is_preferred_available() ) {
-			$data = self::get_data( $posted_data );
+		if ( self::is_preferred_option_available() ) {
+			$data = self::get_data();
 
 			if ( ! wc_gzd_dhl_wp_error_has_errors( $data['errors'] ) ) {
 				$dhl_order = new Order( $order );
 
 				if ( ! empty( $data['preferred_day'] ) ) {
 					$dhl_order->set_preferred_day( $data['preferred_day'] );
+				}
+
+				if ( ! empty( $data['preferred_delivery_type'] ) ) {
+					$dhl_order->set_preferred_delivery_type( $data['preferred_delivery_type'] );
 				}
 
 				if ( 'place' === $data['preferred_location_type'] && ! empty( $data['preferred_location'] ) ) {
@@ -127,11 +136,29 @@ class ParcelServices {
 		}
 	}
 
-	public static function validate( $data, $errors ) {
-		$posted_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	protected static function get_posted_data() {
+		$original_post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-		if ( self::cart_needs_shipping() && self::is_preferred_available() ) {
-			$data = self::get_data( $posted_data );
+		// POST information is either in a query string-like variable called 'post_data'...
+		if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			parse_str( wp_unslash( $_POST['post_data'] ), $post_data ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		} else {
+			$post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		$_POST = $post_data;
+
+		$posted_data = \WC_Checkout::instance()->get_posted_data();
+		$posted_data = array_merge( wc_clean( $post_data ), $posted_data );
+
+		$_POST = $original_post_data;
+
+		return $posted_data;
+	}
+
+	public static function validate( $data, $errors ) {
+		if ( self::cart_needs_shipping() && self::is_preferred_option_available() ) {
+			$data = self::get_data();
 
 			if ( wc_gzd_dhl_wp_error_has_errors( $data['errors'] ) ) {
 				foreach ( $data['errors']->get_error_messages() as $message ) {
@@ -149,20 +176,19 @@ class ParcelServices {
 			return;
 		}
 
-		// POST information is either in a query string-like variable called 'post_data'...
-		if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			parse_str( wp_unslash( $_POST['post_data'] ), $post_data ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		} else {
-			$post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		}
-
-		if ( self::cart_needs_shipping() && self::is_preferred_available( true ) ) {
-			$data = self::get_data( $post_data );
+		if ( self::cart_needs_shipping() && self::is_preferred_option_available() ) {
+			$data = self::get_data();
 
 			try {
 				if ( ! empty( $data['preferred_day'] ) ) {
 					if ( ! empty( $data['preferred_day_cost'] ) ) {
 						$cart->add_fee( _x( 'DHL Delivery day', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_day_cost'], true );
+					}
+				}
+
+				if ( $data['preferred_delivery_type_enabled'] && ! empty( $data['preferred_delivery_type'] ) && 'home' === $data['preferred_delivery_type'] ) {
+					if ( ! empty( $data['preferred_home_delivery_cost'] ) ) {
+						$cart->add_fee( _x( 'DHL Home Delivery', 'dhl', 'woocommerce-germanized-dhl' ), $data['preferred_home_delivery_cost'], true );
 					}
 				}
 			} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
@@ -212,6 +238,16 @@ class ParcelServices {
 		return true;
 	}
 
+	protected static function get_preferred_home_delivery_cost() {
+		$cost = self::get_setting( 'home_delivery_cost' );
+
+		if ( empty( $cost ) ) {
+			$cost = 0;
+		}
+
+		return $cost;
+	}
+
 	protected static function get_preferred_day_cost() {
 		$cost = self::get_setting( 'PreferredDay_cost' );
 
@@ -250,14 +286,48 @@ class ParcelServices {
 		return self::is_preferred_day_enabled() || self::is_preferred_location_enabled() || self::is_preferred_neighbor_enabled();
 	}
 
-	protected static function is_preferred_available( $check_day_transfer = false ) {
-		$customer_country      = WC()->customer->get_shipping_country();
+	protected static function preferred_services_available( $customer_country = '' ) {
+		$customer_country = empty( $customer_country ) ? WC()->customer->get_shipping_country() : $customer_country;
+
+		return 'DE' === $customer_country;
+	}
+
+	public static function get_cdp_countries() {
+		return array( 'DK' );
+	}
+
+	public static function is_pddp_available( $country, $postcode = '' ) {
+		$is_available = false;
+		$country      = wc_strtoupper( $country );
+		$postcode     = wc_normalize_postcode( $postcode );
+
+		if ( 'GB' === $country && 'BT' !== strtoupper( substr( trim( $postcode ), 0, 2 ) ) ) {
+			$is_available = true;
+		}
+
+		return $is_available;
+	}
+
+	public static function is_cdp_available( $customer_country = '' ) {
+		$customer_country = empty( $customer_country ) && WC()->customer ? WC()->customer->get_shipping_country() : $customer_country;
+		$is_available     = false;
+
+		// Preferred options are only for Germany customers
+		if ( in_array( $customer_country, self::get_cdp_countries(), true ) ) {
+			$is_available = true;
+		}
+
+		return $is_available;
+	}
+
+	protected static function is_preferred_option_available() {
 		$chosen_payment_method = (array) WC()->session->get( 'chosen_payment_method' );
 		$display_preferred     = false;
 
-		// Preferred options are only for Germany customers
-		if ( self::is_enabled() && 'DE' === $customer_country ) {
-			if ( self::is_preferred_enabled() ) {
+		if ( self::is_enabled() ) {
+			if ( self::preferred_services_available() && self::is_preferred_enabled() ) {
+				$display_preferred = true;
+			} elseif ( self::is_cdp_available() && self::is_preferred_delivery_type_enabled() ) {
 				$display_preferred = true;
 			}
 
@@ -272,81 +342,101 @@ class ParcelServices {
 		return $display_preferred;
 	}
 
-	protected static function get_data( $post_data ) {
+	protected static function get_data() {
+		$post_data        = self::get_posted_data();
+		$customer_country = isset( $post_data['shipping_country'] ) ? wc_clean( wp_unslash( $post_data['shipping_country'] ) ) : '';
+
 		$data = array(
 			'preferred_day_enabled'               => false,
 			'preferred_location_enabled'          => false,
 			'preferred_neighbor_enabled'          => false,
+			'preferred_delivery_type_enabled'     => false,
 			'preferred_day'                       => '',
 			'preferred_location_type'             => 'none',
 			'preferred_location'                  => '',
 			'preferred_location_neighbor_name'    => '',
 			'preferred_location_neighbor_address' => '',
-			'preferred_day_options'               => WC()->session->get( 'dhl_preferred_day_options' ),
+			'preferred_day_options'               => WC()->session->get( 'dhl_preferred_day_options', array() ),
 			'preferred_day_cost'                  => self::get_preferred_day_cost(),
+			'preferred_delivery_type'             => '',
+			'preferred_home_delivery_cost'        => self::get_preferred_home_delivery_cost(),
+			'preferred_delivery_types'            => self::get_preferred_delivery_types(),
 		);
 
 		$data['errors'] = new WP_Error();
 
-		if ( is_null( $data['preferred_day_options'] ) ) {
-			self::refresh_day_session();
-			$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
+		if ( self::preferred_services_available( $customer_country ) ) {
+			if ( is_null( $data['preferred_day_options'] ) ) {
+				self::refresh_day_session();
+				$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
+			}
 		}
 
 		try {
-			if ( self::is_preferred_day_enabled() ) {
-				$data['preferred_day_enabled'] = true;
+			if ( self::preferred_services_available( $customer_country ) ) {
+				if ( self::is_preferred_day_enabled() ) {
+					$data['preferred_day_enabled'] = true;
 
-				if ( isset( $post_data['dhl_preferred_day'] ) && ! empty( $post_data['dhl_preferred_day'] ) ) {
-					$day = wc_clean( wp_unslash( $post_data['dhl_preferred_day'] ) );
+					if ( isset( $post_data['dhl_preferred_day'] ) && ! empty( $post_data['dhl_preferred_day'] ) ) {
+						$day = wc_clean( wp_unslash( $post_data['dhl_preferred_day'] ) );
 
-					if ( wc_gzd_dhl_is_valid_datetime( $day, 'Y-m-d' ) ) {
-						if ( ! empty( $data['preferred_day_options'] ) ) {
-							if ( array_key_exists( $day, $data['preferred_day_options'] ) ) {
-								$data['preferred_day'] = $day;
+						if ( wc_gzd_dhl_is_valid_datetime( $day, 'Y-m-d' ) ) {
+							if ( ! empty( $data['preferred_day_options'] ) ) {
+								if ( array_key_exists( $day, $data['preferred_day_options'] ) ) {
+									$data['preferred_day'] = $day;
+								}
 							}
 						}
-					}
 
-					if ( empty( $data['preferred_day'] ) ) {
-						$data['errors']->add( 'validation', _x( 'Sorry, but the delivery day you have chosen is no longer available.', 'dhl', 'woocommerce-germanized-dhl' ) );
+						if ( empty( $data['preferred_day'] ) ) {
+							$data['errors']->add( 'validation', _x( 'Sorry, but the delivery day you have chosen is no longer available.', 'dhl', 'woocommerce-germanized-dhl' ) );
+						}
+					}
+				}
+
+				if ( self::is_preferred_neighbor_enabled() ) {
+					$data['preferred_neighbor_enabled'] = true;
+				}
+
+				if ( self::is_preferred_location_enabled() ) {
+					$data['preferred_location_enabled'] = true;
+				}
+
+				if ( self::is_preferred_location_enabled() || self::is_preferred_neighbor_enabled() ) {
+					if ( isset( $post_data['dhl_preferred_location_type'] ) && 'none' !== $post_data['dhl_preferred_location_type'] ) {
+						if ( self::is_preferred_location_enabled() && 'place' === $post_data['dhl_preferred_location_type'] ) {
+							$location = isset( $post_data['dhl_preferred_location'] ) ? wc_clean( wp_unslash( $post_data['dhl_preferred_location'] ) ) : '';
+
+							$data['preferred_location_type'] = 'place';
+
+							if ( ! empty( $location ) ) {
+								$data['preferred_location'] = $location;
+							} else {
+								$data['errors']->add( 'validation', _x( 'Please choose a drop-off location.', 'dhl', 'woocommerce-germanized-dhl' ) );
+							}
+						} elseif ( self::is_preferred_neighbor_enabled() && 'neighbor' === $post_data['dhl_preferred_location_type'] ) {
+							$name    = isset( $post_data['dhl_preferred_location_neighbor_name'] ) ? wc_clean( wp_unslash( $post_data['dhl_preferred_location_neighbor_name'] ) ) : '';
+							$address = isset( $post_data['dhl_preferred_location_neighbor_address'] ) ? wc_clean( wp_unslash( $post_data['dhl_preferred_location_neighbor_address'] ) ) : '';
+
+							$data['preferred_location_type'] = 'neighbor';
+
+							if ( ! empty( $name ) && ! empty( $address ) ) {
+								$data['preferred_location_neighbor_name']    = $name;
+								$data['preferred_location_neighbor_address'] = $address;
+							} else {
+								$data['errors']->add( 'validation', _x( 'Please choose name and address of your preferred neighbor.', 'dhl', 'woocommerce-germanized-dhl' ) );
+							}
+						}
 					}
 				}
 			}
 
-			if ( self::is_preferred_neighbor_enabled() ) {
-				$data['preferred_neighbor_enabled'] = true;
-			}
+			if ( self::is_cdp_available( $customer_country ) && self::is_preferred_delivery_type_enabled() ) {
+				$data['preferred_delivery_type_enabled'] = true;
+				$data['preferred_delivery_type']         = self::get_default_preferred_delivery_type();
 
-			if ( self::is_preferred_location_enabled() ) {
-				$data['preferred_location_enabled'] = true;
-			}
-
-			if ( self::is_preferred_location_enabled() || self::is_preferred_neighbor_enabled() ) {
-				if ( isset( $post_data['dhl_preferred_location_type'] ) && 'none' !== $post_data['dhl_preferred_location_type'] ) {
-					if ( self::is_preferred_location_enabled() && 'place' === $post_data['dhl_preferred_location_type'] ) {
-						$location = isset( $post_data['dhl_preferred_location'] ) ? wc_clean( wp_unslash( $post_data['dhl_preferred_location'] ) ) : '';
-
-						$data['preferred_location_type'] = 'place';
-
-						if ( ! empty( $location ) ) {
-							$data['preferred_location'] = $location;
-						} else {
-							$data['errors']->add( 'validation', _x( 'Please choose a drop-off location.', 'dhl', 'woocommerce-germanized-dhl' ) );
-						}
-					} elseif ( self::is_preferred_neighbor_enabled() && 'neighbor' === $post_data['dhl_preferred_location_type'] ) {
-						$name    = isset( $post_data['dhl_preferred_location_neighbor_name'] ) ? wc_clean( wp_unslash( $post_data['dhl_preferred_location_neighbor_name'] ) ) : '';
-						$address = isset( $post_data['dhl_preferred_location_neighbor_address'] ) ? wc_clean( wp_unslash( $post_data['dhl_preferred_location_neighbor_address'] ) ) : '';
-
-						$data['preferred_location_type'] = 'neighbor';
-
-						if ( ! empty( $name ) && ! empty( $address ) ) {
-							$data['preferred_location_neighbor_name']    = $name;
-							$data['preferred_location_neighbor_address'] = $address;
-						} else {
-							$data['errors']->add( 'validation', _x( 'Please choose name and address of your preferred neighbor.', 'dhl', 'woocommerce-germanized-dhl' ) );
-						}
-					}
+				if ( isset( $post_data['dhl_preferred_delivery_type'] ) && array_key_exists( $post_data['dhl_preferred_delivery_type'], self::get_preferred_delivery_types() ) ) {
+					$data['preferred_delivery_type'] = wc_clean( wp_unslash( $post_data['dhl_preferred_delivery_type'] ) );
 				}
 			}
 
@@ -372,21 +462,16 @@ class ParcelServices {
 	}
 
 	public static function add_fields( $with_wrapper = true ) {
-		$post_data = array();
-
-		if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			parse_str( wp_unslash( $_POST['post_data'] ), $post_data ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing
-		}
-
 		echo '<div class="dhl-preferred-service-content">';
 
-		if ( self::cart_needs_shipping() && self::is_preferred_available( true ) ) {
-			$data = self::get_data( $post_data );
+		if ( self::cart_needs_shipping() && self::is_preferred_option_available() ) {
+			$data             = self::get_data();
+			$data['logo_url'] = Package::get_assets_url() . '/img/dhl-official.png';
 
-			self::refresh_day_session();
-
-			$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
-			$data['logo_url']              = Package::get_assets_url() . '/img/dhl-official.png';
+			if ( self::preferred_services_available() && self::is_preferred_day_enabled() ) {
+				self::refresh_day_session();
+				$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
+			}
 
 			wc_get_template( 'checkout/dhl/preferred-services.php', $data, Package::get_template_path(), Package::get_path() . '/templates/' );
 		}
@@ -410,12 +495,36 @@ class ParcelServices {
 		return wc_string_to_bool( self::get_setting( 'PreferredLocation_enable' ) );
 	}
 
+	public static function is_preferred_delivery_type_enabled() {
+		return wc_string_to_bool( self::get_setting( 'PreferredDeliveryType_enable' ) );
+	}
+
 	public static function is_preferred_neighbor_enabled() {
 		return wc_string_to_bool( self::get_setting( 'PreferredNeighbour_enable' ) );
 	}
 
-	protected static function get_setting( $key ) {
+	public static function get_default_preferred_delivery_type() {
+		return self::get_setting( 'default_delivery_type' ) ? self::get_setting( 'default_delivery_type' ) : 'home';
+	}
 
+	public static function get_preferred_delivery_types() {
+		return array(
+			'cdp'  => _x( 'Shop', 'dhl delivery type context', 'woocommerce-germanized-dhl' ),
+			'home' => _x( 'Home', 'dhl delivery type context', 'woocommerce-germanized-dhl' ),
+		);
+	}
+
+	public static function get_preferred_delivery_type_title( $type ) {
+		$types = self::get_preferred_delivery_types();
+
+		if ( array_key_exists( $type, $types ) ) {
+			return $types[ $type ];
+		} else {
+			return '';
+		}
+	}
+
+	protected static function get_setting( $key ) {
 		if ( strpos( $key, 'Preferred' ) === false ) {
 			$key = 'preferred_' . $key;
 		}

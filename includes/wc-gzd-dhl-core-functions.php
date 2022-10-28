@@ -273,9 +273,12 @@ function wc_gzd_dhl_get_current_shipping_method() {
 
 function wc_gzd_dhl_get_international_services() {
 	return array(
-		'Premium',
 		'GoGreen',
 		'AdditionalInsurance',
+		'CDP',
+		'Economy',
+		'Premium',
+		'PDDP',
 	);
 }
 
@@ -290,6 +293,9 @@ function wc_gzd_dhl_get_services() {
 		'NoNeighbourDelivery',
 		'NamedPersonOnly',
 		'Premium',
+		'CDP',
+		'PDDP',
+		'Economy',
 		'AdditionalInsurance',
 		'BulkyGoods',
 		'IdentCheck',
@@ -530,6 +536,11 @@ function wc_gzd_dhl_get_product_services( $product ) {
 				'Premium',
 			)
 		);
+	}
+
+	// Economy, CDP, PDDP are available for Paket International only
+	if ( 'V53WPAK' !== $product ) {
+		$services = array_diff( $services, array( 'Economy', 'CDP', 'PDDP' ) );
 	}
 
 	return $services;

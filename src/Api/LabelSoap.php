@@ -35,7 +35,7 @@ class LabelSoap extends Soap {
 	 * @return string
 	 */
 	protected function get_wsdl_file( $wsdl_link ) {
-		$core_file = Package::get_core_wsdl_file( 'geschaeftskundenversand-api-3.2.0.wsdl' );
+		$core_file = Package::get_core_wsdl_file( 'geschaeftskundenversand-api-3.4.0.wsdl' );
 
 		if ( $core_file ) {
 			return $core_file;
@@ -57,7 +57,7 @@ class LabelSoap extends Soap {
 				array(
 					'Version'           => array(
 						'majorRelease' => '3',
-						'minorRelease' => '1',
+						'minorRelease' => '4',
 					),
 					'labelResponseType' => 'URL',
 					'labelFormat'       => '',
@@ -131,7 +131,7 @@ class LabelSoap extends Soap {
 			$soap_request = array(
 				'Version'           => array(
 					'majorRelease' => '3',
-					'minorRelease' => '1',
+					'minorRelease' => '4',
 				),
 				'shipmentNumber'    => $label->get_number(),
 				'labelResponseType' => 'B64',
@@ -172,6 +172,7 @@ class LabelSoap extends Soap {
 			Package::log( '"createShipmentOrder" called with: ' . print_r( $soap_request, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 
 			$response_body = $soap_client->createShipmentOrder( $soap_request );
+
 			Package::log( 'Response: Successful' );
 
 		} catch ( Exception $e ) {
@@ -311,7 +312,7 @@ class LabelSoap extends Soap {
 		$soap_request = array(
 			'Version'        => array(
 				'majorRelease' => '3',
-				'minorRelease' => '1',
+				'minorRelease' => '4',
 			),
 			'shipmentNumber' => $label->get_number(),
 		);
@@ -471,6 +472,23 @@ class LabelSoap extends Soap {
 		}
 
 		/**
+		 * Economy, CDP only available for DHL Paket International
+		 */
+		if ( 'V53WPAK' !== $label->get_product_id() ) {
+			if ( isset( $services['Economy'] ) ) {
+				unset( $services['Economy'] );
+			}
+
+			if ( isset( $services['CDP'] ) ) {
+				unset( $services['CDP'] );
+			}
+
+			if ( isset( $services['PDDP'] ) ) {
+				unset( $services['PDDP'] );
+			}
+		}
+
+		/**
 		 * Endorsement option (Vorausverfügung)
 		 */
 		if ( 'V53WPAK' === $label->get_product_id() ) {
@@ -485,7 +503,7 @@ class LabelSoap extends Soap {
 		$dhl_label_body = array(
 			'Version'           => array(
 				'majorRelease' => '3',
-				'minorRelease' => '1',
+				'minorRelease' => '4',
 			),
 			'labelResponseType' => 'B64',
 			'ShipmentOrder'     => array(
@@ -566,7 +584,7 @@ class LabelSoap extends Soap {
 							 * @since 3.0.3
 							 * @package Vendidero/Germanized/DHL
 							 */
-							'email'         => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_email', $label->has_email_notification() ? $shipment->get_email() : '', $label ),
+							'email'         => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_email', $label->has_email_notification() || isset( $services['CDP'] ) ? $shipment->get_email() : '', $label ),
 						),
 					),
 				),

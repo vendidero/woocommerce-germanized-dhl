@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/DHL/Templates
- * @version 1.0.2
+ * @version 1.1.0
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -25,9 +25,11 @@ defined( 'ABSPATH' ) || exit;
 			<div class="dhl-preferred-service-title">
 				<?php echo esc_html_x( 'DHL Preferred Delivery. Delivered just as you wish.', 'dhl', 'woocommerce-germanized-dhl' ); ?>
 			</div>
-			<div class="dhl-preferred-service-desc">
-				<?php echo wp_kses_post( _x( 'Thanks to the ﬂexible recipient services of DHL Preferred Delivery, you decide when and where you want to receive your parcels.<br/>Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>
-			</div>
+			<?php if ( $preferred_day_enabled || $preferred_location_enabled || $preferred_neighbor_enabled ) : ?>
+				<div class="dhl-preferred-service-desc">
+					<?php echo wp_kses_post( _x( 'Thanks to the ﬂexible recipient services of DHL Preferred Delivery, you decide when and where you want to receive your parcels.<br/>Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>
+				</div>
+			<?php endif; ?>
 		</div>
 
 		<?php if ( ! empty( $preferred_day_options ) && $preferred_day_enabled ) : ?>
@@ -100,6 +102,29 @@ defined( 'ABSPATH' ) || exit;
 							</div>
 						</div>
 					<?php endif; ?>
+				</div>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( $preferred_delivery_type_enabled ) : ?>
+			<div class="dhl-preferred-service-item dhl-preferred-delivery-type">
+				<div class="dhl-preferred-service-title"><?php echo esc_html_x( 'Delivery Type', 'dhl', 'woocommerce-germanized-dhl' ); ?></div>
+
+				<div class="dhl-preferred-service-data">
+					<ul class="dhl-preferred-delivery-types">
+						<?php foreach ( $preferred_delivery_types as $delivery_type => $delivery_type_title ) : ?>
+							<li>
+								<input type="radio" name="dhl_preferred_delivery_type" id="dhl-preferred_delivery_type-<?php echo esc_attr( $delivery_type ); ?>" class="" value="<?php echo esc_attr( $delivery_type ); ?>" <?php checked( $delivery_type, $preferred_delivery_type ); ?> />
+								<label for="dhl-preferred_delivery_type-<?php echo esc_attr( $delivery_type ); ?>"><?php echo esc_html( $delivery_type_title ); ?>
+									<?php if ( 'cdp' === $delivery_type ) : ?>
+										<?php echo wc_help_tip( _x( 'Delivery to nearby parcel store/locker or to the front door.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></label>
+								<?php elseif ( 'home' === $delivery_type ) : ?>
+									<?php echo ( ! empty( $preferred_home_delivery_cost ) ? wp_kses_post( sprintf( _x( '(+%1$s %2$s)*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_home_delivery_cost ), ( wc_gzd_additional_costs_include_tax() ? _x( 'incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'excl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ) : '' ); ?>
+									<?php echo wc_help_tip( _x( 'Delivery usually to the front door.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>
+								<?php endif; ?>
+							</li>
+						<?php endforeach; ?>
+					</ul>
 				</div>
 			</div>
 		<?php endif; ?>

@@ -108,7 +108,6 @@ class Order {
 			$meta = $this->get_order()->get_meta( '_pr_shipment_dhl_label_items' );
 
 			if ( ! empty( $meta ) ) {
-
 				if ( 'preferred_day' === $prop ) {
 					$preferred_day = isset( $meta['pr_dhl_preferred_day'] ) ? $meta['pr_dhl_preferred_day'] : false;
 
@@ -314,6 +313,20 @@ class Order {
 		return $this->get_dhl_prop( 'preferred_location' );
 	}
 
+	public function get_preferred_delivery_type() {
+		return $this->get_dhl_prop( 'preferred_delivery_type' );
+	}
+
+	public function has_preferred_delivery_type() {
+		$type = $this->get_preferred_delivery_type();
+
+		return ! empty( $type ) ? true : false;
+	}
+
+	public function has_cdp_delivery() {
+		return $this->has_preferred_delivery_type() && 'cdp' === $this->get_preferred_delivery_type();
+	}
+
 	public function has_preferred_location() {
 		$location = $this->get_preferred_location();
 
@@ -341,6 +354,10 @@ class Order {
 		}
 
 		return '';
+	}
+
+	public function set_preferred_delivery_type( $delivery_type ) {
+		$this->set_dhl_prop( 'preferred_delivery_type', $delivery_type );
 	}
 
 	public function set_preferred_day( $date ) {
