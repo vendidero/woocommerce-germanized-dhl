@@ -365,6 +365,7 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
 
                 if ( 'DE' === country ) {
                     $( self.wrapper + ' #shipping_dhl_postnumber_field' ).show();
+                    self.refreshCustomerNumberStatus();
                 }
 
                 if ( $addressInput.data( 'label-dhl' ) ) {

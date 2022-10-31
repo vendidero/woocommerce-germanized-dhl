@@ -25,7 +25,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.7.6';
+	const VERSION = '1.8.0';
 
 	public static $upload_dir_suffix = '';
 
@@ -433,7 +433,7 @@ class Package {
 	}
 
 	public static function get_geschaeftskunden_portal_url() {
-		return 'https://www.dhl-geschaeftskundenportal.de';
+		return 'https://geschaeftskunden.dhl.de';
 	}
 
 	public static function get_internetmarke_main_url() {
@@ -656,7 +656,7 @@ class Package {
 	}
 
 	public static function get_business_portal_url() {
-		return 'https://www.dhl-geschaeftskundenportal.de';
+		return 'https://geschaeftskunden.dhl.de';
 	}
 
 	/**

@@ -1186,6 +1186,10 @@ class ParcelLocator {
 			'city'     => $address_data['city'],
 		);
 
+		if ( ! apply_filters( 'woocommerce_gzd_dhl_validate_pickup_address', true, $args, $report_invalid_address ) ) {
+			return $pickup_address;
+		}
+
 		$keyword_id = self::extract_pickup_keyword_id( $address_data[ $address_field ] );
 
 		if ( ! empty( $address_data[ $address_field ] ) && ! empty( $address_data['postcode'] ) && ! empty( $keyword_id ) ) {
