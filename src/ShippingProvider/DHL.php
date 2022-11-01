@@ -223,7 +223,7 @@ class DHL extends Auto {
 				'type'              => 'checkbox',
 				'value'             => in_array( 'GoGreen', $default_args['services'], true ) ? 'yes' : 'no',
 				'wrapper_class'     => 'form-field-checkbox',
-				'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'GoGreen' ),
+				'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'GoGreen', $shipment ),
 			),
 			array(
 				'id'                => 'service_AdditionalInsurance',
@@ -232,7 +232,7 @@ class DHL extends Auto {
 				'type'              => 'checkbox',
 				'value'             => in_array( 'AdditionalInsurance', $default_args['services'], true ) ? 'yes' : 'no',
 				'wrapper_class'     => 'form-field-checkbox',
-				'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'AdditionalInsurance' ),
+				'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'AdditionalInsurance', $shipment ),
 			),
 		);
 
@@ -418,7 +418,7 @@ class DHL extends Auto {
 						'type'              => 'select',
 						'value'             => isset( $default_args['visual_min_age'] ) ? $default_args['visual_min_age'] : '',
 						'options'           => wc_gzd_dhl_get_visual_min_ages(),
-						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'VisualCheckOfAge' ),
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'VisualCheckOfAge', $shipment ),
 					),
 				)
 			);
@@ -434,7 +434,7 @@ class DHL extends Auto {
 							'type'              => 'checkbox',
 							'value'             => in_array( 'ParcelOutletRouting', $default_args['services'], true ) ? 'yes' : 'no',
 							'wrapper_class'     => 'form-field-checkbox',
-							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'ParcelOutletRouting' ),
+							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'ParcelOutletRouting', $shipment ),
 						),
 					)
 				);
@@ -451,7 +451,7 @@ class DHL extends Auto {
 							'type'              => 'checkbox',
 							'value'             => in_array( 'NoNeighbourDelivery', $default_args['services'], true ) ? 'yes' : 'no',
 							'wrapper_class'     => 'form-field-checkbox',
-							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'NoNeighbourDelivery' ),
+							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'NoNeighbourDelivery', $shipment ),
 						),
 					)
 				);
@@ -467,7 +467,7 @@ class DHL extends Auto {
 						'type'              => 'checkbox',
 						'value'             => in_array( 'NamedPersonOnly', $default_args['services'], true ) ? 'yes' : 'no',
 						'wrapper_class'     => 'form-field-checkbox',
-						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'NamedPersonOnly' ),
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'NamedPersonOnly', $shipment ),
 					),
 					array(
 						'id'                => 'service_BulkyGoods',
@@ -476,7 +476,7 @@ class DHL extends Auto {
 						'type'              => 'checkbox',
 						'value'             => in_array( 'BulkyGoods', $default_args['services'], true ) ? 'yes' : 'no',
 						'wrapper_class'     => 'form-field-checkbox',
-						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'BulkyGoods' ),
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'BulkyGoods', $shipment ),
 					),
 					array(
 						'id'                => 'service_IdentCheck',
@@ -485,7 +485,7 @@ class DHL extends Auto {
 						'type'              => 'checkbox',
 						'class'             => 'checkbox show-if-trigger',
 						'value'             => in_array( 'IdentCheck', $default_args['services'], true ) ? 'yes' : 'no',
-						'custom_attributes' => array_merge( array( 'data-show-if' => '.show-if-ident-check' ), wc_gzd_dhl_get_service_product_attributes( 'IdentCheck' ) ),
+						'custom_attributes' => array_merge( array( 'data-show-if' => '.show-if-ident-check' ), wc_gzd_dhl_get_service_product_attributes( 'IdentCheck', $shipment ) ),
 						'wrapper_class'     => 'form-field-checkbox',
 					),
 					array(
@@ -536,7 +536,7 @@ class DHL extends Auto {
 						'value'             => in_array( 'Premium', $default_args['services'], true ) ? 'yes' : 'no',
 						'wrapper_class'     => 'form-field-checkbox',
 						'type'              => 'checkbox',
-						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Premium' ),
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Premium', $shipment ),
 					),
 					array(
 						'id'                => 'service_Economy',
@@ -545,7 +545,7 @@ class DHL extends Auto {
 						'value'             => in_array( 'Economy', $default_args['services'], true ) ? 'yes' : 'no',
 						'wrapper_class'     => 'form-field-checkbox',
 						'type'              => 'checkbox',
-						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Economy' ),
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Economy', $shipment ),
 					),
 				)
 			);
@@ -561,7 +561,7 @@ class DHL extends Auto {
 							'value'             => in_array( 'PDDP', $default_args['services'], true ) ? 'yes' : 'no',
 							'wrapper_class'     => 'form-field-checkbox',
 							'type'              => 'checkbox',
-							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'PDDP' ),
+							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'PDDP', $shipment ),
 						),
 					)
 				);
@@ -578,7 +578,7 @@ class DHL extends Auto {
 							'value'             => in_array( 'CDP', $default_args['services'], true ) ? 'yes' : 'no',
 							'wrapper_class'     => 'form-field-checkbox',
 							'type'              => 'checkbox',
-							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'CDP' ),
+							'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'CDP', $shipment ),
 						),
 					)
 				);
@@ -685,7 +685,7 @@ class DHL extends Auto {
 				/**
 				 * Remove services that are not supported for this product
 				 */
-				if ( ! wc_gzd_dhl_product_supports_service( $args['product_id'], $service ) ) {
+				if ( ! wc_gzd_dhl_product_supports_service( $args['product_id'], $service, $shipment ) ) {
 					unset( $args['services'][ $key ] );
 				}
 			}
@@ -734,7 +734,7 @@ class DHL extends Auto {
 			unset( $args['cod_total'] );
 		}
 
-		if ( $dhl_order && ! empty( $args['cod_total'] ) && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $args['product_id'], 'CashOnDelivery' ) ) {
+		if ( $dhl_order && ! empty( $args['cod_total'] ) && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $args['product_id'], 'CashOnDelivery', $shipment ) ) {
 			$args['services'] = array_merge( $args['services'], array( 'CashOnDelivery' ) );
 		}
 
@@ -764,7 +764,7 @@ class DHL extends Auto {
 			unset( $args['preferred_neighbor'] );
 		}
 
-		if ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'VisualCheckOfAge' ) ) {
+		if ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'VisualCheckOfAge', $shipment ) ) {
 			if ( ! empty( $args['visual_min_age'] ) && wc_gzd_dhl_is_valid_visual_min_age( $args['visual_min_age'] ) ) {
 				$args['services'] = array_merge( $args['services'], array( 'VisualCheckOfAge' ) );
 			} else {
@@ -786,7 +786,7 @@ class DHL extends Auto {
 			}
 		}
 
-		if ( in_array( 'IdentCheck', $args['services'], true ) && wc_gzd_dhl_product_supports_service( $args['product_id'], 'IdentCheck' ) ) {
+		if ( in_array( 'IdentCheck', $args['services'], true ) && wc_gzd_dhl_product_supports_service( $args['product_id'], 'IdentCheck', $shipment ) ) {
 			if ( ! empty( $args['ident_min_age'] ) && ! array_key_exists( $args['ident_min_age'], wc_gzd_dhl_get_ident_min_ages() ) ) {
 				$error->add( 500, _x( 'The ident min age check is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
@@ -912,7 +912,7 @@ class DHL extends Auto {
 			$defaults['email_notification'] = 'yes';
 		}
 
-		if ( $dhl_order && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $product_id, 'CashOnDelivery' ) ) {
+		if ( $dhl_order && $dhl_order->has_cod_payment() && wc_gzd_dhl_product_supports_service( $product_id, 'CashOnDelivery', $shipment ) ) {
 			$defaults['cod_total'] = $shipment->get_total();
 
 			/**
@@ -959,7 +959,7 @@ class DHL extends Auto {
 					$defaults['preferred_neighbor'] = $dhl_order->get_preferred_neighbor_formatted_address();
 				}
 
-				if ( wc_gzd_dhl_product_supports_service( $product_id, 'VisualCheckOfAge' ) ) {
+				if ( wc_gzd_dhl_product_supports_service( $product_id, 'VisualCheckOfAge', $shipment ) ) {
 					$visual_min_age = $this->get_shipment_setting( $shipment, 'label_visual_min_age' );
 
 					if ( wc_gzd_dhl_is_valid_visual_min_age( $visual_min_age ) ) {
@@ -973,7 +973,7 @@ class DHL extends Auto {
 					}
 				}
 
-				if ( wc_gzd_dhl_product_supports_service( $product_id, 'IdentCheck' ) ) {
+				if ( wc_gzd_dhl_product_supports_service( $product_id, 'IdentCheck', $shipment ) ) {
 					$ident_min_age = $this->get_shipment_setting( $shipment, 'label_ident_min_age' );
 
 					if ( wc_gzd_dhl_is_valid_ident_min_age( $ident_min_age ) ) {
@@ -993,7 +993,7 @@ class DHL extends Auto {
 				}
 
 				foreach ( wc_gzd_dhl_get_services() as $service ) {
-					if ( ! wc_gzd_dhl_product_supports_service( $product_id, $service ) ) {
+					if ( ! wc_gzd_dhl_product_supports_service( $product_id, $service, $shipment ) ) {
 						continue;
 					}
 
@@ -1032,7 +1032,7 @@ class DHL extends Auto {
 
 		if ( ! Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			foreach ( wc_gzd_dhl_get_international_services() as $service ) {
-				if ( ! wc_gzd_dhl_product_supports_service( $product_id, $service ) ) {
+				if ( ! wc_gzd_dhl_product_supports_service( $product_id, $service, $shipment ) ) {
 					continue;
 				}
 

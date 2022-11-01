@@ -507,7 +507,13 @@ function wc_gzd_dhl_get_return_label_sender_street_number( $label ) {
 	return $street_number;
 }
 
-function wc_gzd_dhl_get_product_services( $product ) {
+/**
+ * @param $product
+ * @param false|Shipment $shipment
+ *
+ * @return string[]
+ */
+function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
 	if ( in_array( $product, array_keys( wc_gzd_dhl_get_products_domestic() ), true ) ) {
 		$services = wc_gzd_dhl_get_services();
 	} else {
@@ -538,16 +544,32 @@ function wc_gzd_dhl_get_product_services( $product ) {
 		);
 	}
 
-	// Economy, CDP, PDDP are available for Paket International only
-	if ( 'V53WPAK' !== $product ) {
+	/**
+	 * Economy, CDP, PDDP are available for Paket International only
+	 */
+	if ( 'V53WPAK' === $product ) {
+		/**
+		 * Economy is not available for EU countries. Premium is booked by default.
+		 */
+		if ( $shipment && $shipment->is_shipping_inner_eu() ) {
+			$services = array_diff( $services, array( 'Economy', 'Premium' ) );
+		}
+	} else {
 		$services = array_diff( $services, array( 'Economy', 'CDP', 'PDDP' ) );
 	}
 
 	return $services;
 }
 
-function wc_gzd_dhl_product_supports_service( $product, $service ) {
-	$services = wc_gzd_dhl_get_product_services( $product );
+/**
+ * @param $product
+ * @param $service
+ * @param false|Shipment $shipment
+ *
+ * @return bool
+ */
+function wc_gzd_dhl_product_supports_service( $product, $service, $shipment = false ) {
+	$services = wc_gzd_dhl_get_product_services( $product, $shipment );
 
 	if ( ! in_array( $service, $services, true ) ) {
 		return false;
@@ -556,11 +578,17 @@ function wc_gzd_dhl_product_supports_service( $product, $service ) {
 	return true;
 }
 
-function wc_gzd_dhl_get_service_product_attributes( $service ) {
+/**
+ * @param $service
+ * @param false|Shipment $shipment
+ *
+ * @return array
+ */
+function wc_gzd_dhl_get_service_product_attributes( $service, $shipment = false ) {
 	$products_supported = array();
 
 	foreach ( array_keys( array_merge( wc_gzd_dhl_get_products_domestic(), wc_gzd_dhl_get_products_eu(), wc_gzd_dhl_get_products_international() ) ) as $product ) {
-		if ( wc_gzd_dhl_product_supports_service( $product, $service ) ) {
+		if ( wc_gzd_dhl_product_supports_service( $product, $service, $shipment ) ) {
 			$products_supported[] = $product;
 		}
 	}
