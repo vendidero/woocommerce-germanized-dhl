@@ -3,6 +3,7 @@
 MAIN_PLUGIN_FILE="woocommerce-germanized-dhl.php"
 PACKAGE_JSON_FILE=package.json
 PACKAGE_FILE=src/Package.php
+COMPOSER_FILE=composer.json
 
 # Allow passing a custom version string - defaults to "next"
 SMOOTH_BUMP=false
@@ -29,12 +30,16 @@ if test -f "$PACKAGE_JSON_FILE"; then
     LAST_PACKAGE_JSON=$(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+)/sg' $PACKAGE_JSON_FILE)
 fi
 
+if test -f "$COMPOSER_FILE"; then
+    LAST_COMPOSER=$(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+)/sg' $COMPOSER_FILE)
+fi
+
 if test -f "$PACKAGE_FILE"; then
     LAST_PACKAGE=$(perl -ne 'print $1 while /\s*const\sVERSION\s=\s'\''(\d+\.\d+\.\d+)/sg' $PACKAGE_FILE)
 fi
 
 # Store the latest version detected in the actual files
-LATEST=$(printf "$LAST_PACKAGE_JSON\n$LAST_PACKAGE\n$LAST_MAIN_FILE" | sort -V -r | head -1)
+LATEST=$(printf "$LAST_PACKAGE_JSON\n$LAST_PACKAGE\n$LAST_MAIN_FILE\n$LAST_COMPOSER\n" | sort -V -r | head -1)
 
 NEXT_VERSION=$(echo ${LATEST} | awk -F. -v OFS=. '{$NF += 1 ; print}')
 
@@ -56,6 +61,10 @@ export NEW_VERSION
 
 if test -f "$PACKAGE_JSON_FILE"; then
     perl -pe '/^\s*"version":/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i $PACKAGE_JSON_FILE
+fi
+
+if test -f "$COMPOSER_FILE"; then
+    perl -pe '/^\s*"version":/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i $COMPOSER_FILE
 fi
 
 if test -f "$PACKAGE_FILE"; then
