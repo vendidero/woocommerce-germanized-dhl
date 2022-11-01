@@ -5,17 +5,22 @@ PACKAGE_JSON_FILE=package.json
 PACKAGE_FILE=src/Package.php
 COMPOSER_FILE=composer.json
 
+#echo $(perl -ne 'print $1 while /\s*"version":\s\"(.+)\"/sg' $COMPOSER_FILE)
+#exit 1
+
 # Allow passing a custom version string - defaults to "next"
 SMOOTH_BUMP=false
+UPDATE_COMPOSER_VERSION=false
 VERSION=''
 
 print_usage() {
   printf "./bump-version.sh -s [version_string]"
 }
 
-while getopts 'sv:' flag; do
+while getopts 'scv:' flag; do
   case "${flag}" in
     s) SMOOTH_BUMP=true ;;
+    c) UPDATE_COMPOSER_VERSION=true ;;
     v) VERSION="${OPTARG}" ;;
     *) print_usage
        exit 1 ;;
@@ -25,14 +30,9 @@ done
 LAST_MAIN_FILE=$(perl -ne 'print $1 while /\s*\*\sVersion:\s(\d+\.\d+\.\d+)/sg' $MAIN_PLUGIN_FILE)
 LAST_PACKAGE_JSON=$LAST_MAIN_FILE
 LAST_PACKAGE=$LAST_MAIN_FILE
-LAST_COMPOSER=$LAST_MAIN_FILE
 
 if test -f "$PACKAGE_JSON_FILE"; then
     LAST_PACKAGE_JSON=$(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+)/sg' $PACKAGE_JSON_FILE)
-fi
-
-if test -f "$COMPOSER_FILE"; then
-    LAST_COMPOSER=$(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+)/sg' $COMPOSER_FILE)
 fi
 
 if test -f "$PACKAGE_FILE"; then
@@ -40,7 +40,7 @@ if test -f "$PACKAGE_FILE"; then
 fi
 
 # Store the latest version detected in the actual files
-LATEST=$(printf "$LAST_PACKAGE_JSON\n$LAST_PACKAGE\n$LAST_MAIN_FILE\n$LAST_COMPOSER" | sort -V -r | head -1)
+LATEST=$(printf "$LAST_PACKAGE_JSON\n$LAST_PACKAGE\n$LAST_MAIN_FILE" | sort -V -r | head -1)
 
 NEXT_VERSION=$(echo ${LATEST} | awk -F. -v OFS=. '{$NF += 1 ; print}')
 
@@ -64,8 +64,8 @@ if test -f "$PACKAGE_JSON_FILE"; then
     perl -pe '/^\s*"version":/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i $PACKAGE_JSON_FILE
 fi
 
-if test -f "$COMPOSER_FILE"; then
-    perl -pe '/^\s*"version":/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i $COMPOSER_FILE
+if test -f "$COMPOSER_FILE" && [ "$UPDATE_COMPOSER_VERSION" == "true" ]; then
+    perl -pe '/^\s*"version":/ and s/(".+")/$2 . ("\"version\": \"$ENV{'NEW_VERSION'}\"")/e' -i $COMPOSER_FILE
 fi
 
 if test -f "$PACKAGE_FILE"; then

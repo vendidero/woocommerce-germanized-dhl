@@ -56,6 +56,10 @@ jobs:
           git diff-index --quiet HEAD || git commit -m 'Version bump' --no-verify && git push -f
       - name: Create release branch
         run: git checkout -b release/v${{ steps.bump_version.outputs.VERSION }}
+      - name: Bump composer.json version
+        id: "bump_composer_version"
+        run: |
+          echo "::set-output name=VERSION::$(bin/bump-version.sh -s -c -v ${{ steps.bump_version.outputs.VERSION }})"
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
