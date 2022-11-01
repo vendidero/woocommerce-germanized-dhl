@@ -25,6 +25,7 @@ done
 LAST_MAIN_FILE=$(perl -ne 'print $1 while /\s*\*\sVersion:\s(\d+\.\d+\.\d+)/sg' $MAIN_PLUGIN_FILE)
 LAST_PACKAGE_JSON=$LAST_MAIN_FILE
 LAST_PACKAGE=$LAST_MAIN_FILE
+LAST_COMPOSER=$LAST_MAIN_FILE
 
 if test -f "$PACKAGE_JSON_FILE"; then
     LAST_PACKAGE_JSON=$(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+)/sg' $PACKAGE_JSON_FILE)
@@ -39,7 +40,7 @@ if test -f "$PACKAGE_FILE"; then
 fi
 
 # Store the latest version detected in the actual files
-LATEST=$(printf "$LAST_PACKAGE_JSON\n$LAST_PACKAGE\n$LAST_MAIN_FILE\n$LAST_COMPOSER\n" | sort -V -r | head -1)
+LATEST=$(printf "$LAST_PACKAGE_JSON\n$LAST_PACKAGE\n$LAST_MAIN_FILE\n$LAST_COMPOSER" | sort -V -r | head -1)
 
 NEXT_VERSION=$(echo ${LATEST} | awk -F. -v OFS=. '{$NF += 1 ; print}')
 
