@@ -284,7 +284,19 @@ class ParcelLocator {
 	}
 
 	public static function get_supported_countries() {
-		$countries = WC()->countries ? WC()->countries->get_european_union_countries() : array();
+		$countries = array( 'DE', 'AT' );
+
+		/**
+		 * Check if the address_2 field has been removed, e.g. via customizer as
+		 * the address_2 field is necessary for non-DE pickup stations.
+		 */
+		if ( WC()->countries ) {
+			$address_fields = WC()->countries->get_default_address_fields();
+
+			if ( ! isset( $address_fields['address_2'] ) ) {
+				$countries = array( 'DE' );
+			}
+		}
 
 		/**
 		 * Filter to enable DHL parcel shop delivery for certain countries.
@@ -1036,12 +1048,14 @@ class ParcelLocator {
 			$fields['shipping_address_1']['custom_attributes']['data-placeholder-regular'] = isset( $fields['shipping_address_1']['placeholder'] ) ? $fields['shipping_address_1']['placeholder'] : '';
 			$fields['shipping_address_1']['custom_attributes']['data-desc-dhl']            = self::get_button();
 
-			$fields['shipping_address_2']['custom_attributes']                             = ( isset( $fields['shipping_address_2']['custom_attributes'] ) ? $fields['shipping_address_2']['custom_attributes'] : array() );
-			$fields['shipping_address_2']['custom_attributes']['data-label-dhl']           = self::get_pickup_type_address_label();
-			$fields['shipping_address_2']['custom_attributes']['data-label-regular']       = $fields['shipping_address_2']['label'];
-			$fields['shipping_address_2']['custom_attributes']['data-placeholder-dhl']     = self::get_pickup_type_address_placeholder();
-			$fields['shipping_address_2']['custom_attributes']['data-placeholder-regular'] = isset( $fields['shipping_address_2']['placeholder'] ) ? $fields['shipping_address_2']['placeholder'] : '';
-			$fields['shipping_address_2']['custom_attributes']['data-desc-dhl']            = self::get_button();
+			if ( isset( $fields['shipping_address_2'] ) ) {
+				$fields['shipping_address_2']['custom_attributes']                             = ( isset( $fields['shipping_address_2']['custom_attributes'] ) ? $fields['shipping_address_2']['custom_attributes'] : array() );
+				$fields['shipping_address_2']['custom_attributes']['data-label-dhl']           = self::get_pickup_type_address_label();
+				$fields['shipping_address_2']['custom_attributes']['data-label-regular']       = $fields['shipping_address_2']['label'];
+				$fields['shipping_address_2']['custom_attributes']['data-placeholder-dhl']     = self::get_pickup_type_address_placeholder();
+				$fields['shipping_address_2']['custom_attributes']['data-placeholder-regular'] = isset( $fields['shipping_address_2']['placeholder'] ) ? $fields['shipping_address_2']['placeholder'] : '';
+				$fields['shipping_address_2']['custom_attributes']['data-desc-dhl']            = self::get_button();
+			}
 		}
 
 		return $fields;
