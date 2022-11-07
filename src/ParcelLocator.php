@@ -290,12 +290,8 @@ class ParcelLocator {
 		 * Check if the address_2 field has been removed, e.g. via customizer as
 		 * the address_2 field is necessary for non-DE pickup stations.
 		 */
-		if ( WC()->countries ) {
-			$address_fields = WC()->countries->get_default_address_fields();
-
-			if ( ! isset( $address_fields['address_2'] ) ) {
-				$countries = array( 'DE' );
-			}
+		if ( 'hidden' === get_option( 'woocommerce_checkout_address_2_field', 'optional' ) ) {
+			$countries = array( 'DE' );
 		}
 
 		/**
