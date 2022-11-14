@@ -788,7 +788,7 @@ class ParcelLocator {
 
 	public static function localize_printed_scripts() {
 		/**
-		 * Do not check for localized script as this script needs to be loadeed in footer to make sure
+		 * Do not check for localized script as this script needs to be loaded in footer to make sure
 		 * that shipping method data (packages etc.) exist. This may lead to duplicate localizations (which is not a bug).
 		 */
 		if ( wp_script_is( 'wc-gzd-parcel-locator-dhl' ) ) {
