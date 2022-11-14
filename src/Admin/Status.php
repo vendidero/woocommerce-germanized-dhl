@@ -88,7 +88,6 @@ class Status {
 			$urls = array_merge(
 				$urls,
 				array(
-					Package::get_warenpost_international_rest_url() => 404,
 					Package::get_internetmarke_main_url() => 200,
 					Package::get_internetmarke_refund_url() => 200,
 					Package::get_internetmarke_products_url() => 200,
