@@ -700,6 +700,9 @@ class LabelSoap extends Soap {
 					if ( $post_number = ParcelLocator::get_postnumber_by_shipment( $shipment ) ) {
 						$parcel_shop['postNumber'] = $post_number;
 						unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] );
+					} else {
+						$parcel_shop['postNumber'] = '';
+						$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] = $shipment->get_email();
 					}
 
 					$parcel_shop['postfilialNumber']                                        = $address_number;
