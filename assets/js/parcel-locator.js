@@ -24,7 +24,8 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 .on( 'change.dhl', self.wrapper + ' #shipping_address_2', self.onChangeAddress )
                 .on( 'change.dhl', self.wrapper + ' #shipping_country', self.onChangeAddress )
                 .on( 'change.dhl', self.wrapper + ' #ship-to-different-address-checkbox', self.onChangeShipping )
-                .on( 'change.dhl', self.wrapper + ' #shipping_country', self.refreshAvailability );
+                .on( 'change.dhl', self.wrapper + ' #shipping_country', self.refreshAvailability )
+                .on( 'input.dhl validate.dhl change.dhl', self.wrapper + ' #shipping_dhl_postnumber', self.validatePostnumber );
 
             $( document.body ).on( 'payment_method_selected', self.triggerCheckoutRefresh );
             $( document.body ).on( 'updated_checkout', self.afterRefreshCheckout );
@@ -41,6 +42,28 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
 
             self.refreshAvailability();
             self.refreshAddressType();
+        },
+
+        validatePostnumber: function( e ) {
+            var $this = $( this ),
+                $parent = $this.closest( '.form-row' ),
+                eventType = e.type;
+
+            if ( 'input' === eventType ) {
+                if ( $this.val() ) {
+                    $this.val( $this.val().replace( /\D/g,'' ) );
+                }
+            }
+
+            if ( 'validate' === eventType || 'change' === eventType ) {
+                if ( $this.val() ) {
+                    $this.val( $this.val().replace( /\D/g,'' ) );
+
+                    if ( $this.val().toString().length < 6 || $this.val().toString().length > 12 ) {
+                        $parent.removeClass( 'woocommerce-validated' ).addClass( 'woocommerce-invalid woocommerce-invalid-postnumber' );
+                    }
+                }
+            }
         },
 
         triggerCheckoutRefresh: function() {
