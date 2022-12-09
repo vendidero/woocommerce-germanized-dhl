@@ -761,13 +761,13 @@ class ParcelLocator {
 						}
 					}
 
-					if ( $has_postnumber && ! empty( $args['postnumber'] ) ) {
+					if ( $has_postnumber ) {
 						$post_number_len = strlen( $args['postnumber'] );
 
 						if ( $post_number_len < 6 || $post_number_len > 12 ) {
 							$error->add( 'validation', _x( 'Your DHL customer number (Post number) is not valid. Please check your number.', 'dhl', 'woocommerce-germanized-dhl' ) );
 						}
-					} elseif ( ( $is_packstation || $has_postnumber ) && empty( $args['postnumber'] ) ) {
+					} elseif ( $is_packstation && empty( $args['postnumber'] ) ) {
 						$error->add( 'validation', _x( 'Your DHL customer number (Post number) is needed to ship to a packstation.', 'dhl', 'woocommerce-germanized-dhl' ) );
 					}
 				}
