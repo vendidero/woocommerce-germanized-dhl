@@ -121,9 +121,9 @@ class ReturnRest extends Rest {
 	public function create_return_label( &$label ) {
 		try {
 			$request_args = $this->get_request_args( $label );
-			$result       = $this->post_request( '/returns/', wp_json_encode( $request_args ) );
+			Package::log( 'Call returns API: ' . wc_print_r( $request_args, true ) );
 
-			Package::log( '"returns" called with: ' . print_r( $request_args, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+			$result       = $this->post_request( '/returns/', wp_json_encode( $request_args ) );
 		} catch ( Exception $e ) {
 			Package::log( 'Response Error: ' . $e->getMessage() );
 			throw $e;

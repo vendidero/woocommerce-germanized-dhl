@@ -190,7 +190,7 @@ function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
 	/**
 	 * Filter to adjust the endorsement type for internation shipments.
 	 *
-	 * @param string         $text The endorsement type: IMMEDIATE or AFTER_DEADLINE.
+	 * @param string         $text The endorsement type: IMMEDIATE or ABANDONMENT.
 	 * @param Label\Label    $label The label instance.
 	 * @param SimpleShipment $shipment The shipment instance.
 	 *
@@ -199,7 +199,7 @@ function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
 	 */
 	$type = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_endorsement_type', 'IMMEDIATE', $label, $shipment ) );
 
-	if ( ! in_array( $type, array( 'IMMEDIATE', 'AFTER_DEADLINE' ), true ) ) {
+	if ( ! in_array( $type, array( 'IMMEDIATE', 'ABANDONMENT' ), true ) ) {
 		$type = 'IMMEDIATE';
 	}
 
