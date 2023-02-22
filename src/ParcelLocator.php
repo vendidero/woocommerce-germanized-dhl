@@ -243,6 +243,23 @@ class ParcelLocator {
 			$keyword_id        = self::extract_pickup_keyword_id( $address_field_val );
 
 			if ( ! empty( $types ) ) {
+				/**
+				 * Missing indicator, e.g. Packstation, Postfiliale in address field - lookup actual name via API
+				 * and add the prefix to the address field.
+				 */
+				if ( is_numeric( $keyword_id ) ) {
+					$pickup_address_details = ParcelLocator::is_valid_pickup_address( array(
+						'country'   => $shipment->get_country(),
+						'address_1' => $shipment->get_address_1(),
+						'address_2' => $shipment->get_address_2(),
+						'postcode'  => $shipment->get_postcode(),
+					) );
+
+					if ( ! is_wp_error( $pickup_address_details ) ) {
+						$address_field_val = $pickup_address_details['name'];
+					}
+				}
+
 				foreach ( $types as $type ) {
 					if ( wc_gzd_dhl_is_pickup_type( $address_field_val, $type ) ) {
 						return true;
@@ -1174,6 +1191,12 @@ class ParcelLocator {
 		return $countries;
 	}
 
+	/**
+	 * @param $args
+	 * @param $report_invalid_address
+	 *
+	 * @return array|WP_Error
+	 */
 	public static function is_valid_pickup_address( $args, $report_invalid_address = false ) {
 		$address_data = wp_parse_args(
 			$args,
