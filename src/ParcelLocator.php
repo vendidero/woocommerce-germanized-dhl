@@ -71,17 +71,20 @@ class ParcelLocator {
 		 */
 		add_filter( 'woocommerce_gzd_checkout_is_valid_street_number', array( __CLASS__, 'street_number_is_valid' ), 10, 2 );
 
-		add_action( 'init', function() {
-			if ( self::has_map() ) {
-				add_action( 'wp_footer', array( __CLASS__, 'add_form' ), 50 );
+		add_action(
+			'init',
+			function() {
+				if ( self::has_map() ) {
+					add_action( 'wp_footer', array( __CLASS__, 'add_form' ), 50 );
 
-				add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcelfinder_search', array( __CLASS__, 'ajax_search' ) );
-				add_action( 'wp_ajax_woocommerce_gzd_dhl_parcelfinder_search', array( __CLASS__, 'ajax_search' ) );
+					add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcelfinder_search', array( __CLASS__, 'ajax_search' ) );
+					add_action( 'wp_ajax_woocommerce_gzd_dhl_parcelfinder_search', array( __CLASS__, 'ajax_search' ) );
 
-				add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
-				add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
+					add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
+					add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
+				}
 			}
-		} );
+		);
 	}
 
 	public static function street_number_is_valid( $is_valid, $data ) {
@@ -248,12 +251,14 @@ class ParcelLocator {
 				 * and add the prefix to the address field.
 				 */
 				if ( is_numeric( $keyword_id ) ) {
-					$pickup_address_details = ParcelLocator::is_valid_pickup_address( array(
-						'country'   => $shipment->get_country(),
-						'address_1' => $shipment->get_address_1(),
-						'address_2' => $shipment->get_address_2(),
-						'postcode'  => $shipment->get_postcode(),
-					) );
+					$pickup_address_details = self::is_valid_pickup_address(
+						array(
+							'country'   => $shipment->get_country(),
+							'address_1' => $shipment->get_address_1(),
+							'address_2' => $shipment->get_address_2(),
+							'postcode'  => $shipment->get_postcode(),
+						)
+					);
 
 					if ( ! is_wp_error( $pickup_address_details ) ) {
 						$address_field_val = $pickup_address_details['name'];
