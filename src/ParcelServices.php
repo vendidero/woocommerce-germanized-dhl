@@ -149,7 +149,7 @@ class ParcelServices {
 		$_POST = $post_data;
 
 		$posted_data = \WC_Checkout::instance()->get_posted_data();
-		$posted_data = array_merge( wc_clean( $post_data ), $posted_data );
+		$posted_data = array_merge( wc_clean( $post_data ), (array) $posted_data );
 
 		$_POST = $original_post_data;
 
