@@ -79,10 +79,10 @@ class ParcelLocator {
 
 					add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcelfinder_search', array( __CLASS__, 'ajax_search' ) );
 					add_action( 'wp_ajax_woocommerce_gzd_dhl_parcelfinder_search', array( __CLASS__, 'ajax_search' ) );
-
-					add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
-					add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
 				}
+
+				add_action( 'wp_ajax_nopriv_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
+				add_action( 'wp_ajax_woocommerce_gzd_dhl_parcel_locator_validate_address', array( __CLASS__, 'ajax_validate_address' ) );
 			}
 		);
 	}
