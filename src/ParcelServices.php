@@ -243,6 +243,8 @@ class ParcelServices {
 
 		if ( empty( $cost ) ) {
 			$cost = 0;
+		} else {
+			$cost = wc_format_decimal( $cost );
 		}
 
 		return $cost;
@@ -253,6 +255,8 @@ class ParcelServices {
 
 		if ( empty( $cost ) ) {
 			$cost = 0;
+		} else {
+			$cost = wc_format_decimal( $cost );
 		}
 
 		return $cost;
