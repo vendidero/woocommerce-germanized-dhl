@@ -419,7 +419,7 @@ class LabelSoap extends Soap {
 
 			switch ( $service ) {
 				case 'AdditionalInsurance':
-					$services[ $service ]['insuranceAmount'] = $shipment->get_total();
+					$services[ $service ]['insuranceAmount'] = apply_filters( 'woocommerce_gzd_dhl_label_api_insurance_amount', $shipment->get_total(), $shipment, $label );
 					break;
 				case 'IdentCheck':
 					$services[ $service ]['Ident']['surname']     = $shipment->get_last_name();
@@ -838,6 +838,6 @@ class LabelSoap extends Soap {
 			}
 		}
 
-		return apply_filters( 'woocommerce_gzd_dhl_create_label_request', $this->body_request, $label, $shipment, $this );
+		return apply_filters( 'woocommerce_gzd_dhl_label_api_create_label_request', $this->body_request, $label, $shipment, $this );
 	}
 }
