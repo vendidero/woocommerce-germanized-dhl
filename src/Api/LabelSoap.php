@@ -838,6 +838,6 @@ class LabelSoap extends Soap {
 			}
 		}
 
-		return $this->body_request;
+		return apply_filters( 'woocommerce_gzd_dhl_create_label_request', $this->body_request, $label, $shipment, $this );
 	}
 }
