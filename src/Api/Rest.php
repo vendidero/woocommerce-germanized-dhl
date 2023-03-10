@@ -92,22 +92,26 @@ abstract class Rest {
 	}
 
 	protected function handle_get_response( $response_code, $response_body ) {
+		$response_code = absint( $response_code );
+
 		switch ( $response_code ) {
-			case '200':
-			case '201':
+			case 200:
+			case 201:
 				break;
-			case '400':
+			case 400:
 				$error_message = str_replace( '/', ' / ', isset( $response_body->statusText ) ? $response_body->statusText : '' ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				throw new Exception( _x( '400 - ', 'dhl', 'woocommerce-germanized-dhl' ) . $error_message, $response_code );
-			case '401':
+			case 401:
 				throw new Exception( _x( '401 - Unauthorized Access - Invalid token or Authentication Header parameter', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
-			case '408':
+			case 408:
 				throw new Exception( _x( '408 - Request Timeout', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
-			case '429':
+			case 429:
 				throw new Exception( _x( '429 - Too many requests in given amount of time', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
-			case '503':
+			case 503:
 				throw new Exception( _x( '503 - Service Unavailable', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
 			default:
+				$response_code = empty( $response_code ) ? 404 : $response_code;
+
 				if ( empty( $response_body->statusText ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$error_message = _x( 'GET error or timeout occured. Please try again later.', 'dhl', 'woocommerce-germanized-dhl' );
 				} else {
