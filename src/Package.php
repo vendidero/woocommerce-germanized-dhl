@@ -174,8 +174,6 @@ class Package {
 
 		// List of tables without prefixes.
 		$tables = array(
-			'gzd_dhl_labelmeta'           => 'woocommerce_gzd_dhl_labelmeta',
-			'gzd_dhl_labels'              => 'woocommerce_gzd_dhl_labels',
 			'gzd_dhl_im_products'         => 'woocommerce_gzd_dhl_im_products',
 			'gzd_dhl_im_product_services' => 'woocommerce_gzd_dhl_im_product_services',
 		);

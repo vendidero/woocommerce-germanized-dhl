@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\DHL\Legacy\DataStores;
 
+use Vendidero\Germanized\DHL\Legacy\Helper;
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
 use Exception;
@@ -92,6 +93,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	public function create( &$label ) {
 		global $wpdb;
 
+		Helper::maybe_define_db_tables();
+
 		$label->set_date_created( time() );
 
 		$data = array(
@@ -157,6 +160,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	 */
 	public function update( &$label ) {
 		global $wpdb;
+
+		Helper::maybe_define_db_tables();
 
 		$updated_props = array();
 		$core_props    = $this->core_props;
@@ -224,6 +229,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	public function delete( &$label, $force_delete = false ) {
 		global $wpdb;
 
+		Helper::maybe_define_db_tables();
+
 		// Delete files
 		if ( $file = $label->get_file() ) {
 			wp_delete_file( $file );
@@ -280,6 +287,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	 */
 	public function read( &$label ) {
 		global $wpdb;
+
+		Helper::maybe_define_db_tables();
 
 		$data = $wpdb->get_row(
 			$wpdb->prepare(
@@ -349,6 +358,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	 */
 	public function get_label_type( $label_id ) {
 		global $wpdb;
+
+		Helper::maybe_define_db_tables();
 
 		$type = $wpdb->get_col(
 			$wpdb->prepare(
@@ -551,6 +562,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	protected function get_db_info() {
 		global $wpdb;
 
+		Helper::maybe_define_db_tables();
+
 		$meta_id_field   = 'meta_id'; // for some reason users calls this umeta_id so we need to track this as well.
 		$table           = $wpdb->gzd_dhl_labelmeta;
 		$object_id_field = $this->meta_type . '_id';
@@ -568,6 +581,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
 	public function get_label_count() {
 		global $wpdb;
+
+		Helper::maybe_define_db_tables();
 
 		return absint( $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->gzd_dhl_labels}" ) );
 	}

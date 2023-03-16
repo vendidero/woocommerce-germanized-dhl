@@ -75,6 +75,8 @@ class LabelQuery extends WC_Object_Query {
 			return array();
 		}
 
+		Helper::maybe_define_db_tables();
+
 		/**
 		 * Filter to adjust query paramaters for a DHL label query.
 		 *
