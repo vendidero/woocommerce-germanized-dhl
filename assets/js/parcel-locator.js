@@ -22,6 +22,7 @@ window.germanized.dhl_parcel_locator = window.germanized.dhl_parcel_locator || {
                 .on( 'change.dhl', self.wrapper + ' #shipping_address_type', self.refreshAddressType )
                 .on( 'change.dhl', self.wrapper + ' #shipping_address_1', self.onChangeAddress )
                 .on( 'change.dhl', self.wrapper + ' #shipping_address_2', self.onChangeAddress )
+                .on( 'change.dhl', self.wrapper + ' #shipping_postcode', self.onChangeAddress )
                 .on( 'change.dhl', self.wrapper + ' #shipping_country', self.onChangeAddress )
                 .on( 'change.dhl', self.wrapper + ' #ship-to-different-address-checkbox', self.onChangeShipping )
                 .on( 'change.dhl', self.wrapper + ' #shipping_country', self.refreshAvailability )
