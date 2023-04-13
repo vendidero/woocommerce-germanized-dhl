@@ -498,7 +498,8 @@ class LabelSoap extends Soap {
 			);
 		}
 
-		$account_number = self::get_account_number( $label->get_product_id() );
+		$account_number            = self::get_account_number( $label->get_product_id() );
+		$formatted_recipient_state = wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() );
 
 		$dhl_label_body = array(
 			'Version'           => array(
@@ -543,9 +544,19 @@ class LabelSoap extends Soap {
 							'streetNumber' => wc_gzd_dhl_get_label_shipment_street_number( $shipment ),
 							'zip'          => $shipment->get_postcode(),
 							'city'         => $shipment->get_city(),
+							/**
+							 * The province field actually prints the state on the DHL label.
+							 *
+							 * @param string $value The field value.
+							 * @param Label\DHL  $label The label instance.
+							 *
+							 * @since 3.0.3
+							 * @package Vendidero/Germanized/DHL
+							 */
+							'province'     => apply_filters( 'woocommerce_gzd_dhl_label_api_province', ( $formatted_recipient_state !== $shipment->get_city() ? $formatted_recipient_state : '' ), $label ),
 							'Origin'       => array(
 								'countryISOCode' => $shipment->get_country(),
-								'state'          => wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() ),
+								'state'          => $formatted_recipient_state,
 							),
 						),
 						'Communication' => array(
