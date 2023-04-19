@@ -409,10 +409,15 @@ class LabelSoap extends Soap {
 			throw new Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
-		$services  = array();
-		$bank_data = array();
+		$services           = array();
+		$bank_data          = array();
+		$available_services = wc_gzd_dhl_get_product_services( $label->get_product_id(), $shipment );
 
 		foreach ( $label->get_services() as $service ) {
+			if ( ! in_array( $service, $available_services, true ) ) {
+				continue;
+			}
+
 			$services[ $service ] = array(
 				'active' => 1,
 			);
@@ -468,23 +473,6 @@ class LabelSoap extends Soap {
 						$services[ $service ]['details'] = $shipment->get_email();
 					}
 					break;
-			}
-		}
-
-		/**
-		 * Economy, CDP only available for DHL Paket International
-		 */
-		if ( 'V53WPAK' !== $label->get_product_id() ) {
-			if ( isset( $services['Economy'] ) ) {
-				unset( $services['Economy'] );
-			}
-
-			if ( isset( $services['CDP'] ) ) {
-				unset( $services['CDP'] );
-			}
-
-			if ( isset( $services['PDDP'] ) ) {
-				unset( $services['PDDP'] );
 			}
 		}
 
@@ -553,7 +541,7 @@ class LabelSoap extends Soap {
 							 * @since 3.0.3
 							 * @package Vendidero/Germanized/DHL
 							 */
-							'province'     => apply_filters( 'woocommerce_gzd_dhl_label_api_province', ( $formatted_recipient_state !== $shipment->get_city() ? $formatted_recipient_state : '' ), $label ),
+							'province'     => apply_filters( 'woocommerce_gzd_dhl_label_api_province', ( ! $shipment->is_shipping_inner_eu() && $shipment->get_city() !== $formatted_recipient_state ? $formatted_recipient_state : '' ), $label ),
 							'Origin'       => array(
 								'countryISOCode' => $shipment->get_country(),
 								'state'          => $formatted_recipient_state,

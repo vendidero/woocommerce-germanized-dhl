@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 class DHL extends Auto {
 
 	protected function get_default_label_default_shipment_weight() {
-		return 2;
+		return 0.5;
 	}
 
 	public function get_title( $context = 'view' ) {
