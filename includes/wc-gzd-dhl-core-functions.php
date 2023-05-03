@@ -106,8 +106,8 @@ function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
 
 function wc_gzd_dhl_get_duties() {
 	$duties = array(
-		'DDU' => _x( 'Delivery Duty Unpaid', 'dhl', 'woocommerce-germanized-dhl' ),
 		'DDP' => _x( 'Delivery Duty Paid', 'dhl', 'woocommerce-germanized-dhl' ),
+		'DAP' => _x( 'Delivery At Place', 'dhl', 'woocommerce-germanized-dhl' ),
 		'DXV' => _x( 'Delivery Duty Paid (excl. VAT )', 'dhl', 'woocommerce-germanized-dhl' ),
 		'DDX' => _x( 'Delivery Duty Paid (excl. Duties, taxes and VAT)', 'dhl', 'woocommerce-germanized-dhl' ),
 	);
