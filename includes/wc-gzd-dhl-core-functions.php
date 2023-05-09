@@ -279,6 +279,7 @@ function wc_gzd_dhl_get_international_services() {
 		'Economy',
 		'Premium',
 		'PDDP',
+		'CashOnDelivery'
 	);
 }
 
@@ -518,6 +519,13 @@ function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
 		$services = wc_gzd_dhl_get_services();
 	} else {
 		$services = wc_gzd_dhl_get_international_services();
+
+		/**
+		 * Cash on Delivery is only available for Paket International
+		 */
+		if ( 'V53WPAK' !== $product ) {
+			$services = array_diff( $services, array( 'CashOnDelivery' ) );
+		}
 	}
 
 	/**
