@@ -283,7 +283,7 @@ class Admin {
 		wp_register_script( 'wc-gzd-admin-dhl-internetmarke', Package::get_assets_url() . '/js/admin-internetmarke' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-deutsche-post-label', Package::get_assets_url() . '/js/admin-deutsche-post-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
-		if ( wp_script_is( 'wc-gzd-admin-shipment-label-backbone', 'enqueued' ) ) {
+		if ( wp_script_is( 'wc-gzd-admin-shipment-modal', 'enqueued' ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-deutsche-post-label' );
 
 			wp_localize_script(

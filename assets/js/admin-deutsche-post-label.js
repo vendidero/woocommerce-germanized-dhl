@@ -7,36 +7,40 @@ window.germanized.admin = window.germanized.admin || {};
      * Core
      */
     admin.dhl_post_label = {
-
         params: {},
 
         init: function () {
             var self    = admin.dhl_post_label;
             self.params = wc_gzd_admin_deutsche_post_label_params;
 
-            $( document ).on( 'change', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', self.onRefreshPreview );
+            $( '.create-shipment-label' ).on( 'wc_gzd_admin_shipment_modal_after_load_success', self.onLoadLabelModal )
+        },
+
+        onLoadLabelModal: function( e, data, modal ) {
+            var self = admin.dhl_post_label;
+
+            $( document ).on( 'change', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', { adminShipmentModal: modal }, self.onRefreshPreview );
+
+            $( '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id' ).trigger( 'change' );
         },
 
         getSelectedAdditionalServices: function() {
-            var selectedIds = $( "#wc-gzd-shipment-label-wrapper-additional-services :input:checked" ).map( function() {
+            return $( "#wc-gzd-shipment-label-wrapper-additional-services :input:checked" ).map( function() {
                 return $( this ).attr( 'name' ).replace( 'service_', '' );
             }).get();
-
-            return selectedIds;
         },
 
-        onRefreshPreview: function() {
-            var self      = admin.dhl_post_label,
-                backbone = germanized.admin.shipment_label_backbone.backbone,
-                params   = {},
-                $wrapper = $( '.wc-gzd-shipment-create-label' );
+        onRefreshPreview: function( event ) {
+            var self     = admin.dhl_post_label,
+                modal    = event.data.adminShipmentModal,
+                params   = {};
 
             params['security']          = self.params.refresh_label_preview_nonce;
             params['product_id']        = self.getProductId();
             params['selected_services'] = self.getSelectedAdditionalServices();
             params['action']            = 'woocommerce_gzd_dhl_refresh_deutsche_post_label_preview';
 
-            backbone.doAjax( params, $wrapper, self.onPreviewSuccess );
+            modal.doAjax( params, self.onPreviewSuccess );
         },
 
         onPreviewSuccess: function( data ) {
@@ -72,12 +76,6 @@ window.germanized.admin = window.germanized.admin || {};
             } else {
                 $img_wrapper.html( '' );
             }
-        },
-
-        refreshProductData: function() {
-            var self = admin.dhl_post_label;
-
-            self.onRefreshPreview();
         },
 
         getProductId: function() {

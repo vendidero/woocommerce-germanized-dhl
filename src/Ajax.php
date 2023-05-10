@@ -20,7 +20,6 @@ class Ajax {
 	 * Hook in methods - uses WordPress ajax handlers (admin-ajax).
 	 */
 	public static function add_ajax_events() {
-
 		$ajax_events = array(
 			'refresh_deutsche_post_label_preview',
 		);
@@ -45,7 +44,7 @@ class Ajax {
 	public static function refresh_deutsche_post_label_preview() {
 		check_ajax_referer( 'wc-gzd-dhl-refresh-deutsche-post-label-preview', 'security' );
 
-		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['product_id'], $_POST['shipment_id'] ) ) {
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['product_id'], $_POST['reference_id'] ) ) {
 			wp_die( -1 );
 		}
 
@@ -60,7 +59,7 @@ class Ajax {
 
 		$selected_services = isset( $_POST['selected_services'] ) ? wc_clean( wp_unslash( $_POST['selected_services'] ) ) : array();
 		$im_product_id     = absint( $_POST['product_id'] );
-		$shipment_id       = absint( $_POST['shipment_id'] );
+		$shipment_id       = absint( $_POST['reference_id'] );
 		$product_id        = $im_product_id;
 		$is_wp_int         = false;
 		$response          = array(
