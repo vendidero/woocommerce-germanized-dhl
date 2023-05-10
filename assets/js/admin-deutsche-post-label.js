@@ -13,15 +13,13 @@ window.germanized.admin = window.germanized.admin || {};
             var self    = admin.dhl_post_label;
             self.params = wc_gzd_admin_deutsche_post_label_params;
 
-            $( '.create-shipment-label' ).on( 'wc_gzd_admin_shipment_modal_after_load_success', self.onLoadLabelModal )
+            $( '.create-shipment-label' ).on( 'wc_gzd_admin_shipment_modal_after_init_data', self.onLoadLabelModal )
         },
 
-        onLoadLabelModal: function( e, data, modal ) {
+        onLoadLabelModal: function( e, modal ) {
             var self = admin.dhl_post_label;
 
             $( document ).on( 'change', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', { adminShipmentModal: modal }, self.onRefreshPreview );
-
-            $( '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id' ).trigger( 'change' );
         },
 
         getSelectedAdditionalServices: function() {
