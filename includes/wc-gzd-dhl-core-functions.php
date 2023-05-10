@@ -279,7 +279,7 @@ function wc_gzd_dhl_get_international_services() {
 		'Economy',
 		'Premium',
 		'PDDP',
-		'CashOnDelivery'
+		'CashOnDelivery',
 	);
 }
 

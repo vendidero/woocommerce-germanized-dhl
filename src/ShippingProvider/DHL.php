@@ -937,16 +937,19 @@ class DHL extends Auto {
 				$defaults['cod_total']                    += round( $shipment->get_additional_total(), wc_get_price_decimals() );
 				$defaults['cod_includes_additional_total'] = true;
 			}
+
+			/**
+			 * Cash on delivery for Paket International is only available in combination with Premium
+			 */
+			if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) && wc_gzd_dhl_product_supports_service( $product_id, 'Premium', $shipment ) ) {
+				$defaults['services'][] = 'Premium';
+			}
 		}
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
-
 			$defaults['duties'] = $this->get_shipment_setting( $shipment, 'label_default_duty' );
-
 		} elseif ( Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
-
 			if ( Package::base_country_supports( 'services' ) ) {
-
 				if ( $dhl_order && $dhl_order->has_preferred_day() ) {
 					$defaults['preferred_day'] = $dhl_order->get_preferred_day()->format( 'Y-m-d' );
 				}
@@ -1007,12 +1010,11 @@ class DHL extends Auto {
 					}
 				}
 
-				// Demove duplicates
+				// Remove duplicates
 				$defaults['services'] = array_unique( $defaults['services'] );
 			}
 
 			if ( Package::base_country_supports( 'returns' ) ) {
-
 				$defaults['return_address'] = array(
 					'name'          => Package::get_setting( 'return_name' ),
 					'company'       => Package::get_setting( 'return_company' ),
