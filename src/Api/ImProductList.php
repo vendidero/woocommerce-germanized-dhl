@@ -379,14 +379,26 @@ class ImProductList {
 		try {
 			$product_soap = new ImProductsSoap( array(), Package::get_wsdl_file( Package::get_internetmarke_products_url() ) );
 			$product_list = $product_soap->get_products();
+			$response     = $product_list->Response; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+			if ( ! isset( $response->salesProductList ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				Package::log( 'Error while retrieving Internetmarke products:' );
+				Package::log( wc_print_r( $product_list, true ) );
+
+				if ( isset( $response->message ) ) {
+					throw new \Exception( wc_clean( $response->message ) );
+				} else {
+					throw new \Exception( _x( 'No Internetmarke product data found.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				}
+			}
 
 			$wpdb->query( "TRUNCATE TABLE {$wpdb->gzd_dhl_im_products}" );
 			$wpdb->query( "TRUNCATE TABLE {$wpdb->gzd_dhl_im_product_services}" );
 
 			$products = array(
-				'sales'      => $product_list->Response->salesProductList->SalesProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				'additional' => $product_list->Response->additionalProductList->AdditionalProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				'basic'      => $product_list->Response->basicProductList->BasicProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				'sales'      => $response->salesProductList->SalesProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				'additional' => $response->additionalProductList->AdditionalProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				'basic'      => $response->basicProductList->BasicProduct, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			);
 
 			$products_with_additional_service = array();

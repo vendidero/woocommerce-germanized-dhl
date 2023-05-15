@@ -776,10 +776,12 @@ class LabelSoap extends Soap {
 				$dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['ShipmentItem']['weightInKG'] = wc_format_decimal( $customs_label_data['item_total_weight_in_kg'] ) + $shipment->get_packaging_weight();
 			}
 
+			$export_type = $this->get_export_type( $customs_label_data, $label );
+
 			$customs_data = array(
 				'termsOfTrade'               => $label->get_duties(),
 				'additionalFee'              => $customs_label_data['additional_fee'],
-				'exportTypeDescription'      => $customs_label_data['export_type_description'],
+				'exportTypeDescription'      => $customs_label_data['export_reason_description'],
 				'placeOfCommital'            => $customs_label_data['place_of_commital'],
 				'addresseesCustomsReference' => $customs_label_data['receiver_customs_ref_number'],
 				'sendersCustomsReference'    => $customs_label_data['sender_customs_ref_number'],
@@ -802,7 +804,7 @@ class LabelSoap extends Soap {
 				 * @since 3.3.0
 				 * @package Vendidero/Germanized/DHL
 				 */
-				'exportType'                 => strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', 'COMMERCIAL_GOODS', $label ) ),
+				'exportType'                 => strtoupper( $export_type ),
 				/**
 				 * Filter to allow adjusting the export invoice number.
 				 *
@@ -815,7 +817,7 @@ class LabelSoap extends Soap {
 				'invoiceNumber'              => apply_filters( 'woocommerce_gzd_dhl_label_api_export_invoice_number', $customs_label_data['invoice_number'], $label ),
 			);
 
-			$dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = $customs_data;
+			$dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = apply_filters( 'woocommerce_gzd_dhl_label_api_customs_data', $customs_data, $label );
 		}
 
 		// Unset/remove any items that are empty strings or 0, even if required!
@@ -838,5 +840,25 @@ class LabelSoap extends Soap {
 		}
 
 		return apply_filters( 'woocommerce_gzd_dhl_label_api_create_label_request', $this->body_request, $label, $shipment, $this );
+	}
+
+	protected function get_export_type( $customs_data, $label ) {
+		$export_type = 'commercial_goods';
+
+		if ( isset( $customs_data['export_reason'] ) && ! empty( $customs_data['export_reason'] ) ) {
+			if ( 'gift' === $customs_data['export_reason'] ) {
+				$export_type = 'PRESENT';
+			} elseif ( 'sample' === $customs_data['export_reason'] ) {
+				$export_type = 'COMMERCIAL_SAMPLE';
+			} elseif ( 'repair' === $customs_data['export_reason'] ) {
+				$export_type = 'RETURN_OF_GOODS';
+			} elseif ( 'sale' === $customs_data['export_reason'] ) {
+				$export_type = 'COMMERCIAL_GOODS';
+			} else {
+				$export_type = 'OTHER';
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', strtoupper( $export_type ), $label );
 	}
 }

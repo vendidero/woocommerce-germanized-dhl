@@ -897,6 +897,23 @@ class DHL extends Auto {
 	/**
 	 * @param Shipment $shipment
 	 *
+	 * @return string
+	 */
+	protected function get_incoterms( $shipment ) {
+		$incoterms = $this->get_shipment_setting( $shipment, 'label_default_duty' );
+
+		if ( ! empty( $shipment->get_incoterms() ) ) {
+			if ( in_array( $shipment->get_incoterms(), array_keys( wc_gzd_dhl_get_duties() ), true ) ) {
+				$incoterms = $shipment->get_incoterms();
+			}
+		}
+
+		return $incoterms;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
 	 * @return array
 	 */
 	protected function get_default_simple_label_props( $shipment ) {
@@ -947,7 +964,7 @@ class DHL extends Auto {
 		}
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
-			$defaults['duties'] = $this->get_shipment_setting( $shipment, 'label_default_duty' );
+			$defaults['duties'] = $this->get_incoterms( $shipment );
 		} elseif ( Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			if ( Package::base_country_supports( 'services' ) ) {
 				if ( $dhl_order && $dhl_order->has_preferred_day() ) {
