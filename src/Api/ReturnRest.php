@@ -123,7 +123,7 @@ class ReturnRest extends Rest {
 			$request_args = $this->get_request_args( $label );
 			Package::log( 'Call returns API: ' . wc_print_r( $request_args, true ) );
 
-			$result = $this->post_request( '/returns/', wp_json_encode( $request_args ) );
+			$result = $this->post_request( '/returns/', $request_args );
 		} catch ( Exception $e ) {
 			Package::log( 'Response Error: ' . $e->getMessage() );
 			throw $e;

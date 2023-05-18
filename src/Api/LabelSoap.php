@@ -787,23 +787,6 @@ class LabelSoap extends Soap {
 				'sendersCustomsReference'    => $customs_label_data['sender_customs_ref_number'],
 				'customsCurrency'            => strtoupper( $customs_label_data['currency'] ),
 				'ExportDocPosition'          => $customs_items,
-				/**
-				 * Filter to allow adjusting the export type of a DHL label (for customs). Could be:
-				 * <ul>
-				 * <li>OTHER</li>
-				 * <li>PRESENT</li>
-				 * <li>COMMERCIAL_SAMPLE</li>
-				 * <li>DOCUMENT</li>
-				 * <li>RETURN_OF_GOODS</li>
-				 * <li>COMMERCIAL_GOODS</li>
-				 * </ul>
-				 *
-				 * @param string $export_type The export type.
-				 * @param Label\Label  $label The label instance.
-				 *
-				 * @since 3.3.0
-				 * @package Vendidero/Germanized/DHL
-				 */
 				'exportType'                 => strtoupper( $export_type ),
 				/**
 				 * Filter to allow adjusting the export invoice number.
@@ -859,6 +842,23 @@ class LabelSoap extends Soap {
 			}
 		}
 
+		/**
+		 * Filter to allow adjusting the export type of a DHL label (for customs). Could be:
+		 * <ul>
+		 * <li>OTHER</li>
+		 * <li>PRESENT</li>
+		 * <li>COMMERCIAL_SAMPLE</li>
+		 * <li>DOCUMENT</li>
+		 * <li>RETURN_OF_GOODS</li>
+		 * <li>COMMERCIAL_GOODS</li>
+		 * </ul>
+		 *
+		 * @param string $export_type The export type.
+		 * @param Label\Label  $label The label instance.
+		 *
+		 * @since 3.3.0
+		 * @package Vendidero/Germanized/DHL
+		 */
 		return apply_filters( 'woocommerce_gzd_dhl_label_api_export_type', strtoupper( $export_type ), $label );
 	}
 }

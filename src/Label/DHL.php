@@ -276,7 +276,11 @@ class DHL extends Label {
 		$result = new \WP_Error();
 
 		try {
-			Package::get_api()->get_label( $this );
+			$label_result = Package::get_api()->get_label( $this );
+
+			if ( is_wp_error( $label_result ) ) {
+				$result = $label_result;
+			}
 		} catch ( \Exception $e ) {
 			$errors = explode( PHP_EOL, $e->getMessage() );
 
@@ -295,7 +299,7 @@ class DHL extends Label {
 	public function delete( $force_delete = false ) {
 		if ( $api = Package::get_api() ) {
 			try {
-				$api->get_label_api()->delete_label( $this );
+				$api->delete_label( $this );
 			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
 			}
 		}

@@ -128,6 +128,10 @@ abstract class Rest {
 		return Package::get_rest_url();
 	}
 
+	protected function encode_body_args( $args ) {
+		return wp_json_encode( $args );
+	}
+
 	public function post_request( $endpoint = '', $query_args = array() ) {
 		$api_url = $this->get_base_url();
 
@@ -143,7 +147,7 @@ abstract class Rest {
 			array(
 				'headers' => $wp_request_headers,
 				'timeout' => 100,
-				'body'    => $query_args,
+				'body'    => $this->encode_body_args( $query_args ),
 			)
 		);
 
@@ -154,6 +158,33 @@ abstract class Rest {
 		Package::log( 'POST Response Body: ' . print_r( $response_body, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 
 		$this->handle_post_response( $response_code, $response_body );
+
+		return $response_body;
+	}
+
+	public function delete_request( $endpoint = '', $query_args = array() ) {
+		$api_url = $this->get_base_url();
+
+		$this->set_header( $this->get_auth(), 'POST', $endpoint );
+
+		$wp_request_url     = add_query_arg( $query_args, $api_url . $endpoint );
+		$wp_request_headers = $this->get_header();
+
+		Package::log( 'DELETE URL: ' . $wp_request_url );
+
+		$wp_dhl_rest_response = wp_remote_request(
+			esc_url_raw( $wp_request_url ),
+			array(
+				'method'  => 'DELETE',
+				'headers' => $wp_request_headers,
+				'timeout' => 100,
+			)
+		);
+
+		$response_code = wp_remote_retrieve_response_code( $wp_dhl_rest_response );
+		$response_body = json_decode( wp_remote_retrieve_body( $wp_dhl_rest_response ) );
+
+		$this->handle_get_response( $response_code, $response_body );
 
 		return $response_body;
 	}

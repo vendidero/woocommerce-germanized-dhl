@@ -23,6 +23,11 @@ class Paket {
 	protected $label_api = null;
 
 	/**
+	 * @var null|LabelRest
+	 */
+	protected $label_rest_api = null;
+
+	/**
 	 * @var null|LocationFinder
 	 */
 	protected $finder_api = null;
@@ -69,6 +74,33 @@ class Paket {
 		}
 
 		return $this->label_api;
+	}
+
+	/**
+	 * @return LabelRest|null
+	 * @throws Exception
+	 */
+	public function get_label_rest_api() {
+		$error_message = '';
+
+		if ( is_null( $this->label_rest_api ) ) {
+			try {
+				$this->label_rest_api = new LabelRest();
+			} catch ( Exception $e ) {
+				$error_message        = $e->getMessage();
+				$this->label_rest_api = null;
+			}
+		}
+
+		if ( is_null( $this->label_rest_api ) ) {
+			if ( ! empty( $error_message ) ) {
+				throw new Exception( sprintf( _x( 'Label API not available: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) );
+			} else {
+				throw new Exception( _x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+			}
+		}
+
+		return $this->label_rest_api;
 	}
 
 	/**
@@ -158,10 +190,14 @@ class Paket {
 	}
 
 	public function get_label( &$label ) {
-		return $this->get_label_api()->get_label( $label );
+		return $this->get_label_rest_api()->get_label( $label );
+
+		//return $this->get_label_api()->get_label( $label );
 	}
 
 	public function delete_label( &$label ) {
+		return $this->get_label_rest_api()->delete_label( $label );
+
 		return $this->get_label_api()->delete_label( $label );
 	}
 

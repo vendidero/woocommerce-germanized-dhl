@@ -60,7 +60,6 @@ class Package {
 	}
 
 	public static function on_shipments_init() {
-
 		if ( ! self::has_dependencies() ) {
 			return;
 		}
@@ -651,6 +650,10 @@ class Package {
 
 	public static function get_gk_api_url() {
 		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl';
+	}
+
+	public static function get_dhl_com_api_key() {
+		return 'uwi1SH5bHDdMTdcWXB5JIsDCvBOyIawn';
 	}
 
 	public static function get_business_portal_url() {

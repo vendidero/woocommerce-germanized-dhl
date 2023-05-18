@@ -453,14 +453,7 @@ function wc_gzd_dhl_get_product( $the_product ) {
  * @param Shipment $shipment
  */
 function wc_gzd_dhl_get_label_shipment_address_addition( $shipment ) {
-	$addition        = $shipment->get_address_2();
-	$street_addition = $shipment->get_address_street_addition();
-
-	if ( ! empty( $street_addition ) ) {
-		$addition = $street_addition . ( ! empty( $addition ) ? ' ' . $addition : '' );
-	}
-
-	return trim( $addition );
+	return wc_gzd_get_shipment_address_addition( $shipment );
 }
 
 /**
@@ -733,6 +726,7 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 		'910-300-400',
 		'910-300-410',
 		'910-300-300',
+		'910-300-300-oz',
 	);
 
 	/**
