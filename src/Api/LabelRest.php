@@ -44,7 +44,13 @@ class LabelRest extends Rest {
 				$error_message = '';
 
 				if ( isset( $response_body->items ) && isset( $response_body->items[0]->validationMessages ) ) {
+					$messages = array();
+
 					foreach ( $response_body->items[0]->validationMessages as $message ) {
+						if ( in_array( $message->validationMessage, $messages, true ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+							continue;
+						}
+						$messages[]     = $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						$error_message .= ( ! empty( $error_message ) ? "\n" : '' ) . $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					}
 				} elseif ( isset( $response_body->items ) && isset( $response_body->items[0]->message ) ) {
@@ -66,61 +72,12 @@ class LabelRest extends Rest {
 		}
 	}
 
-	protected function get_account_number( $dhl_product ) {
-		$product_number = preg_match( '!\d+!', $dhl_product, $matches );
-
-		if ( $product_number ) {
-			$participation_number = Package::get_participation_number( $dhl_product );
-			$account_base         = Package::get_setting( 'account_number' );
-
-			if ( Package::is_debug_mode() ) {
-				$account_base         = '3333333333';
-				$participation_number = '01';
-
-				if ( 'V01PAK' === $dhl_product ) {
-					$participation_number = '02';
-				}
-			}
-
-			// Participation number contains account number too
-			if ( strlen( $participation_number ) >= 12 ) {
-				$account_base         = substr( $participation_number, 0, 10 ); // First 10 chars
-				$participation_number = substr( $participation_number, -2 ); // Last 2 chars
-			}
-
-			$account_number = $account_base . $matches[0] . $participation_number;
-
-			if ( strlen( $account_number ) !== 14 ) {
-				throw new \Exception( sprintf( _x( 'Either your customer number or the participation number for <strong>%1$s</strong> is missing. Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( wc_gzd_dhl_get_product_title( $dhl_product ) ), esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=dhl' ) ) ) );
-			}
-
-			return $account_number;
-		} else {
-			throw new \Exception( _x( 'Could not create account number - no product number.', 'dhl', 'woocommerce-germanized-dhl' ) );
-		}
-	}
-
 	protected function set_header( $authorization = '', $request_type = 'GET', $endpoint = '' ) {
 		parent::set_header( $authorization, $request_type, $endpoint );
 
 		$this->remote_header['Authorization'] = $authorization;
 		$this->remote_header['dhl-api-key']   = Package::get_dhl_com_api_key();
 		$this->remote_header['Accept']        = '*/*';
-	}
-
-	protected function get_return_account_number() {
-		$product_number       = '07';
-		$account_base         = Package::get_setting( 'account_number' );
-		$participation_number = Package::get_participation_number( 'return' );
-
-		if ( Package::is_debug_mode() ) {
-			$account_base         = '3333333333';
-			$participation_number = '01';
-		}
-
-		$account_number = $account_base . $product_number . $participation_number;
-
-		return $account_number;
 	}
 
 	/**
@@ -147,10 +104,15 @@ class LabelRest extends Rest {
 			throw new \Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
-		$available_services = wc_gzd_dhl_get_product_services( $label->get_product_id(), $shipment );
-		$label_services     = array_intersect( $label->get_services(), $available_services );
-		$account_number     = $this->get_account_number( $label->get_product_id() );
-		$currency           = $shipment->get_order() ? $shipment->get_order()->get_currency() : 'EUR';
+		$available_services  = wc_gzd_dhl_get_product_services( $label->get_product_id(), $shipment );
+		$label_services      = array_intersect( $label->get_services(), $available_services );
+		$billing_number_args = array(
+			'api_type' => 'dhl.com',
+			'gogreen'  => in_array( 'GoGreen', $label_services, true ) ? true : false,
+		);
+
+		$account_number = wc_gzd_dhl_get_billing_number( $label->get_product_id(), $billing_number_args );
+		$currency       = $shipment->get_order() ? $shipment->get_order()->get_currency() : 'EUR';
 
 		$shipment_request = array(
 			'product'          => $label->get_product_id(),
@@ -411,7 +373,7 @@ class LabelRest extends Rest {
 
 		if ( $label->has_inlay_return() ) {
 			$services['dhlRetoure'] = array(
-				'billingNumber' => self::get_return_account_number(),
+				'billingNumber' => wc_gzd_dhl_get_billing_number( 'return', $billing_number_args ),
 				'refNo'         => wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ),
 				'returnAddress' => array(
 					'name1'         => $label->get_return_company() ? $label->get_return_company() : $label->get_return_formatted_full_name(),

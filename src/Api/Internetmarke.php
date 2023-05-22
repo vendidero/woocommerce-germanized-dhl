@@ -732,7 +732,7 @@ class Internetmarke {
 			$this->get_shipment_address_prop( $shipment, 'address_street_number', $address_type ),
 			$this->get_shipment_address_prop( $shipment, 'postcode', $address_type ),
 			$this->get_shipment_address_prop( $shipment, 'city', $address_type ),
-			Package::get_country_iso_alpha3( $this->get_shipment_address_prop( $shipment, 'country', $address_type ) )
+			wc_gzd_country_to_alpha3( $this->get_shipment_address_prop( $shipment, 'country', $address_type ) )
 		);
 
 		$named_address = new \baltpeter\Internetmarke\NamedAddress( $name, $address );

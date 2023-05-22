@@ -895,6 +895,73 @@ function wc_gzd_dhl_get_return_products( $shipping_country, $shipping_postcode =
 	}
 }
 
+/**
+ * @param $product
+ * @param $args
+ *
+ * @return string
+ * @throws Exception
+ */
+function wc_gzd_dhl_get_billing_number( $product, $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'gogreen'  => false,
+			'api_type' => 'default',
+		)
+	);
+
+	if ( 'return' === $product ) {
+		$product_number = '07';
+	} else {
+		preg_match( '!\d+!', $product, $matches );
+
+		if ( isset( $matches[0] ) && ! empty( $matches[0] ) ) {
+			$product_number = $matches[0];
+		} else {
+			$product_number = false;
+		}
+	}
+
+	if ( $product_number ) {
+		$participation_number = Package::get_participation_number( $product, $args );
+		$account_base         = Package::get_setting( 'account_number' );
+
+		if ( 'dhl.com' === $args['api_type'] && Package::is_debug_mode() ) {
+			$account_base         = '3333333333';
+			$participation_number = '01';
+
+			if ( $args['gogreen'] ) {
+				$participation_number = '02';
+			}
+
+			if ( 'V01PAK' === $product ) {
+				$participation_number = '02';
+
+				if ( $args['gogreen'] ) {
+					$participation_number = '03';
+				}
+			}
+		}
+
+		// Participation number may contain account number too
+		if ( strlen( $participation_number ) >= 12 ) {
+			$account_base         = substr( $participation_number, 0, 10 ); // First 10 chars
+			$participation_number = substr( $participation_number, -2 ); // Last 2 chars
+		}
+
+		$account_number = $account_base . $product_number . $participation_number;
+
+		if ( strlen( $account_number ) !== 14 ) {
+			throw new Exception( sprintf( _x( 'Either your customer number or the participation number for <strong>%1$s</strong> is missing. Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( wc_gzd_dhl_get_product_title( $product ) ), esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=dhl' ) ) ) );
+		}
+
+		return $account_number;
+	} else {
+		throw new Exception( _x( 'Could not create billing number, participation number is missing.', 'dhl', 'woocommerce-germanized-dhl' ) );
+	}
+}
+
 function wc_gzd_dhl_get_return_receivers() {
 	$receivers = Package::get_return_receivers();
 	$select    = array();

@@ -363,38 +363,6 @@ class LabelSoap extends Soap {
 		return false;
 	}
 
-	protected function get_account_number( $dhl_product ) {
-		$product_number = preg_match( '!\d+!', $dhl_product, $matches );
-
-		if ( $product_number ) {
-			$participation_number = Package::get_participation_number( $dhl_product );
-			$account_base         = Package::get_setting( 'account_number' );
-
-			// Participation number contains account number too
-			if ( strlen( $participation_number ) >= 12 ) {
-				$account_base         = substr( $participation_number, 0, 10 ); // First 10 chars
-				$participation_number = substr( $participation_number, -2 ); // Last 2 chars
-			}
-
-			$account_number = $account_base . $matches[0] . $participation_number;
-
-			if ( strlen( $account_number ) !== 14 ) {
-				throw new Exception( sprintf( _x( 'Either your customer number or the participation number for <strong>%1$s</strong> is missing. Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( wc_gzd_dhl_get_product_title( $dhl_product ) ), esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=dhl' ) ) ) );
-			}
-
-			return $account_number;
-		} else {
-			throw new Exception( _x( 'Could not create account number - no product number.', 'dhl', 'woocommerce-germanized-dhl' ) );
-		}
-	}
-
-	protected function get_return_account_number() {
-		$product_number = self::DHL_RETURN_PRODUCT;
-		$account_number = Package::get_setting( 'account_number' ) . $product_number . Package::get_participation_number( 'return' );
-
-		return $account_number;
-	}
-
 	/**
 	 * @param Label\DHL $label
 	 * @return array
@@ -412,9 +380,10 @@ class LabelSoap extends Soap {
 		$services           = array();
 		$bank_data          = array();
 		$available_services = wc_gzd_dhl_get_product_services( $label->get_product_id(), $shipment );
+		$label_services     = array_intersect( $label->get_services(), $available_services );
 
-		foreach ( $label->get_services() as $service ) {
-			if ( ! in_array( $service, $available_services, true ) ) {
+		foreach ( $label_services as $service ) {
+			if ( 'GoGreen' === $service ) {
 				continue;
 			}
 
@@ -486,7 +455,10 @@ class LabelSoap extends Soap {
 			);
 		}
 
-		$account_number            = self::get_account_number( $label->get_product_id() );
+		$billing_number_args       = array(
+			'gogreen' => in_array( 'GoGreen', $label_services, true ) ? true : false,
+		);
+		$account_number            = wc_gzd_dhl_get_billing_number( $label->get_product_id(), $billing_number_args );
 		$formatted_recipient_state = wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() );
 
 		$dhl_label_body = array(
@@ -713,7 +685,7 @@ class LabelSoap extends Soap {
 		}
 
 		if ( $label->has_inlay_return() ) {
-			$dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = self::get_return_account_number();
+			$dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentAccountNumber'] = wc_gzd_dhl_get_billing_number( 'return', $billing_number_args );
 			$dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['returnShipmentReference']     = wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment );
 
 			$dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'] = array(
