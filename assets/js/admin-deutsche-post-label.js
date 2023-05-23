@@ -22,13 +22,15 @@ window.germanized.admin = window.germanized.admin || {};
             modal.$modal.off( 'change.gzd-dp-fields' );
             modal.$modal.on( 'change.gzd-dp-fields', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', { adminShipmentModal: modal }, self.onRefreshPreview );
 
-            var event = new $.Event( 'change' );
+            if ( modal.$modal.find( '#wc-gzd-shipment-label-admin-fields-deutsche_post' ).length > 0 ) {
+                var event = new $.Event( 'change' );
 
-            event.data = {
-                'adminShipmentModal': modal
+                event.data = {
+                    'adminShipmentModal': modal
+                }
+
+                self.onRefreshPreview( event );
             }
-
-            self.onRefreshPreview( event );
         },
 
         getSelectedAdditionalServices: function() {
