@@ -81,7 +81,6 @@ function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
 		$days = array_keys( $days );
 
 		foreach ( $days as $day ) {
-
 			if ( empty( $day ) ) {
 				continue;
 			}
@@ -186,24 +185,48 @@ function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	return sanitize_text_field( substr( $ref, 0, 35 ) );
 }
 
+function wc_gzd_dhl_get_endorsement_types() {
+	return array(
+		'return'  => _x( 'Return shipment', 'dhl', 'woocommerce-germanized-dhl' ),
+		'abandon' => _x( 'Abandon shipment', 'dhl', 'woocommerce-germanized-dhl' ),
+	);
+}
+
+/**
+ * @param Label\DHL $label
+ * @param $shipment
+ *
+ * @return string
+ */
 function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
+	$type = $label->get_endorsement();
+
 	/**
 	 * Filter to adjust the endorsement type for internation shipments.
 	 *
-	 * @param string         $text The endorsement type: IMMEDIATE or ABANDONMENT.
+	 * @param string         $text The endorsement type: return or abandon.
 	 * @param Label\Label    $label The label instance.
 	 * @param SimpleShipment $shipment The shipment instance.
 	 *
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/DHL
 	 */
-	$type = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_endorsement_type', 'IMMEDIATE', $label, $shipment ) );
+	$type = strtolower( apply_filters( 'woocommerce_gzd_dhl_label_endorsement_type', $type, $label, $shipment ) );
 
-	if ( ! in_array( $type, array( 'IMMEDIATE', 'ABANDONMENT' ), true ) ) {
-		$type = 'IMMEDIATE';
+	/**
+	 * SOAP Label API was using IMMEDIATE instead of RETURN
+	 */
+	if ( 'immediate' === $type ) {
+		$type = 'return';
+	} elseif ( 'abandonment' === $type ) {
+		$type = 'abandon';
 	}
 
-	return $type;
+	if ( ! in_array( $type, array_keys( wc_gzd_dhl_get_endorsement_types() ), true ) ) {
+		$type = 'return';
+	}
+
+	return strtoupper( $type );
 }
 
 function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
@@ -280,6 +303,7 @@ function wc_gzd_dhl_get_international_services() {
 		'Premium',
 		'PDDP',
 		'CashOnDelivery',
+		'Endorsement',
 	);
 }
 
@@ -419,7 +443,6 @@ function wc_gzd_dhl_is_valid_datetime( $maybe_datetime, $format = 'Y-m-d' ) {
 function wc_gzd_dhl_format_label_state( $state, $country ) {
 	// If not USA or Australia, then change state from ISO code to name
 	if ( ! in_array( $country, array( 'US', 'AU' ), true ) ) {
-
 		// Get all states for a country
 		$states = WC()->countries->get_states( $country );
 
@@ -546,7 +569,7 @@ function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
 	}
 
 	/**
-	 * Economy, CDP, PDDP are available for Paket International only
+	 * Economy, CDP, PDDP, Endorsement are available for Paket International only
 	 */
 	if ( 'V53WPAK' === $product ) {
 		/**
@@ -556,7 +579,7 @@ function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
 			$services = array_diff( $services, array( 'Economy', 'Premium' ) );
 		}
 	} else {
-		$services = array_diff( $services, array( 'Economy', 'CDP', 'PDDP' ) );
+		$services = array_diff( $services, array( 'Economy', 'CDP', 'PDDP', 'Endorsement' ) );
 	}
 
 	return $services;

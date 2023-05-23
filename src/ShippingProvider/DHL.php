@@ -547,6 +547,15 @@ class DHL extends Auto {
 						'type'              => 'checkbox',
 						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Economy', $shipment ),
 					),
+					array(
+						'id'                => 'endorsement',
+						'label'             => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
+						'description'       => '',
+						'value'             => isset( $default_args['endorsement'] ) ? $default_args['endorsement'] : 'return',
+						'options'           => wc_gzd_dhl_get_endorsement_types(),
+						'type'              => 'select',
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Endorsement', $shipment ),
+					),
 				)
 			);
 
@@ -669,6 +678,7 @@ class DHL extends Auto {
 				'cod_total'           => 0,
 				'product_id'          => '',
 				'duties'              => '',
+				'endorsement'         => '',
 				'services'            => array(),
 				'return_address'      => array(),
 			)
@@ -810,6 +820,9 @@ class DHL extends Auto {
 		// We don't need duties for non-cross-border shipments
 		if ( ! Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			unset( $args['duties'] );
+			unset( $args['endorsement'] );
+		} elseif ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'Endorsement', $shipment ) ) {
+			$args['services'] = array_merge( $args['services'], array( 'Endorsement' ) );
 		}
 
 		if ( ! empty( $args['duties'] ) && ! array_key_exists( $args['duties'], wc_gzd_dhl_get_duties() ) ) {
@@ -964,7 +977,10 @@ class DHL extends Auto {
 		}
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
-			$defaults['duties'] = $this->get_incoterms( $shipment );
+			$defaults['duties']      = $this->get_incoterms( $shipment );
+			$defaults['endorsement'] = $this->get_shipment_setting( $shipment, 'label_service_Endorsement' );
+
+			$defaults['services'][] = 'Endorsement';
 		} elseif ( Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			if ( Package::base_country_supports( 'services' ) ) {
 				if ( $dhl_order && $dhl_order->has_preferred_day() ) {
@@ -1628,12 +1644,12 @@ class DHL extends Auto {
 			),
 
 			array(
-				'title'    => _x( 'Default Duty', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'    => _x( 'Default Incoterms', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'     => 'select',
 				'default'  => 'DDP',
 				'id'       => 'label_default_duty',
 				'value'    => $this->get_setting( 'label_default_duty', 'DDP' ),
-				'desc'     => _x( 'Please select a default duty type.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc'     => _x( 'Please select a default incoterms option.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc_tip' => true,
 				'options'  => $duties,
 				'class'    => 'wc-enhanced-select',
@@ -1760,6 +1776,17 @@ class DHL extends Auto {
 					'value'   => wc_bool_to_string( $this->get_setting( 'label_service_ParcelOutletRouting', 'no' ) ),
 					'default' => 'no',
 					'type'    => 'gzd_toggle',
+				),
+				array(
+					'title'    => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'     => 'select',
+					'default'  => 'return',
+					'id'       => 'label_service_Endorsement',
+					'value'    => $this->get_setting( 'label_service_Endorsement', 'return' ),
+					'desc'     => _x( 'Select how DHL should handle international shipments that could not be delivered.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip' => true,
+					'options'  => wc_gzd_dhl_get_endorsement_types(),
+					'class'    => 'wc-enhanced-select',
 				),
 				array(
 					'title'   => _x( 'No Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),

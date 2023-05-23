@@ -14,11 +14,7 @@ defined( 'ABSPATH' ) || exit;
 class LabelRest extends Rest {
 
 	public function get_base_url() {
-		if ( Package::is_debug_mode() ) {
-			return 'https://api-sandbox.dhl.com/parcel/de/shipping/v2/';
-		} else {
-			return 'https://api-eu.dhl.com/parcel/de/shipping/v2/';
-		}
+		return Package::get_label_rest_api_url();
 	}
 
 	protected function get_auth() {
@@ -106,29 +102,148 @@ class LabelRest extends Rest {
 
 		$available_services  = wc_gzd_dhl_get_product_services( $label->get_product_id(), $shipment );
 		$label_services      = array_intersect( $label->get_services(), $available_services );
+		$currency            = $shipment->get_order() ? $shipment->get_order()->get_currency() : 'EUR';
 		$billing_number_args = array(
 			'api_type' => 'dhl.com',
 			'gogreen'  => in_array( 'GoGreen', $label_services, true ) ? true : false,
 		);
 
 		$account_number = wc_gzd_dhl_get_billing_number( $label->get_product_id(), $billing_number_args );
-		$currency       = $shipment->get_order() ? $shipment->get_order()->get_currency() : 'EUR';
+		$services       = array();
+		$bank_data      = array();
+
+		foreach ( $label_services as $service ) {
+			$service_name = lcfirst( $service );
+
+			if ( 'goGreen' === $service_name ) {
+				continue;
+			}
+
+			switch ( $service ) {
+				case 'AdditionalInsurance':
+					$services[ $service_name ] = array(
+						'currency' => $currency,
+						'value'    => apply_filters( 'woocommerce_gzd_dhl_label_api_insurance_amount', $shipment->get_total(), $shipment, $label ),
+					);
+					break;
+				case 'IdentCheck':
+					$services[ $service_name ] = array(
+						'firstName'   => $shipment->get_first_name(),
+						'lastName'    => $shipment->get_last_name(),
+						'dateOfBirth' => $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->date( 'Y-m-d' ) : '',
+						'minimumAge'  => $label->get_ident_min_age(),
+					);
+					break;
+				case 'CashOnDelivery':
+					$bank_data_map = array(
+						'bank_holder' => 'accountHolder',
+						'bank_name'   => 'bankName',
+						'bank_iban'   => 'iban',
+						'bank_bic'    => 'bic',
+						'bank_ref'    => 'transferNote1',
+						'bank_ref_2'  => 'transferNote2',
+					);
+
+					$ref_replacements = wc_gzd_dhl_get_label_payment_ref_placeholder( $shipment );
+
+					foreach ( $bank_data_map as $key => $value ) {
+						if ( $setting_value = Package::get_setting( $key ) ) {
+							$bank_data[ $value ] = $setting_value;
+
+							if ( in_array( $key, array( 'bank_ref', 'bank_ref_2' ), true ) ) {
+								$bank_data[ $value ] = str_replace( array_keys( $ref_replacements ), array_values( $ref_replacements ), $bank_data[ $value ] );
+							}
+						}
+					}
+
+					$services[ $service_name ] = array(
+						'amount'        => array(
+							'currency' => $currency,
+							'value'    => $label->get_cod_total(),
+						),
+						'bankAccount'   => array_diff_key(
+							$bank_data,
+							array(
+								'transferNote1' => '',
+								'transferNote2' => '',
+							)
+						),
+						'transferNote1' => $bank_data['transferNote1'],
+						'transferNote2' => $bank_data['transferNote2'],
+					);
+					break;
+				case 'PreferredDay':
+					$services[ $service_name ] = $label->get_preferred_day() ? $label->get_preferred_day()->date( 'Y-m-d' ) : '';
+					break;
+				case 'VisualCheckOfAge':
+					$services[ $service_name ] = $label->get_visual_min_age();
+					break;
+				case 'PreferredLocation':
+					$services[ $service_name ] = $label->get_preferred_location();
+					break;
+				case 'PreferredNeighbour':
+					$services[ $service_name ] = $label->get_preferred_neighbor();
+					break;
+				case 'ParcelOutletRouting':
+					if ( ! empty( $shipment->get_email() ) ) {
+						$services[ $service_name ] = $shipment->get_email();
+					}
+					break;
+				case 'CDP':
+					$services['closestDropPoint'] = true;
+					break;
+				case 'PDDP':
+					$services['postalDeliveryDutyPaid'] = true;
+					break;
+				default:
+					$services[ $service_name ] = true;
+			}
+		}
+
+		if ( $label->has_inlay_return() ) {
+			$services['dhlRetoure'] = array(
+				'billingNumber' => wc_gzd_dhl_get_billing_number( 'return', $billing_number_args ),
+				'refNo'         => wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ),
+				'returnAddress' => array(
+					'name1'         => $label->get_return_company() ? $label->get_return_company() : $label->get_return_formatted_full_name(),
+					'name2'         => $label->get_return_company() ? $label->get_return_formatted_full_name() : '',
+					'addressStreet' => $label->get_return_street() . ' ' . $label->get_return_street_number(),
+					'postalCode'    => $label->get_return_postcode(),
+					'city'          => $label->get_return_city(),
+					'state'         => wc_gzd_dhl_format_label_state( $label->get_return_state(), $label->get_return_country() ),
+					'contactName'   => $label->get_return_formatted_full_name(),
+					'phone'         => $label->get_return_phone(),
+					'email'         => $label->get_return_email(),
+					'country'       => wc_gzd_country_to_alpha3( $label->get_return_country() ),
+				),
+			);
+		}
+
+		/**
+		 * Endorsement option (Vorausverfügung)
+		 */
+		if ( 'V53WPAK' === $label->get_product_id() ) {
+			$services['endorsement'] = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment );
+		}
 
 		$shipment_request = array(
-			'product'          => $label->get_product_id(),
-			'billingNumber'    => $account_number,
-			'refNo'            => mb_substr( wc_gzd_dhl_get_label_customer_reference( $label, $shipment ), 0, 35 ),
-			'shipDate'         => Package::get_date_de_timezone( 'Y-m-d' ),
-			'creationSoftware' => Package::get_app_id(),
-			'shipper'          => array(),
-			'consignee'        => array(),
-			'details'          => array(
+			'product'       => $label->get_product_id(),
+			'billingNumber' => $account_number,
+			'refNo'         => mb_substr( wc_gzd_dhl_get_label_customer_reference( $label, $shipment ), 0, 35 ),
+			'shipDate'      => Package::get_date_de_timezone( 'Y-m-d' ),
+			'shipper'       => array(),
+			'consignee'     => array(),
+			'details'       => array(
 				'weight' => array(
 					'uom'   => 'kg',
 					'value' => $label->get_weight(),
 				),
 			),
 		);
+
+		if ( ! empty( $services ) ) {
+			$shipment_request['services'] = $services;
+		}
 
 		if ( $label->has_dimensions() ) {
 			$shipment_request['details']['dim'] = array(
@@ -153,10 +268,11 @@ class LabelRest extends Rest {
 		$shipper_reference = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_reference', $dhl_provider->has_custom_shipper_reference() ? $dhl_provider->get_label_custom_shipper_reference() : '', $label );
 
 		if ( ! empty( $shipper_reference ) ) {
-			$shipment_request['shipper']['reference'] = $shipper_reference;
+			$shipment_request['shipper']['shipperRef'] = $shipper_reference;
 		} else {
 			$name1   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', $shipment->get_sender_company() ? $shipment->get_sender_company() : $shipment->get_formatted_sender_full_name(), $label );
 			$name2   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', $shipment->get_sender_company() ? $shipment->get_formatted_sender_full_name() : '', $label );
+			$name3   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name3', $shipment->get_sender_address_2(), $label );
 			$street  = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street', $shipment->get_sender_address_1(), $label );
 			$zip     = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', $shipment->get_sender_postcode(), $label );
 			$city    = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', $shipment->get_sender_city(), $label );
@@ -186,6 +302,7 @@ class LabelRest extends Rest {
 			$shipment_request['shipper'] = array(
 				'name1'         => $name1,
 				'name2'         => $name2,
+				'name3'         => $name3,
 				'addressStreet' => $street,
 				'postalCode'    => $zip,
 				'city'          => $city,
@@ -282,124 +399,8 @@ class LabelRest extends Rest {
 				 * @since 3.0.3
 				 * @package Vendidero/Germanized/DHL
 				 */
-				'email'                         => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_email', $label->has_email_notification() || isset( $services['CDP'] ) ? $shipment->get_email() : '', $label ),
+				'email'                         => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_email', $label->has_email_notification() || isset( $services['closestDropPoint'] ) ? $shipment->get_email() : '', $label ),
 			);
-		}
-
-		$services  = array();
-		$bank_data = array();
-
-		foreach ( $label_services as $service ) {
-			$service_name = lcfirst( $service );
-
-			if ( 'goGreen' === $service_name ) {
-				continue;
-			}
-
-			$services[ $service_name ] = true;
-
-			switch ( $service ) {
-				case 'AdditionalInsurance':
-					$services[ $service_name ] = array(
-						'currency' => $currency,
-						'value'    => apply_filters( 'woocommerce_gzd_dhl_label_api_insurance_amount', $shipment->get_total(), $shipment, $label ),
-					);
-					break;
-				case 'IdentCheck':
-					$services[ $service_name ] = array(
-						'firstName'   => $shipment->get_first_name(),
-						'lastName'    => $shipment->get_last_name(),
-						'dateOfBirth' => $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->date( 'Y-m-d' ) : '',
-						'minimumAge'  => $label->get_ident_min_age(),
-					);
-					break;
-				case 'CashOnDelivery':
-					$bank_data_map = array(
-						'bank_holder' => 'accountHolder',
-						'bank_name'   => 'bankName',
-						'bank_iban'   => 'iban',
-						'bank_bic'    => 'bic',
-						'bank_ref'    => 'transferNote1',
-						'bank_ref_2'  => 'transferNote2',
-					);
-
-					$ref_replacements = wc_gzd_dhl_get_label_payment_ref_placeholder( $shipment );
-
-					foreach ( $bank_data_map as $key => $value ) {
-						if ( $setting_value = Package::get_setting( $key ) ) {
-							$bank_data[ $value ] = $setting_value;
-
-							if ( in_array( $key, array( 'bank_ref', 'bank_ref_2' ), true ) ) {
-								$bank_data[ $value ] = str_replace( array_keys( $ref_replacements ), array_values( $ref_replacements ), $bank_data[ $value ] );
-							}
-						}
-					}
-
-					$services[ $service_name ] = array(
-						'amount'        => array(
-							'currency' => $currency,
-							'value'    => $label->get_cod_total(),
-						),
-						'bankAccount'   => array_diff(
-							$bank_data,
-							array(
-								'transferNote1' => '',
-								'transferNote2' => '',
-							)
-						),
-						'transferNote1' => $bank_data['transferNote1'],
-						'transferNote2' => $bank_data['transferNote2'],
-					);
-					break;
-				case 'PreferredDay':
-					$services[ $service_name ] = $label->get_preferred_day() ? $label->get_preferred_day()->date( 'Y-m-d' ) : '';
-					break;
-				case 'VisualCheckOfAge':
-					$services[ $service_name ] = $label->get_visual_min_age();
-					break;
-				case 'PreferredLocation':
-					$services[ $service_name ] = $label->get_preferred_location();
-					break;
-				case 'PreferredNeighbour':
-					$services[ $service_name ] = $label->get_preferred_neighbor();
-					break;
-				case 'ParcelOutletRouting':
-					if ( ! empty( $shipment->get_email() ) ) {
-						$services[ $service_name ] = $shipment->get_email();
-					}
-					break;
-			}
-		}
-
-		if ( $label->has_inlay_return() ) {
-			$services['dhlRetoure'] = array(
-				'billingNumber' => wc_gzd_dhl_get_billing_number( 'return', $billing_number_args ),
-				'refNo'         => wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ),
-				'returnAddress' => array(
-					'name1'         => $label->get_return_company() ? $label->get_return_company() : $label->get_return_formatted_full_name(),
-					'name2'         => $label->get_return_company() ? $label->get_return_formatted_full_name() : '',
-					'addressStreet' => $label->get_return_street() . ' ' . $label->get_return_street_number(),
-					'postalCode'    => $label->get_return_postcode(),
-					'city'          => $label->get_return_city(),
-					'state'         => wc_gzd_dhl_format_label_state( $label->get_return_state(), $label->get_return_country() ),
-					'contactName'   => $label->get_return_formatted_full_name(),
-					'phone'         => $label->get_return_phone(),
-					'email'         => $label->get_return_email(),
-					'country'       => wc_gzd_country_to_alpha3( $label->get_return_country() ),
-				),
-			);
-		}
-
-		/**
-		 * Endorsement option (Vorausverfügung)
-		 */
-		if ( 'V53WPAK' === $label->get_product_id() ) {
-			$type                    = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment );
-			$services['endorsement'] = 'IMMEDIATE' === $type ? 'RETURN' : 'ABANDON';
-		}
-
-		if ( ! empty( $services ) ) {
-			$shipment_request['services'] = $services;
 		}
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {

@@ -244,10 +244,10 @@ class Admin {
 						</tbody>
 						<tfoot>
 						<tr>
-							<th colspan="7">
+							<th colspan="2" style="font-weight: normal; padding-right: 10px;">
 								<a href="#" class="add button"><?php echo esc_html_x( '+ Add receiver', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
 								<a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected receiver(s)', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
-								<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-refresh-retoure-receiver-ids' ), $settings_url ), 'wc-gzd-dhl-refresh-retoure-receiver-ids' ) ); ?>" class="button button-primary"><?php echo esc_html_x( 'Refresh from API', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
+								<a style="float: right; margin-right: 0; margin-left: 5px;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-refresh-retoure-receiver-ids' ), $settings_url ), 'wc-gzd-dhl-refresh-retoure-receiver-ids' ) ); ?>" class="button button-primary"><?php echo esc_html_x( 'Refresh via API', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
 							</th>
 						</tr>
 						</tfoot>

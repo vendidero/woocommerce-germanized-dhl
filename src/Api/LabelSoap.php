@@ -449,9 +449,17 @@ class LabelSoap extends Soap {
 		 * Endorsement option (Vorausverfügung)
 		 */
 		if ( 'V53WPAK' === $label->get_product_id() ) {
+			$endorsement_type = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment );
+
+			if ( 'RETURN' === $endorsement_type ) {
+				$endorsement_type = 'IMMEDIATE';
+			} elseif ( 'ABANDON' === $endorsement_type ) {
+				$endorsement_type = 'ABANDONMENT';
+			}
+
 			$services['Endorsement'] = array(
 				'active' => 1,
-				'type'   => wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ),
+				'type'   => $endorsement_type,
 			);
 		}
 

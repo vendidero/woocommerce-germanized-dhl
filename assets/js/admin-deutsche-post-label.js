@@ -13,13 +13,22 @@ window.germanized.admin = window.germanized.admin || {};
             var self    = admin.dhl_post_label;
             self.params = wc_gzd_admin_deutsche_post_label_params;
 
-            $( '.create-shipment-label' ).on( 'wc_gzd_admin_shipment_modal_after_init_data', self.onLoadLabelModal )
+            $( document.body ).on( 'wc_gzd_admin_shipment_modal_after_load_success', self.onLoadLabelModal )
         },
 
-        onLoadLabelModal: function( e, modal ) {
+        onLoadLabelModal: function( e, data, modal ) {
             var self = admin.dhl_post_label;
 
-            $( document ).on( 'change', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', { adminShipmentModal: modal }, self.onRefreshPreview );
+            modal.$modal.off( 'change.gzd-dp-fields' );
+            modal.$modal.on( 'change.gzd-dp-fields', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', { adminShipmentModal: modal }, self.onRefreshPreview );
+
+            var event = new $.Event( 'change' );
+
+            event.data = {
+                'adminShipmentModal': modal
+            }
+
+            self.onRefreshPreview( event );
         },
 
         getSelectedAdditionalServices: function() {
@@ -67,7 +76,7 @@ window.germanized.admin = window.germanized.admin || {};
 
                 self.replaceProductData( data.preview_data );
 
-                $img_wrapper.find( '.stamp-preview' ).attr('src', data.preview_url ).load( function() {
+                $img_wrapper.find( '.stamp-preview' ).prop('src', data.preview_url ).on( 'load', function() {
                     $wrapper.unblock();
                     $( this ).show();
                 });
