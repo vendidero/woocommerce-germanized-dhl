@@ -37,34 +37,42 @@ class LabelRest extends Rest {
 			case 201:
 				break;
 			default:
-				$error_message = '';
+				$error_messages = array();
 
 				if ( isset( $response_body->items ) && isset( $response_body->items[0]->validationMessages ) ) {
-					$messages = array();
-
 					foreach ( $response_body->items[0]->validationMessages as $message ) {
-						if ( in_array( $message->validationMessage, $messages, true ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-							continue;
+						if ( ! in_array( $message->validationMessage, $error_messages, true ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+							$error_messages[] = $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						}
-						$messages[]     = $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-						$error_message .= ( ! empty( $error_message ) ? "\n" : '' ) . $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					}
 				} elseif ( isset( $response_body->items ) && isset( $response_body->items[0]->message ) ) {
 					foreach ( $response_body->items as $message ) {
 						$property_path = isset( $message->propertyPath ) ? $message->propertyPath : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						$property_path = str_replace( 'shipments[0].', '', $property_path );
 
-						$error_message .= ( ! empty( $error_message ) ? "\n" : '' ) . ( ! empty( $property_path ) ? $property_path . ': ' : '' ) . $message->message;
+						$error_message = ( ! empty( $error_message ) ? "\n" : '' ) . ( ! empty( $property_path ) ? $property_path . ': ' : '' ) . $message->message;
+
+						if ( ! in_array( $error_message, $error_messages, true ) ) {
+							$error_messages[] = $error_message;
+						}
 					}
 				} elseif ( empty( $response_body->status->detail ) && empty( $response_body->detail ) ) {
 					$error_message = _x( 'POST error or timeout occurred. Please try again later.', 'dhl', 'woocommerce-germanized-dhl' );
+
+					if ( ! in_array( $error_message, $error_messages, true ) ) {
+						$error_messages[] = $error_message;
+					}
 				} else {
 					$error_message = ! empty( $response_body->status->detail ) ? $response_body->status->detail : $response_body->detail;
+
+					if ( ! in_array( $error_message, $error_messages, true ) ) {
+						$error_messages[] = $error_message;
+					}
 				}
 
 				Package::log( 'POST Error: ' . $response_code . ' - ' . $error_message );
 
-				throw new \Exception( $error_message, $response_code );
+				throw new \Exception( implode( "\n", $error_messages ), $response_code );
 		}
 	}
 
@@ -559,6 +567,14 @@ class LabelRest extends Rest {
 				foreach ( $shipment_data->validationMessages as $message ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$result->add_soft_error( 'label-soft-error', $message->validationMessage ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				}
+			}
+
+			if ( in_array( 'AdditionalInsurance', $label_services, true ) && $shipment->get_total() <= 500 ) {
+				if ( ! is_a( $result, 'Vendidero\Germanized\Shipments\ShipmentError' ) ) {
+					$result = new ShipmentError();
+				}
+
+				$result->add_soft_error( 'label-soft-error', _x( 'You\'ve explicitly booked the additional insurance service resulting in additional fees although the shipment total does not exceed EUR 500. The label has been created anyway.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		} catch ( \Exception $e ) {
 			try {
