@@ -208,13 +208,17 @@ class ImWarenpostIntRest extends Rest {
 		}
 
 		$request_data = $this->walk_recursive_remove( $request_data );
-		$result       = $this->post_request( '/dpi/shipping/v1/orders', json_encode( $request_data, JSON_PRETTY_PRINT ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$result       = $this->post_request( '/dpi/shipping/v1/orders', $request_data );
 
 		if ( isset( $result->shipments ) ) {
 			return $this->update_label( $label, $result );
 		} else {
 			throw new Exception( _x( 'Invalid API response', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
+	}
+
+	protected function encode_body_args( $args ) {
+		return json_encode( $args, JSON_PRETTY_PRINT ); // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 	}
 
 	protected function get_user_token() {

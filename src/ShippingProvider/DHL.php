@@ -547,6 +547,15 @@ class DHL extends Auto {
 						'type'              => 'checkbox',
 						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Economy', $shipment ),
 					),
+					array(
+						'id'                => 'endorsement',
+						'label'             => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
+						'description'       => '',
+						'value'             => isset( $default_args['endorsement'] ) ? $default_args['endorsement'] : 'return',
+						'options'           => wc_gzd_dhl_get_endorsement_types(),
+						'type'              => 'select',
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'Endorsement', $shipment ),
+					),
 				)
 			);
 
@@ -669,6 +678,7 @@ class DHL extends Auto {
 				'cod_total'           => 0,
 				'product_id'          => '',
 				'duties'              => '',
+				'endorsement'         => '',
 				'services'            => array(),
 				'return_address'      => array(),
 			)
@@ -810,6 +820,9 @@ class DHL extends Auto {
 		// We don't need duties for non-cross-border shipments
 		if ( ! Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			unset( $args['duties'] );
+			unset( $args['endorsement'] );
+		} elseif ( wc_gzd_dhl_product_supports_service( $args['product_id'], 'Endorsement', $shipment ) ) {
+			$args['services'] = array_merge( $args['services'], array( 'Endorsement' ) );
 		}
 
 		if ( ! empty( $args['duties'] ) && ! array_key_exists( $args['duties'], wc_gzd_dhl_get_duties() ) ) {
@@ -964,7 +977,10 @@ class DHL extends Auto {
 		}
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
-			$defaults['duties'] = $this->get_incoterms( $shipment );
+			$defaults['duties']      = $this->get_incoterms( $shipment );
+			$defaults['endorsement'] = $this->get_shipment_setting( $shipment, 'label_service_Endorsement' );
+
+			$defaults['services'][] = 'Endorsement';
 		} elseif ( Package::is_shipping_domestic( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			if ( Package::base_country_supports( 'services' ) ) {
 				if ( $dhl_order && $dhl_order->has_preferred_day() ) {
@@ -1226,36 +1242,44 @@ class DHL extends Auto {
 			array(
 				'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'  => 'title',
-				'id'    => 'dhl_api_options',
+				'id'    => 'dhl_product_options',
+				'desc'  => sprintf( _x( 'Learn how to <a href="%1$s" target="_blank">find your participation numbers</a> in your DHL business portal.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#produkte-und-teilnahmenummern' ),
 			),
 		);
 
-		$dhl_products = array();
+		$dhl_available_products = wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_eu() + wc_gzd_dhl_get_products_international() + array( 'return' => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ) );
+		$dhl_products           = array();
 
-		foreach ( ( wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_eu() + wc_gzd_dhl_get_products_international() ) as $product => $title ) {
+		foreach ( $dhl_available_products as $product => $title ) {
 			$dhl_products[] = array(
-				'title'             => $title,
-				'type'              => 'text',
-				'id'                => 'participation_' . $product,
-				'default'           => '',
-				'value'             => $this->get_setting( 'participation_' . $product, '' ),
-				'custom_attributes' => array(
-					'maxlength' => 14,
-					'minlength' => 2,
-				),
+				'type'    => 'dhl_placeholder',
+				'id'      => 'participation_' . $product,
+				'default' => '',
+				'value'   => $this->get_setting( 'participation_' . $product, '' ),
+			);
+
+			$dhl_products[] = array(
+				'type'    => 'dhl_placeholder',
+				'id'      => 'participation_gogreen_' . $product,
+				'default' => '',
+				'value'   => $this->get_setting( 'participation_gogreen_' . $product, '' ),
 			);
 		}
 
-		$dhl_products[] = array(
-			'title'             => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ),
-			'type'              => 'text',
-			'default'           => '',
-			'id'                => 'participation_return',
-			'value'             => $this->get_setting( 'participation_return', '' ),
-			'custom_attributes' => array( 'maxlength' => '2' ),
-		);
-
 		$settings = array_merge( $settings, $dhl_products );
+
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'title'    => _x( 'Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'     => 'dhl_participation_numbers',
+					'products' => $dhl_available_products,
+					'default'  => '',
+					'id'       => 'participation_numbers',
+				),
+			)
+		);
 
 		$settings = array_merge(
 			$settings,
@@ -1620,12 +1644,12 @@ class DHL extends Auto {
 			),
 
 			array(
-				'title'    => _x( 'Default Duty', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'    => _x( 'Default Incoterms', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'     => 'select',
 				'default'  => 'DDP',
 				'id'       => 'label_default_duty',
 				'value'    => $this->get_setting( 'label_default_duty', 'DDP' ),
-				'desc'     => _x( 'Please select a default duty type.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc'     => _x( 'Please select a default incoterms option.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'desc_tip' => true,
 				'options'  => $duties,
 				'class'    => 'wc-enhanced-select',
@@ -1710,10 +1734,11 @@ class DHL extends Auto {
 				),
 
 				array(
-					'type'    => 'dhl_receiver_ids',
-					'value'   => $this->get_setting( 'retoure_receiver_ids', array() ),
-					'id'      => 'retoure_receiver_ids',
-					'default' => array(),
+					'type'         => 'dhl_receiver_ids',
+					'value'        => $this->get_setting( 'retoure_receiver_ids', array() ),
+					'id'           => 'retoure_receiver_ids',
+					'settings_url' => $this->get_edit_link( 'label' ),
+					'default'      => array(),
 				),
 
 				array(
@@ -1751,6 +1776,17 @@ class DHL extends Auto {
 					'value'   => wc_bool_to_string( $this->get_setting( 'label_service_ParcelOutletRouting', 'no' ) ),
 					'default' => 'no',
 					'type'    => 'gzd_toggle',
+				),
+				array(
+					'title'    => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'     => 'select',
+					'default'  => 'return',
+					'id'       => 'label_service_Endorsement',
+					'value'    => $this->get_setting( 'label_service_Endorsement', 'return' ),
+					'desc'     => _x( 'Select how DHL should handle international shipments that could not be delivered.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip' => true,
+					'options'  => wc_gzd_dhl_get_endorsement_types(),
+					'class'    => 'wc-enhanced-select',
 				),
 				array(
 					'title'   => _x( 'No Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),

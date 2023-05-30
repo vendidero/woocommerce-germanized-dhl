@@ -60,7 +60,6 @@ class Package {
 	}
 
 	public static function on_shipments_init() {
-
 		if ( ! self::has_dependencies() ) {
 			return;
 		}
@@ -216,17 +215,7 @@ class Package {
 	}
 
 	public static function get_country_iso_alpha3( $country_code ) {
-		if ( empty( self::$iso ) ) {
-			self::$iso = include self::get_path() . '/i18n/iso.php';
-		}
-
-		$iso = self::$iso;
-
-		if ( isset( $iso[ $country_code ] ) ) {
-			return $iso[ $country_code ];
-		}
-
-		return $country_code;
+		return \Vendidero\Germanized\Shipments\Package::get_country_iso_alpha3( $country_code );
 	}
 
 	private static function includes() {
@@ -575,9 +564,21 @@ class Package {
 	 * @return mixed|string|void
 	 */
 	public static function get_retoure_api_user() {
-		$user = self::is_debug_mode() ? '2222222222_Customer' : self::get_setting( 'api_username' );
+		$user = self::is_debug_mode() ? '2222222222_customer' : self::get_setting( 'api_username' );
 
 		return strtolower( $user );
+	}
+
+	public static function use_legacy_soap_api() {
+		return apply_filters( 'woocommerce_gzd_dhl_use_legacy_soap_api', ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ? WC_GZD_DHL_LEGACY_SOAP : ( 'yes' === get_option( 'woocommerce_gzd_dhl_enable_legacy_soap' ) ) ) );
+	}
+
+	public static function get_label_rest_api_url() {
+		if ( self::is_debug_mode() ) {
+			return 'https://api-sandbox.dhl.com/parcel/de/shipping/v2/';
+		} else {
+			return 'https://api-eu.dhl.com/parcel/de/shipping/v2/';
+		}
 	}
 
 	public static function get_return_receivers() {
@@ -606,12 +607,13 @@ class Package {
 		$fallback_receiver = false;
 
 		foreach ( $receivers as $receiver ) {
+			$receiver_country = empty( $receiver['country'] ) ? $receiver['id'] : $receiver['country'];
 
 			if ( ! $fallback_receiver && empty( $receiver['country'] ) ) {
 				$fallback_receiver = $receiver;
 			}
 
-			if ( $receiver['country'] === $country ) {
+			if ( $receiver_country === $country ) {
 				$country_receiver = $receiver;
 			}
 		}
@@ -651,6 +653,10 @@ class Package {
 
 	public static function get_gk_api_url() {
 		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl';
+	}
+
+	public static function get_dhl_com_api_key() {
+		return 'uwi1SH5bHDdMTdcWXB5JIsDCvBOyIawn';
 	}
 
 	public static function get_business_portal_url() {
@@ -948,8 +954,25 @@ class Package {
 		return $args;
 	}
 
-	public static function get_participation_number( $product ) {
-		return self::get_setting( 'participation_' . $product );
+	public static function get_participation_number( $product, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'gogreen' => false,
+			)
+		);
+
+		$participation = self::get_setting( 'participation_' . $product );
+
+		if ( $args['gogreen'] ) {
+			$participation_gogreen = self::get_setting( 'participation_gogreen_' . $product );
+
+			if ( ! empty( $participation_gogreen ) ) {
+				$participation = $participation_gogreen;
+			}
+		}
+
+		return $participation;
 	}
 
 	/**

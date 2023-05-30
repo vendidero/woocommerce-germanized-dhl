@@ -14,7 +14,6 @@ class ParcelRest extends Rest {
 	public function __construct() {}
 
 	public function get_services( $args ) {
-
 		$args = wp_parse_args(
 			$args,
 			array(

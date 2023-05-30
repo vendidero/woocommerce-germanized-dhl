@@ -26,7 +26,7 @@ class LocationFinder extends Rest {
 		if ( $this->is_debug_mode() ) {
 			return 'demo-key';
 		} else {
-			return defined( 'WC_GZD_DHL_LOCATION_FINDER_API_KEY' ) ? WC_GZD_DHL_LOCATION_FINDER_API_KEY : 'uwi1SH5bHDdMTdcWXB5JIsDCvBOyIawn';
+			return defined( 'WC_GZD_DHL_LOCATION_FINDER_API_KEY' ) ? WC_GZD_DHL_LOCATION_FINDER_API_KEY : Package::get_dhl_com_api_key();
 		}
 	}
 

@@ -30,6 +30,7 @@ class DHL extends Label {
 		'has_inlay_return'              => 'no',
 		'codeable_address_only'         => 'no',
 		'duties'                        => '',
+		'endorsement'                   => 'return',
 		'return_address'                => array(),
 		'cod_total'                     => 0,
 		'cod_includes_additional_total' => 'no',
@@ -125,6 +126,16 @@ class DHL extends Label {
 
 	public function get_duties( $context = 'view' ) {
 		return $this->get_prop( 'duties', $context );
+	}
+
+	public function get_endorsement( $context = 'view' ) {
+		$type = $this->get_prop( 'endorsement', $context );
+
+		if ( 'view' === $context && empty( $type ) ) {
+			$type = 'return';
+		}
+
+		return $type;
 	}
 
 	public function get_preferred_day( $context = 'view' ) {
@@ -229,6 +240,10 @@ class DHL extends Label {
 		$this->set_prop( 'duties', $duties );
 	}
 
+	public function set_endorsement( $type ) {
+		$this->set_prop( 'endorsement', $type );
+	}
+
 	public function set_preferred_day( $day ) {
 		$this->set_date_prop( 'preferred_day', $day );
 	}
@@ -276,7 +291,11 @@ class DHL extends Label {
 		$result = new \WP_Error();
 
 		try {
-			Package::get_api()->get_label( $this );
+			$label_result = Package::get_api()->get_label( $this );
+
+			if ( is_wp_error( $label_result ) ) {
+				$result = $label_result;
+			}
 		} catch ( \Exception $e ) {
 			$errors = explode( PHP_EOL, $e->getMessage() );
 
@@ -295,7 +314,7 @@ class DHL extends Label {
 	public function delete( $force_delete = false ) {
 		if ( $api = Package::get_api() ) {
 			try {
-				$api->get_label_api()->delete_label( $this );
+				$api->delete_label( $this );
 			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
 			}
 		}

@@ -23,6 +23,11 @@ class Paket {
 	protected $label_api = null;
 
 	/**
+	 * @var null|LabelRest
+	 */
+	protected $label_rest_api = null;
+
+	/**
 	 * @var null|LocationFinder
 	 */
 	protected $finder_api = null;
@@ -69,6 +74,33 @@ class Paket {
 		}
 
 		return $this->label_api;
+	}
+
+	/**
+	 * @return LabelRest|null
+	 * @throws Exception
+	 */
+	public function get_label_rest_api() {
+		$error_message = '';
+
+		if ( is_null( $this->label_rest_api ) ) {
+			try {
+				$this->label_rest_api = new LabelRest();
+			} catch ( Exception $e ) {
+				$error_message        = $e->getMessage();
+				$this->label_rest_api = null;
+			}
+		}
+
+		if ( is_null( $this->label_rest_api ) ) {
+			if ( ! empty( $error_message ) ) {
+				throw new Exception( sprintf( _x( 'Label API not available: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) );
+			} else {
+				throw new Exception( _x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+			}
+		}
+
+		return $this->label_rest_api;
 	}
 
 	/**
@@ -140,7 +172,11 @@ class Paket {
 	 */
 	public function test_connection() {
 		try {
-			return $this->get_label_api()->test_connection();
+			if ( Package::use_legacy_soap_api() ) {
+				return $this->get_label_api()->test_connection();
+			} else {
+				return $this->get_label_rest_api()->test_connection();
+			}
 		} catch ( \Exception $e ) {
 			$error = new \WP_Error();
 			$error->add( $e->getCode(), $e->getMessage() );
@@ -158,15 +194,27 @@ class Paket {
 	}
 
 	public function get_label( &$label ) {
-		return $this->get_label_api()->get_label( $label );
+		if ( Package::use_legacy_soap_api() ) {
+			return $this->get_label_api()->get_label( $label );
+		} else {
+			return $this->get_label_rest_api()->get_label( $label );
+		}
 	}
 
 	public function delete_label( &$label ) {
-		return $this->get_label_api()->delete_label( $label );
+		if ( Package::use_legacy_soap_api() ) {
+			return $this->get_label_api()->delete_label( $label );
+		} else {
+			return $this->get_label_rest_api()->delete_label( $label );
+		}
+	}
+
+	protected function is_holiday( $datetime ) {
+		return ( in_array( $datetime->format( 'Y-m-d' ), Package::get_holidays( 'DE' ), true ) ) ? true : false;
 	}
 
 	protected function is_working_day( $datetime ) {
-		$is_working_day = ( in_array( $datetime->format( 'Y-m-d' ), Package::get_holidays( 'DE' ), true ) ) ? false : true;
+		$is_working_day = ! $this->is_holiday( $datetime );
 
 		if ( $is_working_day ) {
 			/**
@@ -266,7 +314,6 @@ class Paket {
 	}
 
 	protected function get_preferred_days( $preferred_services ) {
-
 		$day_of_week_arr = array(
 			'1' => _x( 'Mon', 'dhl', 'woocommerce-germanized-dhl' ),
 			'2' => _x( 'Tue', 'dhl', 'woocommerce-germanized-dhl' ),

@@ -78,8 +78,9 @@ class Status {
 			$urls = array_merge(
 				$urls,
 				array(
-					Package::get_rest_url() => 401,
-					Package::get_cig_url()  => 401,
+					Package::get_rest_url()           => 401,
+					Package::get_cig_url()            => 401,
+					Package::get_label_rest_api_url() => 200,
 				)
 			);
 		}

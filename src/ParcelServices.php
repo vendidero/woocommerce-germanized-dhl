@@ -297,7 +297,7 @@ class ParcelServices {
 	}
 
 	public static function get_cdp_countries() {
-		return array( 'DK' );
+		return array( 'DK', 'AT', 'BE', 'SE', 'FI' );
 	}
 
 	public static function is_pddp_available( $country, $postcode = '' ) {
@@ -305,7 +305,7 @@ class ParcelServices {
 		$country      = wc_strtoupper( $country );
 		$postcode     = wc_normalize_postcode( $postcode );
 
-		if ( 'GB' === $country && 'BT' !== strtoupper( substr( trim( $postcode ), 0, 2 ) ) ) {
+		if ( in_array( $country, array( 'NO' ), true ) || ( 'GB' === $country && 'BT' !== strtoupper( substr( trim( $postcode ), 0, 2 ) ) ) ) {
 			$is_available = true;
 		}
 

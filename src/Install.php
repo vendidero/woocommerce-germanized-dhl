@@ -62,6 +62,13 @@ class Install {
 				$dhl->save();
 			}
 		}
+
+		/**
+		 * Keep using legacy SOAP API (for now) for older installations to prevent update issues.
+		 */
+		if ( version_compare( $current_version, '2.0.0', '<' ) ) {
+			update_option( 'woocommerce_gzd_dhl_enable_legacy_soap', 'yes' );
+		}
 	}
 
 	private static function migrate_settings() {

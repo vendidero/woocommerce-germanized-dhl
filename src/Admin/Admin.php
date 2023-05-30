@@ -29,12 +29,14 @@ class Admin {
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
 
-		// Receiver ID options
+		// Admin fields
 		add_action( 'woocommerce_admin_field_dhl_receiver_ids', array( __CLASS__, 'output_receiver_ids_field' ), 10 );
-		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'save_receiver_ids' ), 10, 3 );
+		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'save_custom_fields' ), 10, 3 );
 		add_action( 'woocommerce_admin_field_dp_charge', array( __CLASS__, 'output_dp_charge_field' ), 10 );
 
-		add_action( 'admin_init', array( __CLASS__, 'refresh_im_data' ) );
+		add_action( 'woocommerce_admin_field_dhl_participation_numbers', array( __CLASS__, 'output_participation_numbers_field' ), 10 );
+
+		add_action( 'admin_init', array( __CLASS__, 'refresh_data' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'add_notices' ) );
 
 		Status::init();
@@ -58,7 +60,7 @@ class Admin {
 		}
 	}
 
-	public static function refresh_im_data() {
+	public static function refresh_data() {
 		if ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-product-refresh' === $_GET['action'] ) {
 			if ( wp_verify_nonce( wp_unslash( $_GET['_wpnonce'] ), 'wc-gzd-dhl-refresh-im-products' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$result       = Package::get_internetmarke_api()->update_products();
@@ -87,36 +89,62 @@ class Admin {
 				wp_safe_redirect( esc_url_raw( $settings_url ) );
 				exit();
 			}
+		} elseif ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-refresh-retoure-receiver-ids' === $_GET['action'] ) {
+			if ( wp_verify_nonce( wp_unslash( $_GET['_wpnonce'] ), 'wc-gzd-dhl-refresh-retoure-receiver-ids' ) ) {  // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$receiver_ids = Package::get_api()->get_return_api()->get_receiver_ids();
+				$settings_url = add_query_arg( array( 'refresh-type' => 'retoure-receiver-ids' ), Package::get_dhl_shipping_provider()->get_edit_link( 'label' ) );
+
+				if ( is_wp_error( $receiver_ids ) ) {
+					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
+				} elseif ( ! empty( $receiver_ids ) ) {
+					if ( $provider = Package::get_dhl_shipping_provider() ) {
+						$existing_retoure_ids = Package::get_return_receivers();
+
+						$provider->update_setting( 'retoure_receiver_ids', array_replace_recursive( $existing_retoure_ids, $receiver_ids ) );
+						$provider->save();
+					}
+
+					$settings_url = add_query_arg( array( 'success' => 1 ), $settings_url );
+				}
+
+				wp_safe_redirect( esc_url_raw( $settings_url ) );
+				exit();
+			}
 		}
 	}
 
-	public static function save_receiver_ids( $value, $option, $raw_value ) {
-		if ( ! isset( $option['type'] ) || 'dhl_receiver_ids' !== $option['type'] ) {
+	public static function save_custom_fields( $value, $option, $raw_value ) {
+		if ( ! isset( $option['type'] ) ) {
 			return $value;
 		}
 
-		$receiver  = array();
-		$raw_value = is_array( $raw_value ) ? $raw_value : array();
+		$type = $option['type'];
 
-		// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()
-		if ( isset( $raw_value['receiver_id'], $raw_value['receiver_country'] ) ) {
+		if ( 'dhl_receiver_ids' === $type ) {
+			$receiver  = array();
+			$raw_value = is_array( $raw_value ) ? $raw_value : array();
 
-			$receiver_ids = wc_clean( wp_unslash( $raw_value['receiver_id'] ) );
-			$countries    = wc_clean( wp_unslash( $raw_value['receiver_country'] ) );
+	        // phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()
+			if ( isset( $raw_value['receiver_id'], $raw_value['receiver_country'] ) ) {
+				$receiver_ids = wc_clean( wp_unslash( $raw_value['receiver_id'] ) );
+				$countries    = wc_clean( wp_unslash( $raw_value['receiver_country'] ) );
 
-			foreach ( $receiver_ids as $i => $name ) {
-				$country = isset( $countries[ $i ] ) ? substr( strtoupper( $countries[ $i ] ), 0, 2 ) : '';
-				$slug    = sanitize_key( $receiver_ids[ $i ] . '_' . $country );
+				foreach ( $receiver_ids as $i => $name ) {
+					$country = isset( $countries[ $i ] ) ? substr( strtoupper( $countries[ $i ] ), 0, 2 ) : '';
+					$slug    = sanitize_key( $receiver_ids[ $i ] . '_' . $country );
 
-				$receiver[ $slug ] = array(
-					'id'      => $receiver_ids[ $i ],
-					'country' => $country,
-					'slug'    => $slug,
-				);
+					$receiver[ $slug ] = array(
+						'id'      => $receiver_ids[ $i ],
+						'country' => $country,
+						'slug'    => $slug,
+					);
+				}
 			}
+
+			return $receiver;
 		}
 
-		return $receiver;
+		return $value;
 	}
 
 	public static function output_dp_charge_field( $option ) {
@@ -143,11 +171,51 @@ class Admin {
 		<?php
 	}
 
+	public static function output_participation_numbers_field( $option ) {
+		$products = isset( $option['products'] ) ? $option['products'] : array();
+		ob_start();
+		?>
+		<tr valign="top">
+			<th scope="row" class="titledesc"><?php echo esc_html_x( 'Participation', 'dhl', 'woocommerce-germanized-dhl' ); ?></th>
+			<td class="forminp" id="dhl_participation_numbers">
+				<div class="wc_input_table_wrapper">
+					<table class="widefat wc_input_table sortable" cellspacing="0">
+						<thead>
+						<tr>
+							<th><?php echo esc_html_x( 'Product', 'dhl', 'woocommerce-germanized-dhl' ); ?></th>
+							<th><?php echo esc_html_x( 'Participation Number', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'The participation number for the chosen product. Find your participation number in your DHL business customer portal.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></th>
+							<th><?php echo esc_html_x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ); ?> <?php echo wc_help_tip( _x( 'Optionally choose a separate participation number for GoGreen. Leave empty in case your main participation number includes GoGreen already.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></th>
+						</tr>
+						</thead>
+						<tbody class="dhl_particpation_number_settings">
+						<?php foreach ( $products as $product => $title ) : ?>
+							<tr>
+								<td style="padding: 10px 8px;"><?php echo esc_html( $title ); ?></td>
+								<td>
+									<input type="text" name="participation_<?php echo esc_attr( $product ); ?>" id="participation_<?php echo esc_attr( $product ); ?>" value="<?php echo esc_attr( Package::get_dhl_shipping_provider()->get_setting( 'participation_' . $product, '' ) ); ?>" maxlength="14" minlength="2" />
+								</td>
+								<td>
+									<input type="text" name="participation_gogreen_<?php echo esc_attr( $product ); ?>" id="participation_gogreen_<?php echo esc_attr( $product ); ?>" value="<?php echo esc_attr( Package::get_dhl_shipping_provider()->get_setting( 'participation_gogreen_' . $product, '' ) ); ?>" maxlength="14" minlength="2" />
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			</td>
+		</tr>
+		<?php
+		$html = ob_get_clean();
+
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
 	public static function output_receiver_ids_field( $option ) {
 		ob_start();
 
 		$option_key   = isset( $option['id'] ) ? $option['id'] : 'dhl_receiver_ids';
 		$receiver_ids = isset( $option['value'] ) ? $option['value'] : array();
+		$settings_url = isset( $option['settings_url'] ) ? $option['settings_url'] : '';
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc"><?php echo esc_html_x( 'Receiver Ids', 'dhl', 'woocommerce-germanized-dhl' ); ?></th>
@@ -176,7 +244,11 @@ class Admin {
 						</tbody>
 						<tfoot>
 						<tr>
-							<th colspan="7"><a href="#" class="add button"><?php echo esc_html_x( '+ Add receiver', 'dhl', 'woocommerce-germanized-dhl' ); ?></a> <a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected receiver(s)', 'dhl', 'woocommerce-germanized-dhl' ); ?></a></th>
+							<th colspan="2" style="font-weight: normal; padding-right: 10px;">
+								<a href="#" class="add button"><?php echo esc_html_x( '+ Add receiver', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
+								<a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected receiver(s)', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
+								<a style="float: right; margin-right: 0; margin-left: 5px;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-refresh-retoure-receiver-ids' ), $settings_url ), 'wc-gzd-dhl-refresh-retoure-receiver-ids' ) ); ?>" class="button button-primary"><?php echo esc_html_x( 'Refresh via API', 'dhl', 'woocommerce-germanized-dhl' ); ?></a>
+							</th>
 						</tr>
 						</tfoot>
 					</table>
