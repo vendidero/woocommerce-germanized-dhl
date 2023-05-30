@@ -70,7 +70,7 @@ class LabelRest extends Rest {
 					}
 				}
 
-				Package::log( 'POST Error: ' . $response_code . ' - ' . $error_message );
+				Package::log( 'POST Error: ' . $response_code . ' - ' . wc_print_r( $error_messages, true ) );
 
 				throw new \Exception( implode( "\n", $error_messages ), $response_code );
 		}
