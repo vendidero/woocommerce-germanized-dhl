@@ -43,6 +43,23 @@ class Status {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
+
+		<table class="wc_status_table widefat" cellspacing="0" id="status_general">
+			<thead>
+			<tr>
+				<th colspan="3" data-export-label="General" style="">
+					<h2><?php echo esc_html_x( 'General', 'dhl', 'woocommerce-germanized-dhl' ); ?></h2>
+				</th>
+			</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td data-export-label="REST API"><?php echo esc_html_x( 'Paket REST API', 'dhl', 'woocommerce-germanized-dhl' ); ?>:</td>
+					<td class="help">&nbsp;</td>
+					<td><?php echo ( ! Package::use_legacy_soap_api() ? '<mark class="yes"><span class="dashicons dashicons-yes"></span></mark>' : '<mark class="no">&ndash;</mark>' ); ?></td>
+				</tr>
+			</tbody>
+		</table>
 		<?php
 	}
 
