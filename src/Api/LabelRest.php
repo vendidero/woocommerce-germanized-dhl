@@ -21,7 +21,7 @@ class LabelRest extends Rest {
 		if ( Package::is_debug_mode() ) {
 			return $this->get_basic_auth_encode( 'sandy_sandbox', 'pass' );
 		} else {
-			return $this->get_basic_auth_encode( Package::get_gk_api_user(), Package::get_gk_api_user() );
+			return $this->get_basic_auth_encode( Package::get_gk_api_user(), Package::get_gk_api_signature() );
 		}
 	}
 
