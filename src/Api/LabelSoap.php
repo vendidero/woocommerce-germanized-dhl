@@ -257,7 +257,7 @@ class LabelSoap extends Soap {
 
 				// Try to split the PDF to extract return label
 				if ( $return_label ) {
-					$splitter = $splitter = new PDFSplitter( $default_file, true );
+					$splitter = new PDFSplitter( $default_file, true );
 					$pdfs     = $splitter->split();
 
 					if ( $pdfs && ! empty( $pdfs ) && count( $pdfs ) > 1 ) {

@@ -7,6 +7,7 @@ use Vendidero\Germanized\DHL\Label;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\Shipments\Labels\Factory;
 use Vendidero\Germanized\Shipments\PDFMerger;
+use Vendidero\Germanized\Shipments\PDFSplitter;
 use Vendidero\Germanized\Shipments\ShipmentError;
 
 defined( 'ABSPATH' ) || exit;
@@ -484,8 +485,8 @@ class LabelRest extends Rest {
 		$label_custom_return_format = wc_gzd_dhl_get_custom_label_format( $label, 'inlay_return' );
 
 		$args = array(
-			'combine'    => false,
-			'mustEncode' => $label->codeable_address_only() ? true : false,
+			'combine'    => 'true',
+			'mustEncode' => $label->codeable_address_only() ? 'true' : 'false',
 		);
 
 		if ( ! empty( $label_custom_format ) ) {
@@ -497,6 +498,7 @@ class LabelRest extends Rest {
 		}
 
 		$endpoint = add_query_arg( $args, 'orders' );
+
 		$response = $this->post_request( $endpoint, $request );
 
 		try {
@@ -510,7 +512,9 @@ class LabelRest extends Rest {
 				$label->set_number( $shipment_data->shipmentNo ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				$label->save();
 
-				if ( isset( $shipment_data->returnLabel ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$default_file = base64_decode( $shipment_data->label->b64 ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+				if ( isset( $shipment_data->returnShipmentNo ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$return_label = $label->get_inlay_return_label();
 
 					if ( ! $return_label ) {
@@ -526,16 +530,22 @@ class LabelRest extends Rest {
 					}
 
 					if ( $return_label ) {
-						$return_label->set_number( $shipment_data->shipmentNo ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$return_label->set_number( $shipment_data->returnShipmentNo ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+						$splitter = new PDFSplitter( $default_file, true );
+						$pdfs     = $splitter->split();
+
+						if ( $pdfs && ! empty( $pdfs ) && count( $pdfs ) > 1 ) {
+							$return_file = $pdfs[1];
+						}
+
+						if ( $return_file ) {
+							$return_label->upload_label_file( $return_file );
+						}
+
+						$return_label->save();
 					}
-
-					$return_file = base64_decode( $shipment_data->returnLabel->b64 ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-
-					$return_label->upload_label_file( $return_file );
-					$return_label->save();
 				}
-
-				$default_file = base64_decode( $shipment_data->label->b64 ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 				$default_path = $label->upload_label_file( $default_file, 'default' );
 				$label->save();

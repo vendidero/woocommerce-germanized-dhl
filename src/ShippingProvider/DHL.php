@@ -64,6 +64,14 @@ class DHL extends Auto {
 		return in_array( $label_type, $label_types, true );
 	}
 
+	public function get_services( $shipment = false ) {
+		return wc_gzd_dhl_get_services();
+	}
+
+	public function get_product_services( $product, $shipment = false ) {
+		return wc_gzd_dhl_get_product_services( $product, $shipment );
+	}
+
 	public function supports_customer_return_requests() {
 		return $this->enable_retoure();
 	}
@@ -460,6 +468,15 @@ class DHL extends Auto {
 			$services = array_merge(
 				$services,
 				array(
+					array(
+						'id'                => 'service_SignedForByRecipient',
+						'label'             => _x( 'Recipient signature', 'dhl', 'woocommerce-germanized-dhl' ),
+						'description'       => '',
+						'type'              => 'checkbox',
+						'value'             => in_array( 'SignedForByRecipient', $default_args['services'], true ) ? 'yes' : 'no',
+						'wrapper_class'     => 'form-field-checkbox',
+						'custom_attributes' => wc_gzd_dhl_get_service_product_attributes( 'SignedForByRecipient', $shipment ),
+					),
 					array(
 						'id'                => 'service_NamedPersonOnly',
 						'label'             => _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -1767,6 +1784,14 @@ class DHL extends Auto {
 					'desc'    => _x( 'Add an additional insurance to labels.', 'dhl', 'woocommerce-germanized-dhl' ),
 					'id'      => 'label_service_AdditionalInsurance',
 					'value'   => wc_bool_to_string( $this->get_setting( 'label_service_AdditionalInsurance', 'no' ) ),
+					'default' => 'no',
+					'type'    => 'gzd_toggle',
+				),
+				array(
+					'title'   => _x( 'Recipient signature', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc'    => _x( 'Let recipients sign delivery instead of DHL driver.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'      => 'label_service_SignedForByRecipient',
+					'value'   => wc_bool_to_string( $this->get_setting( 'label_service_SignedForByRecipient', 'no' ) ),
 					'default' => 'no',
 					'type'    => 'gzd_toggle',
 				),

@@ -307,6 +307,10 @@ function wc_gzd_dhl_get_international_services() {
 	);
 }
 
+function wc_gzd_get_domestic_services() {
+	return array_diff( wc_gzd_dhl_get_services(), array( 'PDDP', 'CDP', 'Premium', 'Economy', 'Endorsement' ) );
+}
+
 function wc_gzd_dhl_get_services() {
 	return array(
 		'PreferredTime',
@@ -327,6 +331,8 @@ function wc_gzd_dhl_get_services() {
 		'CashOnDelivery',
 		'ParcelOutletRouting',
 		'GoGreen',
+		'Endorsement',
+		'SignedForByRecipient',
 	);
 }
 
@@ -532,7 +538,7 @@ function wc_gzd_dhl_get_return_label_sender_street_number( $label ) {
  */
 function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
 	if ( in_array( $product, array_keys( wc_gzd_dhl_get_products_domestic() ), true ) ) {
-		$services = wc_gzd_dhl_get_services();
+		$services = wc_gzd_get_domestic_services();
 	} else {
 		$services = wc_gzd_dhl_get_international_services();
 
@@ -542,6 +548,10 @@ function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
 		if ( 'V53WPAK' !== $product ) {
 			$services = array_diff( $services, array( 'CashOnDelivery' ) );
 		}
+	}
+
+	if ( 'V01PAK' !== $product ) {
+		$services = array_diff( $services, array( 'SignedForByRecipient' ) );
 	}
 
 	/**
