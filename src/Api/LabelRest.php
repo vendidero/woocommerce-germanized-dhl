@@ -279,9 +279,9 @@ class LabelRest extends Rest {
 		if ( ! empty( $shipper_reference ) ) {
 			$shipment_request['shipper']['shipperRef'] = $shipper_reference;
 		} else {
-			$name1   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', $shipment->get_sender_company() ? $shipment->get_sender_company() : $shipment->get_formatted_sender_full_name(), $label );
-			$name2   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', $shipment->get_sender_company() ? $shipment->get_formatted_sender_full_name() : '', $label );
-			$name3   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name3', $shipment->get_sender_address_2(), $label );
+			$name1   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name1', trim( $shipment->get_sender_company() ? $shipment->get_sender_company() : $shipment->get_formatted_sender_full_name() ), $label );
+			$name2   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name2', trim( $shipment->get_sender_company() ? $shipment->get_formatted_sender_full_name() : '' ), $label );
+			$name3   = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_name3', trim( $shipment->get_sender_address_2() ), $label );
 			$street  = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_street', $shipment->get_sender_address_1(), $label );
 			$zip     = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_zip', $shipment->get_sender_postcode(), $label );
 			$city    = apply_filters( 'woocommerce_gzd_dhl_label_api_shipper_city', $shipment->get_sender_city(), $label );
@@ -317,7 +317,7 @@ class LabelRest extends Rest {
 				'city'          => $city,
 				'country'       => wc_gzd_country_to_alpha3( $country ),
 				'email'         => $email,
-				'contactName'   => $shipment->get_formatted_sender_full_name(),
+				'contactName'   => trim( $shipment->get_formatted_sender_full_name() ),
 			);
 		}
 
@@ -352,6 +352,22 @@ class LabelRest extends Rest {
 			}
 		} else {
 			$formatted_recipient_state = wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() );
+			$street_number             = $shipment->get_address_street_number();
+			$street_addition           = $shipment->get_address_street_addition();
+			$address_1                 = $shipment->get_address_1();
+			$address_2                 = $shipment->get_address_2();
+
+			if ( empty( $street_number ) && ! empty( $address_2 ) ) {
+				$address_1_tmp = wc_gzd_split_shipment_street( $address_1 . ' ' . $address_2 );
+
+				$address_1       = $address_1_tmp['street'] . ' ' . $address_1_tmp['number'];
+				$address_2       = '';
+				$street_addition = $address_1_tmp['addition'];
+			}
+
+			if ( ! empty( $street_addition ) ) {
+				$address_2 = $street_addition . ( ! empty( $address_2 ) ? ' ' . $address_2 : '' );
+			}
 
 			$shipment_request['consignee'] = array(
 				'name1'                         => $shipment->get_company() ? $shipment->get_company() : $shipment->get_formatted_full_name(),
@@ -366,9 +382,9 @@ class LabelRest extends Rest {
 				 * @since 3.0.3
 				 * @package Vendidero/Germanized/DHL
 				 */
-				'name3'                         => apply_filters( 'woocommerce_gzd_dhl_label_api_receiver_name3', wc_gzd_dhl_get_label_shipment_address_addition( $shipment ), $label ),
-				'addressStreet'                 => $shipment->get_address_1(),
-				'additionalAddressInformation1' => $shipment->get_address_2(),
+				'name3'                         => apply_filters( 'woocommerce_gzd_dhl_label_api_receiver_name3', $address_2, $label ),
+				'addressStreet'                 => $address_1,
+				'additionalAddressInformation1' => $address_2,
 				'postalCode'                    => $shipment->get_postcode(),
 				'city'                          => $shipment->get_city(),
 				'state'                         => $formatted_recipient_state,
