@@ -35,15 +35,21 @@ class AuthSoap {
 
 	public function get_access_token( $client_id = '', $client_secret = '' ) {
 		try {
+			$args = array(
+				'login'        => Package::get_cig_user(),
+				'password'     => Package::get_cig_password(),
+				'location'     => Package::get_cig_url(),
+				'soap_version' => SOAP_1_1,
+				'trace'        => true,
+			);
+
+			if ( Package::is_debug_mode() ) {
+				$args['cache_wsdl'] = WSDL_CACHE_NONE;
+			}
+
 			$soap_client = new SoapClient(
 				$this->wsdl_link,
-				array(
-					'login'        => Package::get_cig_user(),
-					'password'     => Package::get_cig_password(),
-					'location'     => Package::get_cig_url(),
-					'soap_version' => SOAP_1_1,
-					'trace'        => true,
-				)
+				$args
 			);
 		} catch ( Exception $e ) {
 			throw $e;

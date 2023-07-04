@@ -652,7 +652,7 @@ class Package {
 	}
 
 	public static function get_gk_api_url() {
-		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.4/geschaeftskundenversand-api-3.4.wsdl';
+		return self::is_debug_mode() ? 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.5/geschaeftskundenversand-api-3.5.wsdl' : 'https://cig.dhl.de/cig-wsdls/com/dpdhl/wsdl/geschaeftskundenversand-api/3.5/geschaeftskundenversand-api-3.5.wsdl';
 	}
 
 	public static function get_dhl_com_api_key() {

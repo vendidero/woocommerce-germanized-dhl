@@ -5,7 +5,7 @@
         xmlns:cis="http://dhl.de/webservice/cisbase"
         targetNamespace="http://dhl.de/webservices/businesscustomershipping/3.0">
 	  <import namespace="http://dhl.de/webservice/cisbase"
-           schemaLocation="geschaeftskundenversand-api-3.4.0-schema-cis_base.xsd"/>
+           schemaLocation="geschaeftskundenversand-api-3.5.0-schema-cis_base.xsd"/>
 	  <simpleType name="SequenceNumber">
 		    <annotation>
 			      <documentation>A sequence number defined by the (soap-) client. The
@@ -1808,6 +1808,12 @@
 					</documentation>
 				        </annotation>
 			      </element>
+			      <element name="signedForByRecipient" type="bcs:signedForByRecipient" minOccurs="0"
+                  maxOccurs="1">
+				        <annotation>
+					          <documentation>Delivery is signed for by the recipient instead of the DHL driver</documentation>
+				        </annotation>
+			      </element>
 		    </all>
 	  </complexType>
 	  <xs:complexType name="Serviceconfiguration">
@@ -2290,6 +2296,20 @@
 	  </xs:complexType>
 	
 	  <xs:complexType name="PDDP">
+		    <xs:attribute name="active" use="required">
+			      <xs:annotation>
+				        <xs:documentation>	Indicates, if the option is on/off </xs:documentation>
+			      </xs:annotation>
+			      <xs:simpleType>
+				        <xs:restriction base="xs:string">
+					          <xs:enumeration value="0"/>
+					          <xs:enumeration value="1"/>
+				        </xs:restriction>
+			      </xs:simpleType>
+		    </xs:attribute>
+	  </xs:complexType>
+	
+	  <xs:complexType name="signedForByRecipient">
 		    <xs:attribute name="active" use="required">
 			      <xs:annotation>
 				        <xs:documentation>	Indicates, if the option is on/off </xs:documentation>
@@ -3723,7 +3743,7 @@ Email Address    (mandatory): cis:CommunicationType-&gt;email
 					          <xs:annotation>
 						            <xs:documentation>The number of the major release. E.g. the '3' in
 							version
-							"3.2.".
+							"3.5.".
 						</xs:documentation>
 					          </xs:annotation>
 					          <xs:simpleType>
@@ -3734,7 +3754,7 @@ Email Address    (mandatory): cis:CommunicationType-&gt;email
 				        </xs:element>
 				        <xs:element name="minorRelease" minOccurs="0">
 					          <xs:annotation>
-						            <xs:documentation>The number of the minor release. E.g. the '2' in version "3.2.". Please note, that if you wish to use the old error handling, you need use Version 3.2 or below
+						            <xs:documentation>The number of the minor release. E.g. the '5' in version "3.5.". Please note, that if you wish to use the old error handling, you need use Version 3.2 or below
 						</xs:documentation>
 					          </xs:annotation>
 					          <xs:simpleType>
