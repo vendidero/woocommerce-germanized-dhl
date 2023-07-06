@@ -313,7 +313,6 @@ function wc_gzd_get_domestic_services() {
 
 function wc_gzd_dhl_get_services() {
 	return array(
-		'PreferredTime',
 		'PreferredLocation',
 		'PreferredNeighbour',
 		'PreferredDay',

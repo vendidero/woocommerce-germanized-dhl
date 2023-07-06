@@ -300,6 +300,10 @@ class ParcelServices {
 		return array( 'DK', 'AT', 'BE', 'SE', 'FI' );
 	}
 
+	public static function get_pddp_countries() {
+		return array( 'NO', 'GB' );
+	}
+
 	public static function is_pddp_available( $country, $postcode = '' ) {
 		$is_available = false;
 		$country      = wc_strtoupper( $country );
