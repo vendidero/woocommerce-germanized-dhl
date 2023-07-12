@@ -179,9 +179,15 @@ class DHL extends Label {
 	}
 
 	public function has_inlay_return() {
-		$products = wc_gzd_dhl_get_inlay_return_products();
+		if ( in_array( 'dhlRetoure', $this->get_services(), true ) ) {
+			$has_inlay_return = true;
+		} else {
+			$products = wc_gzd_dhl_get_inlay_return_products();
 
-		return ( true === $this->get_has_inlay_return() && in_array( $this->get_product_id(), $products ) ); // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
+			$has_inlay_return = ( true === $this->get_has_inlay_return() && in_array( $this->get_product_id(), $products ) ); // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
+		}
+
+		return $has_inlay_return;
 	}
 
 	/**
