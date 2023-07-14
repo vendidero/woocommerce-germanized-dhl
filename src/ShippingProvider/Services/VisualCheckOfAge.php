@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\DHL\ShippingProvider\Services;
 
+use Vendidero\Germanized\Shipments\ShipmentError;
 use Vendidero\Germanized\Shipments\ShippingProvider\Service;
 
 defined( 'ABSPATH' ) || exit;
@@ -23,7 +24,8 @@ class VisualCheckOfAge extends Service {
 
 	protected function get_additional_setting_fields( $args ) {
 		$base_setting_id = $this->get_setting_id( $args );
-		$setting_id      = $base_setting_id . '_min_age';
+		$args['suffix']  = 'min_age';
+		$setting_id      = $this->get_setting_id( $args );
 		$value           = $this->get_shipping_provider() ? $this->get_shipping_provider()->get_setting( $setting_id, '0' ) : '0';
 
 		return array(
@@ -52,6 +54,12 @@ class VisualCheckOfAge extends Service {
 
 	protected function get_additional_label_fields( $shipment ) {
 		$label_fields = parent::get_additional_label_fields( $shipment );
+		$dhl_order     = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$min_age       = $this->get_shipment_setting( $shipment, 'min_age' );
+
+		if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
+			$min_age = $dhl_order->get_min_age();
+		}
 
 		$label_fields = array_merge( $label_fields, array(
 			array(
@@ -59,12 +67,37 @@ class VisualCheckOfAge extends Service {
 				'label'             => _x( 'Minimum Age', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description'       => '',
 				'type'              => 'select',
-				'value'             => $this->get_shipment_setting( $shipment, 'min_age' ),
+				'value'             => $min_age,
 				'options'           => wc_gzd_dhl_get_visual_min_ages(),
 				'custom_attributes' => array( 'data-show-if-service_VisualCheckOfAge' => '' ),
 			),
 		) );
 
 		return $label_fields;
+	}
+
+	public function book_as_default( $shipment ) {
+		$book_as_default = parent::book_as_default( $shipment );
+
+		if ( false === $book_as_default ) {
+			$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
+
+			if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
+				$book_as_default = true;
+			}
+		}
+
+		return $book_as_default;
+	}
+
+	public function validate_label_request( $props, $shipment ) {
+		$error   = new ShipmentError();
+		$min_age = isset( $props[ $this->get_label_field_id( 'min_age' ) ] ) ? $props[ $this->get_label_field_id( 'min_age' ) ] : '';
+
+		if ( empty( $min_age ) || ! wc_gzd_dhl_is_valid_visual_min_age( $min_age ) ) {
+			$error->add( 500, _x( 'The minimum age (VisualCheckOfAge) supplied is invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
+		}
+
+		return wc_gzd_shipment_wp_error_has_errors( $error ) ? $error : true;
 	}
 }
