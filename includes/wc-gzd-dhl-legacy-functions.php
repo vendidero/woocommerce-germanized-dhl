@@ -340,3 +340,100 @@ function wc_gzd_dhl_get_deutsche_post_default_product( $shipment ) {
 
 	return false;
 }
+
+/**
+ * @param $product
+ * @param false|Shipment $shipment
+ *
+ * @return string[]
+ */
+function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
+	wc_deprecated_function( 'wc_gzd_dhl_get_product_services', '3.0' );
+
+	return array();
+}
+
+/**
+ * @param $product
+ * @param $service
+ * @param false|Shipment $shipment
+ *
+ * @return bool
+ */
+function wc_gzd_dhl_product_supports_service( $product, $service, $shipment = false ) {
+	wc_deprecated_function( 'wc_gzd_dhl_product_supports_service', '3.0' );
+
+	return false;
+}
+
+/**
+ * @param $service
+ * @param false|Shipment $shipment
+ *
+ * @return array
+ */
+function wc_gzd_dhl_get_service_product_attributes( $service, $shipment = false ) {
+	wc_deprecated_function( 'wc_gzd_dhl_get_service_product_attributes', '3.0' );
+
+	return array(
+		'data-products-supported' => '',
+	);
+}
+
+function wc_gzd_dhl_get_international_services() {
+	wc_deprecated_function( 'wc_gzd_dhl_get_international_services', '3.0' );
+
+	return array(
+		'GoGreen',
+		'AdditionalInsurance',
+		'CDP',
+		'Economy',
+		'Premium',
+		'PDDP',
+		'CashOnDelivery',
+		'Endorsement',
+	);
+}
+
+function wc_gzd_get_domestic_services() {
+	wc_deprecated_function( 'wc_gzd_get_domestic_services', '3.0' );
+
+	return array_diff( wc_gzd_dhl_get_services(), array( 'PDDP', 'CDP', 'Premium', 'Economy', 'Endorsement' ) );
+}
+
+function wc_gzd_dhl_get_services() {
+	wc_deprecated_function( 'wc_gzd_dhl_get_services', '3.0' );
+
+	return array(
+		'PreferredLocation',
+		'PreferredNeighbour',
+		'PreferredDay',
+		'VisualCheckOfAge',
+		'Personally',
+		'NoNeighbourDelivery',
+		'NamedPersonOnly',
+		'Premium',
+		'CDP',
+		'PDDP',
+		'Economy',
+		'AdditionalInsurance',
+		'BulkyGoods',
+		'IdentCheck',
+		'CashOnDelivery',
+		'ParcelOutletRouting',
+		'GoGreen',
+		'Endorsement',
+		'SignedForByRecipient',
+	);
+}
+
+function wc_gzd_dhl_get_preferred_services() {
+	wc_deprecated_function( 'wc_gzd_dhl_get_preferred_services', '3.0' );
+
+	return array(
+		'PreferredTime',
+		'PreferredLocation',
+		'PreferredNeighbour',
+		'PreferredDay',
+	);
+}

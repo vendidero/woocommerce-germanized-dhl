@@ -9,7 +9,7 @@ namespace Vendidero\Germanized\DHL\ShippingProvider;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelServices;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\CashOnDelivery;
-use Vendidero\Germanized\DHL\ShippingProvider\Services\CDP;
+use Vendidero\Germanized\DHL\ShippingProvider\Services\ClosestDropPoint;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\DHLRetoure;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\IdentCheck;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\PreferredDay;
@@ -201,10 +201,10 @@ class DHL extends Auto {
 			'supported_zones' => array( 'int' ),
 		) );
 
-		$this->register_service( new CDP( $this ) );
+		$this->register_service( new ClosestDropPoint( $this ) );
 
-		$this->register_service( 'PDDP', array(
-			'label' => _x( 'PDDP', 'dhl', 'woocommerce-germanized-dhl' ),
+		$this->register_service( 'PostalDeliveryDutyPaid', array(
+			'label' => _x( 'Postal Delivery Duty Paid', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description' => _x( 'DHL takes care of customs clearance and export duties (Postal Delivered Duty Paid).', 'dhl', 'woocommerce-germanized-dhl' ),
 			'products'    => array( 'V53WPAK' ),
 			'supported_countries' => ParcelServices::get_pddp_countries(),
@@ -308,10 +308,6 @@ class DHL extends Auto {
 		}
 
 		return $settings;
-	}
-
-	public function get_product_services( $product, $shipment = false ) {
-		return wc_gzd_dhl_get_product_services( $product, $shipment );
 	}
 
 	public function supports_customer_return_requests() {
@@ -635,24 +631,24 @@ class DHL extends Auto {
 		/**
 		 * Force home delivery if chosen
 		 */
-		if ( $this->get_service( 'CDP' )->supports( array( 'shipment' => $shipment, 'product' => $defaults['product_id'] ) ) && $dhl_order && 'home' === $dhl_order->get_preferred_delivery_type() ) {
+		if ( $this->get_service( 'ClosestDropPoint' )->supports( array( 'shipment' => $shipment, 'product' => $defaults['product_id'] ) ) && $dhl_order && 'home' === $dhl_order->get_preferred_delivery_type() ) {
 			$defaults['services'][] = 'Premium';
-			$defaults['services']   = array_diff( $defaults['services'], array( 'CDP' ) );
+			$defaults['services']   = array_diff( $defaults['services'], array( 'ClosestDropPoint' ) );
 		}
 
 		/**
 		 * Prevent certain service-combinations
 		 */
-		if ( in_array( 'CDP', $defaults['services'], true ) ) {
+		if ( in_array( 'ClosestDropPoint', $defaults['services'], true ) ) {
 			$defaults['services'] = array_diff( $defaults['services'], array( 'Economy', 'Premium' ) );
 		}
 
 		if ( in_array( 'Premium', $defaults['services'], true ) ) {
-			$defaults['services'] = array_diff( $defaults['services'], array( 'CDP', 'Economy' ) );
+			$defaults['services'] = array_diff( $defaults['services'], array( 'ClosestDropPoint', 'Economy' ) );
 		}
 
 		if ( in_array( 'Economy', $defaults['services'], true ) ) {
-			$defaults['services'] = array_diff( $defaults['services'], array( 'CDP', 'Premium' ) );
+			$defaults['services'] = array_diff( $defaults['services'], array( 'ClosestDropPoint', 'Premium' ) );
 		}
 
 		// Remove duplicates

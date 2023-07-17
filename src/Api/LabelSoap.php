@@ -376,13 +376,11 @@ class LabelSoap extends Soap {
 			throw new Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
-		$services           = array();
-		$bank_data          = array();
-		$available_services = wc_gzd_dhl_get_product_services( $label->get_product_id(), $shipment );
-		$label_services     = array_intersect( $label->get_services(), $available_services );
+		$services  = array();
+		$bank_data = array();
 
-		foreach ( $label_services as $service ) {
-			if ( 'GoGreen' === $service ) {
+		foreach ( $label->get_services() as $service ) {
+			if ( in_array( $service, array( 'GoGreen', 'dhlRetoure' ), true ) ) {
 				continue;
 			}
 
@@ -397,7 +395,7 @@ class LabelSoap extends Soap {
 				case 'IdentCheck':
 					$services[ $service ]['Ident']['surname']     = $shipment->get_last_name();
 					$services[ $service ]['Ident']['givenName']   = $shipment->get_first_name();
-					$services[ $service ]['Ident']['dateOfBirth'] = $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->date( 'Y-m-d' ) : '';
+					$services[ $service ]['Ident']['dateOfBirth'] = $label->get_ident_date_of_birth();
 					$services[ $service ]['Ident']['minimumAge']  = $label->get_ident_min_age();
 					break;
 				case 'CashOnDelivery':
@@ -425,7 +423,7 @@ class LabelSoap extends Soap {
 					}
 					break;
 				case 'PreferredDay':
-					$services[ $service ]['details'] = $label->get_preferred_day() ? $label->get_preferred_day()->date( 'Y-m-d' ) : '';
+					$services[ $service ]['details'] = $label->get_preferred_day();
 					break;
 				case 'VisualCheckOfAge':
 					$services[ $service ]['type'] = $label->get_visual_min_age();
@@ -441,37 +439,25 @@ class LabelSoap extends Soap {
 						$services[ $service ]['details'] = $shipment->get_email();
 					}
 					break;
-				case 'SignedForByRecipient':
-					unset( $services['SignedForByRecipient'] );
-
-					$services['signedForByRecipient'] = array(
-						'active' => 1,
+				case 'Endorsement':
+					$services[ $service ]['type'] = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment );
+					break;
+				case 'ClosestDropPoint':
+					unset( $services[ $service ] );
+					$services['CDP'] = array(
+						'active' => 1
+					);
+					break;
+				case 'PostalDeliveryDutyPaid':
+					unset( $services[ $service ] );
+					$services['PDDP'] = array(
+						'active' => 1
 					);
 					break;
 			}
 		}
 
-		/**
-		 * Endorsement option (Vorausverfügung)
-		 */
-		if ( 'V53WPAK' === $label->get_product_id() ) {
-			$endorsement_type = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment );
-
-			if ( 'RETURN' === $endorsement_type ) {
-				$endorsement_type = 'IMMEDIATE';
-			} elseif ( 'ABANDON' === $endorsement_type ) {
-				$endorsement_type = 'ABANDONMENT';
-			}
-
-			$services['Endorsement'] = array(
-				'active' => 1,
-				'type'   => $endorsement_type,
-			);
-		}
-
-		$billing_number_args       = array(
-			'gogreen' => in_array( 'GoGreen', $label_services, true ) ? true : false,
-		);
+		$billing_number_args       = array( 'services' => $label->get_services() );
 		$account_number            = wc_gzd_dhl_get_billing_number( $label->get_product_id(), $billing_number_args );
 		$formatted_recipient_state = wc_gzd_dhl_format_label_state( $shipment->get_state(), $shipment->get_country() );
 
@@ -730,7 +716,6 @@ class LabelSoap extends Soap {
 		}
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
-
 			if ( count( $shipment->get_items() ) > self::DHL_MAX_ITEMS ) {
 				throw new Exception( sprintf( _x( 'Only %1$s shipment items can be processed, your shipment has %2$s items.', 'dhl', 'woocommerce-germanized-dhl' ), self::DHL_MAX_ITEMS, count( $shipment->get_items() ) ) );
 			}
@@ -759,7 +744,7 @@ class LabelSoap extends Soap {
 			 * In case the customs item total weight is greater than label weight (e.g. due to rounding issues) replace it
 			 */
 			if ( $customs_label_data['item_total_weight_in_kg'] > $label->get_weight() ) {
-				$dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['ShipmentItem']['weightInKG'] = wc_format_decimal( $customs_label_data['item_total_weight_in_kg'] ) + $shipment->get_packaging_weight();
+				$dhl_label_body['ShipmentOrder']['Shipment']['ShipmentDetails']['ShipmentItem']['weightInKG'] = (float) wc_format_decimal( $customs_label_data['item_total_weight_in_kg'] ) + (float) $shipment->get_packaging_weight();
 			}
 
 			$export_type = $this->get_export_type( $customs_label_data, $label );
@@ -798,7 +783,7 @@ class LabelSoap extends Soap {
 			$this->body_request['ShipmentOrder']['Shipment']['ExportDocument']['additionalFee'] = 0;
 		}
 
-		// If "Ident-Check" enabled, then ensure both fields are passed even if empty
+		// If "IdentCheck" enabled, then ensure both fields are passed even if empty
 		if ( $label->has_service( 'IdentCheck' ) ) {
 			if ( ! isset( $this->body_request['ShipmentOrder']['Shipment']['ShipmentDetails']['Service']['IdentCheck']['Ident']['minimumAge'] ) ) {
 				$this->body_request['ShipmentOrder']['Shipment']['ShipmentDetails']['Service']['IdentCheck']['Ident']['minimumAge'] = '';

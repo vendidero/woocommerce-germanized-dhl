@@ -99,13 +99,6 @@ class DeutschePost extends Auto {
 		$this->update_meta_data( 'api_username', strtolower( $username ) );
 	}
 
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
-	 */
-	public function get_available_label_products( $shipment ) {
-		return wc_gzd_dhl_get_deutsche_post_products( $shipment );
-	}
-
 	protected function get_available_base_countries() {
 		return Package::get_available_countries();
 	}
@@ -136,21 +129,64 @@ class DeutschePost extends Auto {
 				'value'             => $this->get_setting( 'api_password', '' ),
 				'custom_attributes' => array( 'autocomplete' => 'new-password' ),
 			),
-
-			array(
-				'type' => 'sectionend',
-				'id'   => 'deutsche_post_general_options',
-			),
 		);
+
+		$im = Package::get_internetmarke_api();
+
+		if ( $im ) {
+			$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : false;
+			$settings_url = $this->get_edit_link( '' );
+
+			if ( is_admin() && ( ( $screen && ( in_array( $screen->id, array( 'woocommerce_page_wc-settings', 'woocommerce_page_shipment-packaging' ), true ) ) ) || $this->is_save_settings_request() ) ) {
+				if ( $im->is_configured() && $im->auth() && $im->is_available() ) {
+					$im->reload_products();
+
+					if ( isset( $_GET['provider'] ) && 'deutsche_post' === $_GET['provider'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						$balance = $im->get_balance( true );
+
+						$settings = array_merge(
+							$settings,
+							array(
+								array(
+									'title' => _x( 'Balance', 'dhl', 'woocommerce-germanized-dhl' ),
+									'type'  => 'html',
+									'html'  => wc_price( Package::cents_to_eur( $balance ), array( 'currency' => 'EUR' ) ),
+								),
+
+								array(
+									'title' => _x( 'Charge (€)', 'dhl', 'woocommerce-germanized-dhl' ),
+									'type'  => 'dp_charge',
+								),
+							)
+						);
+					}
+
+					$settings = array_merge( $settings,
+						array(
+							array(
+								'title'          => _x( 'Available Products', 'dhl', 'woocommerce-germanized-dhl' ),
+								'id'             => 'available_products',
+								'class'          => 'wc-enhanced-select',
+								'desc'           => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) ) . '</div>',
+								'type'           => 'multiselect',
+								'value'          => $this->get_setting( 'available_products', $im ? $im->get_default_available_products() : array() ),
+								'options'        => $this->get_product_select_options(),
+								'default'        => $im ? $im->get_default_available_products() : array(),
+								'allow_override' => false,
+							),
+						)
+					);
+				}
+			}
+		}
 
 		$settings = array_merge(
 			$settings,
 			array(
 				array(
 					'type' => 'sectionend',
-					'id'   => 'dhl_product_options',
+					'id'   => 'deutsche_post_general_options',
 				),
-
 				array(
 					'title' => _x( 'Tracking', 'dhl', 'woocommerce-germanized-dhl' ),
 					'type'  => 'title',
@@ -372,6 +408,26 @@ class DeutschePost extends Auto {
 		}
 
 		return $settings;
+	}
+
+	protected function register_products() {
+		if ( $im = Package::get_internetmarke_api() ) {
+			foreach( $im->get_available_products() as $product ) {
+				$this->register_product( $product->product_code, array(
+					'label' => wc_gzd_dhl_get_im_product_title( $product->product_name ),
+					'description' => $product->product_description,
+					'supported_shipment_types' => array( 'simple', 'return' ),
+					'supported_zones' => 'national' === $product->product_destination ? array( 'dom' ) : array( 'eu', 'int' ),
+					'price' => $product->product_price,
+					'length' => array( 'min' => $product->product_length_min, 'max' => $product->product_length_max ),
+					'width' => array( 'min' => $product->product_width_min, 'max' => $product->product_width_max ),
+					'height' => array( 'min' => $product->product_height_min, 'max' => $product->product_height_max ),
+					'weight' => array( 'min' => $product->product_weight_min, 'max' => $product->product_weight_max ),
+					'weight_unit' => 'g',
+					'dimension_unit' => 'mm'
+				) );
+			}
+		}
 	}
 
 	protected function get_product_select_options() {

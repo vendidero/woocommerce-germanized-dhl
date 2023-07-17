@@ -195,10 +195,11 @@ function wc_gzd_dhl_get_endorsement_types() {
 /**
  * @param Label\DHL $label
  * @param $shipment
+ * @param string $api_type
  *
  * @return string
  */
-function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
+function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment, $api_type = 'default' ) {
 	$type = $label->get_endorsement();
 
 	/**
@@ -224,6 +225,18 @@ function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
 
 	if ( ! in_array( $type, array_keys( wc_gzd_dhl_get_endorsement_types() ), true ) ) {
 		$type = 'return';
+	}
+
+	/**
+	 * The SOAP API uses abandonment instead of abandon and
+	 * immediate instead of return.
+	 */
+	if ( 'default' === $api_type ) {
+		if ( 'abandon' === $type ) {
+			$type = 'abandonment';
+		} else {
+			$type = 'immediate';
+		}
 	}
 
 	return strtoupper( $type );
@@ -294,47 +307,6 @@ function wc_gzd_dhl_get_current_shipping_method() {
 	return false;
 }
 
-function wc_gzd_dhl_get_international_services() {
-	return array(
-		'GoGreen',
-		'AdditionalInsurance',
-		'CDP',
-		'Economy',
-		'Premium',
-		'PDDP',
-		'CashOnDelivery',
-		'Endorsement',
-	);
-}
-
-function wc_gzd_get_domestic_services() {
-	return array_diff( wc_gzd_dhl_get_services(), array( 'PDDP', 'CDP', 'Premium', 'Economy', 'Endorsement' ) );
-}
-
-function wc_gzd_dhl_get_services() {
-	return array(
-		'PreferredLocation',
-		'PreferredNeighbour',
-		'PreferredDay',
-		'VisualCheckOfAge',
-		'Personally',
-		'NoNeighbourDelivery',
-		'NamedPersonOnly',
-		'Premium',
-		'CDP',
-		'PDDP',
-		'Economy',
-		'AdditionalInsurance',
-		'BulkyGoods',
-		'IdentCheck',
-		'CashOnDelivery',
-		'ParcelOutletRouting',
-		'GoGreen',
-		'Endorsement',
-		'SignedForByRecipient',
-	);
-}
-
 /**
  * @param $instance_id
  *
@@ -347,15 +319,6 @@ function wc_gzd_dhl_get_shipping_method( $instance_id ) {
 
 function wc_gzd_dhl_get_deutsche_post_shipping_method( $instance_id ) {
 	return wc_gzd_dhl_get_shipping_method( $instance_id );
-}
-
-function wc_gzd_dhl_get_preferred_services() {
-	return array(
-		'PreferredTime',
-		'PreferredLocation',
-		'PreferredNeighbour',
-		'PreferredDay',
-	);
 }
 
 function wc_gzd_dhl_get_pickup_types() {
@@ -527,108 +490,6 @@ function wc_gzd_dhl_get_return_label_sender_street_number( $label ) {
 	}
 
 	return $street_number;
-}
-
-/**
- * @param $product
- * @param false|Shipment $shipment
- *
- * @return string[]
- */
-function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
-	if ( in_array( $product, array_keys( wc_gzd_dhl_get_products_domestic() ), true ) ) {
-		$services = wc_gzd_get_domestic_services();
-	} else {
-		$services = wc_gzd_dhl_get_international_services();
-
-		/**
-		 * Cash on Delivery is only available for Paket International
-		 */
-		if ( 'V53WPAK' !== $product ) {
-			$services = array_diff( $services, array( 'CashOnDelivery' ) );
-		}
-	}
-
-	if ( 'V01PAK' !== $product ) {
-		$services = array_diff( $services, array( 'SignedForByRecipient' ) );
-	}
-
-	/**
-	 * Warenpost does only support certain services
-	 */
-	if ( 'V62WP' === $product ) {
-		$services = array_intersect(
-			$services,
-			array(
-				'PreferredTime',
-				'PreferredLocation',
-				'PreferredNeighbour',
-				'PreferredDay',
-				'ParcelOutletRouting',
-				'GoGreen',
-			)
-		);
-	} elseif ( 'V66WPI' === $product ) {
-		$services = array_intersect(
-			$services,
-			array(
-				'Premium',
-			)
-		);
-	}
-
-	/**
-	 * Economy, CDP, PDDP, Endorsement are available for Paket International only
-	 */
-	if ( 'V53WPAK' === $product ) {
-		/**
-		 * Economy is not available for EU countries. Premium is booked by default.
-		 */
-		if ( $shipment && $shipment->is_shipping_inner_eu() ) {
-			$services = array_diff( $services, array( 'Economy', 'Premium' ) );
-		}
-	} else {
-		$services = array_diff( $services, array( 'Economy', 'CDP', 'PDDP', 'Endorsement' ) );
-	}
-
-	return $services;
-}
-
-/**
- * @param $product
- * @param $service
- * @param false|Shipment $shipment
- *
- * @return bool
- */
-function wc_gzd_dhl_product_supports_service( $product, $service, $shipment = false ) {
-	$services = wc_gzd_dhl_get_product_services( $product, $shipment );
-
-	if ( ! in_array( $service, $services, true ) ) {
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * @param $service
- * @param false|Shipment $shipment
- *
- * @return array
- */
-function wc_gzd_dhl_get_service_product_attributes( $service, $shipment = false ) {
-	$products_supported = array();
-
-	foreach ( array_keys( array_merge( wc_gzd_dhl_get_products_domestic(), wc_gzd_dhl_get_products_eu(), wc_gzd_dhl_get_products_international() ) ) as $product ) {
-		if ( wc_gzd_dhl_product_supports_service( $product, $service, $shipment ) ) {
-			$products_supported[] = $product;
-		}
-	}
-
-	return array(
-		'data-products-supported' => implode( ',', $products_supported ),
-	);
 }
 
 /**
@@ -938,10 +799,12 @@ function wc_gzd_dhl_get_billing_number( $product, $args = array() ) {
 	$args = wp_parse_args(
 		$args,
 		array(
-			'gogreen'  => false,
 			'api_type' => 'default',
+			'services' => array(),
 		)
 	);
+
+	$has_gogreen = in_array( 'GoGreen', $args['services'], true );
 
 	if ( 'return' === $product ) {
 		$product_number = '07';
@@ -959,21 +822,34 @@ function wc_gzd_dhl_get_billing_number( $product, $args = array() ) {
 		$participation_number = Package::get_participation_number( $product, $args );
 		$account_base         = Package::get_setting( 'account_number' );
 
-		if ( 'dhl.com' === $args['api_type'] && Package::is_debug_mode() ) {
-			$account_base         = '3333333333';
-			$participation_number = '01';
+		if ( Package::is_debug_mode() ) {
+			if ( 'dhl.com' === $args['api_type'] ) {
+				$account_base         = '3333333333';
+				$participation_number = '01';
 
-			if ( $args['gogreen'] ) {
-				$participation_number = '02';
-			}
-
-			if ( 'V01PAK' === $product ) {
-				$participation_number = '02';
-
-				if ( $args['gogreen'] ) {
-					$participation_number = '03';
+				if ( $has_gogreen ) {
+					$participation_number = '02';
 				}
-			}
+
+				if ( 'V01PAK' === $product ) {
+					$participation_number = '02';
+
+					if ( $has_gogreen ) {
+						$participation_number = '03';
+					}
+				}
+			} else {
+				$account_base         = '2222222222';
+				$participation_number = '01';
+
+				if ( 'V01PAK' === $product ) {
+					$participation_number = '05';
+
+					if ( $has_gogreen ) {
+						$participation_number = '04';
+					}
+				}
+ 			}
 		}
 
 		// Participation number may contain account number too

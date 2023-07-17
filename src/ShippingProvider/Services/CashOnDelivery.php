@@ -38,6 +38,7 @@ class CashOnDelivery extends Service {
 			array(
 				'id'          => $this->get_label_field_id( 'cod_total' ),
 				'class'       => 'wc_input_decimal',
+				'data_type'   => 'price',
 				'label'       => _x( 'COD Amount', 'dhl', 'woocommerce-germanized-dhl' ),
 				'placeholder' => '',
 				'description' => '',

@@ -17,23 +17,10 @@ class DHL extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'default_path'                  => '',
-		'export_path'                   => '',
-		'preferred_day'                 => '',
-		'preferred_location'            => '',
-		'preferred_neighbor'            => '',
-		'preferred_delivery_type'       => '',
-		'ident_date_of_birth'           => '',
-		'ident_min_age'                 => '',
-		'visual_min_age'                => '',
-		'email_notification'            => 'no',
-		'has_inlay_return'              => 'no',
-		'codeable_address_only'         => 'no',
-		'duties'                        => '',
-		'endorsement'                   => 'return',
-		'return_address'                => array(),
-		'cod_total'                     => 0,
-		'cod_includes_additional_total' => 'no',
+		'default_path'          => '',
+		'export_path'           => '',
+		'codeable_address_only' => 'no',
+		'email_notification'    => 'no',
 	);
 
 	public function get_type() {
@@ -45,7 +32,13 @@ class DHL extends Label {
 	}
 
 	public function get_return_address( $context = 'view' ) {
-		return $this->get_prop( 'return_address', $context );
+		$return_address = $this->get_service_prop( 'dhlRetoure', 'return_address', null, $context );
+
+		if ( is_null( $return_address ) && $this->get_meta( '_return_address', true, $context ) ) {
+			$return_address = $this->get_meta( '_return_address', true, $context );
+		}
+
+		return (array) $return_address;
 	}
 
 	/**
@@ -58,11 +51,13 @@ class DHL extends Label {
 	 * @return mixed
 	 */
 	protected function get_return_address_prop( $prop, $context = 'view' ) {
-		$value = $this->get_address_prop( $prop, 'return_address', $context );
+		$return_address = $this->get_return_address( $context );
 
 		// Load from settings
-		if ( is_null( $value ) ) {
+		if ( ! array_key_exists( $prop, $return_address ) ) {
 			$value = Package::get_setting( 'return_' . $prop );
+		} else {
+			$value = $return_address[ $prop ];
 		}
 
 		return $value;
@@ -113,11 +108,19 @@ class DHL extends Label {
 	}
 
 	public function get_cod_total( $context = 'view' ) {
-		return $this->get_prop( 'cod_total', $context );
+		$cod_total = $this->get_service_prop( 'CashOnDelivery', 'cod_total', null, $context );
+
+		if ( is_null( $cod_total ) && $this->get_meta( '_cod_total', true, $context ) ) {
+			$cod_total = $this->get_meta( '_cod_total', true, $context );
+		}
+
+		$cod_total = null === $cod_total ? 0.0 : (float) wc_format_decimal( $cod_total );
+
+		return $cod_total;
 	}
 
 	public function get_cod_includes_additional_total( $context = 'view' ) {
-		return $this->get_prop( 'cod_includes_additional_total', $context );
+		return $this->get_meta( '_cod_includes_additional_total', true, $context );
 	}
 
 	public function cod_includes_additional_total( $context = 'view' ) {
@@ -129,7 +132,11 @@ class DHL extends Label {
 	}
 
 	public function get_endorsement( $context = 'view' ) {
-		$type = $this->get_prop( 'endorsement', $context );
+		$type = $this->get_meta( 'service_Endorsement', true, $context );
+
+		if ( ! $type && $this->get_meta( '_endorsement', true, $context ) ) {
+			$type = $this->get_meta( '_endorsement', true, $context );
+		}
 
 		if ( 'view' === $context && empty( $type ) ) {
 			$type = 'return';
@@ -139,7 +146,13 @@ class DHL extends Label {
 	}
 
 	public function get_preferred_day( $context = 'view' ) {
-		return $this->get_prop( 'preferred_day', $context );
+		$preferred_day = $this->get_service_prop( 'PreferredDay', 'day', null, $context );
+
+		if ( is_null( $preferred_day ) && $this->get_meta( '_preferred_day', true, $context ) ) {
+			$preferred_day = $this->get_meta( '_preferred_day', true, $context );
+		}
+
+		return $preferred_day;
 	}
 
 	public function get_preferred_delivery_type( $context = 'view' ) {
@@ -147,23 +160,53 @@ class DHL extends Label {
 	}
 
 	public function get_preferred_location( $context = 'view' ) {
-		return $this->get_prop( 'preferred_location', $context );
+		$preferred_location = $this->get_service_prop( 'PreferredLocation', 'location', null, $context );
+
+		if ( is_null( $preferred_location ) && $this->get_meta( '_preferred_location', true, $context ) ) {
+			$preferred_location = $this->get_meta( '_preferred_location', true, $context );
+		}
+
+		return $preferred_location;
 	}
 
 	public function get_preferred_neighbor( $context = 'view' ) {
-		return $this->get_prop( 'preferred_neighbor', $context );
+		$preferred_neighbor = $this->get_service_prop( 'PreferredNeighbour', 'neighbor', null, $context );
+
+		if ( is_null( $preferred_neighbor ) && $this->get_meta( '_preferred_neighbor', true, $context ) ) {
+			$preferred_neighbor = $this->get_meta( '_preferred_neighbor', true, $context );
+		}
+
+		return $preferred_neighbor;
 	}
 
 	public function get_ident_date_of_birth( $context = 'view' ) {
-		return $this->get_prop( 'ident_date_of_birth', $context );
+		$date_of_birth = $this->get_service_prop( 'IdentCheck', 'date_of_birth', null, $context );
+
+		if ( is_null( $date_of_birth ) && $this->get_meta( '_ident_date_of_birth', true, $context ) ) {
+			$date_of_birth = $this->get_meta( '_ident_date_of_birth', true, $context );
+		}
+
+		return $date_of_birth;
 	}
 
 	public function get_ident_min_age( $context = 'view' ) {
-		return $this->get_prop( 'ident_min_age', $context );
+		$min_age = $this->get_service_prop( 'IdentCheck', 'min_age', null, $context );
+
+		if ( is_null( $min_age ) && $this->get_meta( '_ident_min_age', true, $context ) ) {
+			$min_age = $this->get_meta( '_ident_min_age', true, $context );
+		}
+
+		return $min_age;
 	}
 
 	public function get_visual_min_age( $context = 'view' ) {
-		return $this->get_prop( 'visual_min_age', $context );
+		$min_age = $this->get_service_prop( 'VisualAgeCheck', 'min_age', null, $context );
+
+		if ( is_null( $min_age ) && $this->get_meta( '_visual_min_age', true, $context ) ) {
+			$min_age = $this->get_meta( '_visual_min_age', true, $context );
+		}
+
+		return $min_age;
 	}
 
 	public function get_email_notification( $context = 'view' ) {
@@ -175,16 +218,21 @@ class DHL extends Label {
 	}
 
 	public function get_has_inlay_return( $context = 'view' ) {
-		return $this->get_prop( 'has_inlay_return', $context );
+		return false;
 	}
 
 	public function has_inlay_return() {
-		if ( in_array( 'dhlRetoure', $this->get_services(), true ) ) {
-			$has_inlay_return = true;
-		} else {
-			$products = wc_gzd_dhl_get_inlay_return_products();
+		$has_inlay_return = false;
 
-			$has_inlay_return = ( true === $this->get_has_inlay_return() && in_array( $this->get_product_id(), $products ) ); // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
+		if ( $this->has_service( 'dhlRetoure' ) ) {
+			$has_inlay_return = true;
+		} elseif ( $this->get_meta( '_has_inlay_return' ) ) {
+			$products  = wc_gzd_dhl_get_inlay_return_products();
+			$has_inlay = wc_string_to_bool( $this->get_meta( '_has_inlay_return' ) );
+
+			if ( true === $has_inlay && in_array( $this->get_product_id(), $products, true ) ) {
+				$has_inlay_return = true;
+			}
 		}
 
 		return $has_inlay_return;
@@ -222,72 +270,6 @@ class DHL extends Label {
 
 	public function codeable_address_only() {
 		return ( true === $this->get_codeable_address_only() );
-	}
-
-	public function set_return_address( $value ) {
-		$this->set_prop( 'return_address', empty( $value ) ? array() : (array) $value );
-	}
-
-	public function set_cod_total( $value ) {
-		$value = wc_format_decimal( $value );
-
-		if ( ! is_numeric( $value ) ) {
-			$value = 0;
-		}
-
-		$this->set_prop( 'cod_total', $value );
-	}
-
-	public function set_cod_includes_additional_total( $value ) {
-		$this->set_prop( 'cod_includes_additional_total', wc_string_to_bool( $value ) );
-	}
-
-	public function set_duties( $duties ) {
-		$this->set_prop( 'duties', $duties );
-	}
-
-	public function set_endorsement( $type ) {
-		$this->set_prop( 'endorsement', $type );
-	}
-
-	public function set_preferred_day( $day ) {
-		$this->set_date_prop( 'preferred_day', $day );
-	}
-
-	public function set_preferred_delivery_type( $delivery_type ) {
-		$this->set_date_prop( 'preferred_delivery_type', $delivery_type );
-	}
-
-	public function set_preferred_location( $location ) {
-		$this->set_prop( 'preferred_location', $location );
-	}
-
-	public function set_preferred_neighbor( $neighbor ) {
-		$this->set_prop( 'preferred_neighbor', $neighbor );
-	}
-
-	public function set_email_notification( $value ) {
-		$this->set_prop( 'email_notification', wc_string_to_bool( $value ) );
-	}
-
-	public function set_has_inlay_return( $value ) {
-		$this->set_prop( 'has_inlay_return', wc_string_to_bool( $value ) );
-	}
-
-	public function set_codeable_address_only( $value ) {
-		$this->set_prop( 'codeable_address_only', wc_string_to_bool( $value ) );
-	}
-
-	public function set_ident_date_of_birth( $date ) {
-		$this->set_date_prop( 'ident_date_of_birth', $date );
-	}
-
-	public function set_ident_min_age( $age ) {
-		$this->set_prop( 'ident_min_age', $age );
-	}
-
-	public function set_visual_min_age( $age ) {
-		$this->set_prop( 'visual_min_age', $age );
 	}
 
 	/**

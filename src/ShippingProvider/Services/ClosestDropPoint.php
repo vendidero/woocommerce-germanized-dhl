@@ -7,11 +7,11 @@ use Vendidero\Germanized\Shipments\ShippingProvider\Service;
 
 defined( 'ABSPATH' ) || exit;
 
-class CDP extends Service {
+class ClosestDropPoint extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'CDP',
+			'id' => 'ClosestDropPoint',
 			'label' => _x( 'Closest Droppoint (CDP)', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description' => _x( 'Ship to a parcel shop or parcel locker in the vicinity of your customer’s home address.', 'dhl', 'woocommerce-germanized-dhl' ),
 			'products'    => array( 'V53WPAK' ),
