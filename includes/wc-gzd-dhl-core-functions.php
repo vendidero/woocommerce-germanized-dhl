@@ -531,17 +531,23 @@ function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false, $par
 	return wc_gzd_dhl_im_get_product_list( $dom, $parent_only );
 }
 
+/**
+ * @param \Vendidero\Germanized\Shipments\ShippingProvider\Product[] $products
+ * @param $parent_only
+ *
+ * @return array
+ */
 function wc_gzd_dhl_im_get_product_list( $products, $parent_only = true ) {
 	$list                       = array();
 	$additional_parent_products = array();
 
 	foreach ( $products as $product ) {
-		if ( $parent_only && $product->product_parent_id > 0 ) {
-			$additional_parent_products[] = $product->product_parent_id;
+		if ( $parent_only && $product->get_parent_id() > 0 ) {
+			$additional_parent_products[] = $product->get_();
 			continue;
 		}
 
-		$list[ $product->product_code ] = wc_gzd_dhl_get_im_product_title( $product->product_name );
+		$list[ $product->get_id() ] = $product->get_label();
 	}
 
 	$additional_parent_products = array_unique( $additional_parent_products );
