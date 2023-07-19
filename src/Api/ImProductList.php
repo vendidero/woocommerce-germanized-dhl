@@ -249,15 +249,14 @@ class ImProductList {
 
 	protected function get_additional_service_identifiers() {
 		return array(
-			'+ einschreiben einwurf'       => 'ESEW',
-			'+ einschreiben + einwurf'     => 'ESEW',
-			'+ einschreiben + eigenhändig' => 'ESEH',
-			'+ einschreiben'               => 'ESCH',
-			'+ zusatzentgelt mbf'          => 'ZMBF',
-			'+ prio'                       => 'PRIO',
-			'unterschrift'                 => 'USFT',
-			'tracked'                      => 'TRCK',
-			'+ rückschein'                 => 'RCKS',
+			'-einschreiben-einwurf'      => 'ESEW',
+			'-einschreiben-eigenhaendig' => 'ESEH',
+			'-einschreiben'              => 'ESCH',
+			'-zusatzentgelt-mbf'         => 'ZMBF',
+			'-prio'                      => 'PRIO',
+			'-unterschrift'              => 'USFT',
+			'-tracked'                   => 'TRCK',
+			'-rueckschein'               => 'RCKS',
 		);
 	}
 
@@ -304,7 +303,7 @@ class ImProductList {
 		// Remove duplicate whitespaces
 		$product_name = preg_replace( '/\s+/', ' ', $product_name );
 
-		return $product_name;
+		return sanitize_title( $product_name );
 	}
 
 	public function update() {
@@ -341,7 +340,6 @@ class ImProductList {
 
 			foreach ( $products as $product_type => $inner_products ) {
 				foreach ( $inner_products as $product ) {
-
 					$extended_identifier = $product->extendedIdentifier; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$extern_identifier   = property_exists( $extended_identifier, 'externIdentifier' ) ? $extended_identifier->externIdentifier[0] : new \stdClass(); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
