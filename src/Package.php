@@ -349,7 +349,7 @@ class Package {
 	}
 
 	public static function get_internetmarke_api() {
-		if ( is_null( self::$im_api ) && self::is_deutsche_post_enabled() ) {
+		if ( is_null( self::$im_api ) ) {
 			self::$im_api = new Internetmarke();
 		}
 

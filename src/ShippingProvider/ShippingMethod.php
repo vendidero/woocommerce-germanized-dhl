@@ -42,7 +42,7 @@ class ShippingMethod {
 
 	public function is_packstation_enabled() {
 		if ( $this->is_deutsche_post_enabled() ) {
-			return apply_filters( 'woocommerce_gzd_enable_packstation_deutsche_post', ParcelLocator::is_packstation_enabled( false ) );
+			return apply_filters( 'woocommerce_gzd_enable_packstation_deutsche_post', ParcelLocator::is_packstation_enabled() );
 		} else {
 			return $this->method->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
 		}
