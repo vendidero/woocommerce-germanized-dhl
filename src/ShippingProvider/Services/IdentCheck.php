@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\DHL\ShippingProvider\Services;
 
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\ShipmentError;
 use Vendidero\Germanized\Shipments\ShippingProvider\Service;
 
@@ -22,11 +23,15 @@ class IdentCheck extends Service {
 		parent::__construct( $shipping_provider, $args );
 	}
 
-	protected function get_additional_setting_fields( $args ) {
-		$base_setting_id = $this->get_setting_id( $args );
-		$args['suffix']  = 'min_age';
-		$setting_id      = $this->get_setting_id( $args );
-		$value           = $this->get_shipping_provider() ? $this->get_shipping_provider()->get_setting( $setting_id, '0' ) : '0';
+	/**
+	 * @param ConfigurationSet $configuration_set
+	 *
+	 * @return array[]
+	 */
+	protected function get_additional_setting_fields( $configuration_set ) {
+		$base_setting_id = $this->get_setting_id( $configuration_set );
+		$setting_id      = $this->get_setting_id( $configuration_set, 'min_age' );
+		$value           = $configuration_set->get_service_meta( $this->get_id(), 'min_age', '0' );
 
 		return array(
 			array(

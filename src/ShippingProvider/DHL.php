@@ -17,6 +17,7 @@ use Vendidero\Germanized\DHL\ShippingProvider\Services\PreferredLocation;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\PreferredNeighbour;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\VisualCheckOfAge;
 use Vendidero\Germanized\Shipments\Admin\ProviderSettings;
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
 use Vendidero\Germanized\Shipments\ShippingProvider\Service;
@@ -212,7 +213,7 @@ class DHL extends Auto {
 		) );
 	}
 
-	protected function get_return_label_settings() {
+	protected function get_config_set_return_label_settings() {
 		$settings = array(
 			array(
 				'title' => _x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -244,16 +245,21 @@ class DHL extends Auto {
 			),
 		);
 
-		$settings = array_merge( $settings, parent::get_return_label_settings() );
+		$settings = array_merge( $settings, parent::get_config_set_return_label_settings() );
 
 		return $settings;
 	}
 
-	protected function get_label_settings_by_zone( $zone = 'dom', $shipment_type = 'simple', $for = 'global' ) {
-		$settings = parent::get_label_settings_by_zone( $zone, $shipment_type );
+	/**
+	 * @param ConfigurationSet $configuration_set
+	 *
+	 * @return mixed
+	 */
+	protected function get_label_settings_by_zone( $configuration_set ) {
+		$settings = parent::get_label_settings_by_zone( $configuration_set );
 
-		if ( 'global' === $for ) {
-			if ( 'dom' === $zone && 'simple' === $shipment_type ) {
+		if ( 'global' === $configuration_set->get_setting_type() ) {
+			if ( 'dom' === $configuration_set->get_zone() && 'simple' === $configuration_set->get_shipment_type() ) {
 				$settings = array_merge( $settings, array(
 					array(
 						'title'          => _x( 'Encodable', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -290,7 +296,7 @@ class DHL extends Auto {
 						)
 					),
 				) );
-			} elseif ( 'int' === $zone && 'simple' === $shipment_type ) {
+			} elseif ( 'int' === $configuration_set->get_zone() && 'simple' === $configuration_set->get_shipment_type() ) {
 				$settings = array_merge( $settings, array(
 					array(
 						'title'    => _x( 'Default Incoterms', 'dhl', 'woocommerce-germanized-dhl' ),
