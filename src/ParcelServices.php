@@ -537,15 +537,22 @@ class ParcelServices {
 			$key = 'preferred_' . $key;
 		}
 
-		if ( $method = wc_gzd_dhl_get_current_shipping_method() ) {
-			if ( $method->has_option( $key ) ) {
-				return $method->get_option( $key );
-			} elseif ( strpos( $key, '_enable' ) !== false ) {
-				return false;
-			}
-		}
+		$preferred_enabled_options = array(
+			'PreferredDay_enable',
+			'PreferredLocation_enable',
+			'PreferredDeliveryType_enable',
+			'PreferredNeighbour_enable',
+		);
 
 		$setting = Package::get_setting( $key );
+
+		if ( $method = wc_gzd_dhl_get_current_shipping_method() ) {
+			$has_provider = $method->has_shipping_provider( 'dhl' );
+
+			if ( ! $has_provider && in_array( $key, $preferred_enabled_options, true ) ) {
+				$setting = 'no';
+			}
+		}
 
 		return $setting;
 	}

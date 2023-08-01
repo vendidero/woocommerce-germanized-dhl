@@ -3,7 +3,6 @@
 namespace Vendidero\Germanized\DHL;
 
 use Exception;
-use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Checkout;
 use WC_Order;
@@ -613,9 +612,9 @@ class ParcelLocator {
 
 			foreach ( $rates as $rate ) {
 				if ( $method = wc_gzd_get_shipping_provider_method( $rate ) ) {
-					$provider_name = $method->get_provider();
+					$provider_name = $method->get_shipping_provider();
 
-					if ( in_array( $provider_name, array( 'dhl', 'deutsche_post' ), true ) ) {
+					if ( $method->has_shipping_provider( array( 'dhl', 'deutsche_post' ) ) ) {
 						$supports = array();
 
 						foreach ( wc_gzd_dhl_get_pickup_types() as $pickup_type => $title ) {
@@ -921,7 +920,7 @@ class ParcelLocator {
 
 	protected static function get_current_shipping_provider() {
 		if ( $method = wc_gzd_get_current_shipping_provider_method() ) {
-			return $method->get_provider();
+			return $method->get_shipping_provider();
 		}
 
 		return '';

@@ -297,11 +297,11 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
 }
 
 /**
- * @return false|\Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod
+ * @return \Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod|false
  */
 function wc_gzd_dhl_get_current_shipping_method() {
 	if ( $current = wc_gzd_get_current_shipping_method_id() ) {
-		return wc_gzd_dhl_get_shipping_method( $current );
+		return wc_gzd_get_shipping_provider_method( $current );
 	}
 
 	return false;
@@ -310,11 +310,10 @@ function wc_gzd_dhl_get_current_shipping_method() {
 /**
  * @param $instance_id
  *
- * @return \Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod
+ * @return \Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod
  */
 function wc_gzd_dhl_get_shipping_method( $instance_id ) {
-	$method = wc_gzd_get_shipping_provider_method( $instance_id );
-	return new \Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod( $method );
+	return wc_gzd_get_shipping_provider_method( $instance_id );
 }
 
 function wc_gzd_dhl_get_deutsche_post_shipping_method( $instance_id ) {
