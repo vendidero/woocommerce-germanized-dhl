@@ -608,6 +608,7 @@ class DHL extends Auto {
 	 */
 	protected function get_default_simple_label_props( $shipment, $defaults = array() ) {
 		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$supports_email_transmission = $dhl_order && $dhl_order->supports_email_notification() ? true : false;
 		$defaults  = wp_parse_args( $defaults, array(
 			'product_id' => '',
 			'services'   => array(),
@@ -617,9 +618,8 @@ class DHL extends Auto {
 			$defaults['codeable_address_only'] = wc_bool_to_string( $this->get_setting( 'label_address_codeable_only', 'no' ) );
 		}
 
-		if ( $dhl_order && $dhl_order->supports_email_notification() ) {
-			$defaults['email_notification'] = 'yes';
-		} elseif ( in_array( 'ParcelOutletRouting', $defaults['services'], true ) ) {
+		// Remove parcel outlet routing default service in case email transmission is not allowed
+		if ( ! $supports_email_transmission && in_array( 'ParcelOutletRouting', $defaults['services'], true ) ) {
 			$defaults['services'] = array_diff( $defaults['services'], array( 'ParcelOutletRouting' ) );
 		}
 
@@ -824,15 +824,6 @@ class DHL extends Auto {
 					'title' => _x( 'Labels', 'dhl', 'woocommerce-germanized-dhl' ),
 					'type'  => 'title',
 					'id'    => 'label_options',
-				),
-				array(
-					'title'          => _x( 'Force email', 'dhl', 'woocommerce-germanized-dhl' ),
-					'desc'           => _x( 'Force transferring customer email to DHL.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'By default the customer email address is only transferred in case explicit consent has been given via a checkbox during checkout. You may force to transfer the customer email address during label creation to make sure your customers receive <a href="%s" target="_blank" rel="noopener noreferrer">email notifications by DHL</a>. Make sure to check your privacy policy and seek advice by a lawyer in case of doubt.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://www.dhl.de/de/geschaeftskunden/paket/versandsoftware/dhl-paketankuendigung/formular.html' ) . '</div>',
-					'id'             => 'label_force_email_transfer',
-					'value'          => $this->get_setting( 'label_force_email_transfer', 'no' ),
-					'default'        => 'no',
-					'allow_override' => false,
-					'type'           => 'gzd_toggle',
 				),
 
 				array(
@@ -1305,16 +1296,6 @@ class DHL extends Auto {
 				'type'           => 'gzd_toggle',
 				'allow_override' => false,
 				'desc_tip'       => _x( 'Choose this option if you want to make sure that by default labels are only generated for codeable addresses.', 'dhl', 'woocommerce-germanized-dhl' ),
-			),
-
-			array(
-				'title'          => _x( 'Force email', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'           => _x( 'Force transferring customer email to DHL.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'By default the customer email address is only transferred in case explicit consent has been given via a checkbox during checkout. You may force to transfer the customer email address during label creation to make sure your customers receive <a href="%s" target="_blank" rel="noopener noreferrer">email notifications by DHL</a>. Make sure to check your privacy policy and seek advice by a lawyer in case of doubt.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://www.dhl.de/de/geschaeftskunden/paket/versandsoftware/dhl-paketankuendigung/formular.html' ) . '</div>',
-				'id'             => 'label_force_email_transfer',
-				'value'          => $this->get_setting( 'label_force_email_transfer', 'no' ),
-				'default'        => 'no',
-				'allow_override' => false,
-				'type'           => 'gzd_toggle',
 			),
 
 			array(

@@ -60,7 +60,7 @@ class VisualCheckOfAge extends Service {
 	protected function get_additional_label_fields( $shipment ) {
 		$label_fields = parent::get_additional_label_fields( $shipment );
 		$dhl_order     = wc_gzd_dhl_get_order( $shipment->get_order() );
-		$min_age       = $this->get_shipment_setting( $shipment, 'min_age' );
+		$min_age       = $this->get_value( $shipment, 'min_age' );
 
 		if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
 			$min_age = $dhl_order->get_min_age();

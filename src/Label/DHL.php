@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\DHL\Label;
 
+use Vendidero\Germanized\DHL\Order;
 use Vendidero\Germanized\DHL\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -20,7 +21,6 @@ class DHL extends Label {
 		'default_path'          => '',
 		'export_path'           => '',
 		'codeable_address_only' => 'no',
-		'email_notification'    => 'no',
 	);
 
 	public function get_type() {
@@ -200,7 +200,7 @@ class DHL extends Label {
 	}
 
 	public function get_visual_min_age( $context = 'view' ) {
-		$min_age = $this->get_service_prop( 'VisualAgeCheck', 'min_age', null, $context );
+		$min_age = $this->get_service_prop( 'VisualCheckOfAge', 'min_age', null, $context );
 
 		if ( is_null( $min_age ) && $this->get_meta( '_visual_min_age', true, $context ) ) {
 			$min_age = $this->get_meta( '_visual_min_age', true, $context );
@@ -209,16 +209,8 @@ class DHL extends Label {
 		return $min_age;
 	}
 
-	public function get_email_notification( $context = 'view' ) {
-		return $this->get_prop( 'email_notification', $context );
-	}
-
 	public function has_email_notification() {
-		return ( true === $this->get_email_notification() );
-	}
-
-	public function get_has_inlay_return( $context = 'view' ) {
-		return false;
+		return ( true === $this->supports_third_party_email_notification() );
 	}
 
 	public function has_inlay_return() {
@@ -266,6 +258,10 @@ class DHL extends Label {
 
 	public function get_codeable_address_only( $context = 'view' ) {
 		return $this->get_prop( 'codeable_address_only', $context );
+	}
+
+	public function set_codeable_address_only( $codeable_address_only ) {
+		$this->set_prop( 'codeable_address_only', wc_string_to_bool( $codeable_address_only ) );
 	}
 
 	public function codeable_address_only() {
