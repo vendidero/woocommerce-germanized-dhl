@@ -496,7 +496,6 @@ class LabelSoap extends Soap {
 							'heightInCM' => $label->has_dimensions() ? $label->get_height() : '',
 						),
 						'Service'           => $services,
-						'Notification'      => ( apply_filters( 'woocommerce_gzd_dhl_label_api_enable_notification', $label->has_email_notification(), $label ) && ! empty( $shipment->get_email() ) ) ? array( 'recipientEmailAddress' => $shipment->get_email() ) : array(),
 						'BankData'          => $bank_data,
 					),
 					'Receiver'        => array(
