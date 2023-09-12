@@ -738,13 +738,20 @@ class Package {
 	}
 
 	public static function get_core_wsdl_file( $file ) {
+        $file = basename( $file );
+
+        // Add .wsdl as default file extension in case missing (e.g. url)
+        if ( '.wsdl' !== substr( $file, -5 ) && '.xsd' !== substr( $file, -4 ) ) {
+            $file .= '.wsdl';
+        }
+
 		$local_file = trailingslashit( self::get_path() ) . 'assets/wsdl/' . $file;
 
 		if ( file_exists( $local_file ) ) {
 			return $local_file;
 		}
 
-		return false;
+		return null;
 	}
 
 	/**
@@ -834,7 +841,6 @@ class Package {
 				$wsdl_link = $alternate_file ? $alternate_file : \Vendidero\Germanized\Shipments\Package::get_file_by_path( $file_path );
 			}
 		} else {
-
 			if ( ! function_exists( 'download_url' ) ) {
 				include_once ABSPATH . 'wp-admin/includes/file.php';
 			}
@@ -860,7 +866,6 @@ class Package {
 				$tmp_file = download_url( $file_link, 1500 );
 
 				if ( ! is_wp_error( $tmp_file ) ) {
-
 					$uploads    = \Vendidero\Germanized\Shipments\Package::get_upload_dir();
 					$new_file   = trailingslashit( $uploads['path'] ) . $new_file_name;
 					$has_copied = @copy( $tmp_file, $new_file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged

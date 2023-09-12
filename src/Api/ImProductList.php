@@ -217,14 +217,14 @@ class ImProductList {
 
 		if ( false !== $shipment_weight ) {
 			foreach ( $products as $key => $product ) {
-				if ( 0 !== $product->product_weight_min ) {
+				if ( ! in_array( (float) $product->product_weight_min, array( 0.0, null ), true ) ) {
 					if ( $product->product_weight_min > $shipment_weight ) {
 						unset( $products[ $key ] );
 						continue;
 					}
 				}
 
-				if ( 0 !== $product->product_weight_max ) {
+				if ( ! in_array( (float) $product->product_weight_max, array( 0.0, null ), true ) ) {
 					if ( $product->product_weight_max < $shipment_weight ) {
 						unset( $products[ $key ] );
 						continue;
@@ -377,7 +377,7 @@ class ImProductList {
 		$result = new \WP_Error();
 
 		try {
-			$product_soap = new ImProductsSoap( array(), Package::get_wsdl_file( Package::get_internetmarke_products_url() ) );
+			$product_soap = new ImProductsSoap( array(), Package::get_core_wsdl_file( Package::get_internetmarke_products_url() ) );
 			$product_list = $product_soap->get_products();
 			$response     = $product_list->Response; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
