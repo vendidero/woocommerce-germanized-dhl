@@ -25,7 +25,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '2.0.2';
+	const VERSION = '2.0.3';
 
 	public static $upload_dir_suffix = '';
 
@@ -738,12 +738,12 @@ class Package {
 	}
 
 	public static function get_core_wsdl_file( $file ) {
-        $file = basename( $file );
+		$file = basename( $file );
 
-        // Add .wsdl as default file extension in case missing (e.g. url)
-        if ( '.wsdl' !== substr( $file, -5 ) && '.xsd' !== substr( $file, -4 ) ) {
-            $file .= '.wsdl';
-        }
+		// Add .wsdl as default file extension in case missing (e.g. url)
+		if ( '.wsdl' !== substr( $file, -5 ) && '.xsd' !== substr( $file, -4 ) ) {
+			$file .= '.wsdl';
+		}
 
 		$local_file = trailingslashit( self::get_path() ) . 'assets/wsdl/' . $file;
 
