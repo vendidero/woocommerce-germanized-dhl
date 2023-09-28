@@ -1210,6 +1210,7 @@ class ParcelLocator {
 				'address_1' => '',
 				'address_2' => '',
 				'postcode'  => '',
+				'city'      => '',
 			)
 		);
 
