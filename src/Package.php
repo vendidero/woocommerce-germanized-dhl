@@ -391,6 +391,19 @@ class Package {
 		return self::get_url() . '/assets';
 	}
 
+	public static function get_assets_build_url( $script_or_style ) {
+		$assets_url = self::get_url() . '/build';
+		$is_debug   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
+		$is_style   = '.css' === substr( $script_or_style, -4 );
+		$is_static  = strstr( $script_or_style, 'static/' );
+
+		if ( $is_debug && $is_static && ! $is_style ) {
+			$assets_url = self::get_url() . '/assets/js';
+		}
+
+		return trailingslashit( $assets_url ) . $script_or_style;
+	}
+
 	public static function is_debug_mode() {
 		$is_debug_mode = ( defined( 'WC_GZD_DHL_DEBUG' ) && WC_GZD_DHL_DEBUG );
 

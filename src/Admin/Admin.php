@@ -352,8 +352,8 @@ class Admin {
 		$screen_id = $screen ? $screen->id : '';
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-		wp_register_script( 'wc-gzd-admin-dhl-internetmarke', Package::get_assets_url() . '/js/admin-internetmarke' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-deutsche-post-label', Package::get_assets_url() . '/js/admin-deutsche-post-label' . $suffix . '.js', array( 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-dhl-internetmarke', Package::get_assets_build_url( 'static/admin-internetmarke.js' ), array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-deutsche-post-label', Package::get_assets_build_url( 'static/admin-deutsche-post-label.js' ), array( 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
 		if ( wp_script_is( 'wc-gzd-admin-shipment-modal', 'enqueued' ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-deutsche-post-label' );
@@ -381,7 +381,7 @@ class Admin {
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		// Register admin styles.
-		wp_register_style( 'woocommerce_gzd_dhl_admin', Package::get_assets_url() . '/css/admin' . $suffix . '.css', array( 'woocommerce_admin_styles' ), Package::get_version() );
+		wp_register_style( 'woocommerce_gzd_dhl_admin', Package::get_assets_build_url( 'static/admin-styles.css' ), array( 'woocommerce_admin_styles' ), Package::get_version() );
 
 		// Admin styles for WC pages only.
 		if ( in_array( $screen_id, self::get_screen_ids(), true ) ) {

@@ -137,13 +137,15 @@ class ParcelServices {
 	}
 
 	protected static function get_posted_data() {
-		$original_post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$original_post_data = isset( $_POST ) ? $_POST : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		// POST information is either in a query string-like variable called 'post_data'...
 		if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			parse_str( wp_unslash( $_POST['post_data'] ), $post_data ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		} else {
+		} elseif ( isset( $_POST ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		} else {
+			$post_data = array();
 		}
 
 		$_POST = $post_data;
@@ -153,7 +155,7 @@ class ParcelServices {
 
 		$_POST = $original_post_data;
 
-		return $posted_data;
+		return apply_filters( 'woocommerce_gzd_dhl_checkout_parcel_services_data', $posted_data );
 	}
 
 	public static function validate( $data, $errors ) {
@@ -172,10 +174,6 @@ class ParcelServices {
 	 * @param \WC_Cart $cart
 	 */
 	public static function add_fees( $cart ) {
-		if ( ! $_POST || ( is_admin() && ! wp_doing_ajax() ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			return;
-		}
-
 		if ( self::cart_needs_shipping() && self::is_preferred_option_available() ) {
 			$data = self::get_data();
 
@@ -207,8 +205,8 @@ class ParcelServices {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		wp_register_script( 'jquery-tiptip', WC()->plugin_url() . '/assets/js/jquery-tiptip/jquery.tipTip' . $suffix . '.js', array( 'jquery' ), WC_VERSION, true );
-		wp_register_script( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/js/preferred-services' . $suffix . '.js', $deps, Package::get_version(), true );
-		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/css/preferred-services' . $suffix . '.css', array(), Package::get_version() );
+		wp_register_script( 'wc-gzd-preferred-services-dhl', Package::get_assets_build_url( 'static/preferred-services.js' ), $deps, Package::get_version(), true );
+		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_build_url( 'static/preferred-services-styles.css' ), array(), Package::get_version() );
 
 		$excluded_gateways = self::get_excluded_payment_gateways();
 
@@ -238,7 +236,7 @@ class ParcelServices {
 		return true;
 	}
 
-	protected static function get_preferred_home_delivery_cost() {
+	public static function get_preferred_home_delivery_cost() {
 		$cost = self::get_setting( 'home_delivery_cost' );
 
 		if ( empty( $cost ) ) {
@@ -250,7 +248,7 @@ class ParcelServices {
 		return $cost;
 	}
 
-	protected static function get_preferred_day_cost() {
+	public static function get_preferred_day_cost() {
 		$cost = self::get_setting( 'PreferredDay_cost' );
 
 		if ( empty( $cost ) ) {
