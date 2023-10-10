@@ -11,6 +11,7 @@ use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
+use Vendidero\Germanized\Shipments\Registry\Container;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 defined( 'ABSPATH' ) || exit;
@@ -223,23 +224,36 @@ class Package {
 		include_once self::get_path() . '/includes/wc-gzd-dhl-legacy-functions.php';
 
 		if ( self::is_enabled() ) {
-			if ( is_admin() ) {
-				Admin\Admin::init();
-			}
-
-			if ( ParcelLocator::is_enabled() ) {
-				ParcelLocator::init();
-			}
-
-			/**
-			 * Additional services are only available for DHL products
-			 */
-			if ( self::is_dhl_enabled() && ParcelServices::is_enabled() ) {
-				ParcelServices::init();
-			}
-
-			Ajax::init();
+			self::container()->get( Bootstrap::class );
 		}
+	}
+
+	/**
+	 * Loads the dependency injection container for woocommerce blocks.
+	 *
+	 * @param boolean $reset Used to reset the container to a fresh instance.
+	 *                       Note: this means all dependencies will be
+	 *                       reconstructed.
+	 */
+	public static function container( $reset = false ) {
+		static $container;
+		if (
+			! $container instanceof Container
+			|| $reset
+		) {
+			$container = new Container();
+
+			// register Bootstrap.
+			$container->register(
+				Bootstrap::class,
+				function ( $container ) {
+					return new Bootstrap(
+						$container
+					);
+				}
+			);
+		}
+		return $container;
 	}
 
 	public static function init_hooks() {
@@ -370,8 +384,8 @@ class Package {
 	 *
 	 * @return string
 	 */
-	public static function get_path() {
-		return dirname( __DIR__ );
+	public static function get_path( $rel_path = '' ) {
+		return trailingslashit( dirname( __DIR__ ) ) . $rel_path;
 	}
 
 	public static function get_template_path() {
@@ -383,8 +397,8 @@ class Package {
 	 *
 	 * @return string
 	 */
-	public static function get_url() {
-		return plugins_url( '', __DIR__ );
+	public static function get_url( $rel_path = '' ) {
+		return trailingslashit( plugins_url( '', __DIR__ ) ) . $rel_path;
 	}
 
 	public static function get_assets_url() {
