@@ -9,6 +9,12 @@
   },
   "license": "GPL-3.0+",
   "main": "build/index.js",
+  "sideEffects": [
+    "*.css",
+    "*.scss",
+    "./assets/js/blocks/**",
+    "./assets/js/static/**"
+  ],
   "scripts": {
     "build": "wp-scripts build",
     "format": "wp-scripts format",

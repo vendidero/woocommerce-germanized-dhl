@@ -3,7 +3,7 @@ namespace Vendidero\Germanized\DHL;
 
 use Vendidero\Germanized\DHL\Admin\Admin;
 use Vendidero\Germanized\DHL\Blocks\Assets;
-use Vendidero\Germanized\DHL\Blocks\Checkout;
+use Vendidero\Germanized\DHL\Blocks\PreferredServices;
 use Vendidero\Germanized\Shipments\Registry\Container;
 
 /**
@@ -43,13 +43,13 @@ class Bootstrap {
 		}
 
 		$this->container->get( Ajax::class )::init();
-		$this->container->get( Checkout::class );
 
 		if ( $this->container->get( ParcelLocator::class )::is_enabled() ) {
 			$this->container->get( ParcelLocator::class )::init();
 		}
 
 		if ( Package::is_dhl_enabled() && $this->container->get( ParcelServices::class )::is_enabled() ) {
+			$this->container->get( PreferredServices::class );
 			$this->container->get( ParcelServices::class )::init();
 		}
 	}
@@ -71,9 +71,9 @@ class Bootstrap {
 			}
 		);
 		$this->container->register(
-			\Vendidero\Germanized\DHL\Blocks\Integrations\Checkout::class,
+			\Vendidero\Germanized\DHL\Blocks\Integrations\PreferredServices::class,
 			function ( $container ) {
-				return new \Vendidero\Germanized\DHL\Blocks\Integrations\Checkout();
+				return new \Vendidero\Germanized\DHL\Blocks\Integrations\PreferredServices();
 			}
 		);
 		$this->container->register(
@@ -95,9 +95,9 @@ class Bootstrap {
 			}
 		);
 		$this->container->register(
-			Checkout::class,
+			PreferredServices::class,
 			function ( $container ) {
-				return new Checkout();
+				return new PreferredServices();
 			}
 		);
 	}

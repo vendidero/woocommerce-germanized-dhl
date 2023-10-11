@@ -5,20 +5,6 @@ use Vendidero\Germanized\DHL\Package;
 
 final class Assets {
 
-	/**
-	 * Contains registered data.
-	 *
-	 * @var array
-	 */
-	private $data = [];
-
-	/**
-	 * Contains registered data.
-	 *
-	 * @var array
-	 */
-	private $lazy_data = [];
-
 	public function __construct() {
 		if ( did_action( 'init' ) ) {
 			$this->register_assets();
@@ -30,32 +16,7 @@ final class Assets {
 	}
 
 	public function register_assets() {
-		$this->register_script( 'wc-gzd-shipments-blocks-dhl', $this->get_block_asset_build_path( 'wc-gzd-shipments-blocks-dhl' ), [ 'wc-blocks' ], false );
-		$this->register_style( 'wc-gzd-shipments-blocks-dhl-editor-style', $this->get_block_asset_build_path( 'wc-gzd-shipments-blocks-dhl-editor-style', 'css' ), [ 'wp-edit-blocks' ], 'all' );
-	}
-
-	public function data_exists( $key ) {
-		return array_key_exists( $key, $this->data );
-	}
-
-	public function register_data( $key, $data ) {
-		if ( ! $this->data_exists( $key ) ) {
-			if ( \is_callable( $data ) ) {
-				$this->lazy_data[ $key ] = $data;
-			} else {
-				$this->data[ $key ] = $data;
-			}
-		}
-	}
-
-	protected function execute_lazy_data() {
-		foreach ( $this->lazy_data as $key => $callback ) {
-			$this->data[ $key ] = $callback();
-		}
-	}
-
-	public function enqueue_asset_data() {
-
+		$this->register_script( 'wc-gzd-shipments-blocks-dhl', $this->get_block_asset_build_path( 'wc-gzd-shipments-blocks-dhl' ), array( 'wc-blocks' ), false );
 	}
 
 	/**
@@ -66,7 +27,7 @@ final class Assets {
 	 *
 	 * @return array src, version and dependencies of the script.
 	 */
-	public function get_script_data( $relative_src, $dependencies = [] ) {
+	public function get_script_data( $relative_src, $dependencies = array() ) {
 		$src     = '';
 		$version = '1';
 
@@ -133,14 +94,14 @@ final class Assets {
 	 * @param array  $dependencies  Optional. An array of registered script handles this script depends on. Default empty array.
 	 * @param bool   $has_i18n      Optional. Whether to add a script translation call to this file. Default: true.
 	 */
-	public function register_script( $handle, $relative_src, $dependencies = [], $has_i18n = true ) {
+	public function register_script( $handle, $relative_src, $dependencies = array(), $has_i18n = true ) {
 		$script_data         = $this->get_script_data( $relative_src, $dependencies );
 		$script_dependencies = $script_data['dependencies'];
 
 		wp_register_script( $handle, $script_data['src'], $script_dependencies, $script_data['version'], true );
 
 		if ( $has_i18n && function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( $handle, 'woocommerce-germanized-blocks', Package::get_path( 'languages' ) );
+			wp_set_script_translations( $handle, Package::get_i18n_textdomain(), Package::get_i18n_path() );
 		}
 	}
 
@@ -186,7 +147,7 @@ final class Assets {
 	 *                              'all', 'print' and 'screen', or media queries like '(orientation: portrait)' and '(max-width: 640px)'.
 	 * @param boolean $rtl   Optional. Whether or not to register RTL styles.
 	 */
-	public function register_style( $handle, $relative_src, $deps = [], $media = 'all', $rtl = false ) {
+	public function register_style( $handle, $relative_src, $deps = array(), $media = 'all', $rtl = false ) {
 		$filename = str_replace( plugins_url( '/', __DIR__ ), '', $relative_src );
 		$src      = $this->get_asset_url( $relative_src );
 		$ver      = $this->get_file_version( $filename );

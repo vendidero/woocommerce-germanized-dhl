@@ -138,39 +138,6 @@ const requestToHandle = ( request ) => {
     }
 };
 
-const StaticConfig = {
-    ...defaultConfig,
-    entry: getEntryConfig( 'static', [] ),
-    optimization: {
-        minimizer: [new TerserJSPlugin({extractComments: false}), new CssMinimizerPlugin({})],
-        minimize: true,
-    },
-    module:  {
-        rules: [
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-            },
-            {
-                test: /.s?css$/,
-                use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
-            },
-        ],
-    },
-    resolve: {
-        extensions: ['.js', '.css', '.scss']
-    },
-    output: {
-        path: path.resolve( __dirname, './build/static/' ),
-        filename: "[name].js",
-    },
-    plugins: [
-        new MiniCssExtractPlugin({
-            filename: '[name].css'
-        }),
-    ]
-};
-
 const MainConfig = {
     ...defaultConfig,
     entry: getEntryConfig( 'main', [] ),
@@ -201,11 +168,15 @@ const MainConfig = {
             ...defaultRules,
             {
                 test: /\.js$/,
-                exclude: /node_modules/,
+                exclude: [
+                    '/node_modules/'
+                ],
             },
             {
                 test: /\.(sc|sa)ss$/,
-                exclude: /node_modules/,
+                exclude: [
+                    '/node_modules/',
+                ],
                 use: [
                     MiniCssExtractPlugin.loader,
                     { loader: 'css-loader', options: { importLoaders: 1 } },
@@ -361,8 +332,20 @@ const StylingConfig = {
     ],
 };
 
+const StaticConfig = {
+    ...defaultConfig,
+    entry: getEntryConfig( 'static', [] ),
+    resolve: {
+        extensions: ['.js', '.css', '.scss']
+    },
+    output: {
+        path: path.resolve( __dirname, './build/static/' ),
+        filename: "[name].js",
+    }
+};
+
 module.exports = [
-    StaticConfig,
     MainConfig,
-    StylingConfig
+    StylingConfig,
+    StaticConfig
 ];

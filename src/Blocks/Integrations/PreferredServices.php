@@ -9,7 +9,12 @@ use Vendidero\Germanized\DHL\ParcelServices;
 
 defined( 'ABSPATH' ) || exit;
 
-class Checkout implements IntegrationInterface {
+class PreferredServices implements IntegrationInterface {
+
+	/**
+	 * @var Assets
+	 */
+	private $assets = null;
 
 	/**
 	 * The name of the integration.
@@ -17,7 +22,7 @@ class Checkout implements IntegrationInterface {
 	 * @return string
 	 */
 	public function get_name() {
-		return 'woocommerce-germanized-dhl-checkout';
+		return 'woocommerce-germanized-dhl-preferred-services';
 	}
 
 	/**
@@ -31,10 +36,14 @@ class Checkout implements IntegrationInterface {
 
 		$asset_registry = \Automattic\WooCommerce\Blocks\Package::container()->get( \Automattic\WooCommerce\Blocks\Assets\AssetDataRegistry::class );
 		$asset_registry->add( 'dhlCdpCountries', ParcelServices::get_cdp_countries() );
+		$asset_registry->add( 'dhlExcludedPaymentGateways', ParcelServices::get_excluded_payment_gateways() );
 
-		add_action( 'woocommerce_blocks_enqueue_checkout_block_scripts_after', function() {
-			wp_enqueue_style( 'wc-gzd-shipments-blocks-dhl-checkout' );
-		} );
+		add_action(
+			'woocommerce_blocks_enqueue_checkout_block_scripts_after',
+			function() {
+				wp_enqueue_style( 'wc-gzd-shipments-blocks-dhl-checkout' );
+			}
+		);
 	}
 
 	/**

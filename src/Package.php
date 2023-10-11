@@ -215,6 +215,10 @@ class Package {
 		return Helper::instance()->is_shipping_provider_activated( 'dhl' );
 	}
 
+	public static function is_rest_api_request() {
+		return defined( 'REST_REQUEST' ) && REST_REQUEST;
+	}
+
 	public static function get_country_iso_alpha3( $country_code ) {
 		return \Vendidero\Germanized\Shipments\Package::get_country_iso_alpha3( $country_code );
 	}
@@ -386,6 +390,24 @@ class Package {
 	 */
 	public static function get_path( $rel_path = '' ) {
 		return trailingslashit( dirname( __DIR__ ) ) . $rel_path;
+	}
+
+	/**
+	 * Return the path to the package.
+	 *
+	 * @return string
+	 */
+	public static function get_i18n_path() {
+		return apply_filters( 'woocommerce_gzd_dhl_get_i18n_path', Package::get_path( 'i18n/languages' ) );
+	}
+
+	/**
+	 * Return the path to the package.
+	 *
+	 * @return string
+	 */
+	public static function get_i18n_textdomain() {
+		return apply_filters( 'woocommerce_gzd_dhl_get_i18n_textdomain', 'woocommerce-germanized-dhl' );
 	}
 
 	public static function get_template_path() {
