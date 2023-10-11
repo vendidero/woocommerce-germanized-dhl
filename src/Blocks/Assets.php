@@ -11,8 +11,6 @@ final class Assets {
 		} else {
 			add_action( 'init', array( $this, 'register_assets' ) );
 		}
-
-		add_action( is_admin() ? 'admin_print_footer_scripts' : 'wp_print_footer_scripts', array( $this, 'enqueue_asset_data' ), 1 );
 	}
 
 	public function register_assets() {
