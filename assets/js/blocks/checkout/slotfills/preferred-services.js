@@ -415,8 +415,6 @@ const DhlPreferredDeliveryOptions = ({
 
     useEffect(() => {
         if ( isAvailable ) {
-            console.log('available');
-
             const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
 
             if ( ! preferredOptionsAvailable ) {
@@ -449,16 +447,12 @@ const DhlPreferredDeliveryOptions = ({
 
     useEffect(() => {
         if ( isAvailable ) {
-            console.log('available');
-
             const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
 
             const checkoutOptions = { ...currentData,
                 'preferred_day': preferredOptionsAvailable && preferredDayEnabled ? dhlOptions['preferred_day'] : '',
                 'preferred_delivery_type': isCdpAvailable ? dhlOptions['preferred_delivery_type'] : '',
             };
-
-            console.log(checkoutOptions);
 
             __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
 
@@ -467,8 +461,6 @@ const DhlPreferredDeliveryOptions = ({
                 data: checkoutOptions,
             } );
         } else {
-            console.log('not available');
-
             const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
 
             // Reset data
