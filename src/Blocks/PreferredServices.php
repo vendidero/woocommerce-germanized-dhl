@@ -239,7 +239,15 @@ final class PreferredServices {
 		$preferred_delivery_type = ParcelServices::get_default_preferred_delivery_type();
 
 		if ( ParcelServices::is_preferred_day_enabled() && 'DE' === $customer->get_shipping_country() ) {
-			$api_preferred_days = \Vendidero\Germanized\DHL\Package::get_api()->get_preferred_available_days( WC()->customer->get_shipping_postcode() );
+			$api_preferred_days = array();
+			$shipping_postcode  = WC()->customer->get_shipping_postcode();
+
+			if ( ! empty( $shipping_postcode ) ) {
+				try {
+					$api_preferred_days = Package::get_api()->get_preferred_available_days( $shipping_postcode );
+				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+				}
+			}
 
 			foreach ( $api_preferred_days as $key => $preferred_day ) {
 				$key          = empty( $key ) ? '' : $key;
