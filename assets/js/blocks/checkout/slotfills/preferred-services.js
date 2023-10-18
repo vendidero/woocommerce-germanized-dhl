@@ -11,6 +11,7 @@ import _ from 'lodash';
 import { CART_STORE_KEY, CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { getCurrencyFromPriceResponse } from '@woocommerce/price-format';
 import { addAction } from '@wordpress/hooks';
+import { useDebouncedCallback, useDebounce } from 'use-debounce';
 
 import {
     __experimentalRadio as Radio,
@@ -454,7 +455,8 @@ const DhlPreferredDeliveryOptions = ({
         __internalSetExtensionData
     ] );
 
-    const maybeUpdate = debounce( () => {
+    // Debounce re-disable since disabling process itself will incur additional mutations which should be ignored.
+    const maybeUpdate = useDebouncedCallback( () => {
         const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
 
         if ( ! isCustomerDataUpdating ) {
@@ -520,10 +522,16 @@ const DhlPreferredDeliveryOptions = ({
                 maybeUpdate();
             }
         }
+
+        return () => {
+            maybeUpdate.cancel();
+        };
     }, [
         needsUpdate,
+        setNeedsUpdate,
         cart.shippingAddress,
-        isAvailable
+        isAvailable,
+        maybeUpdate
     ] );
 
     if ( ! isAvailable || ( ! preferredOptionsAvailable && ! isCdpAvailable ) ) {
