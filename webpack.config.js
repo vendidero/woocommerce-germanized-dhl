@@ -102,6 +102,10 @@ const getAlias = ( options = {} ) => {
             __dirname,
             `/assets/js/base/components/`
         ),
+        '@wooshipments/base-utils': path.resolve(
+            __dirname,
+            `/assets/js/base/utils/`
+        ),
     };
 };
 

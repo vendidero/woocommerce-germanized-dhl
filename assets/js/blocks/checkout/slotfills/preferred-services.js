@@ -1,6 +1,6 @@
 import { ExperimentalOrderShippingPackages } from '@woocommerce/blocks-checkout';
 import { registerPlugin } from '@wordpress/plugins';
-import { useEffect, useCallback } from "@wordpress/element";
+import { useEffect, useCallback, useState } from "@wordpress/element";
 import { useSelect, useDispatch, select } from '@wordpress/data';
 import { extensionCartUpdate } from '@woocommerce/blocks-checkout';
 import classnames from 'classnames';
@@ -8,8 +8,9 @@ import { getSetting } from '@woocommerce/settings';
 import { __, _x, sprintf } from '@wordpress/i18n';
 import { SVG } from '@wordpress/components';
 import _ from 'lodash';
-import { CART_STORE_KEY, CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY } from '@woocommerce/block-data';
+import { CART_STORE_KEY, CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { getCurrencyFromPriceResponse } from '@woocommerce/price-format';
+import { addAction } from '@wordpress/hooks';
 
 import {
     __experimentalRadio as Radio,
@@ -21,11 +22,10 @@ import {
     ValidatedTextInputHandle,
 } from '@woocommerce/blocks-checkout';
 
-import RadioControl from '@wooshipments/base-components/radio-control';
 import './style.scss';
-import RadioControlOption from "@wooshipments/base-components/radio-control";
 import RadioControlAccordion from "@wooshipments/base-components/radio-control-accordion";
 import FormattedMonetaryAmount from "@wooshipments/base-components/formatted-monetary-amount";
+import { debounce } from "@wooshipments/base-utils";
 
 const getSelectedShippingProviders = (
     shippingRates
@@ -345,9 +345,18 @@ const DhlPreferredDeliveryOptions = ({
         };
     } );
 
+    const [ needsUpdate, setNeedsUpdate ] = useState( false );
     const shippingProviders = getSelectedShippingProviders( shippingRates );
     const hasDhlProvider = hasShippingProvider( shippingProviders, 'dhl' );
     const { __internalSetExtensionData } = useDispatch( CHECKOUT_STORE_KEY );
+
+    const { isCustomerDataUpdating } = useSelect(
+        ( select ) => {
+            return {
+                isCustomerDataUpdating: select( CART_STORE_KEY ).isCustomerDataUpdating(),
+            };
+        }
+    );
 
     const {
         activePaymentMethod
@@ -445,6 +454,19 @@ const DhlPreferredDeliveryOptions = ({
         __internalSetExtensionData
     ] );
 
+    const maybeUpdate = debounce( () => {
+        const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
+
+        if ( ! isCustomerDataUpdating ) {
+            extensionCartUpdate( {
+                namespace: 'woocommerce-germanized-dhl-checkout-fees',
+                data: currentData,
+            } );
+
+            setNeedsUpdate( () => { return false } );
+        }
+    }, 2000 );
+
     useEffect(() => {
         if ( isAvailable ) {
             const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
@@ -455,11 +477,6 @@ const DhlPreferredDeliveryOptions = ({
             };
 
             __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
-
-            extensionCartUpdate( {
-                namespace: 'woocommerce-germanized-dhl-checkout-fees',
-                data: checkoutOptions,
-            } );
         } else {
             const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
 
@@ -471,14 +488,42 @@ const DhlPreferredDeliveryOptions = ({
                 }, {} );
 
             __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
+        }
 
-            extensionCartUpdate( {
-                namespace: 'woocommerce-germanized-dhl-checkout-fees',
-                data: checkoutOptions,
-            } );
+        setNeedsUpdate( () => { return true } );
+    }, [
+        isAvailable
+    ] );
+
+    /**
+     * Maybe delay the extensionCartUpdate in case shipping data is invalid
+     * to prevent (dirty data) race conditions with the update-customer call as
+     * the update-customer call will only be triggered when the data is errorless.
+     *
+     * Be careful: Calling the extensionCartUpdate overrides the current checkout data
+     * with data from the customer session. If that data has not yet been persisted, the current
+     * checkout data will be replaced with old data.
+     */
+    useEffect(() => {
+        if ( needsUpdate ) {
+            const validationStore = select( VALIDATION_STORE_KEY );
+            const invalidProps = [
+                ...Object.keys( cart.shippingAddress ).filter( ( key ) => {
+                    return (
+                        validationStore.getValidationError( 'shipping_' + key ) !== undefined
+                    );
+                } ),
+            ].filter( Boolean );
+
+            if ( invalidProps.length === 0 ) {
+                // No errors found, lets update.
+                maybeUpdate();
+            }
         }
     }, [
-        isAvailable,
+        needsUpdate,
+        cart.shippingAddress,
+        isAvailable
     ] );
 
     if ( ! isAvailable || ( ! preferredOptionsAvailable && ! isCdpAvailable ) ) {
