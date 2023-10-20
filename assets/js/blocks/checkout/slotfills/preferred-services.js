@@ -1,7 +1,7 @@
 import { ExperimentalOrderShippingPackages } from '@woocommerce/blocks-checkout';
 import { registerPlugin } from '@wordpress/plugins';
 import { useEffect, useCallback, useState } from "@wordpress/element";
-import { useSelect, useDispatch, select } from '@wordpress/data';
+import { useSelect, useDispatch, select, dispatch } from '@wordpress/data';
 import { extensionCartUpdate } from '@woocommerce/blocks-checkout';
 import classnames from 'classnames';
 import { getSetting } from '@woocommerce/settings';
@@ -57,7 +57,11 @@ const hasShippingProvider = ( shippingProviders, shippingProvider ) => {
 };
 
 const getDhlCheckoutData = ( checkoutData ) => {
-    return checkoutData.hasOwnProperty( 'woocommerce-germanized-dhl' ) ? checkoutData['woocommerce-germanized-dhl'] : {};
+    return checkoutData.hasOwnProperty( 'woocommerce-gzd-dhl' ) ? checkoutData['woocommerce-gzd-dhl'] : {};
+};
+
+const setDhlCheckoutData = ( checkoutData ) => {
+    dispatch( CHECKOUT_STORE_KEY ).__internalSetExtensionData( 'woocommerce-gzd-dhl', checkoutData );
 };
 
 const DhlPreferredDaySelect = ({
@@ -385,17 +389,17 @@ const DhlPreferredDeliveryOptions = ({
         const checkoutOptions = { ...preferredOptions };
         checkoutOptions[ option ] = value;
 
-        __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
+        setDhlCheckoutData( checkoutOptions );
 
         if ( updateCart ) {
             if ( 'preferred_day' === option && preferredDayCost > 0 ) {
                 extensionCartUpdate( {
-                    namespace: 'woocommerce-germanized-dhl-checkout-fees',
+                    namespace: 'woocommerce-gzd-dhl-checkout-fees',
                     data: checkoutOptions,
                 } );
             } else if ( 'preferred_delivery_type' === option && homeDeliveryCost > 0 ) {
                 extensionCartUpdate( {
-                    namespace: 'woocommerce-germanized-dhl-checkout-fees',
+                    namespace: 'woocommerce-gzd-dhl-checkout-fees',
                     data: checkoutOptions,
                 } );
             }
@@ -439,14 +443,14 @@ const DhlPreferredDeliveryOptions = ({
                     checkoutOptions['preferred_delivery_type'] = dhlOptions['preferred_delivery_type'];
                 }
 
-                __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
+                setDhlCheckoutData( checkoutOptions );
             } else {
                 const checkoutOptions = { ...currentData,
                     'preferred_day': preferredOptionsAvailable && preferredDayEnabled ? dhlOptions['preferred_day'] : '',
                     'preferred_delivery_type': '',
                 };
 
-                __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
+                setDhlCheckoutData( checkoutOptions );
             }
         }
     }, [
@@ -461,7 +465,7 @@ const DhlPreferredDeliveryOptions = ({
 
         if ( ! isCustomerDataUpdating ) {
             extensionCartUpdate( {
-                namespace: 'woocommerce-germanized-dhl-checkout-fees',
+                namespace: 'woocommerce-gzd-dhl-checkout-fees',
                 data: currentData,
             } );
 
@@ -478,7 +482,7 @@ const DhlPreferredDeliveryOptions = ({
                 'preferred_delivery_type': isCdpAvailable ? dhlOptions['preferred_delivery_type'] : '',
             };
 
-            __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
+            setDhlCheckoutData( checkoutOptions );
         } else {
             const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
 
@@ -489,7 +493,7 @@ const DhlPreferredDeliveryOptions = ({
                     return accumulator
                 }, {} );
 
-            __internalSetExtensionData( 'woocommerce-germanized-dhl', checkoutOptions );
+            setDhlCheckoutData( checkoutOptions );
         }
 
         setNeedsUpdate( () => { return true } );

@@ -14,7 +14,7 @@ final class Assets {
 	}
 
 	public function register_assets() {
-		$this->register_script( 'wc-gzd-shipments-blocks-dhl', $this->get_block_asset_build_path( 'wc-gzd-shipments-blocks-dhl' ), array( 'wc-blocks' ), false );
+		$this->register_script( 'wc-gzd-shipments-blocks-dhl', $this->get_block_asset_build_path( 'wc-gzd-shipments-blocks-dhl' ), array(), false );
 	}
 
 	/**

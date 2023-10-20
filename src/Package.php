@@ -26,7 +26,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '2.0.4';
+	const VERSION = '2.1.0';
 
 	public static $upload_dir_suffix = '';
 
@@ -398,7 +398,7 @@ class Package {
 	 * @return string
 	 */
 	public static function get_i18n_path() {
-		return apply_filters( 'woocommerce_gzd_dhl_get_i18n_path', Package::get_path( 'i18n/languages' ) );
+		return apply_filters( 'woocommerce_gzd_dhl_get_i18n_path', self::get_path( 'i18n/languages' ) );
 	}
 
 	/**
