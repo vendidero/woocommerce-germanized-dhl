@@ -49,7 +49,10 @@ class Bootstrap {
 		}
 
 		if ( Package::is_dhl_enabled() && $this->container->get( ParcelServices::class )::is_enabled() ) {
-			$this->container->get( PreferredServices::class );
+			if ( \Vendidero\Germanized\Shipments\Package::load_blocks() ) {
+				$this->container->get( PreferredServices::class );
+			}
+
 			$this->container->get( ParcelServices::class )::init();
 		}
 	}

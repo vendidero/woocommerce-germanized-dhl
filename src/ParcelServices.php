@@ -387,7 +387,7 @@ class ParcelServices {
 			'preferred_location'                  => '',
 			'preferred_location_neighbor_name'    => '',
 			'preferred_location_neighbor_address' => '',
-			'preferred_day_options'               => WC()->session->get( 'dhl_preferred_day_options', array() ),
+			'preferred_day_options'               => WC()->session->get( 'dhl_preferred_day_options', null ),
 			'preferred_day_cost'                  => self::get_preferred_day_cost(),
 			'preferred_delivery_type'             => '',
 			'preferred_home_delivery_cost'        => self::get_preferred_home_delivery_cost(),
@@ -399,7 +399,7 @@ class ParcelServices {
 		if ( self::preferred_services_available( $customer_country ) ) {
 			if ( is_null( $data['preferred_day_options'] ) ) {
 				self::refresh_day_session();
-				$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
+				$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options', array() );
 			}
 		}
 
