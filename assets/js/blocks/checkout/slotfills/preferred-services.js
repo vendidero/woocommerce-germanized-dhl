@@ -35,7 +35,7 @@ const getSelectedShippingProviders = (
         const selected = packageRates.find( ( rate ) => rate.selected );
         let provider = '';
 
-        if ( selected ) {
+        if ( selected && selected.meta_data ) {
             provider = selected.meta_data.reduce( ( { key: metaKey, value: metaValue } ) => {
                 if ( 'shipping_provider' === metaKey ) {
                     return metaValue;
