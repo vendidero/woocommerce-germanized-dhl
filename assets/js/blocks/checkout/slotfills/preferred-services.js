@@ -32,18 +32,14 @@ const getSelectedShippingProviders = (
     shippingRates
 ) => {
     return Object.fromEntries( shippingRates.map( ( { package_id: packageId, shipping_rates: packageRates } ) => {
-        const selected = packageRates.find( ( rate ) => rate.selected );
+        const meta_data = packageRates.find( ( rate ) => rate.selected )?.meta_data || [];
         let provider = '';
 
-        if ( selected && selected.meta_data ) {
-            provider = selected.meta_data.reduce( ( { key: metaKey, value: metaValue } ) => {
-                if ( 'shipping_provider' === metaKey ) {
-                    return metaValue;
-                }
-
-                return null;
-            } );
-        }
+        meta_data.map( ( metaField ) => {
+            if ( 'shipping_provider' === metaField.key ) {
+                provider = metaField.value;
+            }
+        } );
 
         return [
             packageId,
