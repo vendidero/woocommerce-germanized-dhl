@@ -1111,9 +1111,6 @@ class Package {
 	}
 
 	public static function get_base_country() {
-		$base_location = wc_get_base_location();
-		$base_country  = $base_location['country'];
-
 		/**
 		 * Filter to adjust the DHL base country.
 		 *
@@ -1122,7 +1119,7 @@ class Package {
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL
 		 */
-		return apply_filters( 'woocommerce_gzd_dhl_base_country', $base_country );
+		return apply_filters( 'woocommerce_gzd_dhl_base_country', \Vendidero\Germanized\Shipments\Package::get_base_country() );
 	}
 
 	public static function get_us_territories() {
