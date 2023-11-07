@@ -374,8 +374,6 @@ class Admin {
 	}
 
 	public static function admin_styles() {
-		global $wp_scripts;
-
 		$screen    = get_current_screen();
 		$screen_id = $screen ? $screen->id : '';
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
@@ -389,21 +387,7 @@ class Admin {
 		}
 	}
 
-	protected static function get_table_screen_ids() {
-		return array(
-			'woocommerce_page_wc-gzd-shipments',
-			'woocommerce_page_wc-gzd-return-shipments',
-		);
-	}
-
 	public static function get_screen_ids() {
-		$screen_ids = self::get_table_screen_ids();
-
-		foreach ( wc_get_order_types() as $type ) {
-			$screen_ids[] = $type;
-			$screen_ids[] = 'edit-' . $type;
-		}
-
-		return $screen_ids;
+		return \Vendidero\Germanized\Shipments\Admin\Admin::get_screen_ids();
 	}
 }

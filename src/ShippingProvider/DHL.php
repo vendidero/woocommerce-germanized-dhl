@@ -213,6 +213,60 @@ class DHL extends Auto {
 		) );
 	}
 
+	protected function register_print_formats() {
+		$this->register_print_format( 'default', array(
+			'label' => _x( 'Default (User configuration)', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'supported_shipment_types' => array( 'simple' )
+		) );
+
+		$available = array(
+			'A4' => _x( 'A4', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-700' => _x( '910-300-700', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-700-oZ' => _x( '910-300-700-oZ', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-710' => _x( '910-300-710', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-600' => _x( '910-300-600', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-610' => _x( '910-300-610', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-400' => _x( '910-300-400', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-410' => _x( '910-300-410', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-300' => _x( '910-300-300', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-300-oz' => _x( '910-300-300-oz', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+		);
+
+		foreach( $available as $print_format => $label ) {
+			$this->register_print_format( $print_format, array(
+				'label' => $label,
+				'supported_shipment_types' => array( 'simple' )
+			) );
+		}
+
+		$this->register_print_format( '100x70mm', array(
+			'label'    => _x( '100x70mm', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'products' => array( 'V62WP', 'V66WPI' ),
+			'supported_shipment_types' => array( 'simple' ),
+		) );
+	}
+
+	/**
+	 * @param ConfigurationSet $configuration_set
+	 *
+	 * @return string
+	 */
+	protected function get_default_product_for_zone( $configuration_set ) {
+		$default = parent::get_default_product_for_zone( $configuration_set );
+
+		if ( 'simple' === $configuration_set->get_shipment_type() ) {
+			if ( 'dom' === $configuration_set->get_zone() ) {
+				return 'V01PAK';
+			} elseif ( 'eu' === $configuration_set->get_zone() ) {
+				return 'V53WPAK';
+			} elseif ( 'int' === $configuration_set->get_zone() ) {
+				return 'V53WPAK';
+			}
+		}
+
+		return $default;
+	}
+
 	protected function get_config_set_return_label_settings() {
 		$settings = array(
 			array(
@@ -821,36 +875,6 @@ class DHL extends Auto {
 					'id'   => 'dhl_product_options',
 				),
 				array(
-					'title' => _x( 'Labels', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'  => 'title',
-					'id'    => 'label_options',
-				),
-
-				array(
-					'title'          => _x( 'Custom shipper', 'dhl', 'woocommerce-germanized-dhl' ),
-					'desc'           => _x( 'Use a custom shipper address managed within your DHL business profile.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose this option if you want to use a <a href="%s" target="_blank">custom address</a> profile managed within your DHL business profile as shipper reference for your labels.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
-					'id'             => 'label_use_custom_shipper',
-					'value'          => $this->get_setting( 'label_use_custom_shipper', 'no' ),
-					'default'        => 'no',
-					'allow_override' => false,
-					'type'           => 'gzd_toggle',
-				),
-
-				array(
-					'title'             => _x( 'Shipper reference', 'dhl', 'woocommerce-germanized-dhl' ),
-					'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Insert the <a href="%s" target="_blank">address reference</a> you have chosen within the DHL business portal for your custom shipper address.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
-					'id'                => 'label_custom_shipper_reference',
-					'value'             => $this->get_setting( 'label_custom_shipper_reference', '' ),
-					'default'           => '',
-					'allow_override'    => false,
-					'type'              => 'text',
-					'custom_attributes' => array( 'data-show_if_label_use_custom_shipper' => 'yes' ),
-				),
-				array(
-					'type' => 'sectionend',
-					'id'   => 'label_options',
-				),
-				array(
 					'title' => _x( 'Bank Account', 'dhl', 'woocommerce-germanized-dhl' ),
 					'type'  => 'title',
 					'id'    => 'dhl_bank_account_options',
@@ -1226,65 +1250,12 @@ class DHL extends Auto {
 	}
 
 	protected function get_label_settings( $for_shipping_method = false ) {
-		$select_dhl_product_dom = wc_gzd_dhl_get_products_domestic();
-		$select_dhl_product_int = wc_gzd_dhl_get_products_international();
-		$select_dhl_product_eu  = wc_gzd_dhl_get_products_eu();
-		$duties                 = wc_gzd_dhl_get_duties();
-		$ref_placeholders       = wc_gzd_dhl_get_label_payment_ref_placeholder();
-		$ref_placeholders_str   = implode( ', ', array_keys( $ref_placeholders ) );
-
 		$settings = array(
 			array(
 				'title'          => '',
-				'title_method'   => _x( 'Products', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'           => 'title',
 				'id'             => 'shipping_provider_dhl_label_options',
 				'allow_override' => true,
-			),
-
-			array(
-				'title'   => _x( 'Domestic Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'    => 'select',
-				'id'      => 'label_default_product_dom',
-				'default' => 'V01PAK',
-				'value'   => $this->get_setting( 'label_default_product_dom', 'V01PAK' ),
-				'desc'    => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default DHL shipping service for domestic shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'options' => $select_dhl_product_dom,
-				'class'   => 'wc-enhanced-select',
-			),
-
-			array(
-				'title'   => _x( 'EU Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'    => 'select',
-				'default' => 'V53WPAK',
-				'value'   => $this->get_setting( 'label_default_product_eu', 'V53WPAK' ),
-				'id'      => 'label_default_product_eu',
-				'desc'    => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default DHL shipping service for EU shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'options' => $select_dhl_product_eu,
-				'class'   => 'wc-enhanced-select',
-			),
-
-			array(
-				'title'   => _x( 'Int. Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'    => 'select',
-				'default' => 'V53WPAK',
-				'value'   => $this->get_setting( 'label_default_product_int', 'V53WPAK' ),
-				'id'      => 'label_default_product_int',
-				'desc'    => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default DHL shipping service for cross-border shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'options' => $select_dhl_product_int,
-				'class'   => 'wc-enhanced-select',
-			),
-
-			array(
-				'title'    => _x( 'Default Incoterms', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'     => 'select',
-				'default'  => 'DDP',
-				'id'       => 'label_default_duty',
-				'value'    => $this->get_setting( 'label_default_duty', 'DDP' ),
-				'desc'     => _x( 'Please select a default incoterms option.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip' => true,
-				'options'  => $duties,
-				'class'    => 'wc-enhanced-select',
 			),
 
 			array(
@@ -1326,106 +1297,6 @@ class DHL extends Auto {
 		);
 
 		$settings = array_merge( $settings, parent::get_label_settings( $for_shipping_method ) );
-
-		$settings = array_merge(
-			$settings,
-			array(
-				array(
-					'title' => _x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'  => 'title',
-					'id'    => 'dhl_retoure_options',
-					'desc'  => sprintf( _x( 'Adjust handling of return shipments through the DHL Retoure API. Make sure that your %s contains DHL Retoure Online.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . esc_url( Package::get_geschaeftskunden_portal_url() ) . '">' . _x( 'contract', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ),
-				),
-
-				array(
-					'title'   => _x( 'Retoure', 'dhl', 'woocommerce-germanized-dhl' ),
-					'desc'    => _x( 'Create retoure labels to return shipments.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By enabling this option you might generate retoure labels for return shipments and send them to your customer via email.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-					'id'      => 'label_retoure_enable',
-					'value'   => wc_bool_to_string( $this->enable_retoure() ),
-					'default' => 'yes',
-					'type'    => 'gzd_toggle',
-				),
-
-				array(
-					'type'         => 'dhl_receiver_ids',
-					'value'        => $this->get_setting( 'retoure_receiver_ids', array() ),
-					'id'           => 'retoure_receiver_ids',
-					'settings_url' => $this->get_edit_link( 'label' ),
-					'default'      => array(),
-				),
-
-				array(
-					'type' => 'sectionend',
-					'id'   => 'dhl_retoure_options',
-				),
-			) );
-
-			$settings = array_merge( $settings, array(
-				array(
-					'title' => _x( 'Bank Account', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'  => 'title',
-					'id'    => 'dhl_bank_account_options',
-					'desc'  => _x( 'Enter your bank details needed for services that use COD.', 'dhl', 'woocommerce-germanized-dhl' ),
-				),
-
-				array(
-					'title'   => _x( 'Holder', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'    => 'text',
-					'id'      => 'bank_holder',
-					'value'   => $this->get_setting( 'bank_holder' ),
-					'default' => Package::get_default_bank_account_data( 'name' ),
-				),
-
-				array(
-					'title'   => _x( 'Bank Name', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'    => 'text',
-					'id'      => 'bank_name',
-					'value'   => $this->get_setting( 'bank_name' ),
-					'default' => Package::get_default_bank_account_data( 'bank_name' ),
-				),
-
-				array(
-					'title'   => _x( 'IBAN', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'    => 'text',
-					'id'      => 'bank_iban',
-					'value'   => $this->get_setting( 'bank_iban' ),
-					'default' => Package::get_default_bank_account_data( 'iban' ),
-				),
-
-				array(
-					'title'   => _x( 'BIC', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'    => 'text',
-					'id'      => 'bank_bic',
-					'value'   => $this->get_setting( 'bank_bic' ),
-					'default' => Package::get_default_bank_account_data( 'bic' ),
-				),
-
-				array(
-					'title'             => _x( 'Payment Reference', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'              => 'text',
-					'id'                => 'bank_ref',
-					'custom_attributes' => array( 'maxlength' => '35' ),
-					'value'             => $this->get_setting( 'bank_ref' ),
-					'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Use these placeholders to add info to the payment reference: %s. This text is limited to 35 characters.', 'dhl', 'woocommerce-germanized-dhl' ), '<code>' . esc_html( $ref_placeholders_str ) . '</code>' ) . '</div>',
-					'default'           => '{shipment_id}',
-				),
-
-				array(
-					'title'             => _x( 'Payment Reference 2', 'dhl', 'woocommerce-germanized-dhl' ),
-					'type'              => 'text',
-					'id'                => 'bank_ref_2',
-					'custom_attributes' => array( 'maxlength' => '35' ),
-					'value'             => $this->get_setting( 'bank_ref_2' ),
-					'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Use these placeholders to add info to the payment reference: %s. This text is limited to 35 characters.', 'dhl', 'woocommerce-germanized-dhl' ), '<code>' . esc_html( $ref_placeholders_str ) . '</code>' ) . '</div>',
-					'default'           => '{email}',
-				),
-
-				array(
-					'type' => 'sectionend',
-					'id'   => 'dhl_bank_account_options',
-				),
-			)
-		);
 
 		return $settings;
 	}

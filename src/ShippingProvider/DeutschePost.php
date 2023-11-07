@@ -25,6 +25,10 @@ class DeutschePost extends Auto {
 		return 0.5;
 	}
 
+	protected function get_default_label_default_print_format() {
+		return 1;
+	}
+
 	public function supports_customer_return_requests() {
 		return true;
 	}
@@ -110,6 +114,52 @@ class DeutschePost extends Auto {
 		return '<span class="wc-gzd-shipment-api-connection-status ' . ( is_wp_error( $maybe_error ) ? 'connection-status-error' : 'connection-status-success' ) . '">' . ( sprintf( _x( 'Status: %1$s', 'dhl', 'woocommerce-germanized-dhl' ), ( is_wp_error( $maybe_error ) ? $maybe_error->get_error_message() : _x( 'Connected', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ) . '</span>';
 	}
 
+	protected function get_printing_settings() {
+		$settings     = parent::get_printing_settings();
+		$settings_url = $this->get_edit_link( '' );
+
+		$settings = array_merge( array(
+			array(
+				'title'          => _x( 'Printing', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'           => 'title',
+				'id'             => 'shipping_provider_label_printing_options',
+				'desc'           => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) ) . '</div>',
+			),
+			array(
+				'title'             => _x( 'Print X-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'                => 'label_position_x',
+				'desc_tip'          => _x( 'Adjust the print X-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'number',
+				'value'             => $this->get_setting( 'label_position_x', 1 ),
+				'custom_attributes' => array(
+					'min'  => 0,
+					'step' => 1,
+				),
+				'css'               => 'max-width: 100px;',
+				'default'           => 1,
+			),
+			array(
+				'title'             => _x( 'Print Y-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'                => 'label_position_y',
+				'desc_tip'          => _x( 'Adjust the print Y-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'number',
+				'value'             => $this->get_setting( 'label_position_y', 1 ),
+				'custom_attributes' => array(
+					'min'  => 0,
+					'step' => 1,
+				),
+				'css'               => 'max-width: 100px;',
+				'default'           => 1,
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'shipping_provider_label_format_options',
+			),
+		), $settings );
+
+		return $settings;
+	}
+
 	protected function get_general_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array(
@@ -146,9 +196,7 @@ class DeutschePost extends Auto {
 		if ( $im = Package::get_internetmarke_api() ) {
 			$im->reload_products();
 
-			$screen              = function_exists( 'get_current_screen' ) ? get_current_screen() : false;
-			$settings_url        = $this->get_edit_link( '' );
-			$page_format_options = $im->get_page_format_list();
+			$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : false;
 
 			if ( is_admin() && $screen && in_array( $screen->id, array( 'woocommerce_page_wc-settings' ), true ) ) {
 				if ( $im->is_configured() && $im->auth() && $im->is_available() ) {
@@ -200,59 +248,6 @@ class DeutschePost extends Auto {
 					);
 				}
 			}
-
-			$settings = array_merge(
-				$settings,
-				array(
-					array(
-						'title' => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'  => 'title',
-						'id'    => 'deutsche_post_print_options',
-					),
-
-					array(
-						'title'   => _x( 'Default Format', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'      => 'label_default_page_format',
-						'class'   => 'wc-enhanced-select',
-						'desc'    => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) ) . '</div>',
-						'type'    => 'select',
-						'value'   => $this->get_setting( 'label_default_page_format', 1 ),
-						'options' => $page_format_options,
-						'default' => 1,
-					),
-					array(
-						'title'             => _x( 'Print X-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'                => 'label_position_x',
-						'desc_tip'          => _x( 'Adjust the print X-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'              => 'number',
-						'value'             => $this->get_setting( 'label_position_x', 1 ),
-						'custom_attributes' => array(
-							'min'  => 0,
-							'step' => 1,
-						),
-						'css'               => 'max-width: 100px;',
-						'default'           => 1,
-					),
-					array(
-						'title'             => _x( 'Print Y-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'                => 'label_position_y',
-						'desc_tip'          => _x( 'Adjust the print Y-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'              => 'number',
-						'value'             => $this->get_setting( 'label_position_y', 1 ),
-						'custom_attributes' => array(
-							'min'  => 0,
-							'step' => 1,
-						),
-						'css'               => 'max-width: 100px;',
-						'default'           => 1,
-					),
-
-					array(
-						'type' => 'sectionend',
-						'id'   => 'deutsche_post_print_options',
-					),
-				)
-			);
 		}
 
 		$settings = array_merge(
@@ -271,216 +266,6 @@ class DeutschePost extends Auto {
 		return array_merge( $settings, $general_settings );
 	}
 
-	private function is_save_settings_request() {
-		$is_settings_save             = ( isset( $_POST['available_products'] ) && isset( $_GET['provider'] ) && 'deutsche_post' === wc_clean( wp_unslash( $_GET['provider'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
-		$is_ajax_shipping_method_save = wp_doing_ajax() && isset( $_GET['action'] ) && 'woocommerce_shipping_zone_methods_save_settings' === wc_clean( wp_unslash( $_GET['action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
-		$is_packaging_save            = ( isset( $_POST['action'] ) && 'woocommerce_gzd_save_packaging_settings' === wc_clean( wp_unslash( $_POST['action'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
-
-		return $is_ajax_shipping_method_save || $is_settings_save || $is_packaging_save;
-	}
-
-	protected function get_label_settings( $for_shipping_method = false ) {
-		$im                  = Package::get_internetmarke_api();
-		$settings            = parent::get_label_settings( $for_shipping_method );
-		$settings_url        = $this->get_edit_link( 'label' );
-		$screen              = function_exists( 'get_current_screen' ) ? get_current_screen() : false;
-		$page_format_options = array();
-		$product_options     = array(
-			'available'         => array(),
-			'default_available' => $im ? $im->get_default_available_products() : array(),
-			'dom'               => array(),
-			'eu'                => array(),
-			'int'               => array(),
-		);
-
-		/**
-		 * Do only allow calling IM API during admin setting (save) requests.
-		 */
-		if ( is_admin() && ( ( $screen && ( in_array( $screen->id, array( 'woocommerce_page_wc-settings', 'woocommerce_page_shipment-packaging' ), true ) ) ) || $this->is_save_settings_request() ) ) {
-			if ( $im && $im->is_configured() && $im->auth() && $im->is_available() ) {
-				$im->reload_products();
-
-				$page_format_options = $im->get_page_format_list();
-
-				$product_options = array(
-					'available'         => $this->get_product_select_options(),
-					'default_available' => $im ? $im->get_default_available_products() : array(),
-					'dom'               => wc_gzd_dhl_get_deutsche_post_products_domestic( false, false ),
-					'eu'                => wc_gzd_dhl_get_deutsche_post_products_eu( false, false ),
-					'int'               => wc_gzd_dhl_get_deutsche_post_products_international( false, false ),
-				);
-
-				if ( isset( $_GET['provider'] ) && 'deutsche_post' === $_GET['provider'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-					$balance = $im->get_balance( true );
-
-					$settings = array_merge(
-						$settings,
-						array(
-							array(
-								'title' => _x( 'Portokasse', 'dhl', 'woocommerce-germanized-dhl' ),
-								'type'  => 'title',
-								'id'    => 'deutsche_post_portokasse_options',
-							),
-
-							array(
-								'title' => _x( 'Balance', 'dhl', 'woocommerce-germanized-dhl' ),
-								'type'  => 'html',
-								'html'  => wc_price( Package::cents_to_eur( $balance ), array( 'currency' => 'EUR' ) ),
-							),
-
-							array(
-								'title' => _x( 'Charge (€)', 'dhl', 'woocommerce-germanized-dhl' ),
-								'type'  => 'dp_charge',
-							),
-
-							array(
-								'type' => 'sectionend',
-								'id'   => 'deutsche_post_portokasse_options',
-							),
-						)
-					);
-				}
-			} elseif ( $im && $im->has_errors() ) {
-				$settings = array_merge(
-					$settings,
-					array(
-						array(
-							'title' => _x( 'API Error', 'dhl', 'woocommerce-germanized-dhl' ),
-							'type'  => 'title',
-							'id'    => 'deutsche_post_api_error',
-							'desc'  => '<div class="notice inline notice-error"><p>' . implode( ', ', $im->get_errors()->get_error_messages() ) . '</p></div>',
-						),
-						array(
-							'type' => 'sectionend',
-							'id'   => 'deutsche_post_api_error',
-						),
-					)
-				);
-
-				return $settings;
-			}
-		}
-
-		if ( $im && $im->is_configured() ) {
-			$settings = array_merge(
-				$settings,
-				array(
-					array(
-						'title'          => _x( 'Products', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'           => 'title',
-						'id'             => 'deutsche_post_product_options',
-						'allow_override' => true,
-					),
-
-					array(
-						'title'          => _x( 'Available Products', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'             => 'available_products',
-						'class'          => 'wc-enhanced-select',
-						'desc'           => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose the products you want to be available for your shipments from the list above. Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) ) . '</div>',
-						'type'           => 'multiselect',
-						'value'          => $this->get_setting( 'available_products', $product_options['default_available'] ),
-						'options'        => $product_options['available'],
-						'default'        => $product_options['default_available'],
-						'allow_override' => false,
-					),
-
-					array(
-						'title'   => _x( 'Domestic Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'    => 'select',
-						'default' => '',
-						'value'   => $this->get_setting( 'label_default_product_dom', '' ),
-						'id'      => 'label_default_product_dom',
-						'desc'    => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default shipping service for domestic shipments that you want to offer to your customers (you can always change this within each individual shipment afterwards).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-						'options' => $product_options['dom'],
-						'class'   => 'wc-enhanced-select',
-					),
-
-					array(
-						'title'   => _x( 'EU Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'    => 'select',
-						'default' => '',
-						'value'   => $this->get_setting( 'label_default_product_eu', '' ),
-						'id'      => 'label_default_product_eu',
-						'desc'    => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default shipping service for EU shipments that you want to offer to your customers.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-						'options' => $product_options['eu'],
-						'class'   => 'wc-enhanced-select',
-					),
-
-					array(
-						'title'   => _x( 'Int. Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'    => 'select',
-						'default' => '',
-						'value'   => $this->get_setting( 'label_default_product_int', '' ),
-						'id'      => 'label_default_product_int',
-						'desc'    => '<div class="wc-gzd-additional-desc">' . _x( 'Please select your default shipping service for cross-border shipments that you want to offer to your customers.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-						'options' => $product_options['int'],
-						'class'   => 'wc-enhanced-select',
-					),
-
-					array(
-						'type' => 'sectionend',
-						'id'   => 'deutsche_post_product_options',
-					),
-				)
-			);
-
-			$settings = array_merge(
-				$settings,
-				array(
-					array(
-						'title' => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'  => 'title',
-						'id'    => 'deutsche_post_print_options',
-					),
-
-					array(
-						'title'   => _x( 'Default Format', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'      => 'label_default_page_format',
-						'class'   => 'wc-enhanced-select',
-						'desc'    => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) ) . '</div>',
-						'type'    => 'select',
-						'value'   => $this->get_setting( 'label_default_page_format', 1 ),
-						'options' => $page_format_options,
-						'default' => 1,
-					),
-					array(
-						'title'             => _x( 'Print X-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'                => 'label_position_x',
-						'desc_tip'          => _x( 'Adjust the print X-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'              => 'number',
-						'value'             => $this->get_setting( 'label_position_x', 1 ),
-						'custom_attributes' => array(
-							'min'  => 0,
-							'step' => 1,
-						),
-						'css'               => 'max-width: 100px;',
-						'default'           => 1,
-					),
-					array(
-						'title'             => _x( 'Print Y-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'                => 'label_position_y',
-						'desc_tip'          => _x( 'Adjust the print Y-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'              => 'number',
-						'value'             => $this->get_setting( 'label_position_y', 1 ),
-						'custom_attributes' => array(
-							'min'  => 0,
-							'step' => 1,
-						),
-						'css'               => 'max-width: 100px;',
-						'default'           => 1,
-					),
-
-					array(
-						'type' => 'sectionend',
-						'id'   => 'deutsche_post_print_options',
-					),
-				)
-			);
-		}
-
-		return $settings;
-	}
-
 	protected function register_services() {
 		foreach( Package::get_internetmarke_api()->get_product_list()->get_additional_services() as $service => $label ) {
 			$this->register_service( $service, array(
@@ -488,6 +273,16 @@ class DeutschePost extends Auto {
 				'shipment_types' => array( 'return', 'simple' ),
 				'excluded_locations' => wc_gzd_get_shipping_provider_service_locations(),
 			) );
+		}
+	}
+
+	protected function register_print_formats() {
+		if ( $im = Package::get_internetmarke_api() ) {
+			foreach( $im->get_page_format_list() as $page_format_id => $page_format ) {
+				$this->register_print_format( $page_format_id, array(
+					'label' => $page_format,
+				) );
+			}
 		}
 	}
 
@@ -544,24 +339,6 @@ class DeutschePost extends Auto {
 		}
 
 		return parent::get_label_fields( $shipment );
-	}
-
-	protected function get_portokasse_charge_button() {
-		if ( ! Package::get_internetmarke_api()->get_user() ) {
-			return '';
-		}
-
-		$balance      = Package::get_internetmarke_api()->get_balance();
-		$user_token   = Package::get_internetmarke_api()->get_user()->getUserToken();
-		$settings_url = $this->get_edit_link();
-
-		$html = '
-			<input type="text" placeholder="10.00" style="max-width: 150px; margin-right: 10px;" class="wc-input-price short" name="woocommerce_gzd_dhl_im_portokasse_charge_amount" id="woocommerce_gzd_dhl_im_portokasse_charge_amount" />
-			<a id="woocommerce_gzd_dhl_im_portokasse_charge" class="button button-secondary" data-url="https://portokasse.deutschepost.de/portokasse/marketplace/enter-app-payment" data-success_url="' . esc_url( add_query_arg( array( 'wallet-charge-success' => 'yes' ), $settings_url ) ) . '" data-cancel_url="' . esc_url( add_query_arg( array( 'wallet-charge-success' => 'no' ), $settings_url ) ) . '" data-partner_id="' . esc_attr( Package::get_internetmarke_partner_id() ) . '" data-key_phase="' . esc_attr( Package::get_internetmarke_key_phase() ) . '" data-user_token="' . esc_attr( $user_token ) . '" data-schluessel_dpwn_partner="' . esc_attr( Package::get_internetmarke_token() ) . '" data-wallet="' . esc_attr( $balance ) . '">' . _x( 'Charge Portokasse', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>
-			<p class="description">' . sprintf( _x( 'The minimum amount is %s', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( 10, array( 'currency' => 'EUR' ) ) ) . '</p>
-		';
-
-		return $html;
 	}
 
 	public function get_label_fields_html( $shipment ) {
