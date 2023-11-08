@@ -614,18 +614,8 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false,
  * @see https://entwickler.dhl.de/group/ep/grundlagen2
  */
 function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
-	$available = array(
-		'A4',
-		'910-300-700',
-		'910-300-700-oZ',
-		'910-300-710',
-		'910-300-600',
-		'910-300-610',
-		'910-300-400',
-		'910-300-410',
-		'910-300-300',
-		'910-300-300-oz',
-	);
+	$shipment  = $label->get_shipment();
+	$available = $shipment ? $shipment->get_shipping_provider_instance()->get_print_formats()->filter( array( 'product_id' => $label->get_product_id() ) )->as_options() : array();
 
 	/**
 	 * This filter allows adjusting the default label format (GUI) to a custom format e.g. 910-300-700.
@@ -648,16 +638,9 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	 * @since 3.0.5
 	 * @package Vendidero/Germanized/DHL
 	 */
-	$format = apply_filters( 'woocommerce_gzd_dhl_label_custom_format', '', $label, $type );
+	$format = apply_filters( 'woocommerce_gzd_dhl_label_custom_format', $label->get_print_format(), $label, $type );
 
-	/**
-	 * Warenpost format
-	 */
-	if ( in_array( $label->get_product_id(), array( 'V62WP', 'V66WPI' ), true ) ) {
-		$available[] = '100x70mm';
-	}
-
-	if ( ! empty( $format ) && ! in_array( $format, $available, true ) ) {
+	if ( ! empty( $format ) && ! array_key_exists( $format, $available ) ) {
 		$format = '';
 	}
 

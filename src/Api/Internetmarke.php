@@ -730,7 +730,7 @@ class Internetmarke {
 			);
 
 			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_product_id(), null, $address_binding, $position, 'AddressZone' );
-			$stamp      = $api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_page_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
+			$stamp      = $api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_print_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
 
 			return $this->update_default_label( $label, $stamp );
 		} catch ( \Exception $e ) {

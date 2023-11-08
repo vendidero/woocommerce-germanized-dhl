@@ -404,14 +404,6 @@ class DeutschePost extends Auto {
 				$settings,
 				array(
 					array(
-						'id'          => 'page_format',
-						'label'       => _x( 'Page Format', 'dhl', 'woocommerce-germanized-dhl' ),
-						'description' => '',
-						'type'        => 'select',
-						'options'     => Package::get_internetmarke_api()->get_page_format_list(),
-						'value'       => isset( $default_args['page_format'] ) ? $default_args['page_format'] : '',
-					),
-					array(
 						'id'   => '',
 						'type' => 'columns',
 					),
@@ -501,7 +493,6 @@ class DeutschePost extends Auto {
 
 	protected function get_default_simple_label_props( $shipment ) {
 		$defaults = array(
-			'page_format' => $this->get_shipment_setting( $shipment, 'label_default_page_format' ),
 			'position_x'  => $this->get_shipment_setting( $shipment, 'label_position_x' ),
 			'position_y'  => $this->get_shipment_setting( $shipment, 'label_position_y' ),
 			'stamp_total' => 0,
@@ -521,7 +512,6 @@ class DeutschePost extends Auto {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'page_format' => '',
 				'product_id'  => '',
 				'services'    => array(),
 			)

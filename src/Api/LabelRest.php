@@ -589,7 +589,7 @@ class LabelRest extends Rest {
 				}
 			}
 
-			if ( in_array( 'AdditionalInsurance', $label_services, true ) && $shipment->get_total() <= 500 ) {
+			if ( in_array( 'AdditionalInsurance', $label->get_services(), true ) && $shipment->get_total() <= 500 ) {
 				if ( ! is_a( $result, 'Vendidero\Germanized\Shipments\ShipmentError' ) ) {
 					$result = new ShipmentError();
 				}
