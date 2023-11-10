@@ -312,7 +312,7 @@ class DHL extends Auto {
 	protected function get_label_settings_by_zone( $configuration_set ) {
 		$settings = parent::get_label_settings_by_zone( $configuration_set );
 
-		if ( 'global' === $configuration_set->get_setting_type() ) {
+		if ( 'shipping_provider' === $configuration_set->get_setting_type() ) {
 			if ( 'dom' === $configuration_set->get_zone() && 'simple' === $configuration_set->get_shipment_type() ) {
 				$settings = array_merge( $settings, array(
 					array(
@@ -334,7 +334,7 @@ class DHL extends Auto {
 						'default' => 'no',
 						'type'    => 'gzd_toggle',
 						'custom_attributes' => array(
-							'data-show_if_label_default_product_dom' => 'V01PAK'
+							'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK'
 						)
 					),
 
@@ -346,7 +346,7 @@ class DHL extends Auto {
 						'default' => 'yes',
 						'type'    => 'gzd_toggle',
 						'custom_attributes' => array(
-							'data-show_if_label_default_product_dom' => 'V01PAK'
+							'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK'
 						)
 					),
 				) );
@@ -1256,17 +1256,6 @@ class DHL extends Auto {
 				'type'           => 'title',
 				'id'             => 'shipping_provider_dhl_label_options',
 				'allow_override' => true,
-			),
-
-			array(
-				'title'          => _x( 'Codeable', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'           => _x( 'Generate label only if address can be automatically retrieved DHL.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'             => 'label_address_codeable_only',
-				'value'          => $this->get_setting( 'label_address_codeable_only', 'no' ),
-				'default'        => 'no',
-				'type'           => 'gzd_toggle',
-				'allow_override' => false,
-				'desc_tip'       => _x( 'Choose this option if you want to make sure that by default labels are only generated for codeable addresses.', 'dhl', 'woocommerce-germanized-dhl' ),
 			),
 
 			array(

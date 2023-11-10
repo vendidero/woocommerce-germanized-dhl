@@ -114,6 +114,17 @@ class DeutschePost extends Auto {
 		return '<span class="wc-gzd-shipment-api-connection-status ' . ( is_wp_error( $maybe_error ) ? 'connection-status-error' : 'connection-status-success' ) . '">' . ( sprintf( _x( 'Status: %1$s', 'dhl', 'woocommerce-germanized-dhl' ), ( is_wp_error( $maybe_error ) ? $maybe_error->get_error_message() : _x( 'Connected', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ) . '</span>';
 	}
 
+	protected function get_config_set_simple_label_settings() {
+		$settings = parent::get_config_set_simple_label_settings();
+
+		if ( ! empty( $settings ) ) {
+			$settings_url        = $this->get_edit_link( '' );
+			$settings[0]['desc'] = '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Manually <a href="%s">refresh</a> the product list to make sure it is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) ) . '</div>';
+		}
+
+		return $settings;
+	}
+
 	protected function get_printing_settings() {
 		$settings     = parent::get_printing_settings();
 		$settings_url = $this->get_edit_link( '' );

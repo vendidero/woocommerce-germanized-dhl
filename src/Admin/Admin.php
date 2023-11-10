@@ -64,7 +64,7 @@ class Admin {
 		if ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-product-refresh' === $_GET['action'] ) {
 			if ( wp_verify_nonce( wp_unslash( $_GET['_wpnonce'] ), 'wc-gzd-dhl-refresh-im-products' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$result       = Package::get_internetmarke_api()->update_products();
-				$settings_url = add_query_arg( array( 'im-refresh-type' => 'products' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) );
+				$settings_url = add_query_arg( array( 'im-refresh-type' => 'products' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'config_set_simple_label' ) );
 
 				if ( is_wp_error( $result ) ) {
 					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
@@ -78,7 +78,7 @@ class Admin {
 		} elseif ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-page-formats-refresh' === $_GET['action'] ) {
 			if ( wp_verify_nonce( wp_unslash( $_GET['_wpnonce'] ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) {  // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$result       = Package::get_internetmarke_api()->get_page_formats( true );
-				$settings_url = add_query_arg( array( 'im-refresh-type' => 'formats' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) );
+				$settings_url = add_query_arg( array( 'im-refresh-type' => 'formats' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'printing' ) );
 
 				if ( is_wp_error( $result ) ) {
 					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
@@ -92,7 +92,7 @@ class Admin {
 		} elseif ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-refresh-retoure-receiver-ids' === $_GET['action'] ) {
 			if ( wp_verify_nonce( wp_unslash( $_GET['_wpnonce'] ), 'wc-gzd-dhl-refresh-retoure-receiver-ids' ) ) {  // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$receiver_ids = Package::get_api()->get_return_api()->get_receiver_ids();
-				$settings_url = add_query_arg( array( 'refresh-type' => 'retoure-receiver-ids' ), Package::get_dhl_shipping_provider()->get_edit_link( 'label' ) );
+				$settings_url = add_query_arg( array( 'refresh-type' => 'retoure-receiver-ids' ), Package::get_dhl_shipping_provider()->get_edit_link( 'config_set_return_label' ) );
 
 				if ( is_wp_error( $receiver_ids ) ) {
 					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
