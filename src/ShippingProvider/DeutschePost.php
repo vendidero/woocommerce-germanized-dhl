@@ -129,44 +129,47 @@ class DeutschePost extends Auto {
 		$settings     = parent::get_printing_settings();
 		$settings_url = $this->get_edit_link( '' );
 
-		$settings = array_merge( array(
+		$settings = array_merge(
 			array(
-				'title'          => _x( 'Printing', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'           => 'title',
-				'id'             => 'shipping_provider_label_printing_options',
-				'desc'           => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) ) . '</div>',
-			),
-			array(
-				'title'             => _x( 'Print X-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'                => 'label_position_x',
-				'desc_tip'          => _x( 'Adjust the print X-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'number',
-				'value'             => $this->get_setting( 'label_position_x', 1 ),
-				'custom_attributes' => array(
-					'min'  => 0,
-					'step' => 1,
+				array(
+					'title' => _x( 'Printing', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'  => 'title',
+					'id'    => 'shipping_provider_label_printing_options',
+					'desc'  => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a print format which will be selected by default when creating labels. Manually <a href="%s">refresh</a> available print formats to make sure the list is up-to-date.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-page-formats-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) ) . '</div>',
 				),
-				'css'               => 'max-width: 100px;',
-				'default'           => 1,
-			),
-			array(
-				'title'             => _x( 'Print Y-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'                => 'label_position_y',
-				'desc_tip'          => _x( 'Adjust the print Y-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'number',
-				'value'             => $this->get_setting( 'label_position_y', 1 ),
-				'custom_attributes' => array(
-					'min'  => 0,
-					'step' => 1,
+				array(
+					'title'             => _x( 'Print X-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'                => 'label_position_x',
+					'desc_tip'          => _x( 'Adjust the print X-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'              => 'number',
+					'value'             => $this->get_setting( 'label_position_x', 1 ),
+					'custom_attributes' => array(
+						'min'  => 0,
+						'step' => 1,
+					),
+					'css'               => 'max-width: 100px;',
+					'default'           => 1,
 				),
-				'css'               => 'max-width: 100px;',
-				'default'           => 1,
+				array(
+					'title'             => _x( 'Print Y-axis column', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'                => 'label_position_y',
+					'desc_tip'          => _x( 'Adjust the print Y-axis start column for the label.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'              => 'number',
+					'value'             => $this->get_setting( 'label_position_y', 1 ),
+					'custom_attributes' => array(
+						'min'  => 0,
+						'step' => 1,
+					),
+					'css'               => 'max-width: 100px;',
+					'default'           => 1,
+				),
+				array(
+					'type' => 'sectionend',
+					'id'   => 'shipping_provider_label_format_options',
+				),
 			),
-			array(
-				'type' => 'sectionend',
-				'id'   => 'shipping_provider_label_format_options',
-			),
-		), $settings );
+			$settings
+		);
 
 		return $settings;
 	}
@@ -278,21 +281,27 @@ class DeutschePost extends Auto {
 	}
 
 	protected function register_services() {
-		foreach( Package::get_internetmarke_api()->get_product_list()->get_additional_services() as $service => $label ) {
-			$this->register_service( $service, array(
-				'label' => $label,
-				'shipment_types' => array( 'return', 'simple' ),
-				'excluded_locations' => wc_gzd_get_shipping_provider_service_locations(),
-			) );
+		foreach ( Package::get_internetmarke_api()->get_product_list()->get_additional_services() as $service => $label ) {
+			$this->register_service(
+				$service,
+				array(
+					'label'              => $label,
+					'shipment_types'     => array( 'return', 'simple' ),
+					'excluded_locations' => wc_gzd_get_shipping_provider_service_locations(),
+				)
+			);
 		}
 	}
 
 	protected function register_print_formats() {
 		if ( $im = Package::get_internetmarke_api() ) {
-			foreach( $im->get_page_format_list() as $page_format_id => $page_format ) {
-				$this->register_print_format( $page_format_id, array(
-					'label' => $page_format,
-				) );
+			foreach ( $im->get_page_format_list() as $page_format_id => $page_format ) {
+				$this->register_print_format(
+					$page_format_id,
+					array(
+						'label' => $page_format,
+					)
+				);
 			}
 		}
 	}
@@ -315,29 +324,44 @@ class DeutschePost extends Auto {
 
 		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products}" );
 
-		foreach( $products as $product ) {
-			$this->register_product( $product->product_code, array(
-				'id' => $product->product_code,
-				'label' => wc_gzd_dhl_get_im_product_title( $product->product_name ),
-				'description' => $product->product_description,
-				'supported_shipment_types' => array( 'simple', 'return' ),
-				'internal_id' => $product->product_id,
-				'parent_id' => $product->product_parent_id,
-				'supported_zones' => 'national' === $product->product_destination ? array( 'dom' ) : array( 'eu', 'int' ),
-				'price' => $product->product_price,
-				'length' => array( 'min' => $product->product_length_min, 'max' => $product->product_length_max ),
-				'width' => array( 'min' => $product->product_width_min, 'max' => $product->product_width_max ),
-				'height' => array( 'min' => $product->product_height_min, 'max' => $product->product_height_max ),
-				'weight' => array( 'min' => $product->product_weight_min, 'max' => $product->product_weight_max ),
-				'weight_unit' => 'g',
-				'dimension_unit' => 'mm',
-				'meta' => array(
-					'is_wp_int' => 0 !== absint( $product->product_is_wp_int ) ? true : false,
-					'information_text' => $product->product_information_text,
-					'annotation' => $product->product_annotation,
-					'destination' => $product->product_destination,
-				),
-			) );
+		foreach ( $products as $product ) {
+			$this->register_product(
+				$product->product_code,
+				array(
+					'id'                       => $product->product_code,
+					'label'                    => wc_gzd_dhl_get_im_product_title( $product->product_name ),
+					'description'              => $product->product_description,
+					'supported_shipment_types' => array( 'simple', 'return' ),
+					'internal_id'              => $product->product_id,
+					'parent_id'                => $product->product_parent_id,
+					'supported_zones'          => 'national' === $product->product_destination ? array( 'dom' ) : array( 'eu', 'int' ),
+					'price'                    => $product->product_price,
+					'length'                   => array(
+						'min' => $product->product_length_min,
+						'max' => $product->product_length_max,
+					),
+					'width'                    => array(
+						'min' => $product->product_width_min,
+						'max' => $product->product_width_max,
+					),
+					'height'                   => array(
+						'min' => $product->product_height_min,
+						'max' => $product->product_height_max,
+					),
+					'weight'                   => array(
+						'min' => $product->product_weight_min,
+						'max' => $product->product_weight_max,
+					),
+					'weight_unit'              => 'g',
+					'dimension_unit'           => 'mm',
+					'meta'                     => array(
+						'is_wp_int'        => 0 !== absint( $product->product_is_wp_int ) ? true : false,
+						'information_text' => $product->product_information_text,
+						'annotation'       => $product->product_annotation,
+						'destination'      => $product->product_destination,
+					),
+				)
+			);
 		}
 	}
 
@@ -391,7 +415,12 @@ class DeutschePost extends Auto {
 	 */
 	protected function get_simple_label_fields( $shipment ) {
 		$props     = $this->get_default_label_props( $shipment );
-		$products  = $this->get_products( array( 'shipment' => $shipment, 'parent_id' => 0 ) );
+		$products  = $this->get_products(
+			array(
+				'shipment'  => $shipment,
+				'parent_id' => 0,
+			)
+		);
 		$settings  = parent::get_simple_label_fields( $shipment );
 		$is_wp_int = false;
 
@@ -523,8 +552,8 @@ class DeutschePost extends Auto {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'product_id'  => '',
-				'services'    => array(),
+				'product_id' => '',
+				'services'   => array(),
 			)
 		);
 

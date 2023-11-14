@@ -12,13 +12,13 @@ class DHLRetoure extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'dhlRetoure',
-			'label' => _x( 'Inlay Return Label', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Additionally create inlay return labels for shipments that support returns.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK', 'V62WP' ),
+			'id'                  => 'dhlRetoure',
+			'label'               => _x( 'Inlay Return Label', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'         => _x( 'Additionally create inlay return labels for shipments that support returns.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'products'            => array( 'V01PAK', 'V62WP' ),
 			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
-			'excluded_locations' => array( 'label_services' ),
+			'supported_zones'     => array( 'dom' ),
+			'excluded_locations'  => array( 'label_services' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );
@@ -59,104 +59,107 @@ class DHLRetoure extends Service {
 			'email'         => Package::get_setting( 'return_email' ),
 		);
 
-		$label_fields = array_merge( $label_fields, array(
+		$label_fields = array_merge(
+			$label_fields,
 			array(
-				'id'            => $field_prefix . '[name]',
-				'label'         => _x( 'Name', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'value'         => $return_address['name'],
-				'type'          => 'text',
-				'wrapper_class' => 'show-if-has-return',
-			),
-			array(
-				'id'            => $field_prefix . '[company]',
-				'label'         => _x( 'Company', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'wrapper_class' => 'show-if-has-return',
-				'type'          => 'text',
-				'value'         => $return_address['company'],
-			),
-			array(
-				'id'   => '',
-				'type' => 'columns',
-			),
-			array(
-				'id'            => $field_prefix . '[street]',
-				'label'         => _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'type'          => 'text',
-				'wrapper_class' => 'show-if-has-return column col-9',
-				'value'         => $return_address['street'],
-			),
-			array(
-				'id'            => $field_prefix . '[street_number]',
-				'label'         => _x( 'Street No', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'type'          => 'text',
-				'wrapper_class' => 'show-if-has-return column col-3',
-				'value'         => $return_address['street_number'],
-			),
-			array(
-				'id'   => '',
-				'type' => 'columns_end',
-			),
-			array(
-				'id'   => '',
-				'type' => 'columns',
-			),
-			array(
-				'id'            => $field_prefix . '[postcode]',
-				'label'         => _x( 'Postcode', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'type'          => 'text',
-				'wrapper_class' => 'show-if-has-return column col-6',
-				'value'         => $return_address['postcode'],
-			),
-			array(
-				'id'            => $field_prefix . '[city]',
-				'label'         => _x( 'City', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'type'          => 'text',
-				'wrapper_class' => 'show-if-has-return column col-6',
-				'value'         => $return_address['city'],
-			),
-			array(
-				'id'   => '',
-				'type' => 'columns_end',
-			),
-			array(
-				'id'   => '',
-				'type' => 'columns',
-			),
-			array(
-				'id'            => $field_prefix . '[phone]',
-				'label'         => _x( 'Phone', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'type'          => 'text',
-				'wrapper_class' => 'show-if-has-return column col-6',
-				'value'         => $return_address['phone'],
-			),
-			array(
-				'id'            => $field_prefix . '[email]',
-				'label'         => _x( 'Email', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'   => '',
-				'description'   => '',
-				'type'          => 'text',
-				'wrapper_class' => 'show-if-has-return column col-6',
-				'value'         => $return_address['email'],
-			),
-			array(
-				'id'   => '',
-				'type' => 'columns_end',
-			),
-		) );
+				array(
+					'id'            => $field_prefix . '[name]',
+					'label'         => _x( 'Name', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'value'         => $return_address['name'],
+					'type'          => 'text',
+					'wrapper_class' => 'show-if-has-return',
+				),
+				array(
+					'id'            => $field_prefix . '[company]',
+					'label'         => _x( 'Company', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'wrapper_class' => 'show-if-has-return',
+					'type'          => 'text',
+					'value'         => $return_address['company'],
+				),
+				array(
+					'id'   => '',
+					'type' => 'columns',
+				),
+				array(
+					'id'            => $field_prefix . '[street]',
+					'label'         => _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'type'          => 'text',
+					'wrapper_class' => 'show-if-has-return column col-9',
+					'value'         => $return_address['street'],
+				),
+				array(
+					'id'            => $field_prefix . '[street_number]',
+					'label'         => _x( 'Street No', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'type'          => 'text',
+					'wrapper_class' => 'show-if-has-return column col-3',
+					'value'         => $return_address['street_number'],
+				),
+				array(
+					'id'   => '',
+					'type' => 'columns_end',
+				),
+				array(
+					'id'   => '',
+					'type' => 'columns',
+				),
+				array(
+					'id'            => $field_prefix . '[postcode]',
+					'label'         => _x( 'Postcode', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'type'          => 'text',
+					'wrapper_class' => 'show-if-has-return column col-6',
+					'value'         => $return_address['postcode'],
+				),
+				array(
+					'id'            => $field_prefix . '[city]',
+					'label'         => _x( 'City', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'type'          => 'text',
+					'wrapper_class' => 'show-if-has-return column col-6',
+					'value'         => $return_address['city'],
+				),
+				array(
+					'id'   => '',
+					'type' => 'columns_end',
+				),
+				array(
+					'id'   => '',
+					'type' => 'columns',
+				),
+				array(
+					'id'            => $field_prefix . '[phone]',
+					'label'         => _x( 'Phone', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'type'          => 'text',
+					'wrapper_class' => 'show-if-has-return column col-6',
+					'value'         => $return_address['phone'],
+				),
+				array(
+					'id'            => $field_prefix . '[email]',
+					'label'         => _x( 'Email', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'   => '',
+					'description'   => '',
+					'type'          => 'text',
+					'wrapper_class' => 'show-if-has-return column col-6',
+					'value'         => $return_address['email'],
+				),
+				array(
+					'id'   => '',
+					'type' => 'columns_end',
+				),
+			)
+		);
 
 		return $label_fields;
 	}
@@ -164,16 +167,19 @@ class DHLRetoure extends Service {
 	public function validate_label_request( $props, $shipment ) {
 		$error                = new ShipmentError();
 		$return_address_field = $this->get_label_field_id( 'return_address' );
-		$return_address       = wp_parse_args( isset( $props[ $return_address_field ] ) ? (array) $props[ $return_address_field ] : array(), array(
-			'name'          => '',
-			'company'       => '',
-			'street'        => '',
-			'street_number' => '',
-			'postcode'      => '',
-			'city'          => '',
-			'phone'         => '',
-			'email'         => '',
-		) );
+		$return_address       = wp_parse_args(
+			isset( $props[ $return_address_field ] ) ? (array) $props[ $return_address_field ] : array(),
+			array(
+				'name'          => '',
+				'company'       => '',
+				'street'        => '',
+				'street_number' => '',
+				'postcode'      => '',
+				'city'          => '',
+				'phone'         => '',
+				'email'         => '',
+			)
+		);
 
 		$mandatory = array(
 			'street'   => _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),

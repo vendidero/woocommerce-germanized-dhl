@@ -11,9 +11,9 @@ class CashOnDelivery extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'CashOnDelivery',
-			'label' => _x( 'Cash on Delivery', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products' => array( 'V01PAK', 'V53WPAK' ),
+			'id'                 => 'CashOnDelivery',
+			'label'              => _x( 'Cash on Delivery', 'dhl', 'woocommerce-germanized-dhl' ),
+			'products'           => array( 'V01PAK', 'V53WPAK' ),
 			'excluded_locations' => array( 'settings' ),
 		);
 
@@ -34,19 +34,22 @@ class CashOnDelivery extends Service {
 		$label_fields = parent::get_additional_label_fields( $shipment );
 		$value        = $shipment->get_total() + round( $shipment->get_additional_total(), wc_get_price_decimals() );
 
-		$label_fields = array_merge( $label_fields, array(
+		$label_fields = array_merge(
+			$label_fields,
 			array(
-				'id'          => $this->get_label_field_id( 'cod_total' ),
-				'class'       => 'wc_input_decimal',
-				'data_type'   => 'price',
-				'label'       => _x( 'COD Amount', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder' => '',
-				'description' => '',
-				'value'       => wc_format_localized_decimal( $value ),
-				'type'        => 'text',
-				'custom_attributes' => array( 'data-show-if-service_CashOnDelivery' => '' ),
-			),
-		) );
+				array(
+					'id'                => $this->get_label_field_id( 'cod_total' ),
+					'class'             => 'wc_input_decimal',
+					'data_type'         => 'price',
+					'label'             => _x( 'COD Amount', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'       => '',
+					'description'       => '',
+					'value'             => wc_format_localized_decimal( $value ),
+					'type'              => 'text',
+					'custom_attributes' => array( 'data-show-if-service_CashOnDelivery' => '' ),
+				),
+			)
+		);
 
 		return $label_fields;
 	}

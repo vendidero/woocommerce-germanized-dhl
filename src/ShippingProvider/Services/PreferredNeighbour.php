@@ -11,15 +11,15 @@ class PreferredNeighbour extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'PreferredNeighbour',
-			'label' => _x( 'Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Enable delivery to a neighbor.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'long_description' => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to deliver to their preferred neighbor during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-			'setting_id'   => 'PreferredNeighbour_enable',
-			'products'    => array( 'V01PAK', 'V62WP' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
-			'excluded_locations' => array( 'settings' ),
+			'id'                    => 'PreferredNeighbour',
+			'label'                 => _x( 'Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'           => _x( 'Enable delivery to a neighbor.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'long_description'      => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to deliver to their preferred neighbor during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+			'setting_id'            => 'PreferredNeighbour_enable',
+			'products'              => array( 'V01PAK', 'V62WP' ),
+			'supported_countries'   => array( 'DE' ),
+			'supported_zones'       => array( 'dom' ),
+			'excluded_locations'    => array( 'settings' ),
 			'allow_default_booking' => false,
 		);
 
@@ -35,17 +35,23 @@ class PreferredNeighbour extends Service {
 			$value = $dhl_order->get_preferred_neighbor_formatted_address();
 		}
 
-		$label_fields = array_merge( $label_fields, array(
+		$label_fields = array_merge(
+			$label_fields,
 			array(
-				'id'                => $this->get_label_field_id( 'neighbor' ),
-				'label'             => _x( 'Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'       => '',
-				'description'       => '',
-				'value'             => $value,
-				'custom_attributes' => array( 'maxlength' => '80', 'data-show-if-service_PreferredNeighbour' => '' ),
-				'type'              => 'text',
-			),
-		) );
+				array(
+					'id'                => $this->get_label_field_id( 'neighbor' ),
+					'label'             => _x( 'Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'       => '',
+					'description'       => '',
+					'value'             => $value,
+					'custom_attributes' => array(
+						'maxlength' => '80',
+						'data-show-if-service_PreferredNeighbour' => '',
+					),
+					'type'              => 'text',
+				),
+			)
+		);
 
 		return $label_fields;
 	}

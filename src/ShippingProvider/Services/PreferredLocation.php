@@ -11,15 +11,15 @@ class PreferredLocation extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'PreferredLocation',
-			'label' => _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Enable drop-off location delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'long_description' => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their preferred delivery location during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-			'setting_id'   => 'PreferredLocation_enable',
-			'products'    => array( 'V01PAK', 'V62WP' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
-			'excluded_locations' => array( 'settings' ),
+			'id'                    => 'PreferredLocation',
+			'label'                 => _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'           => _x( 'Enable drop-off location delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'long_description'      => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their preferred delivery location during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+			'setting_id'            => 'PreferredLocation_enable',
+			'products'              => array( 'V01PAK', 'V62WP' ),
+			'supported_countries'   => array( 'DE' ),
+			'supported_zones'       => array( 'dom' ),
+			'excluded_locations'    => array( 'settings' ),
 			'allow_default_booking' => false,
 		);
 
@@ -28,24 +28,30 @@ class PreferredLocation extends Service {
 
 	protected function get_additional_label_fields( $shipment ) {
 		$label_fields = parent::get_additional_label_fields( $shipment );
-		$dhl_order      = wc_gzd_dhl_get_order( $shipment->get_order() );
-		$value          = '';
+		$dhl_order    = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$value        = '';
 
 		if ( $dhl_order && $dhl_order->has_preferred_location() ) {
 			$value = $dhl_order->get_preferred_location();
 		}
 
-		$label_fields = array_merge( $label_fields, array(
+		$label_fields = array_merge(
+			$label_fields,
 			array(
-				'id'                => $this->get_label_field_id( 'location' ),
-				'label'             => _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
-				'placeholder'       => '',
-				'description'       => '',
-				'value'             => $value,
-				'custom_attributes' => array( 'maxlength' => '80', 'data-show-if-service_PreferredLocation' => '' ),
-				'type'              => 'text',
-			),
-		) );
+				array(
+					'id'                => $this->get_label_field_id( 'location' ),
+					'label'             => _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
+					'placeholder'       => '',
+					'description'       => '',
+					'value'             => $value,
+					'custom_attributes' => array(
+						'maxlength' => '80',
+						'data-show-if-service_PreferredLocation' => '',
+					),
+					'type'              => 'text',
+				),
+			)
+		);
 
 		return $label_fields;
 	}

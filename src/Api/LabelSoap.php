@@ -445,13 +445,13 @@ class LabelSoap extends Soap {
 				case 'ClosestDropPoint':
 					unset( $services[ $service ] );
 					$services['CDP'] = array(
-						'active' => 1
+						'active' => 1,
 					);
 					break;
 				case 'PostalDeliveryDutyPaid':
 					unset( $services[ $service ] );
 					$services['PDDP'] = array(
-						'active' => 1
+						'active' => 1,
 					);
 					break;
 			}

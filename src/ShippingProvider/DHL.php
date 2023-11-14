@@ -75,57 +75,84 @@ class DHL extends Auto {
 	}
 
 	protected function register_products() {
-		$this->register_product( 'V01PAK', array(
-			'label' => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' )
-		) );
+		$this->register_product(
+			'V01PAK',
+			array(
+				'label'               => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_countries' => array( 'DE' ),
+				'supported_zones'     => array( 'dom' ),
+			)
+		);
 
-		$this->register_product( 'V01PRIO', array(
-			'label' => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' )
-		) );
+		$this->register_product(
+			'V01PRIO',
+			array(
+				'label'               => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_countries' => array( 'DE' ),
+				'supported_zones'     => array( 'dom' ),
+			)
+		);
 
-		$this->register_product( 'V06PAK', array(
-			'label' => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' )
-		) );
+		$this->register_product(
+			'V06PAK',
+			array(
+				'label'               => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_countries' => array( 'DE' ),
+				'supported_zones'     => array( 'dom' ),
+			)
+		);
 
-		$this->register_product( 'V62WP', array(
-			'label' => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' )
-		) );
+		$this->register_product(
+			'V62WP',
+			array(
+				'label'               => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_countries' => array( 'DE' ),
+				'supported_zones'     => array( 'dom' ),
+			)
+		);
 
-		$this->register_product( 'V66WPI', array(
-			'label' => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_zones' => array( 'eu', 'int' )
-		) );
+		$this->register_product(
+			'V66WPI',
+			array(
+				'label'           => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_zones' => array( 'eu', 'int' ),
+			)
+		);
 
-		$this->register_product( 'V54EPAK', array(
-			'label' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_zones' => array( 'eu' )
-		) );
+		$this->register_product(
+			'V54EPAK',
+			array(
+				'label'           => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_zones' => array( 'eu' ),
+			)
+		);
 
-		$this->register_product( 'V55PAK', array(
-			'label' => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_zones' => array( 'eu' )
-		) );
+		$this->register_product(
+			'V55PAK',
+			array(
+				'label'           => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_zones' => array( 'eu' ),
+			)
+		);
 
-		$this->register_product( 'V53WPAK', array(
-			'label' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
-			'supported_zones' => array( 'eu', 'int' )
-		) );
+		$this->register_product(
+			'V53WPAK',
+			array(
+				'label'           => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
+				'supported_zones' => array( 'eu', 'int' ),
+			)
+		);
 	}
 
 	protected function register_services() {
-		$this->register_service( 'GoGreen', array(
-			'label' => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Ship your parcels climate friendly.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK', 'V62WP', 'V62WPI' ),
-		) );
+		$this->register_service(
+			'GoGreen',
+			array(
+				'label'       => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Ship your parcels climate friendly.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK', 'V62WP', 'V62WPI' ),
+			)
+		);
 
 		$this->register_service( new PreferredLocation( $this ) );
 		$this->register_service( new PreferredNeighbour( $this ) );
@@ -134,116 +161,155 @@ class DHL extends Auto {
 		$this->register_service( new IdentCheck( $this ) );
 		$this->register_service( new DHLRetoure( $this ) );
 
-		$this->register_service( 'NoNeighbourDelivery', array(
-			'label' => _x( 'No Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Do not deliver to neighbors.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
-		) );
+		$this->register_service(
+			'NoNeighbourDelivery',
+			array(
+				'label'               => _x( 'No Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'         => _x( 'Do not deliver to neighbors.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'            => array( 'V01PAK' ),
+				'supported_countries' => array( 'DE' ),
+				'supported_zones'     => array( 'dom' ),
+			)
+		);
 
-		$this->register_service( 'signedForByRecipient', array(
-			'label' => _x( 'Recipient signature', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Let recipients sign delivery instead of DHL driver.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
-		) );
+		$this->register_service(
+			'signedForByRecipient',
+			array(
+				'label'               => _x( 'Recipient signature', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'         => _x( 'Let recipients sign delivery instead of DHL driver.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'            => array( 'V01PAK' ),
+				'supported_countries' => array( 'DE' ),
+				'supported_zones'     => array( 'dom' ),
+			)
+		);
 
-		$this->register_service( 'NamedPersonOnly', array(
-			'label' => _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Do only delivery to named person.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
-		) );
+		$this->register_service(
+			'NamedPersonOnly',
+			array(
+				'label'               => _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'         => _x( 'Do only delivery to named person.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'            => array( 'V01PAK' ),
+				'supported_countries' => array( 'DE' ),
+				'supported_zones'     => array( 'dom' ),
+			)
+		);
 
-		$this->register_service( 'AdditionalInsurance', array(
-			'label' => _x( 'Additional Insurance', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Add an additional insurance to labels.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK' ),
-		) );
+		$this->register_service(
+			'AdditionalInsurance',
+			array(
+				'label'       => _x( 'Additional Insurance', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Add an additional insurance to labels.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK' ),
+			)
+		);
 
-		$this->register_service( 'BulkyGoods', array(
-			'label' => _x( 'Bulky Goods', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Deliver as bulky goods.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK', 'V53WPAK' ),
-		) );
+		$this->register_service(
+			'BulkyGoods',
+			array(
+				'label'       => _x( 'Bulky Goods', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Deliver as bulky goods.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V01PAK', 'V53WPAK' ),
+			)
+		);
 
-		$this->register_service( 'ParcelOutletRouting', array(
-			'label' => _x( 'Retail Outlet Routing', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Send undeliverable items to nearest retail outlet instead of immediate return.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK', 'V62WP' ),
-		) );
+		$this->register_service(
+			'ParcelOutletRouting',
+			array(
+				'label'       => _x( 'Retail Outlet Routing', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Send undeliverable items to nearest retail outlet instead of immediate return.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V01PAK', 'V62WP' ),
+			)
+		);
 
 		$this->register_service( new CashOnDelivery( $this ) );
 
-		$this->register_service( 'Premium', array(
-			'label' => _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Premium delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V53WPAK', 'V66WPI' ),
-			'supported_zones' => array( 'int' ),
-		) );
+		$this->register_service(
+			'Premium',
+			array(
+				'label'           => _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'     => _x( 'Premium delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'        => array( 'V53WPAK', 'V66WPI' ),
+				'supported_zones' => array( 'int' ),
+			)
+		);
 
-		$this->register_service( 'Endorsement', array(
-			'label' => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Select how DHL should handle international shipments that could not be delivered.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'option_type'   => 'select',
-			'options'       => wc_gzd_dhl_get_endorsement_types(),
-			'default_value'      => 'return',
-			'products'    => array( 'V53WPAK' ),
-			'supported_zones' => array( 'int' ),
-		) );
+		$this->register_service(
+			'Endorsement',
+			array(
+				'label'           => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'     => _x( 'Select how DHL should handle international shipments that could not be delivered.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'option_type'     => 'select',
+				'options'         => wc_gzd_dhl_get_endorsement_types(),
+				'default_value'   => 'return',
+				'products'        => array( 'V53WPAK' ),
+				'supported_zones' => array( 'int' ),
+			)
+		);
 
-		$this->register_service( 'Economy', array(
-			'label' => _x( 'Economy', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Economy delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V53WPAK', 'V66WPI' ),
-			'supported_zones' => array( 'int' ),
-		) );
+		$this->register_service(
+			'Economy',
+			array(
+				'label'           => _x( 'Economy', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'     => _x( 'Economy delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'        => array( 'V53WPAK', 'V66WPI' ),
+				'supported_zones' => array( 'int' ),
+			)
+		);
 
 		$this->register_service( new ClosestDropPoint( $this ) );
 
-		$this->register_service( 'PostalDeliveryDutyPaid', array(
-			'label' => _x( 'Postal Delivery Duty Paid', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'DHL takes care of customs clearance and export duties (Postal Delivered Duty Paid).', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V53WPAK' ),
-			'supported_countries' => ParcelServices::get_pddp_countries(),
-			'supported_zones' => array( 'int' ),
-		) );
+		$this->register_service(
+			'PostalDeliveryDutyPaid',
+			array(
+				'label'               => _x( 'Postal Delivery Duty Paid', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'         => _x( 'DHL takes care of customs clearance and export duties (Postal Delivered Duty Paid).', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'            => array( 'V53WPAK' ),
+				'supported_countries' => ParcelServices::get_pddp_countries(),
+				'supported_zones'     => array( 'int' ),
+			)
+		);
 	}
 
 	protected function register_print_formats() {
-		$this->register_print_format( 'default', array(
-			'label' => _x( 'Default (User configuration)', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'supported_shipment_types' => array( 'simple' )
-		) );
+		$this->register_print_format(
+			'default',
+			array(
+				'label'                    => _x( 'Default (User configuration)', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+				'supported_shipment_types' => array( 'simple' ),
+			)
+		);
 
 		$available = array(
-			'A4' => _x( 'A4', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'910-300-700' => _x( '910-300-700', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'A4'             => _x( 'A4', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-700'    => _x( '910-300-700', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
 			'910-300-700-oZ' => _x( '910-300-700-oZ', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'910-300-710' => _x( '910-300-710', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'910-300-600' => _x( '910-300-600', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'910-300-610' => _x( '910-300-610', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'910-300-400' => _x( '910-300-400', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'910-300-410' => _x( '910-300-410', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'910-300-300' => _x( '910-300-300', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-710'    => _x( '910-300-710', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-600'    => _x( '910-300-600', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-610'    => _x( '910-300-610', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-400'    => _x( '910-300-400', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-410'    => _x( '910-300-410', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+			'910-300-300'    => _x( '910-300-300', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
 			'910-300-300-oz' => _x( '910-300-300-oz', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
 		);
 
-		foreach( $available as $print_format => $label ) {
-			$this->register_print_format( $print_format, array(
-				'label' => $label,
-				'supported_shipment_types' => array( 'simple' )
-			) );
+		foreach ( $available as $print_format => $label ) {
+			$this->register_print_format(
+				$print_format,
+				array(
+					'label'                    => $label,
+					'supported_shipment_types' => array( 'simple' ),
+				)
+			);
 		}
 
-		$this->register_print_format( '100x70mm', array(
-			'label'    => _x( '100x70mm', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-			'products' => array( 'V62WP', 'V66WPI' ),
-			'supported_shipment_types' => array( 'simple' ),
-		) );
+		$this->register_print_format(
+			'100x70mm',
+			array(
+				'label'                    => _x( '100x70mm', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+				'products'                 => array( 'V62WP', 'V66WPI' ),
+				'supported_shipment_types' => array( 'simple' ),
+			)
+		);
 	}
 
 	/**
@@ -314,56 +380,62 @@ class DHL extends Auto {
 
 		if ( 'shipping_provider' === $configuration_set->get_setting_type() ) {
 			if ( 'dom' === $configuration_set->get_zone() && 'simple' === $configuration_set->get_shipment_type() ) {
-				$settings = array_merge( $settings, array(
+				$settings = array_merge(
+					$settings,
 					array(
-						'title'          => _x( 'Encodable', 'dhl', 'woocommerce-germanized-dhl' ),
-						'desc'           => _x( 'Labels will only be created if an address is encodable by DHL.', 'dhl', 'woocommerce-germanized-dhl' ),
-						'id'             => 'label_address_codeable_only',
-						'value'          => $this->get_setting( 'label_address_codeable_only', 'no' ),
-						'default'        => 'no',
-						'type'           => 'gzd_toggle',
-						'allow_override' => false,
-						'desc_tip'       => _x( 'Choose this option if you want to make sure that by default labels are only generated for encodable addresses.', 'dhl', 'woocommerce-germanized-dhl' ),
-					),
+						array(
+							'title'          => _x( 'Encodable', 'dhl', 'woocommerce-germanized-dhl' ),
+							'desc'           => _x( 'Labels will only be created if an address is encodable by DHL.', 'dhl', 'woocommerce-germanized-dhl' ),
+							'id'             => 'label_address_codeable_only',
+							'value'          => $this->get_setting( 'label_address_codeable_only', 'no' ),
+							'default'        => 'no',
+							'type'           => 'gzd_toggle',
+							'allow_override' => false,
+							'desc_tip'       => _x( 'Choose this option if you want to make sure that by default labels are only generated for encodable addresses.', 'dhl', 'woocommerce-germanized-dhl' ),
+						),
 
-					array(
-						'title'   => _x( 'Sync (IdentCheck)', 'dhl', 'woocommerce-germanized-dhl' ),
-						'desc'    => _x( 'Verify identity and age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the identity check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
-						'id'      => 'label_auto_age_check_ident_sync',
-						'value'   => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_ident_sync', 'no' ) ),
-						'default' => 'no',
-						'type'    => 'gzd_toggle',
-						'custom_attributes' => array(
-							'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK'
-						)
-					),
+						array(
+							'title'             => _x( 'Sync (IdentCheck)', 'dhl', 'woocommerce-germanized-dhl' ),
+							'desc'              => _x( 'Verify identity and age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the identity check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+							'id'                => 'label_auto_age_check_ident_sync',
+							'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_ident_sync', 'no' ) ),
+							'default'           => 'no',
+							'type'              => 'gzd_toggle',
+							'custom_attributes' => array(
+								'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK',
+							),
+						),
 
-					array(
-						'title'   => _x( 'Sync (Visual Check)', 'dhl', 'woocommerce-germanized-dhl' ),
-						'desc'    => _x( 'Visually verify age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the visual age check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
-						'id'      => 'label_auto_age_check_sync',
-						'value'   => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_sync', 'yes' ) ),
-						'default' => 'yes',
-						'type'    => 'gzd_toggle',
-						'custom_attributes' => array(
-							'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK'
-						)
-					),
-				) );
+						array(
+							'title'             => _x( 'Sync (Visual Check)', 'dhl', 'woocommerce-germanized-dhl' ),
+							'desc'              => _x( 'Visually verify age if shipment contains applicable items.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Germanized offers an %s to be enabled for certain products and/or product categories. By checking this option labels for shipments with applicable items will automatically have the visual age check service enabled.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-checkboxes&checkbox_id=age_verification' ) ) . '">' . _x( 'age verification checkbox', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
+							'id'                => 'label_auto_age_check_sync',
+							'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_sync', 'yes' ) ),
+							'default'           => 'yes',
+							'type'              => 'gzd_toggle',
+							'custom_attributes' => array(
+								'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK',
+							),
+						),
+					)
+				);
 			} elseif ( 'int' === $configuration_set->get_zone() && 'simple' === $configuration_set->get_shipment_type() ) {
-				$settings = array_merge( $settings, array(
+				$settings = array_merge(
+					$settings,
 					array(
-						'title'    => _x( 'Default Incoterms', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'     => 'select',
-						'default'  => 'DDP',
-						'id'       => 'label_default_duty',
-						'value'    => $this->get_setting( 'label_default_duty', 'DDP' ),
-						'desc'     => _x( 'Please select a default incoterms option.', 'dhl', 'woocommerce-germanized-dhl' ),
-						'desc_tip' => true,
-						'options'  => wc_gzd_dhl_get_duties(),
-						'class'    => 'wc-enhanced-select',
-					),
-				) );
+						array(
+							'title'    => _x( 'Default Incoterms', 'dhl', 'woocommerce-germanized-dhl' ),
+							'type'     => 'select',
+							'default'  => 'DDP',
+							'id'       => 'label_default_duty',
+							'value'    => $this->get_setting( 'label_default_duty', 'DDP' ),
+							'desc'     => _x( 'Please select a default incoterms option.', 'dhl', 'woocommerce-germanized-dhl' ),
+							'desc_tip' => true,
+							'options'  => wc_gzd_dhl_get_duties(),
+							'class'    => 'wc-enhanced-select',
+						),
+					)
+				);
 			}
 		}
 
@@ -471,7 +543,10 @@ class DHL extends Auto {
 	protected function get_simple_label_fields( $shipment ) {
 		$settings              = parent::get_simple_label_fields( $shipment );
 		$default_args          = $this->get_default_label_props( $shipment );
-		$service_supports_args = array( 'shipment' => $shipment, 'product' => $default_args['product_id'] );
+		$service_supports_args = array(
+			'shipment' => $shipment,
+			'product'  => $default_args['product_id'],
+		);
 
 		if ( $shipment->is_shipping_international() ) {
 			$settings = array_merge(
@@ -619,11 +694,14 @@ class DHL extends Auto {
 	 * @return array
 	 */
 	protected function get_default_return_label_props( $shipment, $defaults = array() ) {
-		$defaults = wp_parse_args( $defaults, array(
-			'services'       => array(),
-			'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country() ),
-			'sender_address' => $shipment->get_sender_address(),
-		) );
+		$defaults = wp_parse_args(
+			$defaults,
+			array(
+				'services'       => array(),
+				'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country() ),
+				'sender_address' => $shipment->get_sender_address(),
+			)
+		);
 
 		$defaults['sender_address'] = array_merge(
 			$defaults['sender_address'],
@@ -661,12 +739,15 @@ class DHL extends Auto {
 	 * @return array
 	 */
 	protected function get_default_simple_label_props( $shipment, $defaults = array() ) {
-		$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$dhl_order                   = wc_gzd_dhl_get_order( $shipment->get_order() );
 		$supports_email_transmission = $dhl_order && $dhl_order->supports_email_notification() ? true : false;
-		$defaults  = wp_parse_args( $defaults, array(
-			'product_id' => '',
-			'services'   => array(),
-		) );
+		$defaults                    = wp_parse_args(
+			$defaults,
+			array(
+				'product_id' => '',
+				'services'   => array(),
+			)
+		);
 
 		if ( $shipment->is_shipping_domestic() ) {
 			$defaults['codeable_address_only'] = wc_bool_to_string( $this->get_setting( 'label_address_codeable_only', 'no' ) );
@@ -691,7 +772,12 @@ class DHL extends Auto {
 		/**
 		 * Force home delivery if chosen
 		 */
-		if ( $this->get_service( 'ClosestDropPoint' )->supports( array( 'shipment' => $shipment, 'product' => $defaults['product_id'] ) ) && $dhl_order && 'home' === $dhl_order->get_preferred_delivery_type() ) {
+		if ( $this->get_service( 'ClosestDropPoint' )->supports(
+			array(
+				'shipment' => $shipment,
+				'product'  => $defaults['product_id'],
+			)
+		) && $dhl_order && 'home' === $dhl_order->get_preferred_delivery_type() ) {
 			$defaults['services'][] = 'Premium';
 			$defaults['services']   = array_diff( $defaults['services'], array( 'ClosestDropPoint' ) );
 		}
@@ -947,12 +1033,15 @@ class DHL extends Auto {
 
 		$general_settings = parent::get_general_settings( $for_shipping_method );
 
-		$general_settings = array_merge( $general_settings, array(
+		$general_settings = array_merge(
+			$general_settings,
 			array(
-				'type' => 'sectionend',
-				'id'   => 'tracking_options',
-			),
-		) );
+				array(
+					'type' => 'sectionend',
+					'id'   => 'tracking_options',
+				),
+			)
+		);
 
 		return array_merge( $settings, $general_settings );
 	}

@@ -12,15 +12,15 @@ class PreferredDay extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'PreferredDay',
-			'label' => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Enable delivery day delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'long_description' => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their delivery day of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-			'setting_id'   => 'PreferredDay_enable',
-			'products'    => array( 'V01PAK' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
-			'excluded_locations' => array( 'settings' ),
+			'id'                    => 'PreferredDay',
+			'label'                 => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'           => _x( 'Enable delivery day delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'long_description'      => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their delivery day of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+			'setting_id'            => 'PreferredDay_enable',
+			'products'              => array( 'V01PAK' ),
+			'supported_countries'   => array( 'DE' ),
+			'supported_zones'       => array( 'dom' ),
+			'excluded_locations'    => array( 'settings' ),
 			'allow_default_booking' => false,
 		);
 
@@ -37,17 +37,20 @@ class PreferredDay extends Service {
 			$value = $dhl_order->get_preferred_day()->format( 'Y-m-d' );
 		}
 
-		$label_fields = array_merge( $label_fields, array(
+		$label_fields = array_merge(
+			$label_fields,
 			array(
-				'id'          => $this->get_label_field_id( 'day' ),
-				'label'       => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description' => '',
-				'value'       => $value,
-				'options'     => wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, '' ),
-				'custom_attributes' => array( 'data-show-if-service_PreferredDay' => '' ),
-				'type'        => 'select',
-			),
-		) );
+				array(
+					'id'                => $this->get_label_field_id( 'day' ),
+					'label'             => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
+					'description'       => '',
+					'value'             => $value,
+					'options'           => wc_gzd_dhl_get_preferred_days_select_options( $preferred_days, '' ),
+					'custom_attributes' => array( 'data-show-if-service_PreferredDay' => '' ),
+					'type'              => 'select',
+				),
+			)
+		);
 
 		return $label_fields;
 	}

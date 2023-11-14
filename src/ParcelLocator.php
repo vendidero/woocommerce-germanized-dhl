@@ -966,7 +966,7 @@ class ParcelLocator {
 		$is_enabled = 'yes' === self::get_setting( 'parcelshop_enable' );
 
 		if ( false !== $provider ) {
-			if ( ! self::shipping_provider_supports_locations(  $provider, 'parcelshop' ) ) {
+			if ( ! self::shipping_provider_supports_locations( $provider, 'parcelshop' ) ) {
 				$is_enabled = false;
 			}
 		}

@@ -11,12 +11,12 @@ class ClosestDropPoint extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'ClosestDropPoint',
-			'label' => _x( 'Closest Droppoint (CDP)', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Ship to a parcel shop or parcel locker in the vicinity of your customer’s home address.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V53WPAK' ),
+			'id'                  => 'ClosestDropPoint',
+			'label'               => _x( 'Closest Droppoint (CDP)', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'         => _x( 'Ship to a parcel shop or parcel locker in the vicinity of your customer’s home address.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'products'            => array( 'V53WPAK' ),
 			'supported_countries' => ParcelServices::get_cdp_countries(),
-			'supported_zones' => array( 'eu' ),
+			'supported_zones'     => array( 'eu' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );

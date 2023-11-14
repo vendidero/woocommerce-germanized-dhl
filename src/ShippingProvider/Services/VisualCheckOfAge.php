@@ -12,12 +12,12 @@ class VisualCheckOfAge extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id' => 'VisualCheckOfAge',
-			'label' => _x( 'Visual Age check', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description' => _x( 'Let DHL handle the age check for you at the point of delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'    => array( 'V01PAK' ),
+			'id'                  => 'VisualCheckOfAge',
+			'label'               => _x( 'Visual Age check', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'         => _x( 'Let DHL handle the age check for you at the point of delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'products'            => array( 'V01PAK' ),
 			'supported_countries' => array( 'DE' ),
-			'supported_zones' => array( 'dom' ),
+			'supported_zones'     => array( 'dom' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );
@@ -35,14 +35,14 @@ class VisualCheckOfAge extends Service {
 
 		return array(
 			array(
-				'title'    => _x( 'Minimum age', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'       => $setting_id,
-				'type'     => 'select',
-				'default'  => '0',
-				'value'    => $value,
-				'options'  => wc_gzd_dhl_get_ident_min_ages(),
+				'title'             => _x( 'Minimum age', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'                => $setting_id,
+				'type'              => 'select',
+				'default'           => '0',
+				'value'             => $value,
+				'options'           => wc_gzd_dhl_get_ident_min_ages(),
 				'custom_attributes' => array( "data-show_if_{$base_setting_id}" => '' ),
-				'desc_tip' => _x( 'Choose this option if you want to let DHL check your customer\'s identity and age.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => _x( 'Choose this option if you want to let DHL check your customer\'s identity and age.', 'dhl', 'woocommerce-germanized-dhl' ),
 			),
 		);
 	}
@@ -59,24 +59,27 @@ class VisualCheckOfAge extends Service {
 
 	protected function get_additional_label_fields( $shipment ) {
 		$label_fields = parent::get_additional_label_fields( $shipment );
-		$dhl_order     = wc_gzd_dhl_get_order( $shipment->get_order() );
-		$min_age       = $this->get_value( $shipment, 'min_age' );
+		$dhl_order    = wc_gzd_dhl_get_order( $shipment->get_order() );
+		$min_age      = $this->get_value( $shipment, 'min_age' );
 
 		if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
 			$min_age = $dhl_order->get_min_age();
 		}
 
-		$label_fields = array_merge( $label_fields, array(
+		$label_fields = array_merge(
+			$label_fields,
 			array(
-				'id'                => $this->get_label_field_id( 'min_age' ),
-				'label'             => _x( 'Minimum Age', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'       => '',
-				'type'              => 'select',
-				'value'             => $min_age,
-				'options'           => wc_gzd_dhl_get_visual_min_ages(),
-				'custom_attributes' => array( 'data-show-if-service_VisualCheckOfAge' => '' ),
-			),
-		) );
+				array(
+					'id'                => $this->get_label_field_id( 'min_age' ),
+					'label'             => _x( 'Minimum Age', 'dhl', 'woocommerce-germanized-dhl' ),
+					'description'       => '',
+					'type'              => 'select',
+					'value'             => $min_age,
+					'options'           => wc_gzd_dhl_get_visual_min_ages(),
+					'custom_attributes' => array( 'data-show-if-service_VisualCheckOfAge' => '' ),
+				),
+			)
+		);
 
 		return $label_fields;
 	}

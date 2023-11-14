@@ -838,7 +838,7 @@ function wc_gzd_dhl_get_billing_number( $product, $args = array() ) {
 						$participation_number = '04';
 					}
 				}
- 			}
+			}
 		}
 
 		// Participation number may contain account number too
