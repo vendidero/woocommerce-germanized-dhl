@@ -36,7 +36,7 @@ const getSelectedShippingProviders = (
         let provider = '';
 
         meta_data.map( ( metaField ) => {
-            if ( 'shipping_provider' === metaField.key ) {
+            if ( 'shipping_provider' === metaField.key || '_shipping_provider' === metaField.key ) {
                 provider = metaField.value;
             }
         } );
