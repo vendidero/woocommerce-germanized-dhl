@@ -722,7 +722,7 @@ class DHL extends Auto {
 	 * @return string
 	 */
 	protected function get_incoterms( $shipment ) {
-		$incoterms = $this->get_shipment_setting( $shipment, 'label_default_duty' );
+		$incoterms = $this->get_setting( 'label_default_duty' );
 
 		if ( ! empty( $shipment->get_incoterms() ) ) {
 			if ( in_array( $shipment->get_incoterms(), array_keys( wc_gzd_dhl_get_duties() ), true ) ) {
@@ -925,7 +925,7 @@ class DHL extends Auto {
 			),
 		);
 
-		$dhl_available_products = wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_eu() + wc_gzd_dhl_get_products_international() + array( 'return' => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ) );
+		$dhl_available_products = $this->get_products()->as_options() + array( 'return' => _x( 'Inlay Returns', 'dhl', 'woocommerce-germanized-dhl' ) );
 		$dhl_products           = array();
 
 		foreach ( $dhl_available_products as $product => $title ) {

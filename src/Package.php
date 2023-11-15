@@ -347,6 +347,9 @@ class Package {
 		return self::$api;
 	}
 
+	/**
+	 * @return Internetmarke|null
+	 */
 	public static function get_internetmarke_api() {
 		if ( is_null( self::$im_api ) ) {
 			self::$im_api = new Internetmarke();
@@ -1002,19 +1005,11 @@ class Package {
 
 		if ( ! $is_dp ) {
 			if ( $provider = self::get_dhl_shipping_provider() ) {
-				if ( $shipment ) {
-					$value = $provider->get_shipment_setting( $shipment, $name, $default );
-				} else {
-					$value = $provider->get_setting( $name, $default );
-				}
+				$value = $provider->get_setting( $name, $default );
 			}
 		} else {
 			if ( $provider = self::get_deutsche_post_shipping_provider() ) {
-				if ( $shipment ) {
-					$value = $provider->get_shipment_setting( $shipment, $name, $default );
-				} else {
-					$value = $provider->get_setting( $name, $default );
-				}
+				$value = $provider->get_setting( $name, $default );
 			}
 		}
 

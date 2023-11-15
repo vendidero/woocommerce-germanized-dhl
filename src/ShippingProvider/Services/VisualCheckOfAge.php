@@ -62,7 +62,7 @@ class VisualCheckOfAge extends Service {
 		$dhl_order    = wc_gzd_dhl_get_order( $shipment->get_order() );
 		$min_age      = $this->get_value( $shipment, 'min_age' );
 
-		if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
+		if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_setting( 'label_auto_age_check_sync' ) ) {
 			$min_age = $dhl_order->get_min_age();
 		}
 
@@ -90,7 +90,7 @@ class VisualCheckOfAge extends Service {
 		if ( false === $book_as_default ) {
 			$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
 
-			if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_shipment_setting( $shipment, 'label_auto_age_check_sync' ) ) {
+			if ( $dhl_order && $dhl_order->needs_age_verification() && 'yes' === $this->get_shipping_provider()->get_setting( 'label_auto_age_check_sync' ) ) {
 				$book_as_default = true;
 			}
 		}

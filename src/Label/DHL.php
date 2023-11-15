@@ -219,11 +219,16 @@ class DHL extends Label {
 		if ( $this->has_service( 'dhlRetoure' ) ) {
 			$has_inlay_return = true;
 		} elseif ( $this->get_meta( '_has_inlay_return' ) ) {
-			$products  = wc_gzd_dhl_get_inlay_return_products();
 			$has_inlay = wc_string_to_bool( $this->get_meta( '_has_inlay_return' ) );
 
-			if ( true === $has_inlay && in_array( $this->get_product_id(), $products, true ) ) {
-				$has_inlay_return = true;
+			if ( true === $has_inlay ) {
+				if ( $provider = $this->get_shipping_provider_instance() ) {
+					if ( $service = $provider->get_service( 'dhlRetoure' ) ) {
+						if ( $service->supports_product( $this->get_product_id() ) ) {
+							$has_inlay_return = true;
+						}
+					}
+				}
 			}
 		}
 

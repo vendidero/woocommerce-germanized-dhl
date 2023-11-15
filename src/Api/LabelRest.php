@@ -508,7 +508,6 @@ class LabelRest extends Rest {
 		}
 
 		$endpoint = add_query_arg( $args, 'orders' );
-
 		$response = $this->post_request( $endpoint, $request );
 
 		try {

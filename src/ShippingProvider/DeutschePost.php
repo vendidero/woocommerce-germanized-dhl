@@ -329,7 +329,7 @@ class DeutschePost extends Auto {
 				$product->product_code,
 				array(
 					'id'                       => $product->product_code,
-					'label'                    => wc_gzd_dhl_get_im_product_title( $product->product_name ),
+					'label'                    => $product->product_name,
 					'description'              => $product->product_description,
 					'supported_shipment_types' => array( 'simple', 'return' ),
 					'internal_id'              => $product->product_id,
@@ -533,8 +533,8 @@ class DeutschePost extends Auto {
 
 	protected function get_default_simple_label_props( $shipment ) {
 		$defaults = array(
-			'position_x'  => $this->get_shipment_setting( $shipment, 'label_position_x' ),
-			'position_y'  => $this->get_shipment_setting( $shipment, 'label_position_y' ),
+			'position_x'  => $this->get_setting( 'label_position_x' ),
+			'position_y'  => $this->get_setting( 'label_position_y' ),
 			'stamp_total' => 0,
 			'services'    => array(),
 		);

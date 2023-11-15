@@ -437,3 +437,309 @@ function wc_gzd_dhl_get_preferred_services() {
 		'PreferredDay',
 	);
 }
+
+/**
+ * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+ *
+ * @return array
+ */
+function wc_gzd_dhl_get_deutsche_post_products( $shipment, $parent_only = true ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$country  = $shipment->get_country();
+	$postcode = $shipment->get_postcode();
+
+	if ( 'return' === $shipment->get_type() ) {
+		$country  = $shipment->get_sender_country();
+		$postcode = $shipment->get_sender_postcode();
+	}
+
+	if ( \Vendidero\Germanized\Shipments\Package::is_shipping_domestic( $country, $postcode ) ) {
+		return wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment, $parent_only );
+	} elseif ( \Vendidero\Germanized\Shipments\Package::is_shipping_inner_eu_country( $country, $postcode ) ) {
+		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment, $parent_only );
+	} else {
+		return wc_gzd_dhl_get_deutsche_post_products_international( $shipment, $parent_only );
+	}
+}
+
+/**
+ * @param \Vendidero\Germanized\Shipments\Shipment|false $shipment
+ *
+ * @return array
+ */
+function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false, $parent_only = true ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	if ( $post = \Vendidero\Germanized\DHL\Package::get_deutsche_post_shipping_provider() ) {
+		return $post->get_products(
+			array(
+				'zone'     => 'dom',
+				'shipment' => $shipment,
+			)
+		)->as_options();
+	}
+
+	return array();
+}
+
+/**
+ * @param \Vendidero\Germanized\Shipments\Shipment|false $shipment
+ *
+ * @return array
+ */
+function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false, $parent_only = true ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	if ( $post = \Vendidero\Germanized\DHL\Package::get_deutsche_post_shipping_provider() ) {
+		return $post->get_products(
+			array(
+				'zone'     => 'eu',
+				'shipment' => $shipment,
+			)
+		)->as_options();
+	}
+
+	return array();
+}
+
+/**
+ * @param \Vendidero\Germanized\Shipments\Shipment|false $shipment
+ *
+ * @return array
+ */
+function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false, $parent_only = true ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	if ( $post = \Vendidero\Germanized\DHL\Package::get_deutsche_post_shipping_provider() ) {
+		return $post->get_products(
+			array(
+				'zone'     => 'int',
+				'shipment' => $shipment,
+			)
+		)->as_options();
+	}
+
+	return array();
+}
+
+/**
+ * @param \Vendidero\Germanized\Shipments\ShippingProvider\Product[] $products
+ * @param $parent_only
+ *
+ * @return array
+ */
+function wc_gzd_dhl_im_get_product_list( $products, $parent_only = true ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$list                       = array();
+	$additional_parent_products = array();
+
+	foreach ( $products as $product ) {
+		if ( $parent_only && $product->get_parent_id() > 0 ) {
+			$additional_parent_products[] = $product->get_parent_id();
+			continue;
+		}
+
+		$list[ $product->get_id() ] = $product->get_label();
+	}
+
+	$additional_parent_products = array_unique( $additional_parent_products );
+
+	if ( ! empty( $additional_parent_products ) ) {
+		foreach ( $additional_parent_products as $product_id ) {
+			$product = \Vendidero\Germanized\DHL\Package::get_internetmarke_api()->get_product_data( $product_id );
+
+			if ( ! array_key_exists( $product->get_id(), $list ) ) {
+				$list[ $product->get_id() ] = $product->get_label();
+			}
+		}
+	}
+
+	return $list;
+}
+
+function wc_gzd_dhl_get_im_product_title( $product_name ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$title = $product_name;
+
+	return $title;
+}
+
+function wc_gzd_dhl_get_products_domestic() {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$country = \Vendidero\Germanized\DHL\Package::get_base_country();
+
+	$germany_dom = array(
+		'V01PAK'  => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V01PRIO' => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V06PAK'  => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V62WP'   => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized-dhl' ),
+	);
+
+	$dhl_prod_dom = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_dom = $germany_dom;
+			break;
+		default:
+			break;
+	}
+
+	return $dhl_prod_dom;
+}
+
+function wc_gzd_dhl_get_products_eu() {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$country = \Vendidero\Germanized\DHL\Package::get_base_country();
+
+	$germany_int = array(
+		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
+		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
+	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' );
+	}
+
+	$dhl_prod_int = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_int = $germany_int;
+			break;
+		default:
+			break;
+	}
+
+	return $dhl_prod_int;
+}
+
+function wc_gzd_dhl_get_products_international() {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$country = \Vendidero\Germanized\DHL\Package::get_base_country();
+
+	$germany_int = array(
+		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
+	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' );
+	}
+
+	$dhl_prod_int = array();
+
+	switch ( $country ) {
+		case 'DE':
+			$dhl_prod_int = $germany_int;
+			break;
+		default:
+			break;
+	}
+
+	return $dhl_prod_int;
+}
+
+function wc_gzd_dhl_is_warenpost_international_available() {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	return true;
+}
+
+function wc_gzd_dhl_get_product_title( $product_id ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$products = wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_eu() + wc_gzd_dhl_get_products_international();
+
+	return array_key_exists( $product_id, $products ) ? $products[ $product_id ] : $product_id;
+}
+
+function wc_gzd_dhl_get_products( $shipping_country, $shipping_postcode = '' ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	if ( \Vendidero\Germanized\DHL\Package::is_shipping_domestic( $shipping_country, $shipping_postcode ) ) {
+		return wc_gzd_dhl_get_products_domestic();
+	} elseif ( \Vendidero\Germanized\DHL\Package::is_eu_shipment( $shipping_country, $shipping_postcode ) ) {
+		return wc_gzd_dhl_get_products_eu();
+	} else {
+		return wc_gzd_dhl_get_products_international();
+	}
+}
+
+function wc_gzd_dhl_get_return_products( $shipping_country, $shipping_postcode = '' ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	if ( \Vendidero\Germanized\DHL\Package::is_shipping_domestic( $shipping_country, $shipping_postcode ) ) {
+		return wc_gzd_dhl_get_return_products_domestic();
+	} else {
+		return wc_gzd_dhl_get_return_products_international();
+	}
+}
+
+function wc_gzd_dhl_get_return_products_international() {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$retoure = array(
+		'retoure_international_a' => _x( 'DHL Retoure International A', 'dhl', 'woocommerce-germanized-dhl' ),
+		'retoure_international_b' => _x( 'DHL Retoure International B', 'dhl', 'woocommerce-germanized-dhl' ),
+	);
+
+	return $retoure;
+}
+
+function wc_gzd_dhl_get_return_products_domestic() {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	$retoure = array(
+		'retoure_online' => _x( 'DHL Retoure Online', 'dhl', 'woocommerce-germanized-dhl' ),
+	);
+
+	return $retoure;
+}
+
+function wc_gzd_dhl_get_inlay_return_products() {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	return array(
+		'V01PAK',
+		'V01PRIO',
+		'V86PARCEL',
+		'V55PAK',
+	);
+}
+
+function wc_gzd_dhl_get_default_return_receiver( $country, $method = false ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	return \Vendidero\Germanized\DHL\Package::get_return_receiver_by_country( $country );
+}
+
+function wc_gzd_dhl_get_default_product( $country, $shipment = false ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	if ( \Vendidero\Germanized\DHL\Package::is_shipping_domestic( $country ) ) {
+		return \Vendidero\Germanized\DHL\Package::get_setting( 'label_default_product_dom' );
+	} elseif ( \Vendidero\Germanized\DHL\Package::is_eu_shipment( $country ) ) {
+		return \Vendidero\Germanized\DHL\Package::get_setting( 'label_default_product_eu' );
+	} else {
+		return \Vendidero\Germanized\DHL\Package::get_setting( 'label_default_product_int' );
+	}
+}
+
+function wc_gzd_dhl_round_customs_item_weight( $value, $precision = 0 ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	return \Automattic\WooCommerce\Utilities\NumberUtil::round( $value, $precision, 2 );
+}
+
+function wc_gzd_dhl_format_preferred_api_time( $time ) {
+	wc_deprecated_function( __FUNCTION__, '3.0' );
+
+	return str_replace( array( ':', '-' ), '', $time );
+}
