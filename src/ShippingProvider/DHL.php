@@ -78,68 +78,68 @@ class DHL extends Auto {
 		$this->register_product(
 			'V01PAK',
 			array(
-				'label'               => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_countries' => array( 'DE' ),
-				'supported_zones'     => array( 'dom' ),
+				'label'     => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized-dhl' ),
+				'countries' => array( 'DE' ),
+				'zones'     => array( 'dom' ),
 			)
 		);
 
 		$this->register_product(
 			'V01PRIO',
 			array(
-				'label'               => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_countries' => array( 'DE' ),
-				'supported_zones'     => array( 'dom' ),
+				'label'     => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized-dhl' ),
+				'countries' => array( 'DE' ),
+				'zones'     => array( 'dom' ),
 			)
 		);
 
 		$this->register_product(
 			'V06PAK',
 			array(
-				'label'               => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_countries' => array( 'DE' ),
-				'supported_zones'     => array( 'dom' ),
+				'label'     => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized-dhl' ),
+				'countries' => array( 'DE' ),
+				'zones'     => array( 'dom' ),
 			)
 		);
 
 		$this->register_product(
 			'V62WP',
 			array(
-				'label'               => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_countries' => array( 'DE' ),
-				'supported_zones'     => array( 'dom' ),
+				'label'     => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized-dhl' ),
+				'countries' => array( 'DE' ),
+				'zones'     => array( 'dom' ),
 			)
 		);
 
 		$this->register_product(
 			'V66WPI',
 			array(
-				'label'           => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_zones' => array( 'eu', 'int' ),
+				'label' => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
+				'zones' => array( 'eu', 'int' ),
 			)
 		);
 
 		$this->register_product(
 			'V54EPAK',
 			array(
-				'label'           => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_zones' => array( 'eu' ),
+				'label' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized-dhl' ),
+				'zones' => array( 'eu' ),
 			)
 		);
 
 		$this->register_product(
 			'V55PAK',
 			array(
-				'label'           => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_zones' => array( 'eu' ),
+				'label' => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized-dhl' ),
+				'zones' => array( 'eu' ),
 			)
 		);
 
 		$this->register_product(
 			'V53WPAK',
 			array(
-				'label'           => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
-				'supported_zones' => array( 'eu', 'int' ),
+				'label' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized-dhl' ),
+				'zones' => array( 'eu', 'int' ),
 			)
 		);
 	}
@@ -164,33 +164,33 @@ class DHL extends Auto {
 		$this->register_service(
 			'NoNeighbourDelivery',
 			array(
-				'label'               => _x( 'No Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'         => _x( 'Do not deliver to neighbors.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'            => array( 'V01PAK' ),
-				'supported_countries' => array( 'DE' ),
-				'supported_zones'     => array( 'dom' ),
+				'label'       => _x( 'No Neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Do not deliver to neighbors.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V01PAK' ),
+				'countries'   => array( 'DE' ),
+				'zones'       => array( 'dom' ),
 			)
 		);
 
 		$this->register_service(
 			'signedForByRecipient',
 			array(
-				'label'               => _x( 'Recipient signature', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'         => _x( 'Let recipients sign delivery instead of DHL driver.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'            => array( 'V01PAK' ),
-				'supported_countries' => array( 'DE' ),
-				'supported_zones'     => array( 'dom' ),
+				'label'       => _x( 'Recipient signature', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Let recipients sign delivery instead of DHL driver.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V01PAK' ),
+				'countries'   => array( 'DE' ),
+				'zones'       => array( 'dom' ),
 			)
 		);
 
 		$this->register_service(
 			'NamedPersonOnly',
 			array(
-				'label'               => _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'         => _x( 'Do only delivery to named person.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'            => array( 'V01PAK' ),
-				'supported_countries' => array( 'DE' ),
-				'supported_zones'     => array( 'dom' ),
+				'label'       => _x( 'Named person only', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Do only delivery to named person.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V01PAK' ),
+				'countries'   => array( 'DE' ),
+				'zones'       => array( 'dom' ),
 			)
 		);
 
@@ -226,33 +226,33 @@ class DHL extends Auto {
 		$this->register_service(
 			'Premium',
 			array(
-				'label'           => _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'     => _x( 'Premium delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'        => array( 'V53WPAK', 'V66WPI' ),
-				'supported_zones' => array( 'int' ),
+				'label'       => _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Premium delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V53WPAK', 'V66WPI' ),
+				'zones'       => array( 'int' ),
 			)
 		);
 
 		$this->register_service(
 			'Endorsement',
 			array(
-				'label'           => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'     => _x( 'Select how DHL should handle international shipments that could not be delivered.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'option_type'     => 'select',
-				'options'         => wc_gzd_dhl_get_endorsement_types(),
-				'default_value'   => 'return',
-				'products'        => array( 'V53WPAK' ),
-				'supported_zones' => array( 'int' ),
+				'label'         => _x( 'Endorsement', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description'   => _x( 'Select how DHL should handle international shipments that could not be delivered.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'option_type'   => 'select',
+				'options'       => wc_gzd_dhl_get_endorsement_types(),
+				'default_value' => 'return',
+				'products'      => array( 'V53WPAK' ),
+				'zones'         => array( 'int' ),
 			)
 		);
 
 		$this->register_service(
 			'Economy',
 			array(
-				'label'           => _x( 'Economy', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'     => _x( 'Economy delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'        => array( 'V53WPAK', 'V66WPI' ),
-				'supported_zones' => array( 'int' ),
+				'label'       => _x( 'Economy', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'Economy delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V53WPAK', 'V66WPI' ),
+				'zones'       => array( 'int' ),
 			)
 		);
 
@@ -261,11 +261,11 @@ class DHL extends Auto {
 		$this->register_service(
 			'PostalDeliveryDutyPaid',
 			array(
-				'label'               => _x( 'Postal Delivery Duty Paid', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description'         => _x( 'DHL takes care of customs clearance and export duties (Postal Delivered Duty Paid).', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'            => array( 'V53WPAK' ),
-				'supported_countries' => ParcelServices::get_pddp_countries(),
-				'supported_zones'     => array( 'int' ),
+				'label'       => _x( 'Postal Delivery Duty Paid', 'dhl', 'woocommerce-germanized-dhl' ),
+				'description' => _x( 'DHL takes care of customs clearance and export duties (Postal Delivered Duty Paid).', 'dhl', 'woocommerce-germanized-dhl' ),
+				'products'    => array( 'V53WPAK' ),
+				'countries'   => ParcelServices::get_pddp_countries(),
+				'zones'       => array( 'int' ),
 			)
 		);
 	}
@@ -274,8 +274,8 @@ class DHL extends Auto {
 		$this->register_print_format(
 			'default',
 			array(
-				'label'                    => _x( 'Default (User configuration)', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-				'supported_shipment_types' => array( 'simple' ),
+				'label'          => _x( 'Default (User configuration)', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+				'shipment_types' => array( 'simple' ),
 			)
 		);
 
@@ -296,8 +296,8 @@ class DHL extends Auto {
 			$this->register_print_format(
 				$print_format,
 				array(
-					'label'                    => $label,
-					'supported_shipment_types' => array( 'simple' ),
+					'label'          => $label,
+					'shipment_types' => array( 'simple' ),
 				)
 			);
 		}
@@ -305,9 +305,9 @@ class DHL extends Auto {
 		$this->register_print_format(
 			'100x70mm',
 			array(
-				'label'                    => _x( '100x70mm', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-				'products'                 => array( 'V62WP', 'V66WPI' ),
-				'supported_shipment_types' => array( 'simple' ),
+				'label'          => _x( '100x70mm', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
+				'products'       => array( 'V62WP', 'V66WPI' ),
+				'shipment_types' => array( 'simple' ),
 			)
 		);
 	}

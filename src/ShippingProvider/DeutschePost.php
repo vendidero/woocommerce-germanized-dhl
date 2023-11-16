@@ -328,33 +328,33 @@ class DeutschePost extends Auto {
 			$this->register_product(
 				$product->product_code,
 				array(
-					'id'                       => $product->product_code,
-					'label'                    => $product->product_name,
-					'description'              => $product->product_description,
-					'supported_shipment_types' => array( 'simple', 'return' ),
-					'internal_id'              => $product->product_id,
-					'parent_id'                => $product->product_parent_id,
-					'supported_zones'          => 'national' === $product->product_destination ? array( 'dom' ) : array( 'eu', 'int' ),
-					'price'                    => $product->product_price,
-					'length'                   => array(
+					'id'             => $product->product_code,
+					'label'          => $product->product_name,
+					'description'    => $product->product_description,
+					'shipment_types' => array( 'simple', 'return' ),
+					'internal_id'    => $product->product_id,
+					'parent_id'      => $product->product_parent_id,
+					'zones'          => 'national' === $product->product_destination ? array( 'dom' ) : array( 'eu', 'int' ),
+					'price'          => $product->product_price,
+					'length'         => array(
 						'min' => $product->product_length_min,
 						'max' => $product->product_length_max,
 					),
-					'width'                    => array(
+					'width'          => array(
 						'min' => $product->product_width_min,
 						'max' => $product->product_width_max,
 					),
-					'height'                   => array(
+					'height'         => array(
 						'min' => $product->product_height_min,
 						'max' => $product->product_height_max,
 					),
-					'weight'                   => array(
+					'weight'         => array(
 						'min' => $product->product_weight_min,
 						'max' => $product->product_weight_max,
 					),
-					'weight_unit'              => 'g',
-					'dimension_unit'           => 'mm',
-					'meta'                     => array(
+					'weight_unit'    => 'g',
+					'dimension_unit' => 'mm',
+					'meta'           => array(
 						'is_wp_int'        => 0 !== absint( $product->product_is_wp_int ) ? true : false,
 						'information_text' => $product->product_information_text,
 						'annotation'       => $product->product_annotation,

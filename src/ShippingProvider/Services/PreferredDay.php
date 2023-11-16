@@ -18,8 +18,8 @@ class PreferredDay extends Service {
 			'long_description'      => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their delivery day of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 			'setting_id'            => 'PreferredDay_enable',
 			'products'              => array( 'V01PAK' ),
-			'supported_countries'   => array( 'DE' ),
-			'supported_zones'       => array( 'dom' ),
+			'countries'             => array( 'DE' ),
+			'zones'                 => array( 'dom' ),
 			'excluded_locations'    => array( 'settings' ),
 			'allow_default_booking' => false,
 		);

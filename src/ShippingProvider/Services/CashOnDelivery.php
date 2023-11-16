@@ -47,22 +47,11 @@ class CashOnDelivery extends Service {
 					'value'             => wc_format_localized_decimal( $value ),
 					'type'              => 'text',
 					'custom_attributes' => array( 'data-show-if-service_CashOnDelivery' => '' ),
+					'is_required'       => true,
 				),
 			)
 		);
 
 		return $label_fields;
-	}
-
-	public function validate_label_request( $props, $shipment ) {
-		$error     = new ShipmentError();
-		$field_id  = $this->get_label_field_id( 'cod_total' );
-		$cod_total = isset( $props[ $field_id ] ) ? (float) wc_format_decimal( $props[ $field_id ] ) : 0.0;
-
-		if ( empty( $cod_total ) ) {
-			$error->add( 500, _x( 'Please choose a valid cash on delivery total amount.', 'dhl', 'woocommerce-germanized-dhl' ) );
-		}
-
-		return wc_gzd_shipment_wp_error_has_errors( $error ) ? $error : true;
 	}
 }

@@ -12,13 +12,13 @@ class DHLRetoure extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id'                  => 'dhlRetoure',
-			'label'               => _x( 'Inlay Return Label', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description'         => _x( 'Additionally create inlay return labels for shipments that support returns.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'            => array( 'V01PAK', 'V62WP' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones'     => array( 'dom' ),
-			'excluded_locations'  => array( 'label_services' ),
+			'id'                 => 'dhlRetoure',
+			'label'              => _x( 'Inlay Return Label', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'        => _x( 'Additionally create inlay return labels for shipments that support returns.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'products'           => array( 'V01PAK', 'V62WP' ),
+			'countries'          => array( 'DE' ),
+			'zones'              => array( 'dom' ),
+			'excluded_locations' => array( 'label_services' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );

@@ -17,8 +17,8 @@ class PreferredNeighbour extends Service {
 			'long_description'      => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to deliver to their preferred neighbor during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 			'setting_id'            => 'PreferredNeighbour_enable',
 			'products'              => array( 'V01PAK', 'V62WP' ),
-			'supported_countries'   => array( 'DE' ),
-			'supported_zones'       => array( 'dom' ),
+			'countries'             => array( 'DE' ),
+			'zones'                 => array( 'dom' ),
 			'excluded_locations'    => array( 'settings' ),
 			'allow_default_booking' => false,
 		);
@@ -49,6 +49,7 @@ class PreferredNeighbour extends Service {
 						'data-show-if-service_PreferredNeighbour' => '',
 					),
 					'type'              => 'text',
+					'is_required'       => true,
 				),
 			)
 		);
@@ -68,16 +69,5 @@ class PreferredNeighbour extends Service {
 		}
 
 		return $book_as_default;
-	}
-
-	public function validate_label_request( $props, $shipment ) {
-		$error    = new ShipmentError();
-		$neighbor = isset( $props[ $this->get_label_field_id( 'neighbor' ) ] ) ? $props[ $this->get_label_field_id( 'neighbor' ) ] : '';
-
-		if ( empty( $neighbor ) ) {
-			$error->add( 500, _x( 'Please choose a valid preferred neighbor.', 'dhl', 'woocommerce-germanized-dhl' ) );
-		}
-
-		return wc_gzd_shipment_wp_error_has_errors( $error ) ? $error : true;
 	}
 }

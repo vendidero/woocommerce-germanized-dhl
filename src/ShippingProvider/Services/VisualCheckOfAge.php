@@ -12,12 +12,12 @@ class VisualCheckOfAge extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id'                  => 'VisualCheckOfAge',
-			'label'               => _x( 'Visual Age check', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description'         => _x( 'Let DHL handle the age check for you at the point of delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'            => array( 'V01PAK' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones'     => array( 'dom' ),
+			'id'          => 'VisualCheckOfAge',
+			'label'       => _x( 'Visual Age check', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description' => _x( 'Let DHL handle the age check for you at the point of delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'products'    => array( 'V01PAK' ),
+			'countries'   => array( 'DE' ),
+			'zones'       => array( 'dom' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );

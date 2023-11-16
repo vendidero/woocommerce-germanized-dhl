@@ -12,12 +12,12 @@ class IdentCheck extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id'                  => 'IdentCheck',
-			'label'               => _x( 'Ident-Check', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description'         => _x( 'Use the DHL Ident-Check service to make sure your parcels are only released to the recipient in person.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'            => array( 'V01PAK' ),
-			'supported_countries' => array( 'DE' ),
-			'supported_zones'     => array( 'dom' ),
+			'id'          => 'IdentCheck',
+			'label'       => _x( 'Ident-Check', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description' => _x( 'Use the DHL Ident-Check service to make sure your parcels are only released to the recipient in person.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'products'    => array( 'V01PAK' ),
+			'countries'   => array( 'DE' ),
+			'zones'       => array( 'dom' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );
