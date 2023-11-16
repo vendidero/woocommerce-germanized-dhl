@@ -4,6 +4,7 @@ namespace Vendidero\Germanized\DHL\Admin;
 
 use Vendidero\Germanized\DHL\Admin\Importer\DHL;
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\ParcelServices;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
 
@@ -39,7 +40,76 @@ class Admin {
 		add_action( 'admin_init', array( __CLASS__, 'refresh_data' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'add_notices' ) );
 
+		add_action( 'woocommerce_order_shipping_method', array( __CLASS__, 'preferred_delivery_notice' ), 10, 2 );
+		add_action( 'woocommerce_admin_order_data_after_shipping_address', array( __CLASS__, 'preferred_delivery_order' ), 5 );
+
 		Status::init();
+	}
+
+	/**
+	 * @param string $method_str
+	 * @param \WC_Order $order
+	 *
+	 * @return string
+	 */
+	public static function preferred_delivery_notice( $method_str, $order ) {
+		if ( $dhl_order = wc_gzd_dhl_get_order( $order ) ) {
+			if ( $dhl_order->has_preferred_day() ) {
+				$method_str .= ' - ' . sprintf( _x( 'Preferred day: %1$s', 'dhl', 'woocommerce-germanized-dhl' ), $dhl_order->get_preferred_day()->date_i18n( get_option( 'date_format' ) ) );
+			}
+		}
+
+		return $method_str;
+	}
+
+	/**
+	 * @param \WC_Order $order
+	 */
+	public static function preferred_delivery_order( $order ) {
+		if ( $dhl_order = wc_gzd_dhl_get_order( $order ) ) {
+			$dhl_data = array();
+
+			if ( $dhl_order->has_preferred_day() ) {
+				$dhl_data[] = array(
+					'label' => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
+					'value' => $dhl_order->get_preferred_day()->date_i18n( get_option( 'date_format' ) ),
+				);
+			}
+
+			if ( $dhl_order->has_preferred_delivery_type() ) {
+				$type_titles = ParcelServices::get_preferred_delivery_types();
+				$type        = $dhl_order->get_preferred_delivery_type();
+
+				$dhl_data[] = array(
+					'label' => _x( 'Delivery type', 'dhl', 'woocommerce-germanized-dhl' ),
+					'value' => array_key_exists( $type, $type_titles ) ? $type_titles[ $type ] : $type,
+				);
+			}
+
+			if ( $dhl_order->has_preferred_location() ) {
+				$dhl_data[] = array(
+					'label' => _x( 'Preferred location', 'dhl', 'woocommerce-germanized-dhl' ),
+					'value' => $dhl_order->get_preferred_location(),
+				);
+			}
+
+			if ( $dhl_order->has_preferred_neighbor() ) {
+				$dhl_data[] = array(
+					'label' => _x( 'Preferred neighbor', 'dhl', 'woocommerce-germanized-dhl' ),
+					'value' => $dhl_order->get_preferred_neighbor_formatted_address(),
+				);
+			}
+			?>
+			<?php if ( ! empty( $dhl_data ) ) : ?>
+				<p>
+					<strong><?php echo esc_html_x( 'DHL Preferred Delivery', 'dhl', 'woocommerce-germanized-dhl' ); ?>:</strong><br/>
+					<?php foreach ( $dhl_data as $dhl_dataset ) : ?>
+						<span class="label"><?php echo esc_html( $dhl_dataset['label'] ); ?>: </span><span class="value"><?php echo esc_html( $dhl_dataset['value'] ); ?></span><br/>
+					<?php endforeach; ?>
+				</p>
+				<?php
+			endif;
+		}
 	}
 
 	public static function add_notices() {

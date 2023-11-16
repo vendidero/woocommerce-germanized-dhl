@@ -111,6 +111,11 @@ class ParcelServices {
 		return $total_rows;
 	}
 
+	/**
+	 * @param \WC_Order $order
+	 *
+	 * @return void
+	 */
 	public static function create_order( $order ) {
 		if ( self::is_preferred_option_available() ) {
 			$data = self::get_data();

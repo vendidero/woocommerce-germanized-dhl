@@ -339,7 +339,6 @@ class Order {
 	}
 
 	public function get_preferred_neighbor_formatted_address() {
-
 		if ( ! empty( $this->get_preferred_neighbor() ) && ! empty( $this->get_preferred_neighbor_address() ) ) {
 			return $this->get_preferred_neighbor() . ', ' . $this->get_preferred_neighbor_address();
 		}
