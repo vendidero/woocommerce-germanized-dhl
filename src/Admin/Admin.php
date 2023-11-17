@@ -101,7 +101,7 @@ class Admin {
 			}
 			?>
 			<?php if ( ! empty( $dhl_data ) ) : ?>
-				<p>
+				<p class="wc-gzd-shipment-order-meta-data">
 					<strong><?php echo esc_html_x( 'DHL Preferred Delivery', 'dhl', 'woocommerce-germanized-dhl' ); ?>:</strong><br/>
 					<?php foreach ( $dhl_data as $dhl_dataset ) : ?>
 						<span class="label"><?php echo esc_html( $dhl_dataset['label'] ); ?>: </span><span class="value"><?php echo esc_html( $dhl_dataset['value'] ); ?></span><br/>
