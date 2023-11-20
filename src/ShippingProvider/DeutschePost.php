@@ -16,15 +16,6 @@ use Vendidero\Germanized\Shipments\ShippingProvider\ServiceList;
 defined( 'ABSPATH' ) || exit;
 
 class DeutschePost extends Auto {
-
-	protected function get_default_label_minimum_shipment_weight() {
-		return 0.01;
-	}
-
-	protected function get_default_label_default_shipment_weight() {
-		return 0.5;
-	}
-
 	protected function get_default_label_default_print_format() {
 		return 1;
 	}
@@ -174,7 +165,7 @@ class DeutschePost extends Auto {
 		return $settings;
 	}
 
-	protected function get_general_settings( $for_shipping_method = false ) {
+	protected function get_general_settings() {
 		$settings = array(
 			array(
 				'title' => '',
@@ -275,7 +266,7 @@ class DeutschePost extends Auto {
 			)
 		);
 
-		$general_settings = parent::get_general_settings( $for_shipping_method );
+		$general_settings = parent::get_general_settings();
 
 		return array_merge( $settings, $general_settings );
 	}

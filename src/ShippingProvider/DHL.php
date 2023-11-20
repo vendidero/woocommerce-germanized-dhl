@@ -26,10 +26,6 @@ defined( 'ABSPATH' ) || exit;
 
 class DHL extends Auto {
 
-	protected function get_default_label_default_shipment_weight() {
-		return 0.5;
-	}
-
 	public function get_title( $context = 'view' ) {
 		return _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' );
 	}
@@ -384,14 +380,13 @@ class DHL extends Auto {
 					$settings,
 					array(
 						array(
-							'title'          => _x( 'Encodable', 'dhl', 'woocommerce-germanized-dhl' ),
-							'desc'           => _x( 'Labels will only be created if an address is encodable by DHL.', 'dhl', 'woocommerce-germanized-dhl' ),
-							'id'             => 'label_address_codeable_only',
-							'value'          => $this->get_setting( 'label_address_codeable_only', 'no' ),
-							'default'        => 'no',
-							'type'           => 'gzd_toggle',
-							'allow_override' => false,
-							'desc_tip'       => _x( 'Choose this option if you want to make sure that by default labels are only generated for encodable addresses.', 'dhl', 'woocommerce-germanized-dhl' ),
+							'title'    => _x( 'Encodable', 'dhl', 'woocommerce-germanized-dhl' ),
+							'desc'     => _x( 'Labels will only be created if an address is encodable by DHL.', 'dhl', 'woocommerce-germanized-dhl' ),
+							'id'       => 'label_address_codeable_only',
+							'value'    => $this->get_setting( 'label_address_codeable_only', 'no' ),
+							'default'  => 'no',
+							'type'     => 'gzd_toggle',
+							'desc_tip' => _x( 'Choose this option if you want to make sure that by default labels are only generated for encodable addresses.', 'dhl', 'woocommerce-germanized-dhl' ),
 						),
 
 						array(
@@ -820,9 +815,9 @@ class DHL extends Auto {
 		return '<span class="wc-gzd-shipment-api-connection-status ' . ( $has_error ? 'connection-status-error' : 'connection-status-success' ) . '">' . ( sprintf( _x( 'Status: %1$s', 'dhl', 'woocommerce-germanized-dhl' ), ( $has_error ? $response->get_error_message() : _x( 'Connected', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ) . '</span>';
 	}
 
-	protected function get_general_settings( $for_shipping_method = false ) {
+	protected function get_general_settings() {
 		$screen                 = function_exists( 'get_current_screen' ) ? get_current_screen() : false;
-		$connection_status_html = ( ! $for_shipping_method && $this->is_activated() && is_admin() && $screen && 'woocommerce_page_wc-settings' === $screen->id ) ? $this->get_connection_status_html() : '';
+		$connection_status_html = ( $this->is_activated() && is_admin() && $screen && 'woocommerce_page_wc-settings' === $screen->id ) ? $this->get_connection_status_html() : '';
 		$ref_placeholders       = wc_gzd_dhl_get_label_payment_ref_placeholder();
 		$ref_placeholders_str   = implode( ', ', array_keys( $ref_placeholders ) );
 
@@ -1031,7 +1026,7 @@ class DHL extends Auto {
 			)
 		);
 
-		$general_settings = parent::get_general_settings( $for_shipping_method );
+		$general_settings = parent::get_general_settings();
 
 		$general_settings = array_merge(
 			$general_settings,
@@ -1049,10 +1044,9 @@ class DHL extends Auto {
 	protected function get_pickup_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array(
-				'title'          => '',
-				'type'           => 'title',
-				'id'             => 'dhl_pickup_options',
-				'allow_override' => true,
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'dhl_pickup_options',
 			),
 
 			array(
@@ -1086,13 +1080,12 @@ class DHL extends Auto {
 			),
 
 			array(
-				'title'          => _x( 'Map', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'           => _x( 'Let customers find a DHL location on a map.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'Enable this option to let your customers choose a pickup option from a map within the checkout. If this option is disabled a link to the DHL website is placed instead.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'id'             => 'parcel_pickup_map_enable',
-				'value'          => wc_bool_to_string( $this->get_setting( 'parcel_pickup_map_enable' ) ),
-				'default'        => 'no',
-				'type'           => 'gzd_toggle',
-				'allow_override' => false,
+				'title'   => _x( 'Map', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc'    => _x( 'Let customers find a DHL location on a map.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'Enable this option to let your customers choose a pickup option from a map within the checkout. If this option is disabled a link to the DHL website is placed instead.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+				'id'      => 'parcel_pickup_map_enable',
+				'value'   => wc_bool_to_string( $this->get_setting( 'parcel_pickup_map_enable' ) ),
+				'default' => 'no',
+				'type'    => 'gzd_toggle',
 			),
 
 			array(
@@ -1103,7 +1096,6 @@ class DHL extends Auto {
 				'value'             => $this->get_setting( 'parcel_pickup_map_api_password' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To integrate a map within your checkout you\'ll need a valid API key for Google Maps. You may %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">' . _x( 'retrieve a new one', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
 				'default'           => '',
-				'allow_override'    => false,
 			),
 
 			array(
@@ -1115,7 +1107,6 @@ class DHL extends Auto {
 				'desc_tip'          => _x( 'Limit the number of DHL locations shown on the map', 'dhl', 'woocommerce-germanized-dhl' ),
 				'default'           => 20,
 				'css'               => 'max-width: 60px;',
-				'allow_override'    => false,
 			),
 
 			array(
@@ -1141,10 +1132,9 @@ class DHL extends Auto {
 
 		$settings = array(
 			array(
-				'title'          => '',
-				'type'           => 'title',
-				'id'             => 'preferred_options',
-				'allow_override' => true,
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'preferred_options',
 			),
 
 			array(
@@ -1226,7 +1216,6 @@ class DHL extends Auto {
 				'title'             => _x( 'Cut-off time', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'time',
 				'id'                => 'PreferredDay_cutoff_time',
-				'allow_override'    => false,
 				'value'             => $this->get_setting( 'PreferredDay_cutoff_time' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'The cut-off time is the latest possible order time up to which the minimum delivery day (day of order + 2 working days) can be guaranteed. As soon as the time is exceeded, the earliest delivery day displayed in the frontend will be shifted to one day later (day of order + 3 working days).', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 				'default'           => '12:00',
@@ -1237,7 +1226,6 @@ class DHL extends Auto {
 				'title'             => _x( 'Preparation days', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'number',
 				'id'                => 'PreferredDay_preparation_days',
-				'allow_override'    => false,
 				'value'             => $this->get_setting( 'PreferredDay_preparation_days' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'If you need more time to prepare your shipments you might want to add a static preparation time to the possible starting date for delivery day delivery.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 				'default'           => '0',
@@ -1255,7 +1243,6 @@ class DHL extends Auto {
 				'desc_tip'          => _x( 'Exclude days from transferring shipments to DHL.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_mon' ) ),
 				'id'                => 'PreferredDay_exclusion_mon',
-				'allow_override'    => false,
 				'type'              => 'gzd_toggle',
 				'default'           => 'no',
 				'checkboxgroup'     => 'start',
@@ -1267,7 +1254,6 @@ class DHL extends Auto {
 				'id'                => 'PreferredDay_exclusion_tue',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_tue' ) ),
 				'type'              => 'gzd_toggle',
-				'allow_override'    => false,
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1278,7 +1264,6 @@ class DHL extends Auto {
 				'id'                => 'PreferredDay_exclusion_wed',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_wed' ) ),
 				'type'              => 'gzd_toggle',
-				'allow_override'    => false,
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1289,7 +1274,6 @@ class DHL extends Auto {
 				'id'                => 'PreferredDay_exclusion_thu',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_thu' ) ),
 				'type'              => 'gzd_toggle',
-				'allow_override'    => false,
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1300,7 +1284,6 @@ class DHL extends Auto {
 				'id'                => 'PreferredDay_exclusion_fri',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_fri' ) ),
 				'type'              => 'gzd_toggle',
-				'allow_override'    => false,
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1311,22 +1294,20 @@ class DHL extends Auto {
 				'id'                => 'PreferredDay_exclusion_sat',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_sat' ) ),
 				'type'              => 'gzd_toggle',
-				'allow_override'    => false,
 				'default'           => 'no',
 				'checkboxgroup'     => 'end',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
 			),
 
 			array(
-				'title'          => _x( 'Exclude gateways', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'           => 'multiselect',
-				'desc'           => _x( 'Select payment gateways to be excluded from showing preferred services.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip'       => true,
-				'allow_override' => false,
-				'id'             => 'preferred_payment_gateways_excluded',
-				'value'          => $this->get_setting( 'preferred_payment_gateways_excluded' ),
-				'options'        => $wc_gateway_titles,
-				'class'          => 'wc-enhanced-select',
+				'title'    => _x( 'Exclude gateways', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'     => 'multiselect',
+				'desc'     => _x( 'Select payment gateways to be excluded from showing preferred services.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip' => true,
+				'id'       => 'preferred_payment_gateways_excluded',
+				'value'    => $this->get_setting( 'preferred_payment_gateways_excluded' ),
+				'options'  => $wc_gateway_titles,
+				'class'    => 'wc-enhanced-select',
 			),
 
 			array(
@@ -1338,23 +1319,21 @@ class DHL extends Auto {
 		return $settings;
 	}
 
-	protected function get_label_settings( $for_shipping_method = false ) {
+	protected function get_label_settings() {
 		$settings = array(
 			array(
-				'title'          => '',
-				'type'           => 'title',
-				'id'             => 'shipping_provider_dhl_label_options',
-				'allow_override' => true,
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'shipping_provider_dhl_label_options',
 			),
 
 			array(
-				'title'          => _x( 'Custom shipper', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'           => _x( 'Use a custom shipper address managed within your DHL business profile.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose this option if you want to use a <a href="%s" target="_blank">custom address</a> profile managed within your DHL business profile as shipper reference for your labels.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
-				'id'             => 'label_use_custom_shipper',
-				'value'          => $this->get_setting( 'label_use_custom_shipper', 'no' ),
-				'default'        => 'no',
-				'allow_override' => false,
-				'type'           => 'gzd_toggle',
+				'title'   => _x( 'Custom shipper', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc'    => _x( 'Use a custom shipper address managed within your DHL business profile.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose this option if you want to use a <a href="%s" target="_blank">custom address</a> profile managed within your DHL business profile as shipper reference for your labels.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
+				'id'      => 'label_use_custom_shipper',
+				'value'   => $this->get_setting( 'label_use_custom_shipper', 'no' ),
+				'default' => 'no',
+				'type'    => 'gzd_toggle',
 			),
 
 			array(
@@ -1363,7 +1342,6 @@ class DHL extends Auto {
 				'id'                => 'label_custom_shipper_reference',
 				'value'             => $this->get_setting( 'label_custom_shipper_reference', '' ),
 				'default'           => '',
-				'allow_override'    => false,
 				'type'              => 'text',
 				'custom_attributes' => array( 'data-show_if_label_use_custom_shipper' => 'yes' ),
 			),
@@ -1374,7 +1352,7 @@ class DHL extends Auto {
 			),
 		);
 
-		$settings = array_merge( $settings, parent::get_label_settings( $for_shipping_method ) );
+		$settings = array_merge( $settings, parent::get_label_settings() );
 
 		return $settings;
 	}
