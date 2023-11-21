@@ -8,7 +8,6 @@ use Exception;
 use Vendidero\Germanized\DHL\Api\Paket;
 use Vendidero\Germanized\DHL\ShippingProvider\DeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\DHL;
-use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Registry\Container;
@@ -366,8 +365,11 @@ class Package {
 		return self::$api;
 	}
 
+	/**
+	 * @return Internetmarke|null
+	 */
 	public static function get_internetmarke_api() {
-		if ( is_null( self::$im_api ) && self::is_deutsche_post_enabled() ) {
+		if ( is_null( self::$im_api ) ) {
 			self::$im_api = new Internetmarke();
 		}
 
@@ -619,7 +621,7 @@ class Package {
 	}
 
 	public static function use_legacy_soap_api() {
-		return apply_filters( 'woocommerce_gzd_dhl_use_legacy_soap_api', ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ? WC_GZD_DHL_LEGACY_SOAP : ( 'yes' === get_option( 'woocommerce_gzd_dhl_enable_legacy_soap' ) ) ) );
+		return apply_filters( 'woocommerce_gzd_dhl_use_legacy_soap_api', ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ? WC_GZD_DHL_LEGACY_SOAP : false ) );
 	}
 
 	public static function get_label_rest_api_url() {
@@ -1033,7 +1035,6 @@ class Package {
 
 	/**
 	 * @param $name
-	 * @param bool|ShippingMethod $method
 	 *
 	 * @return mixed|void
 	 */
@@ -1060,19 +1061,11 @@ class Package {
 
 		if ( ! $is_dp ) {
 			if ( $provider = self::get_dhl_shipping_provider() ) {
-				if ( $shipment ) {
-					$value = $provider->get_shipment_setting( $shipment, $name, $default );
-				} else {
-					$value = $provider->get_setting( $name, $default );
-				}
+				$value = $provider->get_setting( $name, $default );
 			}
 		} else {
 			if ( $provider = self::get_deutsche_post_shipping_provider() ) {
-				if ( $shipment ) {
-					$value = $provider->get_shipment_setting( $shipment, $name, $default );
-				} else {
-					$value = $provider->get_setting( $name, $default );
-				}
+				$value = $provider->get_setting( $name, $default );
 			}
 		}
 

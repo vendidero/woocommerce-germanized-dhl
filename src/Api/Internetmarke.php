@@ -14,6 +14,7 @@ use Vendidero\Germanized\DHL\Label\DeutschePostReturn;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ShippingProvider\ProductList;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -194,58 +195,21 @@ class Internetmarke {
 			$this->products = new ImProductList( $this );
 		}
 
-		$transient = get_transient( 'wc_gzd_dhl_im_products_expire' );
-
-		if ( ! $transient ) {
-			$result = $this->products->update();
-
-			if ( is_wp_error( $result ) ) {
-				Package::log( 'Error while refreshing Internetmarke product data: ' . $result->get_error_message() );
-			}
-
-			/**
-			 * Refresh product data once per day.
-			 */
-			set_transient( 'wc_gzd_dhl_im_products_expire', 'yes', DAY_IN_SECONDS );
-		}
+		return $this->products;
 	}
 
-	public function get_products( $filters = array() ) {
+	/**
+	 * @return ProductList
+	 */
+	public function get_products() {
 		$this->load_products();
 
-		return $this->products->get_products( $filters );
+		return $this->products->get_products();
 	}
 
-	public function get_base_products() {
-		$this->load_products();
-
-		return $this->products->get_base_products();
-	}
-
-	public function get_default_available_products() {
-		return array(
-			'11',
-			'21',
-			'31',
-			'282',
-			'290',
-			'10246',
-			'10247',
-			'10248',
-			'10249',
-			'10254',
-			'10255',
-			'10256',
-			'10257',
-		);
-	}
-
-	public function get_available_products( $filters = array() ) {
-		$this->load_products();
-
-		return $this->products->get_available_products( $filters );
-	}
-
+	/**
+	 * @return ImProductList
+	 */
 	public function get_product_list() {
 		$this->load_products();
 
@@ -256,9 +220,7 @@ class Internetmarke {
 		$is_wp_int = false;
 
 		if ( $product_data = $this->get_product_data_by_code( $im_product_code ) ) {
-			if ( 1 === (int) $product_data->product_is_wp_int ) {
-				return true;
-			}
+			return $product_data->get_meta( 'is_wp_int' );
 		}
 
 		return $is_wp_int;
@@ -268,7 +230,7 @@ class Internetmarke {
 		$is_wp_int = false;
 
 		if ( $product_data = $this->get_product_data_by_code( $im_product_code ) ) {
-			if ( 1 === (int) $product_data->product_is_wp_int && 'eu' === $product_data->product_destination ) {
+			if ( true === $product_data->get_meta( 'is_wp_int' ) && 'eu' === $product_data->get_meta( 'destination' ) ) {
 				return true;
 			}
 		}
@@ -297,33 +259,27 @@ class Internetmarke {
 	}
 
 	public function get_product_data_by_code( $im_product_id ) {
-		$this->load_products();
-
-		return $this->products->get_product_data_by_code( $im_product_id );
+		return $this->get_product_list()->get_product_data_by_code( $im_product_id );
 	}
 
 	public function get_product_data( $product_id ) {
-		$this->load_products();
-
-		return $this->products->get_product_data( $product_id );
+		return $this->get_product_list()->get_product_data( $product_id );
 	}
 
 	public function get_product_id( $im_product_id ) {
-		$this->load_products();
-		$data = $this->products->get_product_data_by_code( $im_product_id );
+		if ( $product = $this->get_product_list()->get_product_data_by_code( $im_product_id ) ) {
+			return $product->get_internal_id();
+		}
 
-		return ( ! empty( $data ) ? $data->product_id : 0 );
+		return 0;
 	}
 
 	public function get_product_parent_code( $im_product_id ) {
-		$this->load_products();
-		$data = $this->products->get_product_data_by_code( $im_product_id );
-
-		if ( ! empty( $data ) ) {
-			if ( $data->product_parent_id > 0 ) {
-				$im_product_data = $this->get_product_data( $data->product_parent_id );
-
-				$im_product_id = $im_product_data->product_code;
+		if ( $product = $this->get_product_list()->get_product_data_by_code( $im_product_id ) ) {
+			if ( $product->get_parent_id() > 0 ) {
+				if ( $parent_product = $this->get_product_data( $product->get_parent_id() ) ) {
+					$im_product_id = $parent_product->get_id();
+				}
 			}
 		}
 
@@ -331,12 +287,10 @@ class Internetmarke {
 	}
 
 	public function product_code_is_parent( $im_product_id ) {
-		$this->load_products();
-		$data      = $this->products->get_product_data_by_code( $im_product_id );
 		$is_parent = false;
 
-		if ( ! empty( $data ) ) {
-			if ( $data->product_parent_id > 0 ) {
+		if ( $product = $this->get_product_list()->get_product_data_by_code( $im_product_id ) ) {
+			if ( $product->get_parent_id() > 0 ) {
 				$is_parent = false;
 			} else {
 				$is_parent = true;
@@ -349,25 +303,15 @@ class Internetmarke {
 	public function get_product_total( $product_code ) {
 		$total = 0;
 
-		if ( $data = $this->get_product_data_by_code( $product_code ) ) {
-			$total = $data->product_price;
+		if ( $product = $this->get_product_data_by_code( $product_code ) ) {
+			$total = $product->get_price();
 		}
 
 		return $total;
 	}
 
-	public function get_available_products_printable() {
-		$printable = array();
-
-		foreach ( $this->get_available_products() as $product ) {
-			$printable[ $product->product_code ] = $this->get_product_preview_data( $product );
-		}
-
-		return $printable;
-	}
-
 	public function get_product_preview_data( $im_product_id ) {
-		$product   = is_numeric( $im_product_id ) ? $this->get_product_data_by_code( $im_product_id ) : $im_product_id;
+		$product   = $this->get_product_list()->get_products()->get( $im_product_id );
 		$formatted = array(
 			'title_formatted'            => '',
 			'price_formatted'            => '',
@@ -376,15 +320,15 @@ class Internetmarke {
 			'dimensions_formatted'       => '',
 		);
 
-		if ( ! $product || ! isset( $product->product_id ) ) {
+		if ( ! $product ) {
 			return $formatted;
 		}
 
 		$dimensions       = array();
-		$formatted_length = $this->format_dimensions( $product, 'length' );
-		$formatted_width  = $this->format_dimensions( $product, 'width' );
-		$formatted_height = $this->format_dimensions( $product, 'height' );
-		$formatted_weight = $this->format_dimensions( $product, 'weight' );
+		$formatted_length = $product->get_formatted_dimensions( 'length' );
+		$formatted_width  = $product->get_formatted_dimensions( 'width' );
+		$formatted_height = $product->get_formatted_dimensions( 'height' );
+		$formatted_weight = $product->get_formatted_dimensions( 'weight' );
 
 		if ( ! empty( $formatted_length ) ) {
 			$dimensions[] = sprintf( _x( 'Length: %s', 'dhl', 'woocommerce-germanized-dhl' ), $formatted_length );
@@ -405,10 +349,10 @@ class Internetmarke {
 		$formatted = array_merge(
 			(array) $product,
 			array(
-				'title_formatted'            => wc_gzd_dhl_get_im_product_title( $product->product_name ),
-				'price_formatted'            => wc_price( Package::cents_to_eur( $product->product_price ), array( 'currency' => 'EUR' ) ) . ' <span class="price-suffix">' . _x( 'Total', 'dhl', 'woocommerce-germanized-dhl' ) . '</span>',
-				'description_formatted'      => ! empty( $product->product_annotation ) ? $product->product_annotation : $product->product_description,
-				'information_text_formatted' => $product->product_information_text,
+				'title_formatted'            => $product->get_label(),
+				'price_formatted'            => wc_price( Package::cents_to_eur( $product->get_price() ), array( 'currency' => 'EUR' ) ) . ' <span class="price-suffix">' . _x( 'Total', 'dhl', 'woocommerce-germanized-dhl' ) . '</span>',
+				'description_formatted'      => $product->get_meta( 'annotation' ) ? $product->get_meta( 'annotation' ) : $product->get_description(),
+				'information_text_formatted' => $product->get_meta( 'information_text' ),
 				'dimensions_formatted'       => implode( '<br/>', $dimensions ),
 			)
 		);
@@ -462,27 +406,19 @@ class Internetmarke {
 	}
 
 	public function get_product_services( $im_product_id ) {
-		$this->load_products();
-
-		$product_id = $this->get_product_id( $im_product_id );
-
-		if ( $product_id ) {
-			return $this->products->get_product_services( $product_id );
+		if ( $product = $this->get_product_list()->get_product_data_by_code( $im_product_id ) ) {
+			return $this->get_product_list()->get_product_services( $product->get_internal_id() );
 		}
 
 		return array();
 	}
 
 	public function get_product_code( $maybe_parent_product_code, $services = array() ) {
-		$this->load_products();
-
-		$product_id = $this->get_product_id( $maybe_parent_product_code );
-
-		if ( $product_id ) {
-			$new_product_data = $this->products->get_product_data_by_services( $product_id, $services );
+		if ( $product = $this->get_product_list()->get_product_data_by_code( $maybe_parent_product_code ) ) {
+			$new_product_data = $this->get_product_list()->get_product_data_by_services( $product->get_internal_id(), $services );
 
 			if ( $new_product_data ) {
-				return $new_product_data->product_code;
+				return $new_product_data->get_id();
 			} else {
 				return false;
 			}
@@ -794,7 +730,7 @@ class Internetmarke {
 			);
 
 			$order_item = new \baltpeter\Internetmarke\OrderItem( $label->get_product_id(), null, $address_binding, $position, 'AddressZone' );
-			$stamp      = $api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_page_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
+			$stamp      = $api->checkoutShoppingCartPdf( $this->get_user()->getUserToken(), $label->get_print_format(), array( $order_item ), $label->get_stamp_total(), $shop_order_id, null, true, 2 );
 
 			return $this->update_default_label( $label, $stamp );
 		} catch ( \Exception $e ) {
@@ -848,8 +784,6 @@ class Internetmarke {
 	}
 
 	public function update_products() {
-		$this->load_products();
-
-		return $this->products->update();
+		return $this->get_product_list()->update();
 	}
 }

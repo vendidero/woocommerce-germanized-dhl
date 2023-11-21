@@ -3,7 +3,6 @@
 namespace Vendidero\Germanized\DHL;
 
 use Exception;
-use Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Checkout;
 use WC_Order;
@@ -102,7 +101,6 @@ class ParcelLocator {
 	}
 
 	public static function admin_profile_fields( $fields ) {
-
 		if ( ! self::is_available() ) {
 			return $fields;
 		}
@@ -598,7 +596,6 @@ class ParcelLocator {
 	}
 
 	public static function get_shipping_method_data( $from_session = false ) {
-
 		if ( $from_session ) {
 			return WC()->session->get( 'dhl_shipping_method_data', array() );
 		}
@@ -614,24 +611,28 @@ class ParcelLocator {
 			$rates = $package['rates'];
 
 			foreach ( $rates as $rate ) {
-				if ( $method = wc_gzd_dhl_get_shipping_method( $rate ) ) {
-					$supports = array();
+				if ( $method = wc_gzd_get_shipping_provider_method( $rate ) ) {
+					$provider_name = $method->get_shipping_provider();
 
-					foreach ( wc_gzd_dhl_get_pickup_types() as $pickup_type => $title ) {
-						$getter = "is_{$pickup_type}_enabled";
+					if ( $method->has_shipping_provider( array( 'dhl', 'deutsche_post' ) ) ) {
+						$supports = array();
 
-						if ( $method->$getter() ) {
-							$supports[] = $pickup_type;
+						foreach ( wc_gzd_dhl_get_pickup_types() as $pickup_type => $title ) {
+							$getter = "is_{$pickup_type}_enabled";
+
+							if ( self::$getter( $provider_name ) ) {
+								$supports[] = $pickup_type;
+							}
 						}
-					}
 
-					$data[ self::get_rate_with_instance_id( $rate->id ) ] = array(
-						'supports'             => $supports,
-						'address_type_options' => self::get_address_types( $method ),
-						'finder_button'        => self::get_button( $method ),
-						'street_label'         => self::get_pickup_type_address_label( $method ),
-						'street_placeholder'   => self::get_pickup_type_address_placeholder( $method ),
-					);
+						$data[ self::get_rate_with_instance_id( $rate->id ) ] = array(
+							'supports'             => $supports,
+							'address_type_options' => self::get_address_types( $provider_name ),
+							'finder_button'        => self::get_button( $provider_name ),
+							'street_label'         => self::get_pickup_type_address_label( $provider_name ),
+							'street_placeholder'   => self::get_pickup_type_address_placeholder( $provider_name ),
+						);
+					}
 				}
 			}
 		}
@@ -902,31 +903,9 @@ class ParcelLocator {
 		return $disable_method_check;
 	}
 
-	protected static function get_setting( $key, $check_method = true ) {
+	protected static function get_setting( $key ) {
 		$option_key = 'parcel_pickup_' . $key;
-
-		/**
-		 * Exclude non-overridable options to make sure they might be used for DP too (e.g. packstation maps)
-		 */
-		if ( ! in_array( $option_key, array( 'parcel_pickup_map_enable', 'parcel_pickup_map_api_password', 'parcel_pickup_map_max_results' ), true ) ) {
-			if ( $check_method && ( $method = wc_gzd_dhl_get_current_shipping_method() ) ) {
-				if ( 'parcel_pickup_packstation_enable' === $option_key ) {
-					return wc_bool_to_string( $method->is_packstation_enabled() );
-				} elseif ( 'parcel_pickup_parcelshop_enable' === $option_key ) {
-					return wc_bool_to_string( $method->is_parcelshop_enabled() );
-				} elseif ( 'parcel_pickup_postoffice_enable' === $option_key ) {
-					return wc_bool_to_string( $method->is_postoffice_enabled() );
-				} elseif ( ! self::disable_method_setting() ) {
-					/**
-					 * Explicitly call available pickup getters instead of generic get_option method
-					 * to support DP adjustments (packstation).
-					 */
-					return $method->get_option( $option_key );
-				}
-			}
-		}
-
-		$setting = Package::get_setting( $option_key );
+		$setting    = Package::get_setting( $option_key );
 
 		return $setting;
 	}
@@ -935,29 +914,73 @@ class ParcelLocator {
 		return Package::base_country_supports( 'pickup' );
 	}
 
-	public static function is_available( $check_shipping_method = true ) {
-		return self::is_packstation_enabled( $check_shipping_method ) || self::is_parcelshop_enabled( $check_shipping_method ) || self::is_postoffice_enabled( $check_shipping_method );
+	public static function is_available( $provider = false ) {
+		return self::is_packstation_enabled( $provider ) || self::is_parcelshop_enabled( $provider ) || self::is_postoffice_enabled( $provider );
 	}
 
-	public static function is_postoffice_enabled( $check_shipping_method = true ) {
-		return 'yes' === self::get_setting( 'postoffice_enable', $check_shipping_method );
+	protected static function get_current_shipping_provider() {
+		if ( $method = wc_gzd_get_current_shipping_provider_method() ) {
+			return $method->get_shipping_provider();
+		}
+
+		return '';
 	}
 
-	public static function is_packstation_enabled( $check_shipping_method = true ) {
-		return 'yes' === self::get_setting( 'packstation_enable', $check_shipping_method );
-	}
-
-	public static function is_parcelshop_enabled( $check_shipping_method = true ) {
-		return 'yes' === self::get_setting( 'parcelshop_enable', $check_shipping_method );
-	}
-
-	public static function has_map( $check_shipping_method = true ) {
-		if ( Package::is_debug_mode() ) {
-			return ( 'yes' === self::get_setting( 'map_enable', $check_shipping_method ) && Package::is_dhl_enabled() );
+	protected static function shipping_provider_supports_locations( $provider, $location_type = 'packstation' ) {
+		if ( 'packstation' === $location_type ) {
+			return in_array( $provider, array( 'dhl', 'deutsche_post' ), true );
 		} else {
-			$api_key = self::get_setting( 'map_api_password', false );
+			return in_array( $provider, array( 'dhl' ), true );
+		}
+	}
 
-			return ( 'yes' === self::get_setting( 'map_enable', $check_shipping_method ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
+	protected static function current_shipping_provider_supports_locations( $location_type = 'packstation' ) {
+		return self::shipping_provider_supports_locations( self::get_current_shipping_provider(), $location_type );
+	}
+
+	public static function is_postoffice_enabled( $provider = false ) {
+		$is_enabled = 'yes' === self::get_setting( 'postoffice_enable' );
+
+		if ( false !== $provider ) {
+			if ( ! self::shipping_provider_supports_locations( $provider, 'postoffice' ) ) {
+				$is_enabled = false;
+			}
+		}
+
+		return $is_enabled;
+	}
+
+	public static function is_packstation_enabled( $provider = false ) {
+		$is_enabled = 'yes' === self::get_setting( 'packstation_enable' );
+
+		if ( false !== $provider ) {
+			if ( ! self::shipping_provider_supports_locations( $provider, 'packstation' ) ) {
+				$is_enabled = false;
+			}
+		}
+
+		return $is_enabled;
+	}
+
+	public static function is_parcelshop_enabled( $provider = false ) {
+		$is_enabled = 'yes' === self::get_setting( 'parcelshop_enable' );
+
+		if ( false !== $provider ) {
+			if ( ! self::shipping_provider_supports_locations( $provider, 'parcelshop' ) ) {
+				$is_enabled = false;
+			}
+		}
+
+		return $is_enabled;
+	}
+
+	public static function has_map() {
+		if ( Package::is_debug_mode() ) {
+			return ( 'yes' === self::get_setting( 'map_enable' ) && Package::is_dhl_enabled() );
+		} else {
+			$api_key = self::get_setting( 'map_api_password' );
+
+			return ( 'yes' === self::get_setting( 'map_enable' ) && ! empty( $api_key ) && Package::is_dhl_enabled() );
 		}
 	}
 
@@ -965,15 +988,15 @@ class ParcelLocator {
 		return self::get_setting( 'map_max_results' );
 	}
 
-	protected static function get_street_placeholder( $method = false ) {
+	protected static function get_street_placeholder( $provider = false ) {
 		$type = '';
 		$text = '';
 
-		if ( ( $method && $method->is_packstation_enabled() ) || ( ! $method && self::is_packstation_enabled() ) ) {
+		if ( self::is_packstation_enabled( $provider ) ) {
 			$type = wc_gzd_dhl_get_pickup_type( 'packstation' );
-		} elseif ( ( $method && $method->is_parcelshop_enabled() ) || ( ! $method && self::is_parcelshop_enabled() ) ) {
+		} elseif ( self::is_parcelshop_enabled( $provider ) ) {
 			$type = wc_gzd_dhl_get_pickup_type( 'parcelshop' );
-		} elseif ( ( $method && $method->is_postoffice_enabled() ) || ( ! $method && self::is_postoffice_enabled() ) ) {
+		} elseif ( self::is_postoffice_enabled( $provider ) ) {
 			$type = wc_gzd_dhl_get_pickup_type( 'postoffice' );
 		}
 
@@ -987,22 +1010,22 @@ class ParcelLocator {
 	/**
 	 * @param string $sep
 	 * @param bool $plural
-	 * @param bool|ShippingMethod $method
+	 * @param bool|string $provider
 	 *
 	 * @return string
 	 */
-	protected static function get_type_text( $sep = '', $plural = true, $method = false ) {
+	protected static function get_type_text( $sep = '', $plural = true, $provider = false ) {
 		$search_types = '';
 
 		if ( empty( $sep ) ) {
 			$sep = '&amp;';
 		}
 
-		if ( ( $method && $method->is_packstation_enabled() ) || ( ! $method && self::is_packstation_enabled() ) ) {
+		if ( self::is_packstation_enabled( $provider ) ) {
 			$search_types .= _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' );
 		}
 
-		if ( ( $method && ( $method->is_parcelshop_enabled() || $method->is_postoffice_enabled() ) ) || ( ! $method && ( self::is_parcelshop_enabled() || self::is_postoffice_enabled() ) ) ) {
+		if ( self::is_parcelshop_enabled( $provider ) || self::is_postoffice_enabled( $provider ) ) {
 			$branch_type   = ( $plural ) ? _x( 'Branches', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'Branch', 'dhl', 'woocommerce-germanized-dhl' );
 			$search_types .= ( ! empty( $search_types ) ? ' ' . $sep . ' ' . $branch_type : $branch_type );
 		}
@@ -1027,10 +1050,10 @@ class ParcelLocator {
 		return $fields;
 	}
 
-	public static function get_address_types( $method = false ) {
+	public static function get_address_types( $provider = false ) {
 		return array(
 			'regular' => _x( 'Regular Address', 'dhl', 'woocommerce-germanized-dhl' ),
-			'dhl'     => self::get_type_text( ' / ', true, $method ),
+			'dhl'     => self::get_type_text( ' / ', true, $provider ),
 		);
 	}
 
@@ -1039,7 +1062,7 @@ class ParcelLocator {
 		 * On initial render make sure to not check the actual shipping method options for availability.
 		 * Otherwise if the initial shipping method does not support DHL the fields are not even added to the checkout form.
 		 */
-		if ( self::is_available( false ) ) {
+		if ( self::is_available() ) {
 			$fields['shipping_address_type'] = array(
 				'label'    => _x( 'Address Type', 'dhl', 'woocommerce-germanized-dhl' ),
 				'required' => false,
@@ -1081,46 +1104,46 @@ class ParcelLocator {
 		return $fields;
 	}
 
-	protected static function get_pickup_type_address_label( $method = false ) {
+	protected static function get_pickup_type_address_label( $provider = false ) {
 		/**
 		 * Filter to adjust the pickup type address label added
 		 * to the address field when a certain pickup type was chosen.
 		 *
-		 * @param string            $pickup_type_text The pickup type text.
-		 * @param boolean|ShippingMethod $method The shipping method object if available.
+		 * @param string         $pickup_type_text The pickup type text.
+		 * @param boolean|string $provider Shipping provider name, if available.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL
 		 */
-		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_label', self::get_type_text( ' / ', false, $method ), $method );
+		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_label', self::get_type_text( ' / ', false, $provider ), $provider );
 	}
 
-	protected static function get_pickup_type_address_placeholder( $method = false ) {
+	protected static function get_pickup_type_address_placeholder( $provider = false ) {
 		/**
 		 * Filter to adjust the pickup type address placeholder added
 		 * to the address field when a certain pickup type was chosen.
 		 *
 		 * @param string            $pickup_type_text The pickup type placeholder text.
-		 * @param boolean|ShippingMethod $method The shipping method object if available.
+		 * @param boolean|string $provider Shipping provider name, if available.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL
 		 */
-		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_placeholder', self::get_street_placeholder( $method ), $method );
+		return apply_filters( 'woocommerce_gzd_dhl_pickup_type_address_placeholder', self::get_street_placeholder( $provider ), $provider );
 	}
 
 	protected static function get_icon( $type = 'packstation' ) {
 		return Package::get_assets_url() . '/img/' . $type . '.png';
 	}
 
-	protected static function get_button_text( $method = false ) {
-		$text = sprintf( _x( 'Search %s', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( '', true, $method ) );
+	protected static function get_button_text( $provider = false ) {
+		$text = sprintf( _x( 'Search %s', 'dhl', 'woocommerce-germanized-dhl' ), self::get_type_text( '', true, $provider ) );
 
 		return $text;
 	}
 
-	protected static function get_button( $method = false ) {
-		$text = self::get_button_text( $method );
+	protected static function get_button( $provider = false ) {
+		$text = self::get_button_text( $provider );
 
 		if ( self::has_map() ) {
 			return '<a class="dhl-parcel-finder-link gzd-dhl-parcel-shop-modal" href="javascript:;">' . esc_html( $text ) . '</a>';
@@ -1138,7 +1161,6 @@ class ParcelLocator {
 	}
 
 	public static function add_form() {
-
 		if ( ! is_checkout() && ! is_wc_endpoint_url( 'edit-address' ) ) {
 			return;
 		}

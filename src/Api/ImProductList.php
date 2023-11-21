@@ -3,6 +3,8 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\Shipments\ShippingProvider\Product;
+use Vendidero\Germanized\Shipments\ShippingProvider\ProductList;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -10,10 +12,6 @@ defined( 'ABSPATH' ) || exit;
  * DHL Shipment class.
  */
 class ImProductList {
-
-	protected $products = null;
-
-	protected $available_products = null;
 
 	/**
 	 * @var Internetmarke
@@ -24,51 +22,15 @@ class ImProductList {
 		$this->im = $im;
 	}
 
-	public function get_products( $filters = array() ) {
-		if ( is_null( $this->products ) ) {
-			$this->load_products();
+	/**
+	 * @return ProductList|false
+	 */
+	public function get_products() {
+		if ( $provider = Package::get_deutsche_post_shipping_provider() ) {
+			return $provider->get_products();
 		}
 
-		$products = $this->products;
-
-		return $this->filter_products( $products, $filters );
-	}
-
-	protected function load_products() {
-		global $wpdb;
-
-		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products}" );
-
-		$this->products = $products;
-	}
-
-	protected function load_available_products() {
-		global $wpdb;
-
-		$available_products = Package::get_setting( 'deutsche_post_available_products' );
-
-		if ( empty( $available_products ) ) {
-			$available_products = $this->im->get_default_available_products();
-		}
-
-		if ( ! empty( $available_products ) ) {
-			$available_products = array_filter( array_map( 'absint', $available_products ) );
-		} else {
-			$available_products = array();
-		}
-
-		$available_products = array_map(
-			function( $p ) {
-				return "'" . esc_sql( $p ) . "'";
-			},
-			$available_products
-		);
-
-		$available_products = implode( ',', $available_products );
-
-		$products = $wpdb->get_results( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code IN ($available_products)" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-
-		$this->available_products = $products;
+		return new ProductList();
 	}
 
 	public function get_product_services( $product_id ) {
@@ -149,15 +111,15 @@ class ImProductList {
 	 * @param $parent_id
 	 * @param $services
 	 *
-	 * @return object|false
+	 * @return Product|false
 	 */
 	public function get_product_data_by_services( $parent_id, $services = array() ) {
 		global $wpdb;
 
-		$product_data = $this->get_product_data( $parent_id );
+		$product = $this->get_product_data( $parent_id );
 
-		if ( empty( $product_data ) && $product_data->product_parent_id > 0 ) {
-			$parent_id = $product_data->product_parent_id;
+		if ( $product && $product->get_parent_id() > 0 ) {
+			$parent_id = $product->get_parent_id();
 		}
 
 		$query = "SELECT * FROM {$wpdb->gzd_dhl_im_products}";
@@ -188,72 +150,44 @@ class ImProductList {
 		$result = $wpdb->get_row( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		if ( ! empty( $result ) ) {
-			return $result;
+			return $this->get_products()->get( $result->product_code );
 		} else {
 			return false;
 		}
 	}
 
-	public function get_available_products( $filters = array() ) {
-		if ( is_null( $this->available_products ) ) {
-			$this->load_available_products();
-		}
-
-		$products = $this->available_products;
-
-		return $this->filter_products( $products, $filters );
-	}
-
-	protected function filter_products( $products, $filters = array() ) {
-		$shipment_weight = false;
-
-		if ( array_key_exists( 'shipment_weight', $filters ) ) {
-			$shipment_weight = $filters['shipment_weight'];
-
-			unset( $filters['shipment_weight'] );
-		}
-
-		$products = wp_list_filter( $products, $filters );
-
-		if ( false !== $shipment_weight ) {
-			foreach ( $products as $key => $product ) {
-				if ( ! in_array( (float) $product->product_weight_min, array( 0.0, null ), true ) ) {
-					if ( $product->product_weight_min > $shipment_weight ) {
-						unset( $products[ $key ] );
-						continue;
-					}
-				}
-
-				if ( ! in_array( (float) $product->product_weight_max, array( 0.0, null ), true ) ) {
-					if ( $product->product_weight_max < $shipment_weight ) {
-						unset( $products[ $key ] );
-						continue;
-					}
-				}
-			}
-		}
-
-		return array_values( $products );
-	}
-
-	public function get_base_products() {
-		return self::get_products( array( 'product_parent_id' => 0 ) );
-	}
-
+	/**
+	 * @param $product_code
+	 *
+	 * @return false|\Vendidero\Germanized\Shipments\ShippingProvider\Product
+	 */
 	public function get_product_data_by_code( $product_code ) {
-		global $wpdb;
+		if ( is_null( $product_code ) ) {
+			return false;
+		}
 
-		$product = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_code = %s", $product_code ) );
+		if ( $product = $this->get_products()->get( $product_code ) ) {
+			return $product;
+		}
 
-		return $product;
+		return false;
 	}
 
+	/**
+	 * @param $product_id
+	 *
+	 * @return false|Product
+	 */
 	public function get_product_data( $product_id ) {
-		global $wpdb;
+		if ( is_null( $product_id ) ) {
+			return false;
+		}
 
-		$product = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_dhl_im_products} WHERE product_id = %d", $product_id ) );
+		if ( $product = $this->get_products()->get_by_internal_id( $product_id ) ) {
+			return $product;
+		}
 
-		return $product;
+		return false;
 	}
 
 	private function get_information_text( $stamp_type ) {
@@ -303,6 +237,7 @@ class ImProductList {
 			'ZMBF' => _x( 'Zusatzentgelt MBf', 'dhl', 'woocommerce-germanized-dhl' ),
 			'USFT' => _x( 'Unterschrift', 'dhl', 'woocommerce-germanized-dhl' ),
 			'TRCK' => _x( 'Tracked', 'dhl', 'woocommerce-germanized-dhl' ),
+			'RCKS' => _x( 'Rückschein', 'dhl', 'woocommerce-germanized-dhl' ),
 		);
 	}
 
@@ -314,14 +249,14 @@ class ImProductList {
 
 	protected function get_additional_service_identifiers() {
 		return array(
-			'+ einschreiben einwurf'       => 'ESEW',
-			'+ einschreiben + einwurf'     => 'ESEW',
-			'+ einschreiben + eigenhändig' => 'ESEH',
-			'+ einschreiben'               => 'ESCH',
-			'+ zusatzentgelt mbf'          => 'ZMBF',
-			'+ prio'                       => 'PRIO',
-			'unterschrift'                 => 'USFT',
-			'tracked'                      => 'TRCK',
+			'-einschreiben-einwurf'      => 'ESEW',
+			'-einschreiben-eigenhaendig' => 'ESEH',
+			'-einschreiben'              => 'ESCH',
+			'-zusatzentgelt-mbf'         => 'ZMBF',
+			'-prio'                      => 'PRIO',
+			'-unterschrift'              => 'USFT',
+			'-tracked'                   => 'TRCK',
+			'-rueckschein'               => 'RCKS',
 		);
 	}
 
@@ -368,7 +303,7 @@ class ImProductList {
 		// Remove duplicate whitespaces
 		$product_name = preg_replace( '/\s+/', ' ', $product_name );
 
-		return $product_name;
+		return sanitize_title( $product_name );
 	}
 
 	public function update() {
@@ -405,7 +340,6 @@ class ImProductList {
 
 			foreach ( $products as $product_type => $inner_products ) {
 				foreach ( $inner_products as $product ) {
-
 					$extended_identifier = $product->extendedIdentifier; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$extern_identifier   = property_exists( $extended_identifier, 'externIdentifier' ) ? $extended_identifier->externIdentifier[0] : new \stdClass(); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 

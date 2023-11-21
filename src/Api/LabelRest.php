@@ -109,22 +109,20 @@ class LabelRest extends Rest {
 			throw new \Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
 		}
 
-		$available_services  = wc_gzd_dhl_get_product_services( $label->get_product_id(), $shipment );
-		$label_services      = array_intersect( $label->get_services(), $available_services );
 		$currency            = $shipment->get_order() ? $shipment->get_order()->get_currency() : 'EUR';
 		$billing_number_args = array(
 			'api_type' => 'dhl.com',
-			'gogreen'  => in_array( 'GoGreen', $label_services, true ) ? true : false,
+			'services' => $label->get_services(),
 		);
 
 		$account_number = wc_gzd_dhl_get_billing_number( $label->get_product_id(), $billing_number_args );
 		$services       = array();
 		$bank_data      = array();
 
-		foreach ( $label_services as $service ) {
+		foreach ( $label->get_services() as $service ) {
 			$service_name = lcfirst( $service );
 
-			if ( 'goGreen' === $service_name ) {
+			if ( in_array( $service, array( 'GoGreen', 'dhlRetoure' ), true ) ) {
 				continue;
 			}
 
@@ -139,7 +137,7 @@ class LabelRest extends Rest {
 					$services[ $service_name ] = array(
 						'firstName'   => $shipment->get_first_name(),
 						'lastName'    => $shipment->get_last_name(),
-						'dateOfBirth' => $label->get_ident_date_of_birth() ? $label->get_ident_date_of_birth()->date( 'Y-m-d' ) : '',
+						'dateOfBirth' => $label->get_ident_date_of_birth(),
 						'minimumAge'  => $label->get_ident_min_age(),
 					);
 					break;
@@ -182,7 +180,7 @@ class LabelRest extends Rest {
 					);
 					break;
 				case 'PreferredDay':
-					$services[ $service_name ] = $label->get_preferred_day() ? $label->get_preferred_day()->date( 'Y-m-d' ) : '';
+					$services[ $service_name ] = $label->get_preferred_day();
 					break;
 				case 'VisualCheckOfAge':
 					$services[ $service_name ] = $label->get_visual_min_age();
@@ -203,6 +201,9 @@ class LabelRest extends Rest {
 					break;
 				case 'PDDP':
 					$services['postalDeliveryDutyPaid'] = true;
+					break;
+				case 'Endorsement':
+					$services[ $service_name ] = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment, 'dhl.com' );
 					break;
 				default:
 					$services[ $service_name ] = true;
@@ -226,13 +227,6 @@ class LabelRest extends Rest {
 					'country'       => wc_gzd_country_to_alpha3( $label->get_return_country() ),
 				),
 			);
-		}
-
-		/**
-		 * Endorsement option (Vorausverfügung)
-		 */
-		if ( 'V53WPAK' === $label->get_product_id() ) {
-			$services['endorsement'] = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment );
 		}
 
 		$shipment_request = array(
@@ -514,7 +508,6 @@ class LabelRest extends Rest {
 		}
 
 		$endpoint = add_query_arg( $args, 'orders' );
-
 		$response = $this->post_request( $endpoint, $request );
 
 		try {
@@ -595,7 +588,7 @@ class LabelRest extends Rest {
 				}
 			}
 
-			if ( in_array( 'AdditionalInsurance', $label_services, true ) && $shipment->get_total() <= 500 ) {
+			if ( in_array( 'AdditionalInsurance', $label->get_services(), true ) && $shipment->get_total() <= 500 ) {
 				if ( ! is_a( $result, 'Vendidero\Germanized\Shipments\ShipmentError' ) ) {
 					$result = new ShipmentError();
 				}

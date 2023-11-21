@@ -159,15 +159,6 @@ class Order {
 	 * @return bool
 	 */
 	public function supports_email_notification() {
-		$has_email_notification = wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() );
-
-		/**
-		 * Allow global setting to override email notification support.
-		 */
-		if ( false === $has_email_notification && 'yes' === Package::get_setting( 'label_force_email_transfer' ) ) {
-			$has_email_notification = true;
-		}
-
 		/**
 		 * Filter to adjust whether customer data (email address) should be handed over to DHL to provide
 		 * with services such as email notification or parcel outlet routing. By default this may only work
@@ -179,7 +170,7 @@ class Order {
 		 * @since 3.1.6
 		 * @package Vendidero/Germanized/DHL
 		 */
-		return apply_filters( 'woocommerce_gzd_dhl_order_supports_email_notification', $has_email_notification, $this );
+		return apply_filters( 'woocommerce_gzd_dhl_order_supports_email_notification', wc_gzd_get_shipment_order( $this->get_order() )->supports_third_party_email_transmission(), $this );
 	}
 
 	public function get_min_age() {
@@ -348,7 +339,6 @@ class Order {
 	}
 
 	public function get_preferred_neighbor_formatted_address() {
-
 		if ( ! empty( $this->get_preferred_neighbor() ) && ! empty( $this->get_preferred_neighbor_address() ) ) {
 			return $this->get_preferred_neighbor() . ', ' . $this->get_preferred_neighbor_address();
 		}
