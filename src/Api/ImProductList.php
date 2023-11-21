@@ -312,7 +312,7 @@ class ImProductList {
 		$result = new \WP_Error();
 
 		try {
-			$product_soap = new ImProductsSoap( array(), Package::get_wsdl_file( Package::get_internetmarke_products_url() ) );
+			$product_soap = new ImProductsSoap( array(), Package::get_core_wsdl_file( Package::get_internetmarke_products_url() ) );
 			$product_list = $product_soap->get_products();
 			$response     = $product_list->Response; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 

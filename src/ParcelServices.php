@@ -142,23 +142,41 @@ class ParcelServices {
 	}
 
 	protected static function get_posted_data() {
-		$original_post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( Package::is_rest_api_request() ) {
+			$posted_data = array();
 
-		// POST information is either in a query string-like variable called 'post_data'...
-		if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			parse_str( wp_unslash( $_POST['post_data'] ), $post_data ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			if ( WC()->session ) {
+				$posted_data['shipping_country'] = wc()->customer->get_shipping_country();
+
+				if ( WC()->session->get( 'dhl_preferred_day' ) ) {
+					$posted_data['dhl_preferred_day'] = WC()->session->get( 'dhl_preferred_day' );
+				}
+
+				if ( WC()->session->get( 'dhl_preferred_delivery_type' ) ) {
+					$posted_data['dhl_preferred_delivery_type'] = WC()->session->get( 'dhl_preferred_delivery_type' );
+				}
+			}
 		} else {
-			$post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$original_post_data = isset( $_POST ) ? $_POST : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+			// POST information is either in a query string-like variable called 'post_data'...
+			if ( isset( $_POST['post_data'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				parse_str( wp_unslash( $_POST['post_data'] ), $post_data ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			} elseif ( isset( $_POST ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$post_data = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			} else {
+				$post_data = array();
+			}
+
+			$_POST = $post_data;
+
+			$posted_data = \WC_Checkout::instance()->get_posted_data();
+			$posted_data = array_merge( wc_clean( $post_data ), (array) $posted_data );
+
+			$_POST = $original_post_data;
 		}
 
-		$_POST = $post_data;
-
-		$posted_data = \WC_Checkout::instance()->get_posted_data();
-		$posted_data = array_merge( wc_clean( $post_data ), (array) $posted_data );
-
-		$_POST = $original_post_data;
-
-		return $posted_data;
+		return apply_filters( 'woocommerce_gzd_dhl_checkout_parcel_services_data', $posted_data );
 	}
 
 	public static function validate( $data, $errors ) {
@@ -177,10 +195,6 @@ class ParcelServices {
 	 * @param \WC_Cart $cart
 	 */
 	public static function add_fees( $cart ) {
-		if ( ! $_POST || ( is_admin() && ! wp_doing_ajax() ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			return;
-		}
-
 		if ( self::cart_needs_shipping() && self::is_preferred_option_available() ) {
 			$data = self::get_data();
 
@@ -212,8 +226,8 @@ class ParcelServices {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		wp_register_script( 'jquery-tiptip', WC()->plugin_url() . '/assets/js/jquery-tiptip/jquery.tipTip' . $suffix . '.js', array( 'jquery' ), WC_VERSION, true );
-		wp_register_script( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/js/preferred-services' . $suffix . '.js', $deps, Package::get_version(), true );
-		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_url() . '/css/preferred-services' . $suffix . '.css', array(), Package::get_version() );
+		wp_register_script( 'wc-gzd-preferred-services-dhl', Package::get_assets_build_url( 'static/preferred-services.js' ), $deps, Package::get_version(), true );
+		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_build_url( 'static/preferred-services-styles.css' ), array(), Package::get_version() );
 
 		$excluded_gateways = self::get_excluded_payment_gateways();
 
@@ -230,7 +244,7 @@ class ParcelServices {
 		wp_enqueue_style( 'wc-gzd-preferred-services-dhl' );
 	}
 
-	protected static function get_excluded_payment_gateways() {
+	public static function get_excluded_payment_gateways() {
 		return (array) self::get_setting( 'payment_gateways_excluded' );
 	}
 	protected static function payment_gateway_supports_services( $method ) {
@@ -243,7 +257,7 @@ class ParcelServices {
 		return true;
 	}
 
-	protected static function get_preferred_home_delivery_cost() {
+	public static function get_preferred_home_delivery_cost() {
 		$cost = self::get_setting( 'home_delivery_cost' );
 
 		if ( empty( $cost ) ) {
@@ -255,7 +269,7 @@ class ParcelServices {
 		return $cost;
 	}
 
-	protected static function get_preferred_day_cost() {
+	public static function get_preferred_day_cost() {
 		$cost = self::get_setting( 'PreferredDay_cost' );
 
 		if ( empty( $cost ) ) {
@@ -333,8 +347,24 @@ class ParcelServices {
 		return $is_available;
 	}
 
-	protected static function is_preferred_option_available() {
+	protected static function get_current_payment_method() {
 		$chosen_payment_method = (array) WC()->session->get( 'chosen_payment_method' );
+
+		if ( ! empty( $chosen_payment_method ) ) {
+			$method = array_values( $chosen_payment_method )[0];
+		} else {
+			$method = '';
+		}
+
+		if ( Package::is_rest_api_request() ) {
+			$method = '';
+		}
+
+		return apply_filters( 'woocommerce_gzd_dhl_checkout_get_current_payment_method', $method );
+	}
+
+	protected static function is_preferred_option_available() {
+		$chosen_payment_method = self::get_current_payment_method();
 		$display_preferred     = false;
 
 		if ( self::is_enabled() ) {
@@ -344,11 +374,8 @@ class ParcelServices {
 				$display_preferred = true;
 			}
 
-			foreach ( $chosen_payment_method as $key => $method ) {
-				if ( ! self::payment_gateway_supports_services( $method ) ) {
-					$display_preferred = false;
-					break;
-				}
+			if ( ! self::payment_gateway_supports_services( $chosen_payment_method ) ) {
+				$display_preferred = false;
 			}
 		}
 
@@ -369,7 +396,7 @@ class ParcelServices {
 			'preferred_location'                  => '',
 			'preferred_location_neighbor_name'    => '',
 			'preferred_location_neighbor_address' => '',
-			'preferred_day_options'               => WC()->session->get( 'dhl_preferred_day_options', array() ),
+			'preferred_day_options'               => WC()->session->get( 'dhl_preferred_day_options', null ),
 			'preferred_day_cost'                  => self::get_preferred_day_cost(),
 			'preferred_delivery_type'             => '',
 			'preferred_home_delivery_cost'        => self::get_preferred_home_delivery_cost(),
@@ -381,7 +408,7 @@ class ParcelServices {
 		if ( self::preferred_services_available( $customer_country ) ) {
 			if ( is_null( $data['preferred_day_options'] ) ) {
 				self::refresh_day_session();
-				$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options' );
+				$data['preferred_day_options'] = WC()->session->get( 'dhl_preferred_day_options', array() );
 			}
 		}
 
