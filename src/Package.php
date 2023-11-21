@@ -67,9 +67,6 @@ class Package {
 		// Legacy data store
 		add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
 
-		// Watch provider activation and mark DHL as default provider in case applicable
-		add_action( 'woocommerce_gzd_shipping_provider_activated', array( __CLASS__, 'maybe_set_default_provider' ), 10 );
-
 		self::includes();
 		self::define_tables();
 		self::maybe_set_upload_dir();
@@ -79,19 +76,6 @@ class Package {
 				self::init_hooks();
 			} else {
 				add_action( 'admin_notices', array( __CLASS__, 'load_dependencies_notice' ) );
-			}
-		}
-	}
-
-	/**
-	 * @param ShippingProvider $provider
-	 */
-	public static function maybe_set_default_provider( $provider ) {
-		if ( 'dhl' === $provider->get_name() ) {
-			$default_provider = wc_gzd_get_default_shipping_provider();
-
-			if ( empty( $default_provider ) ) {
-				update_option( 'woocommerce_gzd_shipments_default_shipping_provider', 'dhl' );
 			}
 		}
 	}
