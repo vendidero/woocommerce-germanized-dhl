@@ -605,7 +605,7 @@ class Package {
 	}
 
 	public static function use_legacy_soap_api() {
-		return apply_filters( 'woocommerce_gzd_dhl_use_legacy_soap_api', ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ? WC_GZD_DHL_LEGACY_SOAP : false ) );
+		return apply_filters( 'woocommerce_gzd_dhl_use_legacy_soap_api', ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ? WC_GZD_DHL_LEGACY_SOAP : ( 'yes' === get_option( 'woocommerce_gzd_dhl_enable_legacy_soap' ) ) ) );
 	}
 
 	public static function get_label_rest_api_url() {
