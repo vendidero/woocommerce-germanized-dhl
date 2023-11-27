@@ -574,7 +574,7 @@ const render = () => {
     );
 };
 
-registerPlugin( 'woocommerce-germanized-dhl-preferred-services', {
+registerPlugin( 'woocommerce-gzd-dhl-preferred-services', {
     render,
     scope: 'woocommerce-checkout',
 } );
