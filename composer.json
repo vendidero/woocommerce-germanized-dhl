@@ -4,7 +4,7 @@
   "homepage": "https://github.com/vendidero/woocommerce-germanized-dhl",
   "license": "GPL-3.0-or-later",
   "type": "wordpress-plugin",
-  "version": "dev-main",
+  "version": "3.0.0",
   "prefer-stable": true,
   "minimum-stability": "dev",
   "require": {
