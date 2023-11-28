@@ -49,14 +49,14 @@ class DHLRetoure extends Service {
 		$label_fields   = parent::get_additional_label_fields( $shipment );
 		$field_prefix   = $this->get_label_field_id( 'return_address' );
 		$return_address = array(
-			'name'          => Package::get_setting( 'return_name' ),
-			'company'       => Package::get_setting( 'return_company' ),
-			'street'        => Package::get_setting( 'return_street' ),
-			'street_number' => Package::get_setting( 'return_street_number' ),
-			'postcode'      => Package::get_setting( 'return_postcode' ),
-			'city'          => Package::get_setting( 'return_city' ),
-			'phone'         => Package::get_setting( 'return_phone' ),
-			'email'         => Package::get_setting( 'return_email' ),
+			'name'          => Package::get_dhl_shipping_provider()->get_return_name(),
+			'company'       => Package::get_dhl_shipping_provider()->get_return_company(),
+			'street'        => Package::get_dhl_shipping_provider()->get_return_street(),
+			'street_number' => Package::get_dhl_shipping_provider()->get_return_street_number(),
+			'postcode'      => Package::get_dhl_shipping_provider()->get_return_postcode(),
+			'city'          => Package::get_dhl_shipping_provider()->get_return_city(),
+			'phone'         => Package::get_dhl_shipping_provider()->get_return_phone(),
+			'email'         => Package::get_dhl_shipping_provider()->get_return_email(),
 		);
 
 		$label_fields = array_merge(
