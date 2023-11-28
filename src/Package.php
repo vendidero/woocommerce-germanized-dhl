@@ -9,7 +9,6 @@ use Vendidero\Germanized\DHL\Api\Paket;
 use Vendidero\Germanized\DHL\ShippingProvider\DeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
-use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Registry\Container;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 

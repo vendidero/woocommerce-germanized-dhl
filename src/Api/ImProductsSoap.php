@@ -3,7 +3,6 @@
 namespace Vendidero\Germanized\DHL\Api;
 
 use Vendidero\Germanized\DHL\Package;
-use WsdlToPhp\WsSecurity\WsSecurity;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,7 +21,19 @@ class ImProductsSoap extends \SoapClient {
 	}
 
 	protected function get_headers() {
-		return WsSecurity::createWsSecuritySoapHeader( Package::get_internetmarke_product_username(), Package::get_internetmarke_product_password() );
+		$username = Package::get_internetmarke_product_username();
+		$password = Package::get_internetmarke_product_password();
+		$nonce    = base64_encode( pack( 'H*', wp_rand() ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$xml = '<wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+		<wsse:UsernameToken>
+			<wsse:Username>' . esc_html( $username ) . '</wsse:Username>
+			<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">' . esc_html( $password ) . '</wsse:Password>
+			<wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">' . esc_html( $nonce ) . '</wsse:Nonce>
+		</wsse:UsernameToken>
+		</wsse:Security>';
+
+		return new \SoapHeader( 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd', 'Security', new \SoapVar( $xml, XSD_ANYXML ), false );
 	}
 
 	public function get_products( $dedicated_products = 1 ) {

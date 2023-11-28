@@ -318,7 +318,12 @@ class ImProductList {
 
 			$product_soap = new ImProductsSoap( array(), Package::get_core_wsdl_file( Package::get_internetmarke_products_url() ) );
 			$product_list = $product_soap->get_products();
-			$response     = $product_list->Response; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+			if ( ! isset( $product_list->Response ) && isset( $product_list->Exception ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				throw new \Exception( esc_html( $product_list->Exception->exceptionDetail[0]->errorDetail ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			}
+
+			$response = $product_list->Response; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 			if ( ! isset( $response->salesProductList ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				Package::log( 'Error while retrieving Internetmarke products:' );
