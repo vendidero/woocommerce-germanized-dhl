@@ -11,16 +11,15 @@ class PreferredLocation extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id'                    => 'PreferredLocation',
-			'label'                 => _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description'           => _x( 'Enable drop-off location delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'long_description'      => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their preferred delivery location during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-			'setting_id'            => 'PreferredLocation_enable',
-			'products'              => array( 'V01PAK', 'V62WP' ),
-			'countries'             => array( 'DE' ),
-			'zones'                 => array( 'dom' ),
-			'excluded_locations'    => array( 'settings' ),
-			'allow_default_booking' => false,
+			'id'                 => 'PreferredLocation',
+			'label'              => _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'        => _x( 'Enable drop-off location delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'long_description'   => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their preferred delivery location during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+			'setting_id'         => 'PreferredLocation_enable',
+			'products'           => array( 'V01PAK', 'V62WP' ),
+			'countries'          => array( 'DE' ),
+			'zones'              => array( 'dom' ),
+			'excluded_locations' => array( 'settings' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );

@@ -12,16 +12,15 @@ class PreferredDay extends Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
-			'id'                    => 'PreferredDay',
-			'label'                 => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
-			'description'           => _x( 'Enable delivery day delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'long_description'      => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their delivery day of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-			'setting_id'            => 'PreferredDay_enable',
-			'products'              => array( 'V01PAK' ),
-			'countries'             => array( 'DE' ),
-			'zones'                 => array( 'dom' ),
-			'excluded_locations'    => array( 'settings' ),
-			'allow_default_booking' => false,
+			'id'                 => 'PreferredDay',
+			'label'              => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
+			'description'        => _x( 'Enable delivery day delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
+			'long_description'   => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their delivery day of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+			'setting_id'         => 'PreferredDay_enable',
+			'products'           => array( 'V01PAK' ),
+			'countries'          => array( 'DE' ),
+			'zones'              => array( 'dom' ),
+			'excluded_locations' => array( 'settings' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );
