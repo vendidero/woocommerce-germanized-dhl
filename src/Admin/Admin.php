@@ -115,9 +115,12 @@ class Admin {
 	public static function add_notices() {
 		if ( current_user_can( 'manage_woocommerce' ) ) {
 			if ( isset( $_GET['im-refresh-type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$refresh_type    = wc_clean( wp_unslash( $_GET['im-refresh-type'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$refresh_type    = in_array( $refresh_type, array( 'products', 'print_formats' ), true ) ? $refresh_type : 'products';
+				$refresh_message = isset( $_GET['success'] ) ? _x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : sprintf( _x( 'Error while refreshing data: %1$s', 'dhl', 'woocommerce-germanized-dhl' ), get_transient( "_wc_gzd_dhl_im_{$refresh_type}_refresh_error" ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				?>
 				<div class="notice fade <?php echo ( isset( $_GET['success'] ) ? 'updated' : 'error' );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>">
-					<p><?php echo ( isset( $_GET['success'] ) ? esc_html_x( 'Refreshed data successfully.', 'dhl', 'woocommerce-germanized-dhl' ) : wp_kses_post( sprintf( _x( 'Error while refreshing data. Please make sure that the Internetmarke API URL can be <a href="%s">accessed</a>.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( admin_url( 'admin.php?page=wc-status&tab=dhl' ) ) ) ) );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p>
+					<p><?php echo wp_kses_post( $refresh_message ); ?></p>
 				</div>
 				<?php
 			} elseif ( isset( $_GET['has-imported'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -137,6 +140,8 @@ class Admin {
 				$settings_url = add_query_arg( array( 'im-refresh-type' => 'products' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'config_set_simple_label' ) );
 
 				if ( is_wp_error( $result ) ) {
+					set_transient( '_wc_gzd_dhl_im_products_refresh_error', $result->get_error_message(), MINUTE_IN_SECONDS * 5 );
+
 					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
 				} else {
 					$settings_url = add_query_arg( array( 'success' => 1 ), $settings_url );
@@ -148,9 +153,11 @@ class Admin {
 		} elseif ( current_user_can( 'manage_woocommerce' ) && isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-dhl-im-page-formats-refresh' === $_GET['action'] ) {
 			if ( wp_verify_nonce( wp_unslash( $_GET['_wpnonce'] ), 'wc-gzd-dhl-refresh-im-page-formats' ) ) {  // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$result       = Package::get_internetmarke_api()->get_page_formats( true );
-				$settings_url = add_query_arg( array( 'im-refresh-type' => 'formats' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'printing' ) );
+				$settings_url = add_query_arg( array( 'im-refresh-type' => 'page_formats' ), Package::get_deutsche_post_shipping_provider()->get_edit_link( 'printing' ) );
 
 				if ( is_wp_error( $result ) ) {
+					set_transient( '_wc_gzd_dhl_im_page_formats_refresh_error', $result->get_error_message(), MINUTE_IN_SECONDS * 5 );
+
 					$settings_url = add_query_arg( array( 'error' => 1 ), $settings_url );
 				} else {
 					$settings_url = add_query_arg( array( 'success' => 1 ), $settings_url );

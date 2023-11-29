@@ -30,6 +30,20 @@ class CashOnDelivery extends Service {
 		return $default_value;
 	}
 
+	public function book_as_default( $shipment ) {
+		$book_as_default = parent::book_as_default( $shipment );
+
+		if ( false === $book_as_default ) {
+			$dhl_order = wc_gzd_dhl_get_order( $shipment->get_order() );
+
+			if ( $dhl_order && $dhl_order->has_cod_payment() ) {
+				$book_as_default = true;
+			}
+		}
+
+		return $book_as_default;
+	}
+
 	protected function get_additional_label_fields( $shipment ) {
 		$label_fields = parent::get_additional_label_fields( $shipment );
 		$value        = $shipment->get_total() + round( $shipment->get_additional_total(), wc_get_price_decimals() );
