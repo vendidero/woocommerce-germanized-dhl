@@ -146,7 +146,7 @@ class DHL extends Auto {
 			array(
 				'label'       => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description' => _x( 'Ship your parcels climate friendly.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK', 'V62WP', 'V62WPI' ),
+				'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK', 'V62WP', 'V66WPI' ),
 			)
 		);
 
@@ -225,7 +225,7 @@ class DHL extends Auto {
 				'label'       => _x( 'Premium', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description' => _x( 'Premium delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'products'    => array( 'V53WPAK', 'V66WPI' ),
-				'zones'       => array( 'int' ),
+				'zones'       => array( 'int', 'eu' ),
 			)
 		);
 
@@ -248,7 +248,7 @@ class DHL extends Auto {
 				'label'       => _x( 'Economy', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description' => _x( 'Economy delivery for international shipments.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'products'    => array( 'V53WPAK', 'V66WPI' ),
-				'zones'       => array( 'int' ),
+				'zones'       => array( 'int', 'eu' ),
 			)
 		);
 
@@ -1539,5 +1539,9 @@ class DHL extends Auto {
 		}
 
 		return $pointers;
+	}
+
+	public function get_supported_label_config_set_shipment_types() {
+		return array( 'simple' );
 	}
 }

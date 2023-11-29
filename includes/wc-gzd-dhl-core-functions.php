@@ -586,6 +586,8 @@ function wc_gzd_dhl_get_billing_number( $product, $args = array() ) {
 					if ( $has_gogreen ) {
 						$participation_number = '03';
 					}
+				} elseif ( 'V66WPI' === $product && $has_gogreen ) {
+					$participation_number = '04';
 				}
 			} else {
 				$account_base         = '2222222222';
