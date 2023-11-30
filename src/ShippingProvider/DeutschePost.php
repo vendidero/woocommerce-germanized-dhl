@@ -308,10 +308,12 @@ class DeutschePost extends Auto {
 		global $wpdb;
 
 		if ( ! get_transient( 'wc_gzd_dhl_im_products_expire' ) ) {
-			$result = Package::get_internetmarke_api()->get_product_list()->update();
+			if ( ( $api = Package::get_internetmarke_api() ) && $api->is_configured() ) {
+				$result = Package::get_internetmarke_api()->get_product_list()->update();
 
-			if ( is_wp_error( $result ) ) {
-				Package::log( 'Error while refreshing Internetmarke product data: ' . $result->get_error_message() );
+				if ( is_wp_error( $result ) ) {
+					Package::log( 'Error while refreshing Internetmarke product data: ' . $result->get_error_message() );
+				}
 			}
 
 			/**

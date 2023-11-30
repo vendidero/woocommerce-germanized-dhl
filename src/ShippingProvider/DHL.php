@@ -692,19 +692,8 @@ class DHL extends Auto {
 		$defaults = wp_parse_args(
 			$defaults,
 			array(
-				'services'       => array(),
-				'receiver_slug'  => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country() ),
-				'sender_address' => $shipment->get_sender_address(),
-			)
-		);
-
-		$defaults['sender_address'] = array_merge(
-			$defaults['sender_address'],
-			array(
-				'name'            => $shipment->get_formatted_sender_full_name(),
-				'street'          => $shipment->get_sender_address_street(),
-				'street_number'   => $shipment->get_sender_address_street_number(),
-				'street_addition' => $shipment->get_sender_address_street_addition(),
+				'services'      => array(),
+				'receiver_slug' => wc_gzd_dhl_get_default_return_receiver_slug( $shipment->get_sender_country() ),
 			)
 		);
 
