@@ -241,25 +241,27 @@ class DeutschePost extends Auto {
 						)
 					);
 				}
+
+				if ( $im->is_configured() ) {
+					$settings_url = $this->get_edit_link( '' );
+
+					$settings = array_merge(
+						$settings,
+						array(
+							array(
+								'title' => _x( 'Products', 'dhl', 'woocommerce-germanized-dhl' ),
+								'type'  => 'title',
+								'id'    => 'deutsche_post_product_refresh_options',
+								'desc'  => '<a class="button button-secondary" href="' . esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) . '">' . esc_html_x( 'Refresh available products', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>',
+							),
+							array(
+								'type' => 'sectionend',
+								'id'   => 'deutsche_post_product_refresh_options',
+							),
+						)
+					);
+				}
 			}
-
-			$settings_url = $this->get_edit_link( '' );
-
-			$settings = array_merge(
-				$settings,
-				array(
-					array(
-						'title' => _x( 'Products', 'dhl', 'woocommerce-germanized-dhl' ),
-						'type'  => 'title',
-						'id'    => 'deutsche_post_product_refresh_options',
-						'desc'  => '<a class="button button-secondary" href="' . esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'wc-gzd-dhl-im-product-refresh' ), $settings_url ), 'wc-gzd-dhl-refresh-im-products' ) ) . '">' . esc_html_x( 'Refresh available products', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>',
-					),
-					array(
-						'type' => 'sectionend',
-						'id'   => 'deutsche_post_product_refresh_options',
-					),
-				)
-			);
 		}
 
 		$settings = array_merge(
