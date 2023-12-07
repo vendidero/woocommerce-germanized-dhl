@@ -462,7 +462,7 @@ class LabelRest extends Rest {
 					'value'    => $customs_label_data['additional_fee'],
 					'currency' => $customs_label_data['currency'],
 				),
-				'exportDescription'  => $customs_label_data['export_reason_description'],
+				'exportDescription'  => mb_substr( $customs_label_data['export_reason_description'], 0, 80 ),
 				'officeOfOrigin'     => $customs_label_data['place_of_commital'],
 				'items'              => $customs_items,
 				'exportType'         => strtoupper( $export_type ),
