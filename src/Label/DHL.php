@@ -289,7 +289,7 @@ class DHL extends Label {
 			$errors = explode( PHP_EOL, $e->getMessage() );
 
 			foreach ( $errors as $error ) {
-				$result->add( 'dhl-api-error', $error );
+				$result->add( $e->getCode() ? $e->getCode() : 'dhl-api-error', $error );
 			}
 		}
 

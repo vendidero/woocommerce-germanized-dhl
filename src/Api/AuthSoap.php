@@ -36,11 +36,12 @@ class AuthSoap {
 	public function get_access_token( $client_id = '', $client_secret = '' ) {
 		try {
 			$args = array(
-				'login'        => Package::get_cig_user(),
-				'password'     => Package::get_cig_password(),
-				'location'     => Package::get_cig_url(),
-				'soap_version' => SOAP_1_1,
-				'trace'        => true,
+				'login'              => Package::get_cig_user(),
+				'password'           => Package::get_cig_password(),
+				'location'           => Package::get_cig_url(),
+				'soap_version'       => SOAP_1_1,
+				'trace'              => true,
+				'connection_timeout' => 10,
 			);
 
 			if ( Package::is_debug_mode() ) {

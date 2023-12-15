@@ -320,7 +320,7 @@ class ParcelServices {
 	}
 
 	public static function get_pddp_countries() {
-		return array( 'NO', 'GB' );
+		return array( 'NO', 'GB', 'CH' );
 	}
 
 	public static function is_pddp_available( $country, $postcode = '' ) {

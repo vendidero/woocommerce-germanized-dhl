@@ -189,7 +189,6 @@ class LabelSoap extends Soap {
 		}
 
 		if ( ! isset( $response_body->Status ) || ! isset( $response_body->CreationState ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-
 			if ( isset( $response_body->Status ) && ! empty( $response_body->Status->statusText ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				throw new Exception( sprintf( _x( 'There was an error contacting the DHL API: %s.', 'dhl', 'woocommerce-germanized-dhl' ), $response_body->Status->statusText ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			}

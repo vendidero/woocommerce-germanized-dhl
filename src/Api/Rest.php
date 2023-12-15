@@ -203,7 +203,7 @@ abstract class Rest {
 
 				Package::log( 'POST Error: ' . $response_code . ' - ' . $error_message );
 
-				throw new Exception( sprintf( '%1$s: %2$s', isset( $response_body->title ) ? $response_body->title : 'Bad Request', $error_message ) );
+				throw new Exception( sprintf( '%1$s: %2$s', isset( $response_body->title ) ? $response_body->title : 'Bad Request', $error_message ), absint( $response_code ) );
 		}
 	}
 
