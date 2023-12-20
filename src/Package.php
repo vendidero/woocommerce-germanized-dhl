@@ -412,6 +412,24 @@ class Package {
 		return self::get_url() . '/assets';
 	}
 
+    public static function register_script( $handle, $path, $dep = array(), $ver = '', $in_footer = array( 'strategy' => 'defer' ) ) {
+	    global $wp_version;
+
+	    if ( version_compare( $wp_version, '6.3', '<' ) ) {
+		    $in_footer = true;
+	    }
+
+	    $ver = empty( $ver ) ? self::get_version() : $ver;
+
+	    wp_register_script(
+		    $handle,
+		    self::get_assets_build_url( $path ),
+		    $dep,
+		    $ver,
+		    $in_footer
+	    );
+    }
+
 	public static function get_assets_build_url( $script_or_style ) {
 		$assets_url = self::get_url() . '/build';
 		$is_debug   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;

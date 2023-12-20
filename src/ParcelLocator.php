@@ -879,8 +879,8 @@ class ParcelLocator {
 			$deps = array_merge( $deps, array( 'woocommerce', 'wc-address-i18n' ) );
 		}
 
-		wp_register_script( 'wc-gzd-parcel-locator-dhl', Package::get_assets_build_url( 'static/parcel-locator.js' ), $deps, Package::get_version(), true );
-		wp_register_script( 'wc-gzd-parcel-finder-dhl', Package::get_assets_build_url( 'static/parcel-finder.js' ), array( 'jquery-blockui', 'wc-gzd-parcel-locator-dhl' ), Package::get_version(), true );
+		Package::register_script( 'wc-gzd-parcel-locator-dhl', 'static/parcel-locator.js', $deps );
+		Package::register_script( 'wc-gzd-parcel-finder-dhl', 'static/parcel-finder.js', array( 'jquery-blockui', 'wc-gzd-parcel-locator-dhl' ) );
 
 		wp_register_style( 'wc-gzd-parcel-finder-dhl', Package::get_assets_build_url( 'static/parcel-finder-styles.css' ), array(), Package::get_version() );
 

@@ -226,7 +226,7 @@ class ParcelServices {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		wp_register_script( 'jquery-tiptip', WC()->plugin_url() . '/assets/js/jquery-tiptip/jquery.tipTip' . $suffix . '.js', array( 'jquery' ), WC_VERSION, true );
-		wp_register_script( 'wc-gzd-preferred-services-dhl', Package::get_assets_build_url( 'static/preferred-services.js' ), $deps, Package::get_version(), true );
+		Package::register_script( 'wc-gzd-preferred-services-dhl', 'static/preferred-services.js', $deps );
 		wp_register_style( 'wc-gzd-preferred-services-dhl', Package::get_assets_build_url( 'static/preferred-services-styles.css' ), array(), Package::get_version() );
 
 		$excluded_gateways = self::get_excluded_payment_gateways();
