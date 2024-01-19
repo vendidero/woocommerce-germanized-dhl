@@ -238,7 +238,7 @@ class DHL extends Auto {
 				'options'       => wc_gzd_dhl_get_endorsement_types(),
 				'default_value' => 'return',
 				'products'      => array( 'V53WPAK' ),
-				'zones'         => array( 'int' ),
+				'zones'         => array( 'int', 'eu' ),
 			)
 		);
 
