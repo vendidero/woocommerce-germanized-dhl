@@ -64,6 +64,26 @@ class Install {
 		}
 
 		/**
+		 * Maybe update DP to use the new tracking URL
+		 */
+		if ( version_compare( $current_version, '3.0.5', '<' ) ) {
+			Helper::instance()->load_shipping_providers();
+
+			$dp = wc_gzd_get_shipping_provider( 'deutsche_post' );
+
+			if ( ! is_a( $dp, '\Vendidero\Germanized\DHL\ShippingProvider\DeutschePost' ) ) {
+				return;
+			}
+
+			if ( $dp->is_activated() ) {
+				if ( strstr( $dp->get_tracking_url_placeholder(), 'form.einlieferungsdatum_tag' ) ) {
+					$dp->set_tracking_url_placeholder( $dp->get_default_tracking_url_placeholder() );
+					$dp->save();
+				}
+			}
+		}
+
+		/**
 		 * Keep using legacy SOAP API (for now) for older installations to prevent update issues.
 		 */
 		if ( version_compare( $current_version, '2.0.0', '<' ) ) {

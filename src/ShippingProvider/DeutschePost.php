@@ -86,7 +86,7 @@ class DeutschePost extends Auto {
 	}
 
 	public function get_default_tracking_url_placeholder() {
-		return 'https://www.deutschepost.de/sendung/simpleQueryResult.html?form.sendungsnummer={tracking_id}&form.einlieferungsdatum_tag={label_date_day}&form.einlieferungsdatum_monat={label_date_month}&form.einlieferungsdatum_jahr={label_date_year}';
+		return 'https://deutschepost.de/de/s/sendungsverfolgung.html?piececode={tracking_id}';
 	}
 
 	public function get_api_username( $context = 'view' ) {
