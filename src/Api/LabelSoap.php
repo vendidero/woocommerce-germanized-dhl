@@ -253,8 +253,8 @@ class LabelSoap extends Soap {
 				$default_file = base64_decode( $response_body->LabelData->labelData ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				$return_file  = false;
 
-				// Try to split the PDF to extract return label
 				if ( $return_label ) {
+					// Try to split the PDF to extract return label
 					$splitter = new PDFSplitter( $default_file, true );
 					$pdfs     = $splitter->split();
 
@@ -274,7 +274,6 @@ class LabelSoap extends Soap {
 
 				// Merge export label into label path so that by default the shop owner downloads the merged file
 				if ( isset( $response_body->LabelData->exportLabelData ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-
 					// Save export file
 					$label->upload_label_file( base64_decode( $response_body->LabelData->exportLabelData ), 'export' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
@@ -466,6 +465,7 @@ class LabelSoap extends Soap {
 				'minorRelease' => '5',
 			),
 			'labelResponseType' => 'B64',
+			'combinedPrinting'  => true,
 			'ShipmentOrder'     => array(
 				'sequenceNumber' => $label->get_shipment_id(),
 				'Shipment'       => array(
