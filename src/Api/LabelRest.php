@@ -352,15 +352,10 @@ class LabelRest extends Rest {
 			$address_2                 = $shipment->get_address_2();
 
 			if ( empty( $street_number ) && ! empty( $address_2 ) ) {
-				$address_1_tmp = wc_gzd_split_shipment_street( $address_1 . ' ' . $address_2 );
-
+				$address_1_tmp   = wc_gzd_split_shipment_street( $address_1 . ' ' . $address_2 );
 				$address_1       = $address_1_tmp['street'] . ' ' . $address_1_tmp['number'];
 				$address_2       = '';
 				$street_addition = $address_1_tmp['addition'];
-			}
-
-			if ( ! empty( $street_addition ) ) {
-				$address_2 = $street_addition . ( ! empty( $address_2 ) ? ' ' . $address_2 : '' );
 			}
 
 			$shipment_request['consignee'] = array(
@@ -378,7 +373,7 @@ class LabelRest extends Rest {
 				 */
 				'name3'                         => apply_filters( 'woocommerce_gzd_dhl_label_api_receiver_name3', $address_2, $label ),
 				'addressStreet'                 => $address_1,
-				'additionalAddressInformation1' => $address_2,
+				'additionalAddressInformation1' => $street_addition,
 				'postalCode'                    => $shipment->get_postcode(),
 				'city'                          => $shipment->get_city(),
 				'state'                         => $formatted_recipient_state,

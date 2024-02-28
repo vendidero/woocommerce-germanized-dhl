@@ -933,7 +933,7 @@ class ParcelLocator {
 			$is_supported = in_array( $provider, array( 'dhl' ), true );
 		}
 
-		return apply_filters( "woocommerce_gzd_dhl_provider_supports_pickup_location", $is_supported, $provider, $location_type );
+		return apply_filters( 'woocommerce_gzd_dhl_provider_supports_pickup_location', $is_supported, $provider, $location_type );
 	}
 
 	protected static function current_shipping_provider_supports_locations( $location_type = 'packstation' ) {
