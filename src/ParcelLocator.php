@@ -1081,7 +1081,7 @@ class ParcelLocator {
 				'required'    => false,
 				'type'        => 'text',
 				'class'       => array( 'shipping-dhl-postnumber' ),
-				'description' => _x( 'Not yet a DHL customer?', 'dhl', 'woocommerce-germanized-dhl' ) . '<br/><a href="https://www.dhl.de/de/privatkunden/kundenkonto/registrierung.html" target="_blank">' . _x( 'Register now', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>',
+				'description' => _x( 'Not yet a DHL customer?', 'dhl', 'woocommerce-germanized-dhl' ) . ' <a href="https://www.dhl.de/de/privatkunden/kundenkonto/registrierung.html" target="_blank">' . _x( 'Register now', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>',
 				'clear'       => true,
 				'priority'    => 45,
 			);
