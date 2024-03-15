@@ -1533,4 +1533,44 @@ class DHL extends Auto {
 	public function get_supported_label_config_set_shipment_types() {
 		return array( 'simple' );
 	}
+
+	public function supports_pickup_location_delivery( $address, $max_dimensions = array() ) {
+		return in_array( $address['country'], array( 'DE', 'AT' ), true );
+	}
+
+	public function get_pickup_locations( $address, $limit = 10 ) {
+		$locations     = array();
+		$location_data = Package::get_api()->get_parcel_location( array(
+			'zip'     => $address['postcode'],
+			'country' => $address['country'],
+		), array(), $limit );
+
+		foreach( $location_data as $location ) {
+			$address = array(
+				'company'    => $location->name,
+				'country'    => $location->place->address->countryCode,
+				'postcode'   => $location->place->address->postalCode,
+				'address_1'  => $location->place->address->streetAddress,
+				'city'       => $location->place->address->addressLocality,
+			);
+
+			$locations[] = array(
+				'code'  => $location->gzd_id,
+				'type'  => $location->location->type,
+				'title' => $location->gzd_name,
+				'lat'   => $location->place->geo->latitude,
+				'long'  => $location->place->geo->longitude,
+				'needs_customer_number' => 'locker' === $location->location->type ? true : false,
+				'formatted_address' => WC()->countries->get_formatted_address( $address, ', ' ),
+				'address_replacements' => array(
+					'address_1'  => $location->gzd_name,
+					'country'    => $location->place->address->countryCode,
+					'postcode'   => $location->place->address->postalCode,
+					'city'       => $location->place->address->addressLocality,
+				),
+			);
+		}
+
+		return $locations;
+	}
 }
