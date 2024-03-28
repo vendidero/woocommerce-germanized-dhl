@@ -316,30 +316,26 @@ class LabelRest extends Rest {
 		}
 
 		if ( 'DE' === $shipment->get_country() && $shipment->send_to_external_pickup() ) {
-			if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
-				$locker_id = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
-
+			if ( $shipment->send_to_external_pickup( 'locker' ) ) {
 				$shipment_request['consignee'] = array(
 					'name'       => $shipment->get_formatted_full_name(),
-					'lockerID'   => $locker_id,
-					'postNumber' => ParcelLocator::get_postnumber_by_shipment( $shipment ),
+					'lockerID'   => (int) $shipment->get_pickup_location_code(),
+					'postNumber' => $shipment->get_pickup_location_customer_number(),
 					'city'       => $shipment->get_city(),
 					'postalCode' => $shipment->get_postcode(),
 					'country'    => wc_gzd_country_to_alpha3( $shipment->get_country() ),
 				);
 			} else {
-				$retail_id = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
-
 				$shipment_request['consignee'] = array(
 					'name'       => $shipment->get_formatted_full_name(),
-					'retailID'   => $retail_id,
+					'retailID'   => (int) $shipment->get_pickup_location_code(),
 					'city'       => $shipment->get_city(),
 					'postalCode' => $shipment->get_postcode(),
 					'country'    => wc_gzd_country_to_alpha3( $shipment->get_country() ),
 				);
 
-				if ( $post_number = ParcelLocator::get_postnumber_by_shipment( $shipment ) ) {
-					$shipment_request['consignee']['postNumber'] = $post_number;
+				if ( ! empty( $shipment->get_pickup_location_customer_number() ) ) {
+					$shipment_request['consignee']['postNumber'] = $shipment->get_pickup_location_customer_number();
 				} else {
 					$shipment_request['consignee']['email'] = $shipment->get_email();
 				}

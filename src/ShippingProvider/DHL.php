@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\DHL\ParcelServices;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\CashOnDelivery;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\ClosestDropPoint;
@@ -20,6 +21,7 @@ use Vendidero\Germanized\Shipments\Admin\ProviderSettings;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
+use Vendidero\Germanized\Shipments\ShippingProvider\PickupLocation;
 use Vendidero\Germanized\Shipments\ShippingProvider\Service;
 
 defined( 'ABSPATH' ) || exit;
@@ -1534,7 +1536,10 @@ class DHL extends Auto {
 		return array( 'simple' );
 	}
 
-	public function supports_pickup_location_delivery( $address, $max_dimensions = array() ) {
+	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
+		$query_args = $this->parse_pickup_location_query_args( $query_args );
+		$address    = $this->parse_pickup_location_address_args( $address );
+
 		return in_array( $address['country'], array( 'DE', 'AT' ), true );
 	}
 
@@ -1588,25 +1593,60 @@ class DHL extends Auto {
 			'city'      => $location->place->address->addressLocality,
 		);
 
-		return array(
-			'code'                  => $location->gzd_id,
-			'type'                  => $location->location->type,
-			'title'                 => $location->gzd_name,
-			'lat'                   => $location->place->geo->latitude,
-			'long'                  => $location->place->geo->longitude,
-			'needs_customer_number' => 'locker' === $location->location->type ? true : false,
-			'formatted_address'     => WC()->countries->get_formatted_address( $address, ', ' ),
-			'address_replacements'  => array(
-				'address_1' => $location->gzd_name,
-				'country'   => $location->place->address->countryCode,
-				'postcode'  => $location->place->address->postalCode,
-				'city'      => $location->place->address->addressLocality,
-			),
-		);
+		try {
+			return new PickupLocation( array(
+				'code'                  => $location->gzd_id,
+				'type'                  => $location->location->type,
+				'label'                 => $location->gzd_name,
+				'latitude'                   => $location->place->geo->latitude,
+				'longitude'                  => $location->place->geo->longitude,
+				'supports_customer_number' => true,
+				'customer_number_is_mandatory' => 'locker' === $location->location->type ? true : false,
+				'customer_number_validation_cb' => 'wc_gzd_dhl_validate_customer_number',
+				'address'                   => $address,
+				'address_replacement_map'  => array(
+					'address_1' => 'label',
+					'country'   => 'country',
+					'postcode'  => 'postcode',
+					'city'      => 'city',
+				),
+			) );
+		} catch( \Exception $e ) {
+			Package::log( $e, 'error' );
+
+			return false;
+		}
 	}
 
-	public function fetch_pickup_locations( $address, $limit = 10 ) {
-		$locations     = array();
+	public function fetch_pickup_locations( $address, $query_args = array() ) {
+		$types = array();
+
+		if ( ParcelLocator::is_packstation_enabled() ) {
+			$types[] = 'packstation';
+		}
+
+		if ( ParcelLocator::is_parcelshop_enabled() ) {
+			$types[] = 'parcelshop';
+		}
+
+		if ( ParcelLocator::is_postoffice_enabled() ) {
+			$types[] = 'postoffice';
+		}
+
+		$locations                = array();
+		$locker_max_supported_dimensions = array(
+			'length' => 75.0,
+			'width'  => 60.0,
+			'height' => 40.0
+		);
+
+		foreach( $query_args['max_dimensions'] as $dim => $dim_val ) {
+			if ( isset( $locker_max_supported_dimensions[ $dim ] ) && (float) $dim_val > $locker_max_supported_dimensions[ $dim ] ) {
+				$types = array_diff( $types, array( 'packstation' ) );
+				break;
+			}
+		}
+
 		$location_data = Package::get_api()->get_parcel_location(
 			array(
 				'zip'     => $address['postcode'],
@@ -1614,12 +1654,14 @@ class DHL extends Auto {
 				'city'    => $address['city'],
 				'address' => ! empty( $address['city'] ) ? $address['address_1'] : '',
 			),
-			array(),
-			$limit
+			$types,
+			$query_args['limit']
 		);
 
 		foreach ( $location_data as $location ) {
-			$locations[] = $this->get_pickup_location_from_api_response( $location );
+			if ( $pickup_location = $this->get_pickup_location_from_api_response( $location ) ) {
+				$locations[] = $pickup_location;
+			}
 		}
 
 		return $locations;

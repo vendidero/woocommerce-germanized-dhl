@@ -50,6 +50,17 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 	return apply_filters( 'woocommerce_gzd_dhl_customs_data', $customs_data, $label, $shipment );
 }
 
+function wc_gzd_dhl_validate_customer_number( $customer_number ) {
+	$customer_number     = preg_replace( '/[^0-9]/', '', $customer_number );
+	$customer_number_len = strlen( $customer_number );
+
+	if ( $customer_number_len < 6 || $customer_number_len > 12 ) {
+		return false;
+	}
+
+	return true;
+}
+
 /**
  * @param false|Shipment $shipment
  *

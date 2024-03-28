@@ -173,16 +173,24 @@ class LocationFinder extends Rest {
 		$args = array(
 			'countryCode'     => $address['country'],
 			'addressLocality' => $address['city'],
+			'providerType'    => 'parcel',
 			'postalCode'      => $address['zip'],
 			'streetAddress'   => $address['address'],
+			'serviceType'     => array( 'parcel:pick-up-all' ),
+			'locationType'    => array(),
 			'limit'           => $limit,
 			'radius'          => 2500,
 		);
 
-		if ( array( 'packstation' ) === $types ) {
-			$args['locationType'] = 'locker';
-		} else {
-			$args['serviceType'] = 'parcel:pick-up-all';
+		foreach( $types as $type ) {
+			if ( 'postoffice' === $type ) {
+				$args['locationType'][] = 'postoffice';
+				$args['locationType'][] = 'postbank';
+			} elseif ( 'packstation' === $type ) {
+				$args['locationType'][] = 'locker';
+			} elseif ( 'parcelshop' === $type ) {
+				$args['locationType'][] = 'servicepoint';
+			}
 		}
 
 		$response = $this->get_request( '/find-by-address', $args );
