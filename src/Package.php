@@ -10,6 +10,7 @@ use Vendidero\Germanized\DHL\ShippingProvider\DeutschePost;
 use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\DHL\Api\Internetmarke;
 use Vendidero\Germanized\Shipments\Registry\Container;
+use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 defined( 'ABSPATH' ) || exit;
@@ -65,6 +66,7 @@ class Package {
 
 		// Legacy data store
 		add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
+		add_filter( 'woocommerce_gzd_shipment_is_shipping_domestic', array( __CLASS__, 'shipping_domestic' ), 10, 2 );
 
 		self::includes();
 		self::define_tables();
@@ -77,6 +79,25 @@ class Package {
 				add_action( 'admin_notices', array( __CLASS__, 'load_dependencies_notice' ) );
 			}
 		}
+	}
+
+	/**
+     * Exclude certain inner-DE shipments (e.g. to Helgoland) from being treated
+     * as international shipments.
+     *
+	 * @param boolean $is_shipping_domestic
+	 * @param Shipment $shipment
+	 *
+	 * @return boolean
+	 */
+	public static function shipping_domestic( $is_shipping_domestic, $shipment ) {
+		if ( false === $is_shipping_domestic && in_array( $shipment->get_shipping_provider(), array( 'dhl', 'deutsche_post' ), true ) ) {
+			if ( ! self::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
+				$is_shipping_domestic = true;
+			}
+		}
+
+		return $is_shipping_domestic;
 	}
 
 	public static function load_dependencies_notice() {
