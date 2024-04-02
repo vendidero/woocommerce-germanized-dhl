@@ -1647,16 +1647,20 @@ class DHL extends Auto {
 			}
 		}
 
-		$location_data = Package::get_api()->get_parcel_location(
-			array(
-				'zip'     => $address['postcode'],
-				'country' => $address['country'],
-				'city'    => $address['city'],
-				'address' => ! empty( $address['city'] ) ? $address['address_1'] : '',
-			),
-			$types,
-			$query_args['limit']
-		);
+		try {
+			$location_data = Package::get_api()->get_parcel_location(
+				array(
+					'zip'     => $address['postcode'],
+					'country' => $address['country'],
+					'city'    => $address['city'],
+					'address' => ! empty( $address['city'] ) ? $address['address_1'] : '',
+				),
+				$types,
+				$query_args['limit']
+			);
+		} catch( \Exception $e ) {
+			return null;
+		}
 
 		foreach ( $location_data as $location ) {
 			if ( $pickup_location = $this->get_pickup_location_from_api_response( $location ) ) {
