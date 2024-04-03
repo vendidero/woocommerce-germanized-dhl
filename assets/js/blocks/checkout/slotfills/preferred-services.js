@@ -10,7 +10,6 @@ import { SVG } from '@wordpress/components';
 import _ from 'lodash';
 import { CART_STORE_KEY, CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { getCurrencyFromPriceResponse } from '@woocommerce/price-format';
-import { addAction } from '@wordpress/hooks';
 import { useDebouncedCallback, useDebounce } from 'use-debounce';
 
 import {
@@ -24,33 +23,13 @@ import {
 } from '@woocommerce/blocks-checkout';
 
 import './style.scss';
-import RadioControlAccordion from "@wooshipments/base-components/radio-control-accordion";
-import FormattedMonetaryAmount from "@wooshipments/base-components/formatted-monetary-amount";
-import { debounce } from "@wooshipments/base-utils";
-
-const getSelectedShippingProviders = (
-    shippingRates
-) => {
-    return Object.fromEntries( shippingRates.map( ( { package_id: packageId, shipping_rates: packageRates } ) => {
-        const meta_data = packageRates.find( ( rate ) => rate.selected )?.meta_data || [];
-        let provider = '';
-
-        meta_data.map( ( metaField ) => {
-            if ( 'shipping_provider' === metaField.key || '_shipping_provider' === metaField.key ) {
-                provider = metaField.value;
-            }
-        } );
-
-        return [
-            packageId,
-            provider
-        ];
-    } ) );
-};
-
-const hasShippingProvider = ( shippingProviders, shippingProvider ) => {
-    return Object.values( shippingProviders ).includes( shippingProvider );
-};
+import {
+    getSelectedShippingProviders,
+    hasShippingProvider,
+    hasPickupLocation,
+    RadioControlAccordion,
+    FormattedMonetaryAmount
+} from '@woocommerceGzdShipments/blocks-checkout';
 
 const getDhlCheckoutData = ( checkoutData ) => {
     return checkoutData.hasOwnProperty( 'woocommerce-gzd-dhl' ) ? checkoutData['woocommerce-gzd-dhl'] : {};
@@ -348,7 +327,7 @@ const DhlPreferredDeliveryOptions = ({
 
     const [ needsUpdate, setNeedsUpdate ] = useState( false );
     const shippingProviders = getSelectedShippingProviders( shippingRates );
-    const hasDhlProvider = hasShippingProvider( shippingProviders, 'dhl' );
+    const hasDhlProvider = hasShippingProvider( 'dhl', shippingProviders );
     const { __internalSetExtensionData } = useDispatch( CHECKOUT_STORE_KEY );
 
     const { isCustomerDataUpdating } = useSelect(
@@ -414,8 +393,8 @@ const DhlPreferredDeliveryOptions = ({
     const isGatewayExcluded = _.includes( excludedPaymentGateways, activePaymentMethod );
 
     const preferredDayEnabled = dhlOptions.preferred_day_enabled && dhlOptions.preferred_days.length > 0;
-    const preferredLocationEnabled = dhlOptions.preferred_location_enabled;
-    const preferredNeighborEnabled = dhlOptions.preferred_neighbor_enabled;
+    const preferredLocationEnabled = dhlOptions.preferred_location_enabled && ! hasPickupLocation();
+    const preferredNeighborEnabled = dhlOptions.preferred_neighbor_enabled && ! hasPickupLocation();
     const preferredDeliveryTypeEnabled = dhlOptions.preferred_delivery_type_enabled;
     const cdpCountries = getSetting( 'dhlCdpCountries', [] );
 

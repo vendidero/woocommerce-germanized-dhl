@@ -97,16 +97,7 @@ const getEntryConfig = ( type = 'main', exclude = [] ) => {
 };
 
 const getAlias = ( options = {} ) => {
-    return {
-        '@wooshipments/base-components': path.resolve(
-            __dirname,
-            `/assets/js/base/components/`
-        ),
-        '@wooshipments/base-utils': path.resolve(
-            __dirname,
-            `/assets/js/base/utils/`
-        ),
-    };
+    return {};
 };
 
 const wcDepMap = {
@@ -118,7 +109,8 @@ const wcDepMap = {
     '@woocommerce/shared-hocs': [ 'wc', 'wcBlocksSharedHocs' ],
     '@woocommerce/price-format': [ 'wc', 'priceFormat' ],
     '@woocommerce/blocks-checkout': [ 'wc', 'blocksCheckout' ],
-    '@woocommerce/interactivity': [ 'wc', '__experimentalInteractivity' ]
+    '@woocommerce/interactivity': [ 'wc', '__experimentalInteractivity' ],
+    '@woocommerceGzdShipments/blocks-checkout': [ 'wcGzdShipments', 'blocksCheckout' ],
 };
 
 const wcHandleMap = {
@@ -130,7 +122,8 @@ const wcHandleMap = {
     '@woocommerce/shared-hocs': 'wc-blocks-shared-hocs',
     '@woocommerce/price-format': 'wc-price-format',
     '@woocommerce/blocks-checkout': 'wc-blocks-checkout',
-    '@woocommerce/interactivity': 'wc-interactivity'
+    '@woocommerce/interactivity': 'wc-interactivity',
+    '@woocommerceGzdShipments/blocks-checkout': 'wc-gzd-shipments-blocks-checkout',
 };
 
 const requestToExternal = ( request ) => {

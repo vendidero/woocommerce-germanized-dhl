@@ -182,7 +182,7 @@ class LocationFinder extends Rest {
 			'radius'          => 2500,
 		);
 
-		foreach( $types as $type ) {
+		foreach ( $types as $type ) {
 			if ( 'postoffice' === $type ) {
 				$args['locationType'][] = 'postoffice';
 				$args['locationType'][] = 'postbank';

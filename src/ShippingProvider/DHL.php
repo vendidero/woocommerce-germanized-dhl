@@ -21,7 +21,6 @@ use Vendidero\Germanized\Shipments\Admin\ProviderSettings;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
-use Vendidero\Germanized\Shipments\ShippingProvider\PickupLocation;
 use Vendidero\Germanized\Shipments\ShippingProvider\Service;
 
 defined( 'ABSPATH' ) || exit;
@@ -1539,8 +1538,9 @@ class DHL extends Auto {
 	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
 		$query_args = $this->parse_pickup_location_query_args( $query_args );
 		$address    = $this->parse_pickup_location_address_args( $address );
+		$supports   = in_array( $address['country'], ParcelLocator::get_supported_countries(), true ) && ! in_array( $query_args['payment_gateway'], ParcelLocator::get_excluded_gateways(), true );
 
-		return in_array( $address['country'], array( 'DE', 'AT' ), true );
+		return $supports;
 	}
 
 	public function fetch_pickup_location( $location_code, $address ) {
@@ -1594,24 +1594,25 @@ class DHL extends Auto {
 		);
 
 		try {
-			return new PickupLocation( array(
-				'code'                  => $location->gzd_id,
-				'type'                  => $location->location->type,
-				'label'                 => $location->gzd_name,
-				'latitude'                   => $location->place->geo->latitude,
-				'longitude'                  => $location->place->geo->longitude,
-				'supports_customer_number' => true,
-				'customer_number_is_mandatory' => 'locker' === $location->location->type ? true : false,
-				'customer_number_validation_cb' => 'wc_gzd_dhl_validate_customer_number',
-				'address'                   => $address,
-				'address_replacement_map'  => array(
-					'address_1' => 'label',
-					'country'   => 'country',
-					'postcode'  => 'postcode',
-					'city'      => 'city',
-				),
-			) );
-		} catch( \Exception $e ) {
+			return new PickupLocation(
+				array(
+					'code'                         => $location->gzd_id,
+					'type'                         => $location->location->type,
+					'label'                        => $location->gzd_name,
+					'latitude'                     => $location->place->geo->latitude,
+					'longitude'                    => $location->place->geo->longitude,
+					'supports_customer_number'     => true,
+					'customer_number_is_mandatory' => 'locker' === $location->location->type ? true : false,
+					'address'                      => $address,
+					'address_replacement_map'      => array(
+						'address_1' => 'label',
+						'country'   => 'country',
+						'postcode'  => 'postcode',
+						'city'      => 'city',
+					),
+				)
+			);
+		} catch ( \Exception $e ) {
 			Package::log( $e, 'error' );
 
 			return false;
@@ -1633,14 +1634,14 @@ class DHL extends Auto {
 			$types[] = 'postoffice';
 		}
 
-		$locations                = array();
+		$locations                       = array();
 		$locker_max_supported_dimensions = array(
 			'length' => 75.0,
 			'width'  => 60.0,
-			'height' => 40.0
+			'height' => 40.0,
 		);
 
-		foreach( $query_args['max_dimensions'] as $dim => $dim_val ) {
+		foreach ( $query_args['max_dimensions'] as $dim => $dim_val ) {
 			if ( isset( $locker_max_supported_dimensions[ $dim ] ) && (float) $dim_val > $locker_max_supported_dimensions[ $dim ] ) {
 				$types = array_diff( $types, array( 'packstation' ) );
 				break;
@@ -1658,7 +1659,7 @@ class DHL extends Auto {
 				$types,
 				$query_args['limit']
 			);
-		} catch( \Exception $e ) {
+		} catch ( \Exception $e ) {
 			return null;
 		}
 
