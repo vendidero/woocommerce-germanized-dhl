@@ -21,11 +21,12 @@ use Vendidero\Germanized\Shipments\Admin\ProviderSettings;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
-use Vendidero\Germanized\Shipments\ShippingProvider\Service;
 
 defined( 'ABSPATH' ) || exit;
 
 class DHL extends Auto {
+
+	use PickupDeliveryTrait;
 
 	public function get_title( $context = 'view' ) {
 		return _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' );
@@ -1070,31 +1071,12 @@ class DHL extends Auto {
 			),
 
 			array(
-				'title'   => _x( 'Map', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'    => _x( 'Let customers find a DHL location on a map.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'Enable this option to let your customers choose a pickup option from a map within the checkout. If this option is disabled a link to the DHL website is placed instead.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'id'      => 'parcel_pickup_map_enable',
-				'value'   => wc_bool_to_string( $this->get_setting( 'parcel_pickup_map_enable' ) ),
-				'default' => 'no',
-				'type'    => 'gzd_toggle',
-			),
-
-			array(
-				'title'             => _x( 'Google Maps Key', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'password',
-				'id'                => 'parcel_pickup_map_api_password',
-				'custom_attributes' => array( 'data-show_if_parcel_pickup_map_enable' => '' ),
-				'value'             => $this->get_setting( 'parcel_pickup_map_api_password' ),
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To integrate a map within your checkout you\'ll need a valid API key for Google Maps. You may %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">' . _x( 'retrieve a new one', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
-				'default'           => '',
-			),
-
-			array(
 				'title'             => _x( 'Limit results', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'number',
 				'id'                => 'parcel_pickup_map_max_results',
 				'custom_attributes' => array( 'data-show_if_parcel_pickup_map_enable' => '' ),
 				'value'             => $this->get_setting( 'parcel_pickup_map_max_results' ),
-				'desc_tip'          => _x( 'Limit the number of DHL locations shown on the map', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => _x( 'Limit the number of DHL locations presented to the customer.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'default'           => 20,
 				'css'               => 'max-width: 60px;',
 			),
@@ -1533,142 +1515,5 @@ class DHL extends Auto {
 
 	public function get_supported_label_config_set_shipment_types() {
 		return array( 'simple' );
-	}
-
-	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
-		$query_args = $this->parse_pickup_location_query_args( $query_args );
-		$address    = $this->parse_pickup_location_address_args( $address );
-		$supports   = in_array( $address['country'], ParcelLocator::get_supported_countries(), true ) && ! in_array( $query_args['payment_gateway'], ParcelLocator::get_excluded_gateways(), true );
-
-		return $supports;
-	}
-
-	public function fetch_pickup_location( $location_code, $address ) {
-		$location_code = $this->parse_pickup_location_code( $location_code );
-		$address       = wp_parse_args(
-			$address,
-			array(
-				'postcode' => '',
-				'country'  => '',
-			)
-		);
-
-		if ( empty( $location_code ) ) {
-			return false;
-		}
-
-		try {
-			$result          = Package::get_api()->get_finder_api()->find_by_id( $location_code, $address['country'], $address['postcode'] );
-			$pickup_location = $this->get_pickup_location_from_api_response( $result );
-		} catch ( \Exception $e ) {
-			$pickup_location = null;
-
-			if ( 404 === $e->getCode() ) {
-				$pickup_location = false;
-			}
-		}
-
-		return $pickup_location;
-	}
-
-	public function parse_pickup_location_code( $location_code ) {
-		$keyword_id = '';
-		preg_match_all( '/([A-Z]{2}-)?[0-9]+/', $location_code, $matches );
-
-		if ( $matches && count( $matches ) > 0 ) {
-			if ( isset( $matches[0][0] ) ) {
-				$keyword_id = $matches[0][0];
-			}
-		}
-
-		return $keyword_id;
-	}
-
-	protected function get_pickup_location_from_api_response( $location ) {
-		$address = array(
-			'company'   => $location->name,
-			'country'   => $location->place->address->countryCode,
-			'postcode'  => $location->place->address->postalCode,
-			'address_1' => $location->place->address->streetAddress,
-			'city'      => $location->place->address->addressLocality,
-		);
-
-		try {
-			return new PickupLocation(
-				array(
-					'code'                         => $location->gzd_id,
-					'type'                         => $location->location->type,
-					'label'                        => $location->gzd_name,
-					'latitude'                     => $location->place->geo->latitude,
-					'longitude'                    => $location->place->geo->longitude,
-					'supports_customer_number'     => true,
-					'customer_number_is_mandatory' => 'locker' === $location->location->type ? true : false,
-					'address'                      => $address,
-					'address_replacement_map'      => array(
-						'address_1' => 'label',
-						'country'   => 'country',
-						'postcode'  => 'postcode',
-						'city'      => 'city',
-					),
-				)
-			);
-		} catch ( \Exception $e ) {
-			Package::log( $e, 'error' );
-
-			return false;
-		}
-	}
-
-	public function fetch_pickup_locations( $address, $query_args = array() ) {
-		$types = array();
-
-		if ( ParcelLocator::is_packstation_enabled() ) {
-			$types[] = 'packstation';
-		}
-
-		if ( ParcelLocator::is_parcelshop_enabled() ) {
-			$types[] = 'parcelshop';
-		}
-
-		if ( ParcelLocator::is_postoffice_enabled() ) {
-			$types[] = 'postoffice';
-		}
-
-		$locations                       = array();
-		$locker_max_supported_dimensions = array(
-			'length' => 75.0,
-			'width'  => 60.0,
-			'height' => 40.0,
-		);
-
-		foreach ( $query_args['max_dimensions'] as $dim => $dim_val ) {
-			if ( isset( $locker_max_supported_dimensions[ $dim ] ) && (float) $dim_val > $locker_max_supported_dimensions[ $dim ] ) {
-				$types = array_diff( $types, array( 'packstation' ) );
-				break;
-			}
-		}
-
-		try {
-			$location_data = Package::get_api()->get_parcel_location(
-				array(
-					'zip'     => $address['postcode'],
-					'country' => $address['country'],
-					'city'    => $address['city'],
-					'address' => ! empty( $address['city'] ) ? $address['address_1'] : '',
-				),
-				$types,
-				$query_args['limit']
-			);
-		} catch ( \Exception $e ) {
-			return null;
-		}
-
-		foreach ( $location_data as $location ) {
-			if ( $pickup_location = $this->get_pickup_location_from_api_response( $location ) ) {
-				$locations[] = $pickup_location;
-			}
-		}
-
-		return $locations;
 	}
 }

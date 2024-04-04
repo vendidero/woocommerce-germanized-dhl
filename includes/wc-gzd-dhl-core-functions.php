@@ -313,6 +313,8 @@ function wc_gzd_dhl_get_deutsche_post_shipping_method( $instance_id ) {
 }
 
 function wc_gzd_dhl_get_pickup_types() {
+	wc_deprecated_function( 'wc_gzd_dhl_get_pickup_types', '3.1' );
+
 	return array(
 		'packstation' => _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ),
 		'postoffice'  => _x( 'Postfiliale', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -321,6 +323,8 @@ function wc_gzd_dhl_get_pickup_types() {
 }
 
 function wc_gzd_dhl_is_pickup_type( $maybe_type, $type = 'packstation' ) {
+	wc_deprecated_function( 'wc_gzd_dhl_is_pickup_type', '3.1' );
+
 	$label = wc_gzd_dhl_get_pickup_type( $type );
 
 	if ( ! $label ) {
@@ -359,10 +363,14 @@ function wc_gzd_dhl_get_excluded_working_days() {
 }
 
 function wc_gzd_dhl_order_has_pickup( $order ) {
+	wc_deprecated_function( 'wc_gzd_dhl_order_has_pickup', '3.1' );
+
 	return ParcelLocator::order_has_pickup( $order );
 }
 
 function wc_gzd_dhl_get_pickup_type( $type ) {
+	wc_deprecated_function( 'wc_gzd_dhl_get_pickup_type', '3.1' );
+
 	$types = wc_gzd_dhl_get_pickup_types();
 
 	if ( array_key_exists( $type, $types ) ) {

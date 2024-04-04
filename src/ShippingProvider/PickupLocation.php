@@ -26,6 +26,39 @@ class PickupLocation extends \Vendidero\Germanized\Shipments\ShippingProvider\Pi
 		return $is_valid;
 	}
 
+	public function supports_dimensions( $dimensions ) {
+		$supports_dimensions = parent::supports_dimensions( $dimensions );
+		$dimensions          = wp_parse_args(
+			$dimensions,
+			array(
+				'length' => 0.0,
+				'width'  => 0.0,
+				'height' => 0.0,
+			)
+		);
+
+		if ( 'locker' === $this->get_type() ) {
+			$locker_max_supported_dimensions = array(
+				'length' => 75.0,
+				'width'  => 60.0,
+				'height' => 40.0,
+			);
+
+			foreach ( $dimensions as $dim => $dim_val ) {
+				if ( isset( $locker_max_supported_dimensions[ $dim ] ) && (float) $dim_val > $locker_max_supported_dimensions[ $dim ] ) {
+					$supports_dimensions = false;
+					break;
+				}
+			}
+		}
+
+		return $supports_dimensions;
+	}
+
+	public function supports_weight( $weight ) {
+		return (float) $weight <= 31.5;
+	}
+
 	public function get_customer_number_field_label() {
 		return _x( 'Customer Number (Post Number)', 'dhl', 'woocommerce-germanized-dhl' );
 	}

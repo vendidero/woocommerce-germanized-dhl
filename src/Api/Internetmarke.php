@@ -647,6 +647,12 @@ class Internetmarke {
 		}
 	}
 
+	/**
+	 * @param Shipment $shipment
+	 * @param $address_type
+	 *
+	 * @return \baltpeter\Internetmarke\NamedAddress
+	 */
 	protected function get_shipment_address_data( $shipment, $address_type = '' ) {
 		$person_name = new PersonName( '', '', $this->get_shipment_address_prop( $shipment, 'first_name', $address_type ), $this->get_shipment_address_prop( $shipment, 'last_name', $address_type ) );
 
@@ -658,8 +664,8 @@ class Internetmarke {
 
 		$additional = $this->get_shipment_address_prop( $shipment, 'address_2', $address_type );
 
-		if ( 'simple' === $shipment->get_type() && $shipment->send_to_external_pickup( 'packstation' ) ) {
-			$additional = ( empty( $additional ) ? '' : $additional . ' ' ) . ParcelLocator::get_postnumber_by_shipment( $shipment );
+		if ( 'simple' === $shipment->get_type() && $shipment->send_to_external_pickup( 'locker' ) ) {
+			$additional = ( empty( $additional ) ? '' : $additional . ' ' ) . $shipment->get_pickup_location_customer_number();
 		}
 
 		$address = new Address(

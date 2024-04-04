@@ -37,34 +37,6 @@ class LocationFinder extends Rest {
 		$this->remote_header['DHL-API-Key'] = $this->get_api_key();
 	}
 
-	protected function get_translated_weekday( $schema ) {
-		$weekdays = array(
-			'http://schema.org/Monday'    => _x( 'Monday', 'dhl', 'woocommerce-germanized-dhl' ),
-			'http://schema.org/Tuesday'   => _x( 'Tuesday', 'dhl', 'woocommerce-germanized-dhl' ),
-			'http://schema.org/Wednesday' => _x( 'Wednesday', 'dhl', 'woocommerce-germanized-dhl' ),
-			'http://schema.org/Thursday'  => _x( 'Thursday', 'dhl', 'woocommerce-germanized-dhl' ),
-			'http://schema.org/Friday'    => _x( 'Friday', 'dhl', 'woocommerce-germanized-dhl' ),
-			'http://schema.org/Saturday'  => _x( 'Saturday', 'dhl', 'woocommerce-germanized-dhl' ),
-			'http://schema.org/Sunday'    => _x( 'Sunday', 'dhl', 'woocommerce-germanized-dhl' ),
-		);
-
-		if ( isset( $weekdays[ $schema ] ) ) {
-			return $weekdays[ $schema ];
-		}
-
-		return false;
-	}
-
-	protected function get_time_string( $time_raw ) {
-		$time_expl = explode( ':', $time_raw );
-
-		if ( count( $time_expl ) > 2 ) {
-			$time_expl = array_slice( $time_expl, 0, 2 );
-		}
-
-		return implode( ':', $time_expl );
-	}
-
 	public function find_by_id( $keyword, $country, $postcode ) {
 		$keyword_id = ParcelLocator::extract_pickup_keyword_id( $keyword );
 
@@ -94,31 +66,15 @@ class LocationFinder extends Rest {
 		);
 
 		// Lets assume it is a postoffice by default
-		$result->gzd_type          = 'postoffice';
-		$result->gzd_id            = isset( $result->location->keywordId ) ? wc_clean( $result->location->keywordId ) : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$result->gzd_result_id     = wc_clean( $result->url );
-		$result->gzd_opening_hours = array();
+		$result->gzd_type      = 'postoffice';
+		$result->gzd_id        = isset( $result->location->keywordId ) ? wc_clean( $result->location->keywordId ) : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$result->gzd_result_id = wc_clean( $result->url );
 
 		if ( isset( $result->location->type ) && array_key_exists( $result->location->type, $api_types ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			$result->gzd_type = $api_types[ $result->location->type ];
 		}
 
 		$result->gzd_name = sprintf( _x( '%1$s %2$s', 'dhl location name', 'woocommerce-germanized-dhl' ), wc_clean( $result->location->keyword ), wc_clean( $result->location->keywordId ) );
-
-		if ( isset( $result->openingHours ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			foreach ( $result->openingHours as $opening_data ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				if ( ! isset( $result->gzd_opening_hours[ $opening_data->dayOfWeek ] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$result->gzd_opening_hours[ $opening_data->dayOfWeek ] = array( // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-						'weekday'   => $this->get_translated_weekday( $opening_data->dayOfWeek ), // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-						'time_html' => $this->get_time_string( wc_clean( $opening_data->opens ) ) . ' - ' . $this->get_time_string( wc_clean( $opening_data->closes ) ), // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					);
-				} else {
-					$result->gzd_opening_hours[ $opening_data->dayOfWeek ]['time_html'] .= ', ' . $this->get_time_string( wc_clean( $opening_data->opens ) ) . ' - ' . $this->get_time_string( wc_clean( $opening_data->closes ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				}
-			}
-		}
-
-		$result->html_content = wc_get_template_html( 'checkout/dhl/parcel-finder-result.php', array( 'result' => $result ) );
 	}
 
 	/**
@@ -186,7 +142,7 @@ class LocationFinder extends Rest {
 			if ( 'postoffice' === $type ) {
 				$args['locationType'][] = 'postoffice';
 				$args['locationType'][] = 'postbank';
-			} elseif ( 'packstation' === $type ) {
+			} elseif ( 'packstation' === $type || 'locker' === $type ) {
 				$args['locationType'][] = 'locker';
 			} elseif ( 'parcelshop' === $type ) {
 				$args['locationType'][] = 'servicepoint';

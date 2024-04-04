@@ -16,6 +16,8 @@ use Vendidero\Germanized\Shipments\ShippingProvider\ServiceList;
 defined( 'ABSPATH' ) || exit;
 
 class DeutschePost extends Auto {
+
+	use PickupDeliveryTrait;
 	protected function get_default_label_default_print_format() {
 		return 1;
 	}
