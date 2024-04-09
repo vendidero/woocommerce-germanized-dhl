@@ -64,6 +64,7 @@ abstract class Rest {
 		$this->set_header( $this->get_auth(), 'GET', $endpoint );
 
 		$wp_request_url     = add_query_arg( $query_args, $api_url . $endpoint );
+		$wp_request_url     = preg_replace( '/\%5B\d+\%5D/', '', $wp_request_url ); // Prevent arrays from being passed as array but use same keys instead
 		$wp_request_headers = $this->get_header();
 
 		Package::log( 'GET URL: ' . $wp_request_url );

@@ -656,15 +656,13 @@ class LabelSoap extends Soap {
 					),
 				);
 
-				$address_number = filter_var( $shipment->get_address_1(), FILTER_SANITIZE_NUMBER_INT );
-
-				if ( $shipment->send_to_external_pickup( 'packstation' ) ) {
-					$parcel_shop['postNumber']        = ParcelLocator::get_postnumber_by_shipment( $shipment );
-					$parcel_shop['packstationNumber'] = $address_number;
+				if ( $shipment->send_to_external_pickup( 'locker' ) ) {
+					$parcel_shop['postNumber']        = $shipment->get_pickup_location_customer_number();
+					$parcel_shop['packstationNumber'] = $shipment->get_pickup_location_code();
 
 					$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Packstation'] = $parcel_shop;
-				} elseif ( $shipment->send_to_external_pickup( 'postoffice' ) || $shipment->send_to_external_pickup( 'parcelshop' ) ) {
-					if ( $post_number = ParcelLocator::get_postnumber_by_shipment( $shipment ) ) {
+				} else {
+					if ( $post_number = $shipment->get_pickup_location_customer_number() ) {
 						$parcel_shop['postNumber'] = $post_number;
 						unset( $dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] );
 					} else {
@@ -672,10 +670,8 @@ class LabelSoap extends Soap {
 						$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] = $shipment->get_email();
 					}
 
-					$parcel_shop['postfilialNumber']                                        = $address_number;
+					$parcel_shop['postfilialNumber']                                        = $shipment->get_pickup_location_code();
 					$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Postfiliale'] = $parcel_shop;
-				} else {
-					throw new Exception( _x( 'Please make sure that the Packstation (or postoffice, parcelshop) exists and is indicated correctly.', 'dhl', 'woocommerce-germanized-dhl' ) );
 				}
 			} else {
 				$dhl_label_body['ShipmentOrder']['Shipment']['Receiver']['Communication']['email'] = $shipment->get_email();

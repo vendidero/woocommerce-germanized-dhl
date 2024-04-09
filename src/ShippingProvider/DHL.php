@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\DHL\ShippingProvider;
 
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\DHL\ParcelServices;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\CashOnDelivery;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\ClosestDropPoint;
@@ -20,11 +21,12 @@ use Vendidero\Germanized\Shipments\Admin\ProviderSettings;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
-use Vendidero\Germanized\Shipments\ShippingProvider\Service;
 
 defined( 'ABSPATH' ) || exit;
 
 class DHL extends Auto {
+
+	use PickupDeliveryTrait;
 
 	public function get_title( $context = 'view' ) {
 		return _x( 'DHL', 'dhl', 'woocommerce-germanized-dhl' );
@@ -1069,31 +1071,12 @@ class DHL extends Auto {
 			),
 
 			array(
-				'title'   => _x( 'Map', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'    => _x( 'Let customers find a DHL location on a map.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-additional-desc">' . _x( 'Enable this option to let your customers choose a pickup option from a map within the checkout. If this option is disabled a link to the DHL website is placed instead.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
-				'id'      => 'parcel_pickup_map_enable',
-				'value'   => wc_bool_to_string( $this->get_setting( 'parcel_pickup_map_enable' ) ),
-				'default' => 'no',
-				'type'    => 'gzd_toggle',
-			),
-
-			array(
-				'title'             => _x( 'Google Maps Key', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'password',
-				'id'                => 'parcel_pickup_map_api_password',
-				'custom_attributes' => array( 'data-show_if_parcel_pickup_map_enable' => '' ),
-				'value'             => $this->get_setting( 'parcel_pickup_map_api_password' ),
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To integrate a map within your checkout you\'ll need a valid API key for Google Maps. You may %s.', 'dhl', 'woocommerce-germanized-dhl' ), '<a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">' . _x( 'retrieve a new one', 'dhl', 'woocommerce-germanized-dhl' ) . '</a>' ) . '</div>',
-				'default'           => '',
-			),
-
-			array(
 				'title'             => _x( 'Limit results', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'number',
 				'id'                => 'parcel_pickup_map_max_results',
 				'custom_attributes' => array( 'data-show_if_parcel_pickup_map_enable' => '' ),
 				'value'             => $this->get_setting( 'parcel_pickup_map_max_results' ),
-				'desc_tip'          => _x( 'Limit the number of DHL locations shown on the map', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip'          => _x( 'Limit the number of DHL locations presented to the customer.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'default'           => 20,
 				'css'               => 'max-width: 60px;',
 			),

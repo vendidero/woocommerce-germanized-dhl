@@ -185,8 +185,8 @@ class Paket {
 		}
 	}
 
-	public function get_parcel_location( $address, $types = array() ) {
-		return $this->get_finder_api()->get_parcel_location( $address, $types );
+	public function get_parcel_location( $address, $types = array(), $limit = false ) {
+		return $this->get_finder_api()->get_parcel_location( $address, $types, $limit );
 	}
 
 	public function get_return_label( &$label ) {
