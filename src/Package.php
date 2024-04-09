@@ -109,7 +109,7 @@ class Package {
 	}
 
 	public static function has_dependencies() {
-		return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && self::base_country_is_supported() && apply_filters( 'woocommerce_gzd_dhl_enabled', true ) );
+		return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && \Vendidero\Germanized\Shipments\Package::has_dependencies() && self::base_country_is_supported() && apply_filters( 'woocommerce_gzd_dhl_enabled', true ) );
 	}
 
 	public static function has_load_dependencies() {
