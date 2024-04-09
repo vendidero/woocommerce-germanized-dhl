@@ -25,7 +25,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '3.0.6';
+	const VERSION = '3.1.0';
 
 	public static $upload_dir_suffix = '';
 
@@ -82,9 +82,9 @@ class Package {
 	}
 
 	/**
-     * Exclude certain inner-DE shipments (e.g. to Helgoland) from being treated
-     * as international shipments.
-     *
+	 * Exclude certain inner-DE shipments (e.g. to Helgoland) from being treated
+	 * as international shipments.
+	 *
 	 * @param boolean $is_shipping_domestic
 	 * @param Shipment $shipment
 	 *

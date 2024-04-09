@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/DHL/Templates
- * @version 1.1.0
+ * @version 1.2.0
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -25,11 +25,6 @@ defined( 'ABSPATH' ) || exit;
 			<div class="dhl-preferred-service-title">
 				<?php echo esc_html_x( 'DHL Preferred Delivery. Delivered just as you wish.', 'dhl', 'woocommerce-germanized-dhl' ); ?>
 			</div>
-			<?php if ( $preferred_day_enabled || $preferred_location_enabled || $preferred_neighbor_enabled ) : ?>
-				<div class="dhl-preferred-service-desc">
-					<?php echo wp_kses_post( _x( 'Thanks to the ﬂexible recipient services of DHL Preferred Delivery, you decide when and where you want to receive your parcels.<br/>Please choose your preferred delivery option.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>
-				</div>
-			<?php endif; ?>
 		</div>
 
 		<?php if ( ! empty( $preferred_day_options ) && $preferred_day_enabled ) : ?>
