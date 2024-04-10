@@ -83,6 +83,23 @@ class Install {
 			}
 		}
 
+		if ( version_compare( $current_version, '3.1.0', '<' ) ) {
+			Helper::instance()->load_shipping_providers();
+
+			$dp  = wc_gzd_get_shipping_provider( 'deutsche_post' );
+			$dhl = wc_gzd_get_shipping_provider( 'dhl' );
+
+			if ( $dhl->is_activated() ) {
+				$dhl->update_setting( 'parcel_pickup_max_results', $dhl->get_setting( 'parcel_pickup_map_max_results', 20 ) );
+				$dhl->save();
+
+				if ( $dp->is_activated() && 'yes' === $dhl->get_setting( 'parcel_pickup_packstation_enable' ) ) {
+					$dp->update_setting( 'parcel_pickup_packstation_enable', 'yes' );
+					$dp->save();
+				}
+			}
+		}
+
 		/**
 		 * Keep using legacy SOAP API (for now) for older installations to prevent update issues.
 		 */

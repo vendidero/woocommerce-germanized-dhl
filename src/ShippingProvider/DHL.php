@@ -1073,11 +1073,11 @@ class DHL extends Auto {
 			array(
 				'title'             => _x( 'Limit results', 'dhl', 'woocommerce-germanized-dhl' ),
 				'type'              => 'number',
-				'id'                => 'parcel_pickup_map_max_results',
-				'custom_attributes' => array( 'data-show_if_parcel_pickup_map_enable' => '' ),
-				'value'             => $this->get_setting( 'parcel_pickup_map_max_results' ),
+				'id'                => 'parcel_pickup_max_results',
+				'value'             => $this->get_setting( 'parcel_pickup_max_results' ),
 				'desc_tip'          => _x( 'Limit the number of DHL locations presented to the customer.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'default'           => 20,
+				'custom_attributes' => array( 'max' => 50 ),
 				'css'               => 'max-width: 60px;',
 			),
 

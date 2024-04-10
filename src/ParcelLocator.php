@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\DHL;
 
 use Exception;
+use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Checkout;
 use WC_Order;
@@ -251,9 +252,20 @@ class ParcelLocator {
 		return trim( preg_replace( '/\s+/', '', $str ) );
 	}
 
-	protected static function get_setting( $key ) {
+	/**
+	 * @param $key
+	 * @param string $provider_name
+	 *
+	 * @return mixed
+	 */
+	protected static function get_setting( $key, $provider_name = false ) {
 		$option_key = 'parcel_pickup_' . $key;
-		$setting    = Package::get_setting( $option_key );
+
+		if ( $provider_name ) {
+			$option_key = $provider_name . '_' . $option_key;
+		}
+
+		$setting = Package::get_setting( $option_key );
 
 		return $setting;
 	}
@@ -277,7 +289,7 @@ class ParcelLocator {
 	}
 
 	public static function is_postoffice_enabled( $provider = false ) {
-		$is_enabled = 'yes' === self::get_setting( 'postoffice_enable' );
+		$is_enabled = 'yes' === self::get_setting( 'postoffice_enable', $provider );
 
 		if ( false !== $provider ) {
 			if ( ! self::shipping_provider_supports_locations( $provider, 'postoffice' ) ) {
@@ -289,7 +301,7 @@ class ParcelLocator {
 	}
 
 	public static function is_packstation_enabled( $provider = false ) {
-		$is_enabled = 'yes' === self::get_setting( 'packstation_enable' );
+		$is_enabled = 'yes' === self::get_setting( 'packstation_enable', $provider );
 
 		if ( false !== $provider ) {
 			if ( ! self::shipping_provider_supports_locations( $provider, 'packstation' ) ) {
@@ -301,7 +313,7 @@ class ParcelLocator {
 	}
 
 	public static function is_parcelshop_enabled( $provider = false ) {
-		$is_enabled = 'yes' === self::get_setting( 'parcelshop_enable' );
+		$is_enabled = 'yes' === self::get_setting( 'parcelshop_enable', $provider );
 
 		if ( false !== $provider ) {
 			if ( ! self::shipping_provider_supports_locations( $provider, 'parcelshop' ) ) {

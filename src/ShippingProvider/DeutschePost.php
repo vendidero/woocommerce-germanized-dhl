@@ -622,4 +622,49 @@ class DeutschePost extends Auto {
 
 		return $args;
 	}
+
+	public function get_setting_sections() {
+		$sections           = parent::get_setting_sections();
+		$sections['pickup'] = _x( 'Parcel Pickup', 'dhl', 'woocommerce-germanized-dhl' );
+
+		return $sections;
+	}
+
+	protected function get_pickup_settings( $for_shipping_method = false ) {
+		$settings = array(
+			array(
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'deutsche_post_pickup_options',
+			),
+
+			array(
+				'title'    => _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc'     => _x( 'Enable delivery to Packstation.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'desc_tip' => _x( 'Let customers choose a Packstation as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'id'       => 'parcel_pickup_packstation_enable',
+				'value'    => wc_bool_to_string( $this->get_setting( 'parcel_pickup_packstation_enable' ) ),
+				'default'  => 'yes',
+				'type'     => 'gzd_toggle',
+			),
+
+			array(
+				'title'             => _x( 'Limit results', 'dhl', 'woocommerce-germanized-dhl' ),
+				'type'              => 'number',
+				'id'                => 'parcel_pickup_max_results',
+				'value'             => $this->get_setting( 'parcel_pickup_max_results' ),
+				'desc_tip'          => _x( 'Limit the number of DHL locations presented to the customer.', 'dhl', 'woocommerce-germanized-dhl' ),
+				'default'           => 20,
+				'custom_attributes' => array( 'max' => 50 ),
+				'css'               => 'max-width: 60px;',
+			),
+
+			array(
+				'type' => 'sectionend',
+				'id'   => 'deutsche_post_pickup_options',
+			),
+		);
+
+		return $settings;
+	}
 }
