@@ -25,7 +25,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '3.1.0';
+	const VERSION = '3.1.1';
 
 	public static $upload_dir_suffix = '';
 
@@ -344,6 +344,7 @@ class Package {
 
 	public static function install() {
 		self::on_shipments_init();
+
 		Install::install();
 	}
 
