@@ -297,7 +297,10 @@ class DeutschePost extends Auto {
 
 	protected function register_print_formats() {
 		if ( $im = Package::get_internetmarke_api() ) {
-			foreach ( $im->get_page_format_list() as $page_format_id => $page_format ) {
+			$print_list = $im->get_page_format_list();
+			asort( $print_list );
+
+			foreach ( $print_list as $page_format_id => $page_format ) {
 				$this->register_print_format(
 					$page_format_id,
 					array(
