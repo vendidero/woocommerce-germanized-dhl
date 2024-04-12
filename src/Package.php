@@ -67,6 +67,7 @@ class Package {
 		// Legacy data store
 		add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
 		add_filter( 'woocommerce_gzd_shipment_is_shipping_domestic', array( __CLASS__, 'shipping_domestic' ), 10, 2 );
+		add_filter( 'woocommerce_gzd_shipment_is_shipping_inner_eu', array( __CLASS__, 'shipping_inner_eu' ), 10, 2 );
 
 		self::includes();
 		self::define_tables();
@@ -92,12 +93,37 @@ class Package {
 	 */
 	public static function shipping_domestic( $is_shipping_domestic, $shipment ) {
 		if ( false === $is_shipping_domestic && in_array( $shipment->get_shipping_provider(), array( 'dhl', 'deutsche_post' ), true ) ) {
-			if ( ! self::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
+			/**
+			 * Inner DE to Helgoland are not treated as crossborder
+			 */
+			if ( 'DE' === \Vendidero\Germanized\Shipments\Package::get_base_country() && 'DE' === $shipment->get_country() ) {
 				$is_shipping_domestic = true;
 			}
 		}
 
 		return $is_shipping_domestic;
+	}
+
+	/**
+	 * Exclude certain inner-DE shipments (e.g. to Helgoland) from being treated
+	 * as international shipments.
+	 *
+	 * @param boolean $is_shipping_inner_eu
+	 * @param Shipment $shipment
+	 *
+	 * @return boolean
+	 */
+	public static function shipping_inner_eu( $is_shipping_inner_eu, $shipment ) {
+		if ( false === $is_shipping_inner_eu && in_array( $shipment->get_shipping_provider(), array( 'dhl', 'deutsche_post' ), true ) ) {
+			/**
+			 * Shipments to Helgoland are not treated as crossborder
+			 */
+			if ( \Vendidero\Germanized\Shipments\Package::base_country_belongs_to_eu_customs_area() && 'DE' === $shipment->get_country() ) {
+				$is_shipping_inner_eu = true;
+			}
+		}
+
+		return $is_shipping_inner_eu;
 	}
 
 	public static function load_dependencies_notice() {
