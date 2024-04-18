@@ -135,7 +135,7 @@ class LocationFinder extends Rest {
 			'serviceType'     => array( 'parcel:pick-up-all' ),
 			'locationType'    => array(),
 			'limit'           => $limit,
-			'radius'          => 2500,
+			'radius'          => 5000,
 		);
 
 		foreach ( $types as $type ) {
