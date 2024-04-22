@@ -56,6 +56,8 @@ class PickupLocation extends \Vendidero\Germanized\Shipments\ShippingProvider\Pi
 	}
 
 	public function supports_weight( $weight ) {
+		$weight = wc_get_weight( (float) $weight, 'kg', wc_gzd_get_packaging_weight_unit() );
+
 		return (float) $weight <= 31.5;
 	}
 
