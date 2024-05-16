@@ -20,8 +20,39 @@ class ParcelLocator {
 	public static function init() {
 		add_filter( 'woocommerce_gzd_shipment_order_pickup_location_code', array( __CLASS__, 'legacy_pickup_location_code' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipment_order_pickup_location_customer_number', array( __CLASS__, 'legacy_pickup_location_customer_number' ), 10, 2 );
+
 		add_filter( 'woocommerce_shipment_get_pickup_location_customer_number', array( __CLASS__, 'legacy_shipment_postnumber' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipment_customer_pickup_location_customer_number', array( __CLASS__, 'legacy_user_postnumber' ), 10, 2 );
+
+		add_action( 'woocommerce_after_save_address_validation', array( __CLASS__, 'remove_legacy_customer_data' ), 10, 4 );
+		add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'remove_legacy_order_data' ), 50 );
+	}
+
+	public static function remove_legacy_order_data( $order_id ) {
+		if ( $order = wc_get_order( $order_id ) ) {
+			if ( $order->get_meta( '_shipping_dhl_postnumber' ) ) {
+				$order->delete_meta_data( '_shipping_dhl_postnumber' );
+				$order->delete_meta_data( '_shipping_address_type' );
+
+				$order->save();
+			}
+		}
+	}
+
+	/**
+	 * @param $user_id
+	 * @param $address_type
+	 * @param $address
+	 * @param \WC_Customer $customer
+	 *
+	 * @return void
+	 */
+	public static function remove_legacy_customer_data( $user_id, $address_type, $address, $customer ) {
+		if ( 'shipping' === $address_type ) {
+			$customer->delete_meta_data( 'shipping_dhl_postnumber' );
+			$customer->delete_meta_data( 'shipping_address_type' );
+			$customer->delete_meta_data( 'shipping_parcelshop_post_number' );
+		}
 	}
 
 	/**
@@ -85,7 +116,7 @@ class ParcelLocator {
 	 * @return string
 	 */
 	public static function legacy_user_postnumber( $customer_number, $customer ) {
-		if ( ! empty( $customer_number ) ) {
+		if ( empty( $customer_number ) ) {
 			if ( $customer->get_id() > 0 && self::get_postnumber_by_user( $customer->get_id() ) ) {
 				$customer_number = self::get_postnumber_by_user( $customer->get_id() );
 			}
