@@ -469,9 +469,9 @@ class LabelRest extends Rest {
 				'invoiceNo'          => apply_filters( 'woocommerce_gzd_dhl_label_api_export_invoice_number', $customs_label_data['invoice_number'], $label ),
 			);
 
-			if ( ! empty( $customs_label_data['master_reference_number'] ) ) {
+			if ( ! empty( $customs_label_data['export_reference_number'] ) ) {
 				$customs_data['hasElectronicExportNotification'] = true;
-				$customs_data['MRN']                             = mb_substr( $customs_label_data['master_reference_number'], 0, 18 );
+				$customs_data['MRN']                             = mb_substr( $customs_label_data['export_reference_number'], 0, 18 );
 			}
 
 			$shipment_request['customs'] = apply_filters( 'woocommerce_gzd_dhl_label_rest_api_customs_data', $customs_data, $label );
