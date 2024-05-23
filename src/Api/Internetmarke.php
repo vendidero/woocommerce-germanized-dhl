@@ -69,7 +69,7 @@ class Internetmarke {
 	public function get_api( $auth = false ) {
 		if ( is_null( $this->api ) ) {
 			try {
-				if ( ! Package::has_load_dependencies() ) {
+				if ( ! Package::supports_soap() ) {
 					throw new \Exception( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%1$s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%2$s">installed</a>.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://www.php.net/manual/class.soapclient.php', esc_url( admin_url( 'admin.php?page=wc-status' ) ) ) );
 				}
 

@@ -74,11 +74,7 @@ class Package {
 		self::maybe_set_upload_dir();
 
 		if ( self::is_enabled() ) {
-			if ( self::has_load_dependencies() ) {
-				self::init_hooks();
-			} else {
-				add_action( 'admin_notices', array( __CLASS__, 'load_dependencies_notice' ) );
-			}
+			self::init_hooks();
 		}
 	}
 
@@ -126,20 +122,16 @@ class Package {
 		return $is_shipping_inner_eu;
 	}
 
-	public static function load_dependencies_notice() {
-		?>
-		<div class="notice notice-error error">
-			<p><?php echo wp_kses_post( sprintf( _x( 'To enable communication between your shop and DHL, the PHP <a href="%1$s">SOAPClient</a> is required. Please contact your host and make sure that SOAPClient is <a href="%2$s">installed</a>.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://www.php.net/manual/class.soapclient.php', admin_url( 'admin.php?page=wc-status' ) ) ); ?></p>
-		</div>
-		<?php
-	}
-
 	public static function has_dependencies() {
 		return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Germanized\Shipments\Package' ) && \Vendidero\Germanized\Shipments\Package::has_dependencies() && self::base_country_is_supported() && apply_filters( 'woocommerce_gzd_dhl_enabled', true ) );
 	}
 
 	public static function has_load_dependencies() {
-		return ( ! class_exists( 'SoapClient' ) ? false : true );
+		return true;
+	}
+
+	public static function supports_soap() {
+		return class_exists( 'SoapClient' ) ? true : false;
 	}
 
 	public static function base_country_is_supported() {
@@ -670,7 +662,29 @@ class Package {
 	}
 
 	public static function use_legacy_soap_api() {
-		return apply_filters( 'woocommerce_gzd_dhl_use_legacy_soap_api', ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ? WC_GZD_DHL_LEGACY_SOAP : ( 'yes' === get_option( 'woocommerce_gzd_dhl_enable_legacy_soap' ) ) ) );
+		$use_legacy_soap    = false;
+		$has_custom_setting = false;
+
+		if ( $dhl = wc_gzd_get_shipping_provider( 'dhl' ) ) {
+			if ( $dhl->get_setting( 'api_type' ) ) {
+				$use_legacy_soap    = 'soap' === $dhl->get_setting( 'api_type' );
+				$has_custom_setting = true;
+
+				if ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ) {
+					$use_legacy_soap = WC_GZD_DHL_LEGACY_SOAP;
+				}
+			}
+		}
+
+		if ( ! $has_custom_setting ) {
+			$use_legacy_soap = ( defined( 'WC_GZD_DHL_LEGACY_SOAP' ) ? WC_GZD_DHL_LEGACY_SOAP : ( 'yes' === get_option( 'woocommerce_gzd_dhl_enable_legacy_soap' ) ) );
+		}
+
+		if ( ! self::supports_soap() ) {
+			$use_legacy_soap = false;
+		}
+
+		return apply_filters( 'woocommerce_gzd_dhl_use_legacy_soap_api', $use_legacy_soap );
 	}
 
 	public static function get_label_rest_api_url() {
