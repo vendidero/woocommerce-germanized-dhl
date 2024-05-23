@@ -192,9 +192,7 @@ class LabelRest extends Rest {
 					$services[ $service_name ] = $label->get_preferred_neighbor();
 					break;
 				case 'ParcelOutletRouting':
-					if ( ! empty( $shipment->get_email() ) ) {
-						$services[ $service_name ] = $shipment->get_email();
-					}
+					$services[ $service_name ] = wc_gzd_dhl_get_parcel_outlet_routing_email_address( $shipment );
 					break;
 				case 'CDP':
 					$services['closestDropPoint'] = true;
@@ -220,7 +218,7 @@ class LabelRest extends Rest {
 					'addressStreet' => $label->get_return_street() . ' ' . $label->get_return_street_number(),
 					'postalCode'    => $label->get_return_postcode(),
 					'city'          => $label->get_return_city(),
-					'state'         => wc_gzd_dhl_format_label_state( $label->get_return_state(), $label->get_return_country() ),
+					'state'         => 'DE' === $label->get_return_country() ? '' : wc_gzd_dhl_format_label_state( $label->get_return_state(), $label->get_return_country() ),
 					'contactName'   => $label->get_return_formatted_full_name(),
 					'phone'         => $label->get_return_phone(),
 					'email'         => $label->get_return_email(),
@@ -372,7 +370,7 @@ class LabelRest extends Rest {
 				'additionalAddressInformation1' => $street_addition,
 				'postalCode'                    => $shipment->get_postcode(),
 				'city'                          => $shipment->get_city(),
-				'state'                         => $formatted_recipient_state,
+				'state'                         => 'DE' === $shipment->get_country() ? '' : $formatted_recipient_state,
 				'country'                       => wc_gzd_country_to_alpha3( $shipment->get_country() ),
 				/**
 				 * Choose whether to transmit the full name of the shipment receiver as contactPerson

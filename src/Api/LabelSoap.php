@@ -433,9 +433,7 @@ class LabelSoap extends Soap {
 					$services[ $service ]['details'] = $label->get_preferred_neighbor();
 					break;
 				case 'ParcelOutletRouting':
-					if ( ! empty( $shipment->get_email() ) ) {
-						$services[ $service ]['details'] = $shipment->get_email();
-					}
+					$services[ $service ]['details'] = wc_gzd_dhl_get_parcel_outlet_routing_email_address( $shipment );
 					break;
 				case 'Endorsement':
 					$services[ $service ]['type'] = wc_gzd_dhl_get_label_endorsement_type( $label, $shipment );

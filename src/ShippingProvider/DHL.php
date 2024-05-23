@@ -739,11 +739,6 @@ class DHL extends Auto {
 			$defaults['codeable_address_only'] = wc_bool_to_string( $this->get_setting( 'label_address_codeable_only', 'no' ) );
 		}
 
-		// Remove parcel outlet routing default service in case email transmission is not allowed
-		if ( ! $supports_email_transmission && in_array( 'ParcelOutletRouting', $defaults['services'], true ) ) {
-			$defaults['services'] = array_diff( $defaults['services'], array( 'ParcelOutletRouting' ) );
-		}
-
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			$defaults['duties'] = $this->get_incoterms( $shipment );
 

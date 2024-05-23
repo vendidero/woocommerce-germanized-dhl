@@ -425,6 +425,21 @@ function wc_gzd_dhl_format_label_state( $state, $country ) {
 }
 
 /**
+ * @param Shipment $shipment
+ *
+ * @return string
+ */
+function wc_gzd_dhl_get_parcel_outlet_routing_email_address( $shipment ) {
+	$email = $shipment->get_email();
+
+	if ( empty( $email ) ) {
+		$email = $shipment->get_sender_email();
+	}
+
+	return apply_filters( 'woocommerce_gzd_dhl_parcel_outlet_routing_email_address', $email, $shipment );
+}
+
+/**
  * @param $the_product
  *
  * @return \Vendidero\Germanized\Shipments\Product
