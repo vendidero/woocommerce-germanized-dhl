@@ -325,7 +325,7 @@ const DhlPreferredDeliveryOptions = ({
         };
     } );
 
-    const [ needsUpdate, setNeedsUpdate ] = useState( false );
+    const [ needsFeeUpdate, setNeedsFeeUpdate ] = useState( false );
     const shippingProviders = getSelectedShippingProviders( shippingRates );
     const hasDhlProvider = hasShippingProvider( 'dhl', shippingProviders );
     const { __internalSetExtensionData } = useDispatch( CHECKOUT_STORE_KEY );
@@ -400,6 +400,8 @@ const DhlPreferredDeliveryOptions = ({
 
     const preferredOptionsAvailable = 'DE' === cart.shippingAddress.country && ( preferredDayEnabled || preferredNeighborEnabled || preferredLocationEnabled );
     const isCdpAvailable = preferredDeliveryTypeEnabled && _.includes( cdpCountries, cart.shippingAddress.country );
+    const isFeeAvailable = hasDhlProvider && ! isGatewayExcluded && ( ( 'DE' === cart.shippingAddress.country && preferredDayEnabled && preferredDayCost > 0 ) || ( isCdpAvailable && homeDeliveryCost > 0 ) );
+
     const isAvailable = hasDhlProvider && ! isGatewayExcluded && ( isCdpAvailable || preferredOptionsAvailable );
 
     useEffect(() => {
@@ -435,7 +437,7 @@ const DhlPreferredDeliveryOptions = ({
     ] );
 
     // Debounce re-disable since disabling process itself will incur additional mutations which should be ignored.
-    const maybeUpdate = useDebouncedCallback( () => {
+    const maybeUpdateFee = useDebouncedCallback( () => {
         const currentData = getDhlCheckoutData( select( CHECKOUT_STORE_KEY ).getExtensionData() );
 
         if ( ! isCustomerDataUpdating ) {
@@ -444,7 +446,7 @@ const DhlPreferredDeliveryOptions = ({
                 data: currentData,
             } );
 
-            setNeedsUpdate( () => { return false } );
+            setNeedsFeeUpdate( () => { return false } );
         }
     }, 2000 );
 
@@ -470,11 +472,13 @@ const DhlPreferredDeliveryOptions = ({
 
             setDhlCheckoutData( checkoutOptions );
         }
-
-        setNeedsUpdate( () => { return true } );
     }, [
         isAvailable
     ] );
+
+    useEffect(() => {
+        setNeedsFeeUpdate( () => { return true } );
+    }, [ isFeeAvailable ] );
 
     /**
      * Maybe delay the extensionCartUpdate in case shipping data is invalid
@@ -486,7 +490,9 @@ const DhlPreferredDeliveryOptions = ({
      * checkout data will be replaced with old data.
      */
     useEffect(() => {
-        if ( needsUpdate ) {
+        if ( needsFeeUpdate ) {
+            maybeUpdateFee.cancel();
+
             const validationStore = select( VALIDATION_STORE_KEY );
             const invalidProps = [
                 ...Object.keys( cart.shippingAddress ).filter( ( key ) => {
@@ -498,19 +504,19 @@ const DhlPreferredDeliveryOptions = ({
 
             if ( invalidProps.length === 0 ) {
                 // No errors found, lets update.
-                maybeUpdate();
+                maybeUpdateFee();
             }
         }
 
         return () => {
-            maybeUpdate.cancel();
+            maybeUpdateFee.cancel();
         };
     }, [
-        needsUpdate,
-        setNeedsUpdate,
+        needsFeeUpdate,
+        setNeedsFeeUpdate,
         cart.shippingAddress,
         isAvailable,
-        maybeUpdate
+        maybeUpdateFee
     ] );
 
     if ( ! isAvailable || ( ! preferredOptionsAvailable && ! isCdpAvailable ) ) {
