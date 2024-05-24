@@ -80,7 +80,7 @@ class ReturnRest extends Rest {
 
 			foreach ( $customs_data['items'] as $customs_item ) {
 				$items[] = array(
-					'itemDescription'  => mb_substr( $customs_item['description'], 0, 50 ),
+					'itemDescription'  => wc_gzd_shipments_substring( $customs_item['description'], 0, 50 ),
 					'packagedQuantity' => $customs_item['quantity'],
 					/**
 					 * Total weight per row

@@ -421,6 +421,11 @@ function wc_gzd_dhl_format_label_state( $state, $country ) {
 		}
 	}
 
+	// No need to transmit states for DE
+	if ( 'DE' === $country ) {
+		$state = '';
+	}
+
 	return $state;
 }
 
