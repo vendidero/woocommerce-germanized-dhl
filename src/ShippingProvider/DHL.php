@@ -785,7 +785,7 @@ class DHL extends Auto {
 	}
 
 	protected function label_supports_export_reference_number( $shipment ) {
-		return ! Package::use_legacy_soap_api() && $shipment->is_shipping_international();
+		return $shipment->is_shipping_international();
 	}
 
 	protected function get_available_base_countries() {

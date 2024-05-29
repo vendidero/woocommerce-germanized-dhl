@@ -763,6 +763,13 @@ class LabelSoap extends Soap {
 				'invoiceNumber'              => apply_filters( 'woocommerce_gzd_dhl_label_api_export_invoice_number', $customs_label_data['invoice_number'], $label ),
 			);
 
+			if ( ! empty( $customs_label_data['export_reference_number'] ) ) {
+				$customs_data['WithElectronicExportNtfctn'] = array(
+					'active' => 1,
+				);
+				$customs_data['MRN']                        = wc_gzd_shipments_substring( preg_replace( '/[^A-Za-z0-9]/', '', $customs_label_data['export_reference_number'] ), 0, 18 );
+			}
+
 			$dhl_label_body['ShipmentOrder']['Shipment']['ExportDocument'] = apply_filters( 'woocommerce_gzd_dhl_label_api_customs_data', $customs_data, $label );
 		}
 
