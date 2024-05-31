@@ -9,6 +9,7 @@ namespace Vendidero\Germanized\DHL\ShippingProvider;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\DHL\ParcelServices;
+use Vendidero\Germanized\DHL\ShippingProvider\Services\AdditionalInsurance;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\CashOnDelivery;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\ClosestDropPoint;
 use Vendidero\Germanized\DHL\ShippingProvider\Services\DHLRetoure;
@@ -192,14 +193,7 @@ class DHL extends Auto {
 			)
 		);
 
-		$this->register_service(
-			'AdditionalInsurance',
-			array(
-				'label'       => _x( 'Additional Insurance', 'dhl', 'woocommerce-germanized-dhl' ),
-				'description' => _x( 'Add an additional insurance to labels.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK' ),
-			)
-		);
+		$this->register_service( new AdditionalInsurance( $this ) );
 
 		$this->register_service(
 			'BulkyGoods',

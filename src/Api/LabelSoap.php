@@ -388,7 +388,7 @@ class LabelSoap extends Soap {
 
 			switch ( $service ) {
 				case 'AdditionalInsurance':
-					$services[ $service ]['insuranceAmount'] = apply_filters( 'woocommerce_gzd_dhl_label_api_insurance_amount', $shipment->get_total(), $shipment, $label );
+					$services[ $service ]['insuranceAmount'] = apply_filters( 'woocommerce_gzd_dhl_label_api_insurance_amount', $label->get_insurance_amount(), $shipment, $label );
 					break;
 				case 'IdentCheck':
 					$services[ $service ]['Ident']['surname']     = $shipment->get_last_name();

@@ -123,6 +123,20 @@ class DHL extends Label {
 		return $this->get_meta( '_cod_includes_additional_total', true, $context );
 	}
 
+	public function get_insurance_amount( $context = 'view' ) {
+		$insurance_amount = $this->get_service_prop( 'AdditionalInsurance', 'insurance_amount', null, $context );
+
+		if ( null === $insurance_amount ) {
+			$insurance_amount = 0.0;
+
+			if ( $this->has_service( 'AdditionalInsurance' ) ) {
+				$insurance_amount = $this->get_shipment() ? $this->get_shipment()->get_total() : 0.0;
+			}
+		}
+
+		return (float) wc_format_decimal( $insurance_amount );
+	}
+
 	public function cod_includes_additional_total( $context = 'view' ) {
 		return $this->get_cod_includes_additional_total() ? true : false;
 	}
