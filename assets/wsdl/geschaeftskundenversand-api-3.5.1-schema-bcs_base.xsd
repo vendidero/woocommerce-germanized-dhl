@@ -5,7 +5,7 @@
         xmlns:cis="http://dhl.de/webservice/cisbase"
         targetNamespace="http://dhl.de/webservices/businesscustomershipping/3.0">
 	  <import namespace="http://dhl.de/webservice/cisbase"
-           schemaLocation="geschaeftskundenversand-api-3.5.0-schema-cis_base.xsd"/>
+           schemaLocation="geschaeftskundenversand-api-3.5.1-schema-cis_base.xsd"/>
 	  <simpleType name="SequenceNumber">
 		    <annotation>
 			      <documentation>A sequence number defined by the (soap-) client. The
@@ -1808,7 +1808,7 @@
 					</documentation>
 				        </annotation>
 			      </element>
-			      <element name="signedForByRecipient" type="bcs:signedForByRecipient" minOccurs="0"
+			      <element name="SignedForByRecipient" type="bcs:signedForByRecipient" minOccurs="0"
                   maxOccurs="1">
 				        <annotation>
 					          <documentation>Delivery is signed for by the recipient instead of the DHL driver</documentation>
@@ -2639,6 +2639,20 @@
 					          <documentation>Sets an electronic export notification.
 					</documentation>
 				        </annotation>
+			      </element>
+				  <element name="MRN" minOccurs="0">
+				        <annotation>
+					          <documentation>Master Reference Number.
+						Some shipments with an electronic 
+						export notification need a Master Reference Number 
+						for customs clearance.
+					</documentation>
+				        </annotation>
+				        <simpleType>
+					          <restriction base="xs:string">
+						            <maxLength value="18"/>
+					          </restriction>
+				        </simpleType>
 			      </element>
 			      <element name="ExportDocPosition" minOccurs="0" maxOccurs="99">
 				        <annotation>

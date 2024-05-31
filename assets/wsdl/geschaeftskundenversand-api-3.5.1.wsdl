@@ -15,9 +15,9 @@ Date: 2023-05-11T08:54:09Z
   <wsdl:types>
       <xs:schema attributeFormDefault="unqualified" elementFormDefault="unqualified">
          <xs:import namespace="http://dhl.de/webservice/cisbase"
-                    schemaLocation="geschaeftskundenversand-api-3.5.0-schema-cis_base.xsd"/>
+                    schemaLocation="geschaeftskundenversand-api-3.5.1-schema-cis_base.xsd"/>
          <xs:import namespace="http://dhl.de/webservices/businesscustomershipping/3.0"
-                    schemaLocation="geschaeftskundenversand-api-3.5.0-schema-bcs_base.xsd"/>
+                    schemaLocation="geschaeftskundenversand-api-3.5.1-schema-bcs_base.xsd"/>
       </xs:schema>
   </wsdl:types>
   <wsdl:message name="AuthentificationHeaderMessage">
