@@ -133,7 +133,7 @@ trait PickupDeliveryTrait {
 					'zip'     => $address['postcode'],
 					'country' => $address['country'],
 					'city'    => $address['city'],
-					'address' => ! empty( $address['city'] ) ? $address['address_1'] : '',
+					'address' => ! empty( $address['postcode'] ) ? $address['address_1'] : '',
 				),
 				$types,
 				$query_args['limit']
