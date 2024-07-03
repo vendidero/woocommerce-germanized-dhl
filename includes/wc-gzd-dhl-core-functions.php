@@ -151,6 +151,9 @@ function wc_gzd_dhl_get_label_reference( $reference_text, $placeholders = array(
  * @return string
  */
 function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
+	$dhl         = wc_gzd_get_shipping_provider( 'dhl' );
+	$default_ref = $dhl->get_formatted_label_reference( $label, 'simple', 'ref_1' );
+
 	/**
 	 * Filter to adjust the customer reference field placed on the DHL label. Maximum characeter length: 35.
 	 *
@@ -163,13 +166,7 @@ function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	 */
 	$ref = apply_filters(
 		'woocommerce_gzd_dhl_label_customer_reference',
-		wc_gzd_dhl_get_label_reference(
-			_x( 'Shipment #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ),
-			array(
-				'{shipment_id}' => $shipment->get_shipment_number(),
-				'{order_id}'    => $shipment->get_order_number(),
-			)
-		),
+		$default_ref,
 		$label,
 		$shipment
 	);
@@ -235,6 +232,9 @@ function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment, $api_type = '
 }
 
 function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
+	$dhl         = wc_gzd_get_shipping_provider( 'dhl' );
+	$default_ref = $dhl->get_formatted_label_reference( $label, 'return', 'ref_1' );
+
 	/**
 	 * Filter to adjust the customer reference field placed on the DHL return label. Maximum characeter length: 30.
 	 *
@@ -247,13 +247,7 @@ function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
 	 */
 	$ref = apply_filters(
 		'woocommerce_gzd_dhl_return_label_customer_reference',
-		wc_gzd_dhl_get_label_reference(
-			_x( 'Return #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized-dhl' ),
-			array(
-				'{shipment_id}' => $shipment->get_id(),
-				'{order_id}'    => $shipment->get_order_number(),
-			)
-		),
+		$default_ref,
 		$label,
 		$shipment
 	);
@@ -262,6 +256,9 @@ function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
 }
 
 function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
+	$dhl         = wc_gzd_get_shipping_provider( 'dhl' );
+	$default_ref = $dhl->get_formatted_label_reference( $label, 'simple', 'inlay' );
+
 	/**
 	 * Filter to adjust the inlay return reference field placed on the DHL label. Maximum characeter length: 35.
 	 *
@@ -274,13 +271,7 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
 	 */
 	$ref = apply_filters(
 		'woocommerce_gzd_dhl_inlay_return_label_reference',
-		wc_gzd_dhl_get_label_reference(
-			_x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized-dhl' ),
-			array(
-				'{shipment_id}' => $shipment->get_id(),
-				'{order_id}'    => $shipment->get_order_number(),
-			)
-		),
+		$default_ref,
 		$label,
 		$shipment
 	);

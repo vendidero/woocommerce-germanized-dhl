@@ -63,6 +63,35 @@ class DHL extends Auto {
 		}
 	}
 
+	public function get_supported_label_reference_types( $shipment_type = 'simple' ) {
+		$reference_types = array();
+
+		if ( 'simple' === $shipment_type ) {
+			$reference_types = array(
+				'ref_1' => array(
+					'label'      => _x( 'Reference 1', 'dhl', 'woocommerce-germanized-dhl' ),
+					'default'    => _x( '#{shipment_number}, order {order_number}', 'dhl', 'woocommerce-germanized-dhl' ),
+					'max_length' => 35,
+				),
+				'inlay' => array(
+					'label'      => _x( 'Inlay return reference', 'dhl', 'woocommerce-germanized-dhl' ),
+					'default'    => _x( 'Return #{shipment_number}, order {order_number}', 'dhl', 'woocommerce-germanized-dhl' ),
+					'max_length' => 35,
+				),
+			);
+		} elseif ( 'return' === $shipment_type ) {
+			$reference_types = array(
+				'ref_1' => array(
+					'label'      => _x( 'Reference 1', 'dhl', 'woocommerce-germanized-dhl' ),
+					'default'    => _x( 'Return #{shipment_number}, order {order_number}', 'dhl', 'woocommerce-germanized-dhl' ),
+					'max_length' => -1,
+				),
+			);
+		}
+
+		return $reference_types;
+	}
+
 	public function supports_labels( $label_type, $shipment = false ) {
 		$label_types = array( 'simple' );
 
