@@ -362,6 +362,10 @@ class DHL extends Label {
 		}
 	}
 
+	public function get_plain_path( $context = 'view' ) {
+		return $this->get_path( $context, 'default' );
+	}
+
 	public function set_path( $path, $file_type = '' ) {
 		if ( 'default' === $file_type ) {
 			$this->set_default_path( $path );
@@ -370,6 +374,10 @@ class DHL extends Label {
 		} else {
 			parent::set_path( $path, $file_type );
 		}
+	}
+
+	public function set_plain_path( $path ) {
+		$this->set_path( $path, 'default' );
 	}
 
 	public function get_default_file() {
