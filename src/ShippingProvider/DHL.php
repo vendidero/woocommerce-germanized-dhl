@@ -527,9 +527,7 @@ class DHL extends Auto {
 	}
 
 	public function get_setting_sections() {
-		$sections = parent::get_setting_sections();
-
-		$sections['pickup']    = _x( 'Parcel Pickup', 'dhl', 'woocommerce-germanized-dhl' );
+		$sections              = parent::get_setting_sections();
 		$sections['preferred'] = _x( 'Preferred delivery', 'dhl', 'woocommerce-germanized-dhl' );
 
 		return $sections;
@@ -1077,59 +1075,52 @@ class DHL extends Auto {
 		return array_merge( $settings, $general_settings );
 	}
 
-	protected function get_pickup_settings( $for_shipping_method = false ) {
-		$settings = array(
-			array(
-				'title' => '',
-				'type'  => 'title',
-				'id'    => 'dhl_pickup_options',
-			),
+	protected function get_pickup_locations_settings() {
+		$settings = parent::get_pickup_locations_settings();
 
+		$settings = array_merge(
+			$settings,
 			array(
-				'title'    => _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'     => _x( 'Enable delivery to Packstation.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip' => _x( 'Let customers choose a Packstation as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'       => 'parcel_pickup_packstation_enable',
-				'value'    => wc_bool_to_string( $this->get_setting( 'parcel_pickup_packstation_enable' ) ),
-				'default'  => 'yes',
-				'type'     => 'gzd_toggle',
-			),
-
-			array(
-				'title'    => _x( 'Postoffice', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'     => _x( 'Enable delivery to Post Offices.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip' => _x( 'Let customers choose a Post Office as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'       => 'parcel_pickup_postoffice_enable',
-				'value'    => wc_bool_to_string( $this->get_setting( 'parcel_pickup_postoffice_enable' ) ),
-				'default'  => 'yes',
-				'type'     => 'gzd_toggle',
-			),
-
-			array(
-				'title'    => _x( 'Parcel Shop', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'     => _x( 'Enable delivery to Parcel Shops.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip' => _x( 'Let customers choose a Parcel Shop as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'       => 'parcel_pickup_parcelshop_enable',
-				'value'    => wc_bool_to_string( $this->get_setting( 'parcel_pickup_parcelshop_enable' ) ),
-				'default'  => 'yes',
-				'type'     => 'gzd_toggle',
-			),
-
-			array(
-				'title'             => _x( 'Limit results', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'number',
-				'id'                => 'parcel_pickup_max_results',
-				'value'             => $this->get_setting( 'parcel_pickup_max_results' ),
-				'desc_tip'          => _x( 'Limit the number of DHL locations presented to the customer.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'default'           => 20,
-				'custom_attributes' => array( 'max' => 50 ),
-				'css'               => 'max-width: 60px;',
-			),
-
-			array(
-				'type' => 'sectionend',
-				'id'   => 'dhl_pickup_options',
-			),
+				array(
+					'title' => '',
+					'type'  => 'title',
+					'id'    => 'dhl_pickup_options',
+				),
+				array(
+					'title'             => _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc'              => _x( 'Enable delivery to Packstation.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip'          => _x( 'Let customers choose a Packstation as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'                => 'parcel_pickup_packstation_enable',
+					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_packstation_enable' ) ),
+					'default'           => 'yes',
+					'type'              => 'gzd_toggle',
+					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
+				),
+				array(
+					'title'             => _x( 'Postoffice', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc'              => _x( 'Enable delivery to Post Offices.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip'          => _x( 'Let customers choose a Post Office as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'                => 'parcel_pickup_postoffice_enable',
+					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_postoffice_enable' ) ),
+					'default'           => 'yes',
+					'type'              => 'gzd_toggle',
+					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
+				),
+				array(
+					'title'             => _x( 'Parcel Shop', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc'              => _x( 'Enable delivery to Parcel Shops.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip'          => _x( 'Let customers choose a Parcel Shop as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'                => 'parcel_pickup_parcelshop_enable',
+					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_parcelshop_enable' ) ),
+					'default'           => 'yes',
+					'type'              => 'gzd_toggle',
+					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
+				),
+				array(
+					'type' => 'sectionend',
+					'id'   => 'dhl_pickup_options',
+				),
+			)
 		);
 
 		return $settings;

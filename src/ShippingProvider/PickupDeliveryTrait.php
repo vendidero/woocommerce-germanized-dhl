@@ -9,7 +9,15 @@ defined( 'ABSPATH' ) || exit;
 
 trait PickupDeliveryTrait {
 
+	public function supports_pickup_locations() {
+		return true;
+	}
+
 	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
+		if ( ! $this->enable_pickup_location_delivery() ) {
+			return false;
+		}
+
 		$query_args = $this->parse_pickup_location_query_args( $query_args );
 		$address    = $this->parse_pickup_location_address_args( $address );
 		$types      = $this->get_pickup_location_types();

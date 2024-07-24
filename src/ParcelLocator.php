@@ -356,7 +356,7 @@ class ParcelLocator {
 	}
 
 	public static function get_max_results() {
-		return self::get_setting( 'map_max_results' );
+		return Package::get_dhl_shipping_provider()->get_pickup_locations_max_results();
 	}
 
 	public static function extract_pickup_keyword_id( $str ) {

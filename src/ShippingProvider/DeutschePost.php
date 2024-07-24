@@ -156,6 +156,16 @@ class DeutschePost extends Auto {
 		return $settings;
 	}
 
+	public function test_connection() {
+		if ( $im = Package::get_internetmarke_api() ) {
+			if ( $im->is_configured() && $im->auth() && $im->is_available() ) {
+				return true;
+			} elseif ( $im->has_errors() ) {
+				return $im->get_errors();
+			}
+		}
+	}
+
 	protected function get_general_settings() {
 		$settings = array(
 			array(
@@ -206,7 +216,6 @@ class DeutschePost extends Auto {
 									'title' => _x( 'Portokasse', 'dhl', 'woocommerce-germanized-dhl' ),
 									'type'  => 'title',
 									'id'    => 'deutsche_post_portokasse_options',
-									'desc'  => $this->get_connection_status_html( true ),
 								),
 								array(
 									'title' => _x( 'Balance', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -234,7 +243,6 @@ class DeutschePost extends Auto {
 								'title' => _x( 'Portokasse', 'dhl', 'woocommerce-germanized-dhl' ),
 								'type'  => 'title',
 								'id'    => 'deutsche_post_api_error',
-								'desc'  => $this->get_connection_status_html( $im->get_errors() ),
 							),
 							array(
 								'type' => 'sectionend',
@@ -627,45 +635,37 @@ class DeutschePost extends Auto {
 	}
 
 	public function get_setting_sections() {
-		$sections           = parent::get_setting_sections();
-		$sections['pickup'] = _x( 'Parcel Pickup', 'dhl', 'woocommerce-germanized-dhl' );
+		$sections = parent::get_setting_sections();
 
 		return $sections;
 	}
 
-	protected function get_pickup_settings( $for_shipping_method = false ) {
-		$settings = array(
-			array(
-				'title' => '',
-				'type'  => 'title',
-				'id'    => 'deutsche_post_pickup_options',
-			),
+	protected function get_pickup_locations_settings() {
+		$settings = parent::get_pickup_locations_settings();
 
+		$settings = array_merge(
+			$settings,
 			array(
-				'title'    => _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'     => _x( 'Enable delivery to Packstation.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc_tip' => _x( 'Let customers choose a Packstation as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'id'       => 'parcel_pickup_packstation_enable',
-				'value'    => wc_bool_to_string( $this->get_setting( 'parcel_pickup_packstation_enable' ) ),
-				'default'  => 'yes',
-				'type'     => 'gzd_toggle',
-			),
-
-			array(
-				'title'             => _x( 'Limit results', 'dhl', 'woocommerce-germanized-dhl' ),
-				'type'              => 'number',
-				'id'                => 'parcel_pickup_max_results',
-				'value'             => $this->get_setting( 'parcel_pickup_max_results' ),
-				'desc_tip'          => _x( 'Limit the number of DHL locations presented to the customer.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'default'           => 20,
-				'custom_attributes' => array( 'max' => 50 ),
-				'css'               => 'max-width: 60px;',
-			),
-
-			array(
-				'type' => 'sectionend',
-				'id'   => 'deutsche_post_pickup_options',
-			),
+				array(
+					'title' => '',
+					'type'  => 'title',
+					'id'    => 'deutsche_post_pickup_options',
+				),
+				array(
+					'title'             => _x( 'Packstation', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc'              => _x( 'Enable delivery to Packstation.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'desc_tip'          => _x( 'Let customers choose a Packstation as delivery address.', 'dhl', 'woocommerce-germanized-dhl' ),
+					'id'                => 'parcel_pickup_packstation_enable',
+					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_packstation_enable' ) ),
+					'default'           => 'yes',
+					'type'              => 'gzd_toggle',
+					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
+				),
+				array(
+					'type' => 'sectionend',
+					'id'   => 'deutsche_post_pickup_options',
+				),
+			)
 		);
 
 		return $settings;
