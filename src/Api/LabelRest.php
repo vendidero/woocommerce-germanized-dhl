@@ -41,9 +41,15 @@ class LabelRest extends Rest {
 				$error_messages = array();
 
 				if ( isset( $response_body->items ) && isset( $response_body->items[0]->validationMessages ) ) {
-					foreach ( $response_body->items[0]->validationMessages as $message ) {
-						if ( ! in_array( $message->validationMessage, $error_messages, true ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-							$error_messages[] = $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					if ( ! empty( $response_body->items[0]->validationMessages ) ) {
+						foreach ( $response_body->items[0]->validationMessages as $message ) {
+							if ( ! in_array( $message->validationMessage, $error_messages, true ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+								$error_messages[] = $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+							}
+						}
+					} elseif ( ! empty( $response_body->items[0]->sstatus ) ) {
+						if ( ! in_array( $response_body->items[0]->sstatus->title, $error_messages, true ) ) {
+							$error_messages[] = $response_body->items[0]->sstatus->title;
 						}
 					}
 				} elseif ( isset( $response_body->items ) && isset( $response_body->items[0]->message ) ) {

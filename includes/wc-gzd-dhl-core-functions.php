@@ -508,6 +508,10 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	$available    = $shipment ? $shipment->get_shipping_provider_instance()->get_print_formats()->filter( array( 'product_id' => $label->get_product_id() ) )->as_options() : array();
 	$label_format = 'default' === $label->get_print_format() ? '' : $label->get_print_format();
 
+	if ( 'inlay_return' === $type ) {
+		$available = array_diff( $available, array( '100x70mm' ) );
+	}
+
 	/**
 	 * This filter allows adjusting the default label format (GUI) to a custom format e.g. 910-300-700.
 	 * The following formats are available:
@@ -531,7 +535,10 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	 */
 	$format = apply_filters( 'woocommerce_gzd_dhl_label_custom_format', $label_format, $label, $type );
 
-	if ( ! empty( $format ) && ! array_key_exists( $format, $available ) ) {
+	/**
+	 * Do not allow Warenpost label format for inlay returns
+	 */
+	if ( ! empty( $format ) && ( ! array_key_exists( $format, $available ) ) ) {
 		$format = '';
 	}
 
