@@ -22,11 +22,11 @@
   },
   "scripts": {
     "post-install-cmd": [
-      "composer dump-autoload",
+      "sh ./bin/package-update.sh",
       "python3 ./bin/update-holidays.py"
     ],
     "post-update-cmd": [
-      "composer dump-autoload",
+      "sh ./bin/package-update.sh",
       "python3 ./bin/update-holidays.py"
     ],
     "phpcs": [
