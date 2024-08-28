@@ -1808,7 +1808,7 @@
 					</documentation>
 				        </annotation>
 			      </element>
-			      <element name="SignedForByRecipient" type="bcs:signedForByRecipient" minOccurs="0"
+			      <element name="signedForByRecipient" type="bcs:signedForByRecipient" minOccurs="0"
                   maxOccurs="1">
 				        <annotation>
 					          <documentation>Delivery is signed for by the recipient instead of the DHL driver</documentation>
