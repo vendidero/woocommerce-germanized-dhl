@@ -98,6 +98,12 @@ class LocationFinder extends Rest {
 			)
 		);
 
+		$address_esc = strtolower( $address['address'] );
+
+		if ( strstr( $address_esc, 'packstation' ) || strstr( $address_esc, 'postfiliale' ) ) {
+			$address['address'] = '';
+		}
+
 		if ( ! empty( $address['address'] ) ) {
 			$parsed = wc_gzd_split_shipment_street( $address['address'] );
 
