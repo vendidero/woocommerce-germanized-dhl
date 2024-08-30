@@ -105,8 +105,10 @@ class LocationFinder extends Rest {
 		/**
 		 * Somehow the API returns wrong locations in case the address is missing, e.g.
 		 * a search for the postcode 12203 yields results for the center of Berlin.
+		 * Remove the city in case a zip is provided as a tweak too.
 		 */
 		$address['address'] = empty( $address['address'] ) ? 'xxx' : $address['address'];
+		$address['city']    = ! empty( $address['zip'] ) ? '' : $address['city'];
 
 		$default_types = array();
 
