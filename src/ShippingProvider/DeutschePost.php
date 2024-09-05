@@ -658,7 +658,7 @@ class DeutschePost extends Auto {
 					'id'                => 'parcel_pickup_packstation_enable',
 					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_packstation_enable' ) ),
 					'default'           => 'yes',
-					'type'              => 'gzd_toggle',
+					'type'              => 'gzd_shipments_toggle',
 					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
 				),
 				array(

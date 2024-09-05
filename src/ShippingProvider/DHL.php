@@ -369,7 +369,7 @@ class DHL extends Auto {
 				'id'      => 'label_retoure_enable',
 				'value'   => wc_bool_to_string( $this->enable_retoure() ),
 				'default' => 'yes',
-				'type'    => 'gzd_toggle',
+				'type'    => 'gzd_shipments_toggle',
 			),
 
 			array(
@@ -410,7 +410,7 @@ class DHL extends Auto {
 							'id'       => 'label_address_codeable_only',
 							'value'    => $this->get_setting( 'label_address_codeable_only', 'no' ),
 							'default'  => 'no',
-							'type'     => 'gzd_toggle',
+							'type'     => 'gzd_shipments_toggle',
 							'desc_tip' => _x( 'Choose this option if you want to make sure that by default labels are only generated for encodable addresses.', 'dhl', 'woocommerce-germanized-dhl' ),
 						),
 
@@ -420,7 +420,7 @@ class DHL extends Auto {
 							'id'                => 'label_auto_age_check_ident_sync',
 							'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_ident_sync', 'no' ) ),
 							'default'           => 'no',
-							'type'              => 'gzd_toggle',
+							'type'              => 'gzd_shipments_toggle',
 							'custom_attributes' => array(
 								'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK',
 							),
@@ -432,7 +432,7 @@ class DHL extends Auto {
 							'id'                => 'label_auto_age_check_sync',
 							'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_age_check_sync', 'yes' ) ),
 							'default'           => 'yes',
-							'type'              => 'gzd_toggle',
+							'type'              => 'gzd_shipments_toggle',
 							'custom_attributes' => array(
 								'data-show_if_label_config_set_' . $configuration_set->get_id() . '-g-product-n-product' => 'V01PAK',
 							),
@@ -888,7 +888,7 @@ class DHL extends Auto {
 					'desc'  => _x( 'Activate Sandbox mode for testing purposes.', 'dhl', 'woocommerce-germanized-dhl' ),
 					'id'    => 'sandbox_mode',
 					'value' => wc_bool_to_string( $this->get_setting( 'sandbox_mode', 'no' ) ),
-					'type'  => 'gzd_toggle',
+					'type'  => 'gzd_shipments_toggle',
 				),
 
 				array(
@@ -1093,7 +1093,7 @@ class DHL extends Auto {
 					'id'                => 'parcel_pickup_packstation_enable',
 					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_packstation_enable' ) ),
 					'default'           => 'yes',
-					'type'              => 'gzd_toggle',
+					'type'              => 'gzd_shipments_toggle',
 					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
 				),
 				array(
@@ -1103,7 +1103,7 @@ class DHL extends Auto {
 					'id'                => 'parcel_pickup_postoffice_enable',
 					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_postoffice_enable' ) ),
 					'default'           => 'yes',
-					'type'              => 'gzd_toggle',
+					'type'              => 'gzd_shipments_toggle',
 					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
 				),
 				array(
@@ -1113,7 +1113,7 @@ class DHL extends Auto {
 					'id'                => 'parcel_pickup_parcelshop_enable',
 					'value'             => wc_bool_to_string( $this->get_setting( 'parcel_pickup_parcelshop_enable' ) ),
 					'default'           => 'yes',
-					'type'              => 'gzd_toggle',
+					'type'              => 'gzd_shipments_toggle',
 					'custom_attributes' => array( 'data-show_if_pickup_locations_enable' => '' ),
 				),
 				array(
@@ -1151,7 +1151,7 @@ class DHL extends Auto {
 				'id'      => 'PreferredLocation_enable',
 				'value'   => wc_bool_to_string( $this->get_setting( 'PreferredLocation_enable' ) ),
 				'default' => 'yes',
-				'type'    => 'gzd_toggle',
+				'type'    => 'gzd_shipments_toggle',
 			),
 
 			array(
@@ -1160,7 +1160,7 @@ class DHL extends Auto {
 				'id'      => 'PreferredNeighbour_enable',
 				'value'   => wc_bool_to_string( $this->get_setting( 'PreferredNeighbour_enable' ) ),
 				'default' => 'yes',
-				'type'    => 'gzd_toggle',
+				'type'    => 'gzd_shipments_toggle',
 			),
 
 			array(
@@ -1169,7 +1169,7 @@ class DHL extends Auto {
 				'id'      => 'PreferredDeliveryType_enable',
 				'value'   => wc_bool_to_string( $this->get_setting( 'PreferredDeliveryType_enable' ) ),
 				'default' => 'no',
-				'type'    => 'gzd_toggle',
+				'type'    => 'gzd_shipments_toggle',
 			),
 
 			array(
@@ -1204,7 +1204,7 @@ class DHL extends Auto {
 				'id'      => 'PreferredDay_enable',
 				'value'   => wc_bool_to_string( $this->get_setting( 'PreferredDay_enable' ) ),
 				'default' => 'yes',
-				'type'    => 'gzd_toggle',
+				'type'    => 'gzd_shipments_toggle',
 			),
 
 			array(
@@ -1251,7 +1251,7 @@ class DHL extends Auto {
 				'desc_tip'          => _x( 'Exclude days from transferring shipments to DHL.', 'dhl', 'woocommerce-germanized-dhl' ),
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_mon' ) ),
 				'id'                => 'PreferredDay_exclusion_mon',
-				'type'              => 'gzd_toggle',
+				'type'              => 'gzd_shipments_toggle',
 				'default'           => 'no',
 				'checkboxgroup'     => 'start',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1261,7 +1261,7 @@ class DHL extends Auto {
 				'desc'              => _x( 'Tuesday', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id'                => 'PreferredDay_exclusion_tue',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_tue' ) ),
-				'type'              => 'gzd_toggle',
+				'type'              => 'gzd_shipments_toggle',
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1271,7 +1271,7 @@ class DHL extends Auto {
 				'desc'              => _x( 'Wednesday', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id'                => 'PreferredDay_exclusion_wed',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_wed' ) ),
-				'type'              => 'gzd_toggle',
+				'type'              => 'gzd_shipments_toggle',
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1281,7 +1281,7 @@ class DHL extends Auto {
 				'desc'              => _x( 'Thursday', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id'                => 'PreferredDay_exclusion_thu',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_thu' ) ),
-				'type'              => 'gzd_toggle',
+				'type'              => 'gzd_shipments_toggle',
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1291,7 +1291,7 @@ class DHL extends Auto {
 				'desc'              => _x( 'Friday', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id'                => 'PreferredDay_exclusion_fri',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_fri' ) ),
-				'type'              => 'gzd_toggle',
+				'type'              => 'gzd_shipments_toggle',
 				'default'           => 'no',
 				'checkboxgroup'     => '',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1301,7 +1301,7 @@ class DHL extends Auto {
 				'desc'              => _x( 'Saturday', 'dhl', 'woocommerce-germanized-dhl' ),
 				'id'                => 'PreferredDay_exclusion_sat',
 				'value'             => wc_bool_to_string( $this->get_setting( 'PreferredDay_exclusion_sat' ) ),
-				'type'              => 'gzd_toggle',
+				'type'              => 'gzd_shipments_toggle',
 				'default'           => 'no',
 				'checkboxgroup'     => 'end',
 				'custom_attributes' => array( 'data-show_if_PreferredDay_enable' => '' ),
@@ -1341,7 +1341,7 @@ class DHL extends Auto {
 				'id'      => 'label_use_custom_shipper',
 				'value'   => $this->get_setting( 'label_use_custom_shipper', 'no' ),
 				'default' => 'no',
-				'type'    => 'gzd_toggle',
+				'type'    => 'gzd_shipments_toggle',
 			),
 
 			array(

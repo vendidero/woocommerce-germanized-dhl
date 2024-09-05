@@ -174,7 +174,7 @@ class Order {
 	}
 
 	public function get_min_age() {
-		$min_age = wc_gzd_get_order_min_age( $this->get_order() );
+		$min_age = function_exists( 'wc_gzd_get_order_min_age' ) ? wc_gzd_get_order_min_age( $this->get_order() ) : '';
 		$ages    = wc_gzd_dhl_get_visual_min_ages();
 
 		if ( empty( $min_age ) || ! array_key_exists( 'A' . $min_age, $ages ) ) {

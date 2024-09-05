@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/DHL/Templates
- * @version 1.2.0
+ * @version 1.3.0
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -33,7 +33,7 @@ defined( 'ABSPATH' ) || exit;
 
 				<?php if ( ! empty( $preferred_day_cost ) ) : ?>
 					<div class="dhl-preferred-service-cost">
-						<?php echo wp_kses_post( sprintf( _x( 'There is a surcharge of %1$s %2$s for this service.*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_day_cost ), ( wc_gzd_additional_costs_include_tax() ? _x( 'incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'excl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ); ?>
+						<?php echo wp_kses_post( sprintf( _x( 'There is a surcharge of %1$s %2$s for this service.*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_day_cost ), ( wc_gzd_shipments_additional_costs_include_tax() ? _x( 'incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'excl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ); ?>
 					</div>
 				<?php endif; ?>
 
@@ -114,7 +114,7 @@ defined( 'ABSPATH' ) || exit;
 									<?php if ( 'cdp' === $delivery_type ) : ?>
 										<?php echo wc_help_tip( _x( 'Delivery to nearby parcel store/locker or to the front door.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?></label>
 								<?php elseif ( 'home' === $delivery_type ) : ?>
-									<?php echo ( ! empty( $preferred_home_delivery_cost ) ? wp_kses_post( sprintf( _x( '(+%1$s %2$s)*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_home_delivery_cost ), ( wc_gzd_additional_costs_include_tax() ? _x( 'incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'excl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ) : '' ); ?>
+									<?php echo ( ! empty( $preferred_home_delivery_cost ) ? wp_kses_post( sprintf( _x( '(+%1$s %2$s)*', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( $preferred_home_delivery_cost ), ( wc_gzd_shipments_additional_costs_include_tax() ? _x( 'incl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) : _x( 'excl. VAT', 'dhl', 'woocommerce-germanized-dhl' ) ) ) ) : '' ); ?>
 									<?php echo wc_help_tip( _x( 'Delivery usually to the front door.', 'dhl', 'woocommerce-germanized-dhl' ) ); ?>
 								<?php endif; ?>
 							</li>
