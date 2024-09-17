@@ -14,7 +14,7 @@ class PreferredLocation extends Service {
 			'id'                 => 'PreferredLocation',
 			'label'              => _x( 'Drop-off location', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'        => _x( 'Enable drop-off location delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'long_description'   => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their preferred delivery location during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+			'long_description'   => '<div class="wc-gzd-shipments-additional-desc">' . _x( 'Enabling this option will display options for the user to select their preferred delivery location during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 			'setting_id'         => 'PreferredLocation_enable',
 			'products'           => array( 'V01PAK', 'V62WP' ),
 			'countries'          => array( 'DE' ),

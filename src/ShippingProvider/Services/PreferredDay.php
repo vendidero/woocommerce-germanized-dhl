@@ -15,7 +15,7 @@ class PreferredDay extends Service {
 			'id'                 => 'PreferredDay',
 			'label'              => _x( 'Delivery day', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'        => _x( 'Enable delivery day delivery.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'long_description'   => '<div class="wc-gzd-additional-desc">' . _x( 'Enabling this option will display options for the user to select their delivery day of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
+			'long_description'   => '<div class="wc-gzd-shipments-additional-desc">' . _x( 'Enabling this option will display options for the user to select their delivery day of delivery during the checkout.', 'dhl', 'woocommerce-germanized-dhl' ) . '</div>',
 			'setting_id'         => 'PreferredDay_enable',
 			'products'           => array( 'V01PAK' ),
 			'countries'          => array( 'DE' ),

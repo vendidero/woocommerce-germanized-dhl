@@ -20,7 +20,7 @@ class LabelRest extends Rest {
 
 	protected function get_auth() {
 		if ( Package::is_debug_mode() ) {
-			return $this->get_basic_auth_encode( 'sandy_sandbox', 'pass' );
+			return $this->get_basic_auth_encode( 'user-valid', 'SandboxPasswort2023!' );
 		} else {
 			return $this->get_basic_auth_encode( Package::get_gk_api_user(), Package::get_gk_api_signature() );
 		}
@@ -700,7 +700,12 @@ class LabelRest extends Rest {
 					'shipments' => array(
 						array(
 							'product'       => 'V01PAK',
-							'billingNumber' => '12345678901234',
+							'billingNumber' => wc_gzd_dhl_get_billing_number(
+								'V01PAK',
+								array(
+									'api_type' => 'dhl.com',
+								)
+							),
 							'refNo'         => 'Order No. 1234',
 							'shipDate'      => Package::get_date_de_timezone( 'Y-m-d' ),
 							'shipper'       => array(
