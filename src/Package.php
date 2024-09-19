@@ -636,7 +636,7 @@ class Package {
 	 * @return mixed|string|void
 	 */
 	public static function get_gk_api_user() {
-		$user = self::is_debug_mode() ? '2222222222_01' : self::get_setting( 'api_username' );
+		$user = self::is_debug_mode() ? 'user-valid' : self::get_setting( 'api_username' );
 
 		return strtolower( $user );
 	}
@@ -647,7 +647,7 @@ class Package {
 	 * @return mixed|string|void
 	 */
 	public static function get_gk_api_signature() {
-		return self::is_debug_mode() ? 'pass' : self::get_setting( 'api_password' );
+		return self::is_debug_mode() ? 'SandboxPasswort2023!' : self::get_setting( 'api_password' );
 	}
 
 	/**

@@ -253,11 +253,25 @@ class LabelRest extends Rest {
 		}
 
 		if ( $label->has_dimensions() ) {
+			$height_in_mm = wc_format_decimal( wc_get_dimension( $label->get_height(), 'mm', 'cm' ), 0 );
+			$width_in_mm  = wc_format_decimal( wc_get_dimension( $label->get_width(), 'mm', 'cm' ), 0 );
+			$length_in_mm = wc_format_decimal( wc_get_dimension( $label->get_length(), 'mm', 'cm' ), 0 );
+
+			/**
+			 * Somehow new DHL REST API fails in case the officially
+			 * provided max length (35,3 cm) for Warenpost is used in mm precision. Round down.
+			 */
+			if ( in_array( $label->get_product_id(), array( 'V62WP', 'V66WPI' ), true ) ) {
+				$height_in_mm = round( $height_in_mm, -1, PHP_ROUND_HALF_DOWN );
+				$width_in_mm  = round( $width_in_mm, -1, PHP_ROUND_HALF_DOWN );
+				$length_in_mm = round( $length_in_mm, -1, PHP_ROUND_HALF_DOWN );
+			}
+
 			$shipment_request['details']['dim'] = array(
 				'uom'    => 'mm',
-				'height' => wc_format_decimal( wc_get_dimension( $label->get_height(), 'mm', 'cm' ), 0 ),
-				'width'  => wc_format_decimal( wc_get_dimension( $label->get_width(), 'mm', 'cm' ), 0 ),
-				'length' => wc_format_decimal( wc_get_dimension( $label->get_length(), 'mm', 'cm' ), 0 ),
+				'height' => $height_in_mm,
+				'width'  => $width_in_mm,
+				'length' => $length_in_mm,
 			);
 		}
 

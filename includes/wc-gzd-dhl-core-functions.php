@@ -608,34 +608,21 @@ function wc_gzd_dhl_get_billing_number( $product, $args = array() ) {
 		$account_base         = Package::get_setting( 'account_number' );
 
 		if ( Package::is_debug_mode() ) {
-			if ( 'dhl.com' === $args['api_type'] ) {
-				$account_base         = '3333333333';
-				$participation_number = '01';
+			$account_base         = '3333333333';
+			$participation_number = '01';
+
+			if ( $has_gogreen ) {
+				$participation_number = '02';
+			}
+
+			if ( 'V01PAK' === $product ) {
+				$participation_number = '02';
 
 				if ( $has_gogreen ) {
-					$participation_number = '02';
+					$participation_number = '03';
 				}
-
-				if ( 'V01PAK' === $product ) {
-					$participation_number = '02';
-
-					if ( $has_gogreen ) {
-						$participation_number = '03';
-					}
-				} elseif ( 'V66WPI' === $product && $has_gogreen ) {
-					$participation_number = '04';
-				}
-			} else {
-				$account_base         = '2222222222';
-				$participation_number = '01';
-
-				if ( 'V01PAK' === $product ) {
-					$participation_number = '05';
-
-					if ( $has_gogreen ) {
-						$participation_number = '04';
-					}
-				}
+			} elseif ( 'V66WPI' === $product && $has_gogreen ) {
+				$participation_number = '04';
 			}
 		}
 
