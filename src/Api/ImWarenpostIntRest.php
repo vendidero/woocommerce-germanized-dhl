@@ -36,13 +36,13 @@ class ImWarenpostIntRest extends Rest {
 		$pdf      = $this->get_pdf( $awb );
 
 		if ( ! $pdf ) {
-			throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		if ( $path = $label->upload_label_file( $pdf ) ) {
 			$label->set_path( $path );
 		} else {
-			throw new Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$label->set_shop_order_id( $order_id );
@@ -55,14 +55,14 @@ class ImWarenpostIntRest extends Rest {
 		return $label;
 	}
 
-	protected function clean_state( $string ) {
+	protected function clean_state( $str ) {
 		// Remove han chinese chars
-		$string = preg_replace( '/\p{Han}+/u', '', $string );
-		$string = str_replace( array( '(', ')', '/' ), '', $string );
+		$str = preg_replace( '/\p{Han}+/u', '', $str );
+		$str = str_replace( array( '(', ')', '/' ), '', $str );
 		// Remove double white spaces
-		$string = preg_replace( '/\s+/', ' ', $string );
+		$str = preg_replace( '/\s+/', ' ', $str );
 
-		return trim( $string );
+		return trim( $str );
 	}
 
 	/**
@@ -77,7 +77,7 @@ class ImWarenpostIntRest extends Rest {
 	public function create_label( &$label ) {
 
 		if ( ! $shipment = $label->get_shipment() ) {
-			throw new Exception( _x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Missing shipment', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$customs_data     = wc_gzd_dhl_get_shipment_customs_data( $label, 33 );
@@ -213,7 +213,7 @@ class ImWarenpostIntRest extends Rest {
 		if ( isset( $result->shipments ) ) {
 			return $this->update_label( $label, $result );
 		} else {
-			throw new Exception( _x( 'Invalid API response', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Invalid API response', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	}
 
@@ -239,7 +239,7 @@ class ImWarenpostIntRest extends Rest {
 		}
 
 		if ( ! $user_token ) {
-			throw new Exception( _x( 'Error while authenticating user.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Error while authenticating user.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return $user_token;
@@ -302,20 +302,19 @@ class ImWarenpostIntRest extends Rest {
 		return Package::get_internetmarke_warenpost_int_ekp();
 	}
 
-	protected function walk_recursive_remove( array $array ) {
-		foreach ( $array as $k => $v ) {
-
+	protected function walk_recursive_remove( array $the_array ) {
+		foreach ( $the_array as $k => $v ) {
 			if ( is_array( $v ) ) {
-				$array[ $k ] = $this->walk_recursive_remove( $v );
+				$the_array[ $k ] = $this->walk_recursive_remove( $v );
 			}
 
 			// Explicitly allow street_number fields to equal 0
 			if ( '' === $v || is_null( $v ) ) {
-				unset( $array[ $k ] );
+				unset( $the_array[ $k ] );
 			}
 		}
 
-		return $array;
+		return $the_array;
 	}
 
 	protected function get_basic_auth_encode( $user, $pass ) {
@@ -330,7 +329,7 @@ class ImWarenpostIntRest extends Rest {
 			case '201':
 				break;
 			default:
-				throw new Exception( _x( 'Error during Warenpost International request.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( esc_html_x( 'Error during Warenpost International request.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	}
 
@@ -352,7 +351,7 @@ class ImWarenpostIntRest extends Rest {
 					$error_message = $response_code;
 				}
 
-				throw new Exception( sprintf( _x( 'Error during request: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) );
+				throw new Exception( wp_kses_post( sprintf( _x( 'Error during request: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) ) );
 		}
 	}
 

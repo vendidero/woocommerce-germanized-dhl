@@ -70,19 +70,18 @@ abstract class Soap {
 
 	abstract public function get_access_token();
 
-	protected function walk_recursive_remove( array $array ) {
-		foreach ( $array as $k => $v ) {
-
+	protected function walk_recursive_remove( array $the_array ) {
+		foreach ( $the_array as $k => $v ) {
 			if ( is_array( $v ) ) {
-				$array[ $k ] = $this->walk_recursive_remove( $v );
+				$the_array[ $k ] = $this->walk_recursive_remove( $v );
 			}
 
 			// Explicitly allow street_number fields to equal 0
 			if ( empty( $v ) && ( ! in_array( $k, array( 'minorRelease', 'streetNumber', 'houseNumber', 'zip', 'active', 'postNumber' ), true ) ) ) {
-				unset( $array[ $k ] );
+				unset( $the_array[ $k ] );
 			}
 		}
 
-		return $array;
+		return $the_array;
 	}
 }

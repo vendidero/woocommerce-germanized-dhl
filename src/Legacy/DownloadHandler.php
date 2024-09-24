@@ -76,7 +76,7 @@ class DownloadHandler {
 
 		header( 'Content-Length: ' . $file_size );
 
-		@readfile( $file_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_read_readfile
+		@readfile( $file_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_readfile
 		exit();
 	}
 }

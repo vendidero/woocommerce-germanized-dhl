@@ -22,12 +22,12 @@ final class PreferredServices {
 		 */
 		add_action(
 			'woocommerce_store_api_checkout_update_customer_from_request',
-			function( $customer, $request ) {
+			function ( $customer, $request ) {
 				$request_data = $this->get_checkout_data_from_request( $request );
 
 				add_filter(
 					'woocommerce_gzd_dhl_checkout_get_current_payment_method',
-					function() use ( $request ) {
+					function () use ( $request ) {
 						$payment_method = wc_clean( wp_unslash( $request['payment_method'] ? $request['payment_method'] : '' ) );
 
 						return $payment_method;
@@ -36,7 +36,7 @@ final class PreferredServices {
 
 				add_filter(
 					'woocommerce_gzd_dhl_checkout_parcel_services_data',
-					function( $data ) use ( $request_data, $customer ) {
+					function ( $data ) use ( $request_data, $customer ) {
 						$data['shipping_country'] = $customer->get_shipping_country();
 
 						foreach ( $request_data as $k => $d ) {
@@ -56,13 +56,13 @@ final class PreferredServices {
 		 */
 		add_action(
 			'woocommerce_store_api_checkout_update_order_from_request',
-			function( $order, $request ) {
+			function ( $order, $request ) {
 				$request_data = $this->get_checkout_data_from_request( $request );
 				$customer     = wc()->customer;
 
 				add_filter(
 					'woocommerce_gzd_dhl_checkout_get_current_payment_method',
-					function() use ( $request ) {
+					function () use ( $request ) {
 						$payment_method = wc_clean( wp_unslash( $request['payment_method'] ? $request['payment_method'] : '' ) );
 
 						return $payment_method;
@@ -71,7 +71,7 @@ final class PreferredServices {
 
 				add_filter(
 					'woocommerce_gzd_dhl_checkout_parcel_services_data',
-					function( $data ) use ( $request_data, $customer ) {
+					function ( $data ) use ( $request_data, $customer ) {
 						$data['shipping_country'] = $customer->get_shipping_country();
 
 						foreach ( $request_data as $k => $d ) {
@@ -87,7 +87,7 @@ final class PreferredServices {
 
 				if ( wc_gzd_shipment_wp_error_has_errors( $errors ) ) {
 					foreach ( $errors->get_error_messages() as $error ) {
-						throw new RouteException( 'dhl_error', $error, 400 );
+						throw new RouteException( 'dhl_error', wp_kses_post( $error ), 400 );
 					}
 				}
 
@@ -101,7 +101,7 @@ final class PreferredServices {
 	private function register_integrations() {
 		add_action(
 			'woocommerce_blocks_checkout_block_registration',
-			function( $integration_registry ) {
+			function ( $integration_registry ) {
 				$integration_registry->register( Package::container()->get( \Vendidero\Germanized\DHL\Blocks\Integrations\PreferredServices::class ) );
 			}
 		);
@@ -119,7 +119,7 @@ final class PreferredServices {
 			array(
 				'endpoint'        => CartSchema::IDENTIFIER,
 				'namespace'       => 'woocommerce-gzd-dhl',
-				'data_callback'   => function() {
+				'data_callback'   => function () {
 					return $this->get_cart_data();
 				},
 				'schema_callback' => function () {
@@ -141,7 +141,7 @@ final class PreferredServices {
 		woocommerce_store_api_register_update_callback(
 			array(
 				'namespace' => 'woocommerce-gzd-dhl-checkout-fees',
-				'callback'  => function( $data ) {
+				'callback'  => function ( $data ) {
 					$dhl = wp_parse_args(
 						wc_clean( wp_unslash( $data ) ),
 						array(

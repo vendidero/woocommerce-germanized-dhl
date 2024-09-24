@@ -36,7 +36,7 @@ class ReturnRest extends Rest {
 		$currency = $shipment->get_order() ? $shipment->get_order()->get_currency() : 'EUR';
 
 		if ( ! $shipment ) {
-			throw new Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
+			throw new Exception( esc_html( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) ) );
 		}
 
 		$request_args = array(
@@ -186,7 +186,7 @@ class ReturnRest extends Rest {
 			// Delete the label dues to errors.
 			$label->delete();
 
-			throw new Exception( _x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return $label;

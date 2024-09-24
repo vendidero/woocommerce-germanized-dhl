@@ -69,7 +69,7 @@ class ImProductList {
 			$query .= " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id";
 		} else {
 			foreach ( $services as $service ) {
-				$count++;
+				++$count;
 
 				$query .= $wpdb->prepare( " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug = %s", $service ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
@@ -127,12 +127,12 @@ class ImProductList {
 
 		if ( ! empty( $services ) ) {
 			foreach ( $services as $service ) {
-				$count++;
+				++$count;
 				$query .= $wpdb->prepare( " INNER JOIN {$wpdb->gzd_dhl_im_product_services} S{$count} ON {$wpdb->gzd_dhl_im_products}.product_id = S{$count}.product_service_product_id AND S{$count}.product_service_slug = %s", $service ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 
 			$all_services = array_map(
-				function( $p ) {
+				function ( $p ) {
 					return "'" . esc_sql( $p ) . "'";
 				},
 				$services

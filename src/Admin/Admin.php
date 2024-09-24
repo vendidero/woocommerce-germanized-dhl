@@ -242,7 +242,7 @@ class Admin {
 				<a id="woocommerce_gzd_dhl_im_portokasse_charge" class="button button-secondary" data-url="https://portokasse.deutschepost.de/portokasse/marketplace/enter-app-payment" data-success_url="<?php echo esc_url( add_query_arg( array( 'wallet-charge-success' => 'yes' ), $settings_url ) ); ?>" data-cancel_url="<?php echo esc_url( add_query_arg( array( 'wallet-charge-success' => 'no' ), $settings_url ) ); ?>" data-partner_id="<?php echo esc_attr( Package::get_internetmarke_partner_id() ); ?>" data-key_phase="<?php echo esc_attr( Package::get_internetmarke_key_phase() ); ?>" data-user_token="<?php echo esc_attr( $user_token ); ?>" data-schluessel_dpwn_partner="<?php echo esc_attr( Package::get_internetmarke_token() ); ?>" data-wallet="<?php echo esc_attr( $balance ); ?>">
 					<?php echo esc_html_x( 'Charge Portokasse', 'dhl', 'woocommerce-germanized-dhl' ); ?>
 				</a>
-				<p class="description"><?php echo sprintf( esc_html_x( 'The minimum amount is %s', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( 10, array( 'currency' => 'EUR' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+				<p class="description"><?php printf( esc_html_x( 'The minimum amount is %s', 'dhl', 'woocommerce-germanized-dhl' ), wc_price( 10, array( 'currency' => 'EUR' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 			</td>
 		</tr>
 		<?php
@@ -310,7 +310,7 @@ class Admin {
 						<?php
 						$i = -1;
 						foreach ( $receiver_ids as $receiver ) {
-							$i++;
+							++$i;
 
 							echo '<tr class="receiver">
                                     <td><input type="text" value="' . esc_attr( wp_unslash( $receiver['id'] ) ) . '" name="' . esc_attr( $option_key ) . '[receiver_id][' . esc_attr( $i ) . ']" /></td>

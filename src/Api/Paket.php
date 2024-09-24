@@ -6,7 +6,7 @@
  */
 namespace Vendidero\Germanized\DHL\Api;
 
-use \Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\DHL\Package;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -67,9 +67,9 @@ class Paket {
 
 		if ( is_null( $this->label_api ) ) {
 			if ( ! empty( $error_message ) ) {
-				throw new Exception( sprintf( _x( 'Label API not available: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) );
+				throw new Exception( esc_html( sprintf( _x( 'Label API not available: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) ) );
 			} else {
-				throw new Exception( _x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( esc_html_x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		}
 
@@ -94,9 +94,9 @@ class Paket {
 
 		if ( is_null( $this->label_rest_api ) ) {
 			if ( ! empty( $error_message ) ) {
-				throw new Exception( sprintf( _x( 'Label API not available: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) );
+				throw new Exception( esc_html( sprintf( _x( 'Label API not available: %s', 'dhl', 'woocommerce-germanized-dhl' ), $error_message ) ) );
 			} else {
-				throw new Exception( _x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new Exception( esc_html_x( 'Label API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 		}
 
@@ -117,7 +117,7 @@ class Paket {
 		}
 
 		if ( is_null( $this->finder_api ) ) {
-			throw new Exception( _x( 'Parcel Finder API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Parcel Finder API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return $this->finder_api;
@@ -137,7 +137,7 @@ class Paket {
 		}
 
 		if ( is_null( $this->return_api ) ) {
-			throw new Exception( _x( 'Return API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Return API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return $this->return_api;
@@ -157,7 +157,7 @@ class Paket {
 		}
 
 		if ( is_null( $this->parcel_api ) ) {
-			throw new Exception( _x( 'Parcel API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'Parcel API not available', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return $this->parcel_api;
@@ -275,7 +275,7 @@ class Paket {
 		if ( ! empty( $preparation_days ) ) {
 			while ( ! $this->is_working_day( $starting_date ) || $days_added < $preparation_days ) {
 				$starting_date->add( new DateInterval( 'P1D' ) );
-				$days_added++;
+				++$days_added;
 			}
 		}
 
@@ -294,7 +294,7 @@ class Paket {
 
 		while ( ! $this->is_working_day( $starting_date ) || $days_added < 2 ) {
 			$starting_date->add( new DateInterval( 'P1D' ) );
-			$days_added++;
+			++$days_added;
 		}
 
 		$args['postcode']    = $postcode;

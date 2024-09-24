@@ -395,27 +395,28 @@ class LabelQuery extends WC_Object_Query {
 	/**
 	 * Used internally to generate an SQL string for searching across multiple columns
 	 *
-	 * @since 3.0.6
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @param string $string
+	 * @param string $search_string
 	 * @param array  $cols
 	 * @param bool   $wild   Whether to allow wildcard searches. Default is false for Network Admin, true for single site.
 	 *                       Single site allows leading and trailing wildcards, Network Admin only trailing.
+	 *
 	 * @return string
+	 *@since 3.0.6
+	 *
+	 * @global \wpdb $wpdb WordPress database abstraction object.
+	 *
 	 */
-	protected function get_search_sql( $string, $cols, $wild = false ) {
+	protected function get_search_sql( $search_string, $cols, $wild = false ) {
 		global $wpdb;
 
 		$searches      = array();
 		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
 		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
-		$like          = $leading_wild . $wpdb->esc_like( $string ) . $trailing_wild;
+		$like          = $leading_wild . $wpdb->esc_like( $search_string ) . $trailing_wild;
 
 		foreach ( $cols as $col ) {
 			if ( 'ID' === $col ) {
-				$searches[] = $wpdb->prepare( "$col = %s", $string ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$searches[] = $wpdb->prepare( "$col = %s", $search_string ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			} else {
 				$searches[] = $wpdb->prepare( "$col LIKE %s", $like ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}

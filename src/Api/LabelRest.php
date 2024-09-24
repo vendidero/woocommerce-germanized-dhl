@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\DHL\Api;
 use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\Label;
 use Vendidero\Germanized\DHL\ParcelLocator;
+use Vendidero\Germanized\Shipments\Admin\Settings;
 use Vendidero\Germanized\Shipments\Labels\Factory;
 use Vendidero\Germanized\Shipments\PDFMerger;
 use Vendidero\Germanized\Shipments\PDFSplitter;
@@ -79,7 +80,7 @@ class LabelRest extends Rest {
 
 				Package::log( 'POST Error: ' . $response_code . ' - ' . wc_print_r( $error_messages, true ) );
 
-				throw new \Exception( implode( "\n", $error_messages ), $response_code );
+				throw new \Exception( wp_kses_post( implode( "\n", $error_messages ) ), esc_html( $response_code ) );
 		}
 	}
 
@@ -112,7 +113,7 @@ class LabelRest extends Rest {
 		$dhl_provider = Package::get_dhl_shipping_provider();
 
 		if ( ! $shipment ) {
-			throw new \Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
+			throw new \Exception( esc_html( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) ) );
 		}
 
 		$currency            = $shipment->get_order() ? $shipment->get_order()->get_currency() : 'EUR';
@@ -317,7 +318,7 @@ class LabelRest extends Rest {
 			}
 
 			if ( ! empty( $missing_address_fields ) ) {
-				throw new \Exception( sprintf( _x( 'Your shipper address is incomplete (%1$s). Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), implode( ', ', $missing_address_fields ), esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=address' ) ) ) );
+				throw new \Exception( wp_kses_post( sprintf( _x( 'Your shipper address is incomplete (%1$s). Please validate your <a href="%2$s">settings</a> and try again.', 'dhl', 'woocommerce-germanized-dhl' ), implode( ', ', $missing_address_fields ), esc_url( Settings::get_settings_url( 'general', 'business_information' ) ) ) ) );
 			}
 
 			$shipment_request['shipper'] = array(
@@ -432,7 +433,7 @@ class LabelRest extends Rest {
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 			if ( count( $shipment->get_items() ) > 30 ) {
-				throw new \Exception( sprintf( _x( 'Only %1$s shipment items can be processed, your shipment has %2$s items.', 'dhl', 'woocommerce-germanized-dhl' ), 30, count( $shipment->get_items() ) ) );
+				throw new \Exception( esc_html( sprintf( _x( 'Only %1$s shipment items can be processed, your shipment has %2$s items.', 'dhl', 'woocommerce-germanized-dhl' ), 30, count( $shipment->get_items() ) ) ) );
 			}
 
 			$customs_label_data = wc_gzd_dhl_get_shipment_customs_data( $label );
@@ -615,7 +616,7 @@ class LabelRest extends Rest {
 			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
 			}
 
-			throw new \Exception( _x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new \Exception( esc_html_x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		return $result;
@@ -652,18 +653,18 @@ class LabelRest extends Rest {
 		return 'STANDARD_GRUPPENPROFIL';
 	}
 
-	protected function walk_recursive_remove( array $array ) {
-		foreach ( $array as $k => $v ) {
+	protected function walk_recursive_remove( array $the_array ) {
+		foreach ( $the_array as $k => $v ) {
 			if ( is_array( $v ) ) {
-				$array[ $k ] = $this->walk_recursive_remove( $v );
+				$the_array[ $k ] = $this->walk_recursive_remove( $v );
 			}
 
 			if ( '' === $v ) {
-				unset( $array[ $k ] );
+				unset( $the_array[ $k ] );
 			}
 		}
 
-		return $array;
+		return $the_array;
 	}
 
 	protected function get_export_type( $customs_data, $label ) {

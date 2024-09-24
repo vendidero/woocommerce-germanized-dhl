@@ -483,23 +483,21 @@ class Internetmarke {
 		$discontinued_starting_from = new \DateTime( '2022-07-01' );
 
 		if ( $today >= $discontinued_starting_from ) {
-			throw new \Exception( sprintf( _x( 'The Deutsche Post WP International API was discontinued. Please use the <a href="%s">DHL API</a> for Warenpost labels instead.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/dokument/dhl-integration-einrichten' ) ) );
+			throw new \Exception( wp_kses_post( sprintf( _x( 'The Deutsche Post WP International API was discontinued. Please use the <a href="%s">DHL API</a> for Warenpost labels instead.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/dokument/dhl-integration-einrichten' ) ) ) );
+		} elseif ( empty( $label->get_wp_int_awb() ) ) {
+			return $this->get_wp_int_api()->create_label( $label );
 		} else {
-			if ( empty( $label->get_wp_int_awb() ) ) {
-				return $this->get_wp_int_api()->create_label( $label );
-			} else {
-				try {
-					$pdf = $this->get_wp_int_api()->get_pdf( $label->get_wp_int_awb() );
+			try {
+				$pdf = $this->get_wp_int_api()->get_pdf( $label->get_wp_int_awb() );
 
-					if ( ! $pdf ) {
-						throw new \Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
-					}
-				} catch ( \Exception $e ) {
-					return $this->get_wp_int_api()->create_label( $label );
+				if ( ! $pdf ) {
+					throw new \Exception( _x( 'Error while fetching label PDF', 'dhl', 'woocommerce-germanized-dhl' ) );
 				}
-
-				return true;
+			} catch ( \Exception $e ) {
+				return $this->get_wp_int_api()->create_label( $label );
 			}
+
+			return true;
 		}
 	}
 
@@ -513,7 +511,7 @@ class Internetmarke {
 			return $this->create_default_label( $label );
 		} else {
 			if ( ! $api = $this->get_api( true ) ) {
-				throw new \Exception( $this->get_authentication_error() );
+				throw new \Exception( wp_kses_post( $this->get_authentication_error() ) );
 			}
 
 			try {
@@ -547,7 +545,7 @@ class Internetmarke {
 				return $this->refund_default_label( $label );
 			}
 		} catch ( \Exception $e ) {
-			throw new \Exception( sprintf( _x( 'Could not refund post label: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) );
+			throw new \Exception( esc_html( sprintf( _x( 'Could not refund post label: %s', 'dhl', 'woocommerce-germanized-dhl' ), $e->getMessage() ) ) );
 		}
 	}
 
@@ -561,7 +559,7 @@ class Internetmarke {
 		$refund = $this->get_refund_api();
 
 		if ( ! $refund ) {
-			throw new \Exception( _x( 'Refund API could not be instantiated', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new \Exception( esc_html_x( 'Refund API could not be instantiated', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$refund_id = $refund->createRetoureId();
@@ -689,7 +687,7 @@ class Internetmarke {
 		$shipment = $label->get_shipment();
 
 		if ( ! $shipment ) {
-			throw new \Exception( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) );
+			throw new \Exception( esc_html( sprintf( _x( 'Could not fetch shipment %d.', 'dhl', 'woocommerce-germanized-dhl' ), $label->get_shipment_id() ) ) );
 		}
 
 		$sender          = $this->get_shipment_address_data( $shipment, 'sender' );
@@ -697,7 +695,7 @@ class Internetmarke {
 		$address_binding = new \baltpeter\Internetmarke\AddressBinding( $sender, $receiver );
 
 		if ( ! $api = $this->get_api( true ) ) {
-			throw new \Exception( $this->get_error_message() );
+			throw new \Exception( wp_kses_post( $this->get_error_message() ) );
 		}
 
 		try {
@@ -740,7 +738,7 @@ class Internetmarke {
 
 			return $this->update_default_label( $label, $stamp );
 		} catch ( \Exception $e ) {
-			throw new \Exception( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) ) ) );
+			throw new \Exception( wp_kses_post( sprintf( _x( 'Error while trying to purchase the stamp. Please manually <a href="%s">refresh</a> your product database and try again.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( Package::get_deutsche_post_shipping_provider()->get_edit_link( 'label' ) ) ) ) );
 		}
 	}
 
@@ -778,14 +776,14 @@ class Internetmarke {
 			$result = $label->download_label_file( $stamp->link );
 
 			if ( ! $result ) {
-				throw new \Exception( _x( 'Error while downloading the PDF stamp.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				throw new \Exception( esc_html_x( 'Error while downloading the PDF stamp.', 'dhl', 'woocommerce-germanized-dhl' ) );
 			}
 
 			$label->save();
 
 			return $label;
 		} else {
-			throw new \Exception( _x( 'Invalid stamp response.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new \Exception( esc_html_x( 'Invalid stamp response.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 	}
 

@@ -128,7 +128,7 @@ class LocationFinder extends Rest {
 		$limit = is_numeric( $limit ) ? $limit : ParcelLocator::get_max_results();
 
 		if ( empty( $address['city'] ) && empty( $address['zip'] ) ) {
-			throw new Exception( _x( 'At least shipping city or zip is required.', 'dhl', 'woocommerce-germanized-dhl' ) );
+			throw new Exception( esc_html_x( 'At least shipping city or zip is required.', 'dhl', 'woocommerce-germanized-dhl' ) );
 		}
 
 		$args = array(

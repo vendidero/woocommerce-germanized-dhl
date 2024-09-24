@@ -104,7 +104,28 @@
         <exclude-pattern>*</exclude-pattern>
     </rule>
 
-    <rule ref="WordPress.CodeAnalysis.AssignmentInCondition">
+    <rule ref="Generic.CodeAnalysis.AssignmentInCondition.Found">
         <exclude-pattern>*</exclude-pattern>
+    </rule>
+
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed">
+        <exclude-pattern>*</exclude-pattern>
+    </rule>
+
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.Found">
+        <exclude-pattern>*</exclude-pattern>
+    </rule>
+
+    <rule ref="WordPress.WP.Capabilities">
+        <properties>
+            <property name="custom_capabilities" type="array">
+                <element value="manage_woocommerce" />
+                <element value="pay_for_order" />
+                <element value="view_order" />
+                <element value="edit_shop_orders" />
+                <element value="delete_shop_orders" />
+                <element value="edit_others_shop_orders" />
+            </property>
+        </properties>
     </rule>
 </ruleset>

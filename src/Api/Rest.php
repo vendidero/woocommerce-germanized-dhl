@@ -101,15 +101,15 @@ abstract class Rest {
 				break;
 			case 400:
 				$error_message = str_replace( '/', ' / ', isset( $response_body->statusText ) ? $response_body->statusText : '' ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				throw new Exception( _x( '400 - ', 'dhl', 'woocommerce-germanized-dhl' ) . $error_message, $response_code );
+				throw new Exception( esc_html( _x( '400 - ', 'dhl', 'woocommerce-germanized-dhl' ) . $error_message ), esc_html( $response_code ) );
 			case 401:
-				throw new Exception( _x( '401 - Unauthorized Access - Invalid token or Authentication Header parameter', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
+				throw new Exception( esc_html_x( '401 - Unauthorized Access - Invalid token or Authentication Header parameter', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( $response_code ) );
 			case 408:
-				throw new Exception( _x( '408 - Request Timeout', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
+				throw new Exception( esc_html_x( '408 - Request Timeout', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( $response_code ) );
 			case 429:
-				throw new Exception( _x( '429 - Too many requests in given amount of time', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
+				throw new Exception( esc_html_x( '429 - Too many requests in given amount of time', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( $response_code ) );
 			case 503:
-				throw new Exception( _x( '503 - Service Unavailable', 'dhl', 'woocommerce-germanized-dhl' ), $response_code );
+				throw new Exception( esc_html_x( '503 - Service Unavailable', 'dhl', 'woocommerce-germanized-dhl' ), esc_html( $response_code ) );
 			default:
 				$response_code = empty( $response_code ) ? 404 : $response_code;
 
@@ -121,7 +121,7 @@ abstract class Rest {
 
 				Package::log( 'GET Error: ' . $response_code . ' - ' . $error_message );
 
-				throw new Exception( $response_code . ' - ' . $error_message, $response_code );
+				throw new Exception( esc_html( $response_code . ' - ' . $error_message ), esc_html( $response_code ) );
 		}
 	}
 
@@ -204,7 +204,7 @@ abstract class Rest {
 
 				Package::log( 'POST Error: ' . $response_code . ' - ' . $error_message );
 
-				throw new Exception( sprintf( '%1$s: %2$s', isset( $response_body->title ) ? $response_body->title : 'Bad Request', $error_message ), absint( $response_code ) );
+				throw new Exception( esc_html( sprintf( '%1$s: %2$s', isset( $response_body->title ) ? $response_body->title : 'Bad Request', $error_message ) ), absint( $response_code ) );
 		}
 	}
 
