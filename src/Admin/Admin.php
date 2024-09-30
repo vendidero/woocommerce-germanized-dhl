@@ -430,9 +430,9 @@ class Admin {
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		wp_register_script( 'wc-gzd-admin-dhl-internetmarke', Package::get_assets_build_url( 'static/admin-internetmarke.js' ), array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-deutsche-post-label', Package::get_assets_build_url( 'static/admin-deutsche-post-label.js' ), array( 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-deutsche-post-label', Package::get_assets_build_url( 'static/admin-deutsche-post-label.js' ), array( 'wc-gzd-shipments-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
-		if ( wp_script_is( 'wc-gzd-admin-shipment-modal', 'enqueued' ) ) {
+		if ( wp_script_is( 'wc-gzd-shipments-admin-shipment-modal', 'enqueued' ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-deutsche-post-label' );
 
 			wp_localize_script(
