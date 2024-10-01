@@ -13,7 +13,7 @@ window.germanized.admin = window.germanized.admin || {};
             var self    = admin.dhl_post_label;
             self.params = wc_gzd_admin_deutsche_post_label_params;
 
-            $( document.body ).on( 'wc_gzd_admin_shipment_modal_after_load_success', self.onLoadLabelModal )
+            $( document.body ).on( 'wc_gzd_shipments_admin_shipment_modal_after_load_success', self.onLoadLabelModal )
         },
 
         onLoadLabelModal: function( e, data, modal ) {
