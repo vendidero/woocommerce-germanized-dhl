@@ -460,7 +460,7 @@ class LabelRest extends Rest {
 			 * In case the customs item total weight is greater than label weight (e.g. due to rounding issues) replace it
 			 */
 			if ( $customs_label_data['item_total_weight_in_kg'] > $label->get_weight() ) {
-				$shipment_request['details']['weight']['value'] = $customs_label_data['item_total_weight_in_kg'] + $shipment->get_packaging_weight();
+				$shipment_request['details']['weight']['value'] = $customs_label_data['item_total_weight_in_kg'] + wc_get_weight( $shipment->get_packaging_weight(), 'kg', $shipment->get_weight_unit() );
 			}
 
 			$export_type = $this->get_export_type( $customs_label_data, $label );
@@ -494,6 +494,9 @@ class LabelRest extends Rest {
 
 			$shipment_request['customs'] = apply_filters( 'woocommerce_gzd_dhl_label_rest_api_customs_data', $customs_data, $label );
 		}
+
+		print_r($shipment_request);
+		exit();
 
 		$shipment_request = apply_filters( 'woocommerce_gzd_dhl_label_rest_api_create_label_request', $shipment_request, $label, $shipment, $this );
 		$shipment_request = $this->walk_recursive_remove( $shipment_request );
