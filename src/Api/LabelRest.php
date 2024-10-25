@@ -495,9 +495,6 @@ class LabelRest extends Rest {
 			$shipment_request['customs'] = apply_filters( 'woocommerce_gzd_dhl_label_rest_api_customs_data', $customs_data, $label );
 		}
 
-		print_r($shipment_request);
-		exit();
-
 		$shipment_request = apply_filters( 'woocommerce_gzd_dhl_label_rest_api_create_label_request', $shipment_request, $label, $shipment, $this );
 		$shipment_request = $this->walk_recursive_remove( $shipment_request );
 
