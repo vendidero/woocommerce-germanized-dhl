@@ -131,6 +131,27 @@ trait PickupDeliveryTrait {
 		$types     = $this->get_pickup_location_types();
 		$locations = array();
 
+		if ( $query_args['shipping_method'] ) {
+			$zone = \Vendidero\Germanized\Shipments\Package::get_shipping_zone( $address['country'], array( 'postcode' => $address['postcode'] ) );
+
+			$config_set = $query_args['shipping_method']->get_configuration_set(
+				array(
+					'zone'                   => $zone,
+					'shipment_type'          => 'simple',
+					'shipping_provider_name' => $this->get_name(),
+				)
+			);
+
+			if ( $config_set ) {
+				$current_product = $config_set->get_product();
+
+				// Do not allow parcel shops and postoffices for Warenpost
+				if ( in_array( $current_product, array( 'V62WP', 'V62WPI' ), true ) ) {
+					$types = array_diff( $types, array( 'parcelshop', 'postoffice' ) );
+				}
+			}
+		}
+
 		if ( empty( $types ) ) {
 			return null;
 		}
