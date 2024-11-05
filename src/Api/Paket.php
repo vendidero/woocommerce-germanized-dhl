@@ -292,7 +292,7 @@ class Paket {
 		// Add 2 working days (for DHL)
 		$days_added = 0;
 
-		while ( ! $this->is_working_day( $starting_date ) || $days_added < 2 ) {
+		while ( ! $this->is_working_day( $starting_date ) ) {
 			$starting_date->add( new DateInterval( 'P1D' ) );
 			++$days_added;
 		}

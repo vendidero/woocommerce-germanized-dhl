@@ -4,6 +4,7 @@ namespace Vendidero\Germanized\DHL;
 
 use Exception;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
+use Vendidero\Germanized\Shipments\PickupDelivery;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Checkout;
 use WC_Order;
@@ -164,7 +165,7 @@ class ParcelLocator {
 		 *
 		 * @package Vendidero/Germanized/DHL
 		 */
-		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_excluded_gateways', array( 'cod' ) );
+		$codes = apply_filters( 'woocommerce_gzd_dhl_parcel_locator_excluded_gateways', PickupDelivery::get_excluded_gateways() );
 
 		return $codes;
 	}
