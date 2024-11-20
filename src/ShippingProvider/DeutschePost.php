@@ -442,8 +442,20 @@ class DeutschePost extends Auto {
 
 		/**
 		 * When retrieving the label fields make sure to only include parent products
+		 * in case the parent product exists (e.g. the Maxibrief Integral + Zusatzentgelt may be available,
+		 * although it's parent Maxibrief is not available).
 		 */
-		$settings[0]['options'] = $products->as_options();
+		foreach ( $settings[0]['options'] as $product_id => $label ) {
+			if ( $product = $this->get_product( $product_id ) ) {
+				if ( $product->get_parent_id() > 0 ) {
+					$parent_code = Package::get_internetmarke_api()->get_product_parent_code( $product->get_id() );
+
+					if ( array_key_exists( $parent_code, $settings[0]['options'] ) ) {
+						unset( $settings[0]['options'][ $product_id ] );
+					}
+				}
+			}
+		}
 
 		if ( ! empty( $props['product_id'] ) ) {
 			$is_wp_int = Package::get_internetmarke_api()->is_warenpost_international( $props['product_id'] );
@@ -526,6 +538,7 @@ class DeutschePost extends Auto {
 	protected function get_default_label_props( $shipment ) {
 		$dp_defaults = $this->get_default_simple_label_props( $shipment );
 		$defaults    = parent::get_default_label_props( $shipment );
+		$available   = $this->get_available_label_products( $shipment );
 		$defaults    = array_replace_recursive( $defaults, $dp_defaults );
 
 		if ( ! empty( $defaults['product_id'] ) ) {
@@ -533,8 +546,12 @@ class DeutschePost extends Auto {
 				$defaults['stamp_total'] = Package::get_internetmarke_api()->get_product_total( $defaults['product_id'] );
 
 				if ( $product->get_parent_id() > 0 ) {
-					$defaults['services']   = Package::get_internetmarke_api()->get_product_services( $product->get_id() );
-					$defaults['product_id'] = Package::get_internetmarke_api()->get_product_parent_code( $product->get_id() );
+					$parent_code = Package::get_internetmarke_api()->get_product_parent_code( $product->get_id() );
+
+					if ( array_key_exists( $parent_code, $available ) ) {
+						$defaults['services']   = Package::get_internetmarke_api()->get_product_services( $product->get_id() );
+						$defaults['product_id'] = Package::get_internetmarke_api()->get_product_parent_code( $product->get_id() );
+					}
 				} else {
 					/**
 					 * Get current services from the selected product.

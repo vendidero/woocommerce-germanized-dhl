@@ -118,8 +118,16 @@ class ImProductList {
 
 		$product = $this->get_product_data( $parent_id );
 
+		/**
+		 * In case we are passing a product without a parent that may mean that
+		 * this product already includes services - return the actual product instead of searching.
+		 */
 		if ( $product && $product->get_parent_id() > 0 ) {
-			$parent_id = $product->get_parent_id();
+			if ( empty( $services ) ) {
+				return $product;
+			} else {
+				$parent_id = $product->get_parent_id();
+			}
 		}
 
 		$query = "SELECT * FROM {$wpdb->gzd_dhl_im_products}";

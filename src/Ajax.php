@@ -74,13 +74,16 @@ class Ajax {
 			 * Refresh im product id by selected services.
 			 */
 			$im_product_id = Package::get_internetmarke_api()->get_product_code( $im_product_id, $selected_services );
-			$preview_url   = Package::get_internetmarke_api()->preview_stamp( $im_product_id );
-			$preview_data  = Package::get_internetmarke_api()->get_product_preview_data( $im_product_id );
-			$is_wp_int     = Package::get_internetmarke_api()->is_warenpost_international( $im_product_id );
 
-			if ( $preview_url ) {
-				$response['preview_url']  = $preview_url;
-				$response['preview_data'] = $preview_data;
+			if ( $im_product_id ) {
+				$preview_url  = Package::get_internetmarke_api()->preview_stamp( $im_product_id );
+				$preview_data = Package::get_internetmarke_api()->get_product_preview_data( $im_product_id );
+				$is_wp_int    = Package::get_internetmarke_api()->is_warenpost_international( $im_product_id );
+
+				if ( $preview_url ) {
+					$response['preview_url']  = $preview_url;
+					$response['preview_data'] = $preview_data;
+				}
 			}
 		}
 
