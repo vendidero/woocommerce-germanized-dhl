@@ -20,6 +20,7 @@ window.germanized.admin = window.germanized.admin || {};
             var self = admin.dhl_post_label;
 
             modal.$modal.off( 'change.gzd-dp-fields' );
+            modal.$modal.on( 'change.gzd-dp-fields', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id', { adminShipmentModal: modal }, self.onChangeProduct );
             modal.$modal.on( 'change.gzd-dp-fields', '#wc-gzd-shipment-label-admin-fields-deutsche_post #product_id, #wc-gzd-shipment-label-admin-fields-deutsche_post #wc-gzd-shipment-label-wrapper-additional-services :input', { adminShipmentModal: modal }, self.onRefreshPreview );
 
             if ( modal.$modal.find( '#wc-gzd-shipment-label-admin-fields-deutsche_post' ).length > 0 ) {
@@ -37,6 +38,11 @@ window.germanized.admin = window.germanized.admin || {};
             return $( "#wc-gzd-shipment-label-wrapper-additional-services :input:checked" ).map( function() {
                 return $( this ).attr( 'name' ).replace( 'service_', '' );
             }).get();
+        },
+
+        onChangeProduct: function( event ) {
+            // Reset services before submitting preview to prevent invalid services being passed.
+            $( "#wc-gzd-shipment-label-wrapper-additional-services :input:checked" ).prop( 'checked', false );
         },
 
         onRefreshPreview: function( event ) {
@@ -84,6 +90,7 @@ window.germanized.admin = window.germanized.admin || {};
                 });
             } else {
                 $img_wrapper.html( '' );
+                self.replaceProductData( {} );
             }
         },
 
