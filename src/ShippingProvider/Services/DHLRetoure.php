@@ -15,7 +15,7 @@ class DHLRetoure extends Service {
 			'id'                 => 'dhlRetoure',
 			'label'              => _x( 'Inlay Return Label', 'dhl', 'woocommerce-germanized-dhl' ),
 			'description'        => _x( 'Additionally create inlay return labels for shipments that support returns.', 'dhl', 'woocommerce-germanized-dhl' ),
-			'products'           => array( 'V01PAK', 'V62WP' ),
+			'products'           => array( 'V01PAK', 'V62WP', 'V62KP' ),
 			'countries'          => array( 'DE' ),
 			'zones'              => array( 'dom' ),
 			'excluded_locations' => array( 'label_services' ),

@@ -773,6 +773,10 @@ class Package {
 		return 'uwi1SH5bHDdMTdcWXB5JIsDCvBOyIawn';
 	}
 
+	public static function get_dhl_com_api_secret() {
+		return 'Qe8ZTtQiOWaEcjad';
+	}
+
 	public static function get_business_portal_url() {
 		return 'https://geschaeftskunden.dhl.de';
 	}

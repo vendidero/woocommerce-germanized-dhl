@@ -6,6 +6,7 @@ use Vendidero\Germanized\DHL\Package;
 use Vendidero\Germanized\DHL\Label;
 use Vendidero\Germanized\DHL\ParcelLocator;
 use Vendidero\Germanized\Shipments\Admin\Settings;
+use Vendidero\Germanized\Shipments\API\Response;
 use Vendidero\Germanized\Shipments\Labels\Factory;
 use Vendidero\Germanized\Shipments\PDFMerger;
 use Vendidero\Germanized\Shipments\PDFSplitter;
@@ -13,83 +14,73 @@ use Vendidero\Germanized\Shipments\ShipmentError;
 
 defined( 'ABSPATH' ) || exit;
 
-class LabelRest extends Rest {
+class LabelRest extends \Vendidero\Germanized\Shipments\API\REST {
 
-	public function get_base_url() {
+	public function get_url() {
 		return Package::get_label_rest_api_url();
 	}
 
-	protected function get_auth() {
-		if ( Package::is_debug_mode() ) {
-			return $this->get_basic_auth_encode( 'user-valid', 'SandboxPasswort2023!' );
-		} else {
-			return $this->get_basic_auth_encode( Package::get_gk_api_user(), Package::get_gk_api_signature() );
-		}
+	protected function get_auth_instance() {
+		return new OAuthPaket( $this );
 	}
 
-	protected function handle_get_response( $response_code, $response_body ) {
-		$this->handle_post_response( $response_code, $response_body );
-	}
+	/**
+	 * @param Response $response
+	 *
+	 * @return Response
+	 */
+	protected function parse_error( $response ) {
+		$response_code  = $response->get_code();
+		$response_body  = $response->get_body();
+		$error          = new ShipmentError();
+		$error_messages = array();
 
-	protected function handle_post_response( $response_code, $response_body ) {
-		$response_code = absint( $response_code );
-
-		switch ( $response_code ) {
-			case 200:
-			case 201:
-				break;
-			default:
-				$error_messages = array();
-
-				if ( isset( $response_body->items ) && isset( $response_body->items[0]->validationMessages ) ) {
-					if ( ! empty( $response_body->items[0]->validationMessages ) ) {
-						foreach ( $response_body->items[0]->validationMessages as $message ) {
-							if ( ! in_array( $message->validationMessage, $error_messages, true ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-								$error_messages[] = $message->validationMessage; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-							}
-						}
-					} elseif ( ! empty( $response_body->items[0]->sstatus ) ) {
-						if ( ! in_array( $response_body->items[0]->sstatus->title, $error_messages, true ) ) {
-							$error_messages[] = $response_body->items[0]->sstatus->title;
-						}
-					}
-				} elseif ( isset( $response_body->items ) && isset( $response_body->items[0]->message ) ) {
-					foreach ( $response_body->items as $message ) {
-						$property_path = isset( $message->propertyPath ) ? $message->propertyPath : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-						$property_path = str_replace( 'shipments[0].', '', $property_path );
-
-						$error_message = ( ! empty( $error_message ) ? "\n" : '' ) . ( ! empty( $property_path ) ? $property_path . ': ' : '' ) . $message->message;
-
-						if ( ! in_array( $error_message, $error_messages, true ) ) {
-							$error_messages[] = $error_message;
-						}
-					}
-				} elseif ( empty( $response_body->status->detail ) && empty( $response_body->detail ) ) {
-					$error_message = _x( 'POST error or timeout occurred. Please try again later.', 'dhl', 'woocommerce-germanized-dhl' );
-
-					if ( ! in_array( $error_message, $error_messages, true ) ) {
-						$error_messages[] = $error_message;
-					}
-				} else {
-					$error_message = ! empty( $response_body->status->detail ) ? $response_body->status->detail : $response_body->detail;
-
-					if ( ! in_array( $error_message, $error_messages, true ) ) {
-						$error_messages[] = $error_message;
+		if ( isset( $response_body['items'] ) && isset( $response_body['items'][0]['validationMessages'] ) ) {
+			if ( ! empty( $response_body['items'][0]['validationMessages'] ) ) {
+				foreach ( $response_body['items'][0]['validationMessages'] as $message ) {
+					if ( ! in_array( $message['validationMessage'], $error_messages, true ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$error_messages[] = $message['validationMessage']; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					}
 				}
+			} elseif ( ! empty( $response_body['items'][0]['sstatus'] ) ) {
+				if ( ! in_array( $response_body['items'][0]['sstatus']['title'], $error_messages, true ) ) {
+					$error_messages[] = $response_body['items'][0]['sstatus']['title'];
+				}
+			}
+		} elseif ( isset( $response_body['items'] ) && isset( $response_body['items'][0]['message'] ) ) {
+			foreach ( $response_body['items'] as $message ) {
+				$property_path = isset( $message['propertyPath'] ) ? $message['propertyPath'] : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$property_path = str_replace( 'shipments[0].', '', $property_path );
 
-				Package::log( 'POST Error: ' . $response_code . ' - ' . wc_print_r( $error_messages, true ) );
+				$error_message = ( ! empty( $error_message ) ? "\n" : '' ) . ( ! empty( $property_path ) ? $property_path . ': ' : '' ) . $message['message'];
 
-				throw new \Exception( wp_kses_post( implode( "\n", $error_messages ) ), esc_html( $response_code ) );
+				if ( ! in_array( $error_message, $error_messages, true ) ) {
+					$error_messages[] = $error_message;
+				}
+			}
+		} elseif ( empty( $response_body['status']['detail'] ) && empty( $response_body['detail'] ) ) {
+			$error_message = _x( 'POST error or timeout occurred. Please try again later.', 'dhl', 'woocommerce-germanized-dhl' );
+
+			if ( ! in_array( $error_message, $error_messages, true ) ) {
+				$error_messages[] = $error_message;
+			}
+		} else {
+			$error_message = ! empty( $response_body['status']['detail'] ) ? $response_body['status']['detail'] : $response_body['detail'];
+
+			if ( ! in_array( $error_message, $error_messages, true ) ) {
+				$error_messages[] = $error_message;
+			}
 		}
-	}
 
-	protected function set_header( $authorization = '', $request_type = 'GET', $endpoint = '' ) {
-		parent::set_header( $authorization, $request_type, $endpoint );
+		Package::log( 'POST Error: ' . $response_code . ' - ' . wc_print_r( $error_messages, true ) );
 
-		$this->remote_header['Authorization'] = $authorization;
-		$this->remote_header['dhl-api-key']   = Package::get_dhl_com_api_key();
-		$this->remote_header['Accept']        = '*/*';
+		foreach ( $error_messages as $error_message ) {
+			$error->add( 'dhl-api-error', $error_message );
+		}
+
+		$response->set_error( $error );
+
+		return $response;
 	}
 
 	/**
@@ -262,7 +253,7 @@ class LabelRest extends Rest {
 			 * Somehow new DHL REST API fails in case the officially
 			 * provided max length (35,3 cm) for Warenpost is used in mm precision. Round down.
 			 */
-			if ( in_array( $label->get_product_id(), array( 'V62WP', 'V66WPI' ), true ) ) {
+			if ( in_array( $label->get_product_id(), array( 'V62WP', 'V66WPI', 'V62KP' ), true ) ) {
 				$height_in_mm = round( $height_in_mm, -1, PHP_ROUND_HALF_DOWN );
 				$width_in_mm  = round( $width_in_mm, -1, PHP_ROUND_HALF_DOWN );
 				$length_in_mm = round( $length_in_mm, -1, PHP_ROUND_HALF_DOWN );
@@ -522,101 +513,107 @@ class LabelRest extends Rest {
 		}
 
 		$endpoint = add_query_arg( $args, 'orders' );
-		$response = $this->post_request( $endpoint, $request );
+		$response = $this->post( $endpoint, $request );
 
-		try {
-			if ( isset( $response->items ) ) {
-				$shipment_data = $response->items[0];
+		if ( $response->is_error() ) {
+			throw new \Exception( wp_kses_post( implode( "\n", $response->get_error()->get_error_messages() ) ), esc_html( $response->get_code() ) );
+		} else {
+			$body = $response->get_body();
 
-				if ( ! isset( $shipment_data->shipmentNo ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					throw new \Exception( _x( 'There was an error generating the label. Please try again or consider switching to sandbox mode.', 'dhl', 'woocommerce-germanized-dhl' ) );
-				}
+			try {
+				if ( isset( $body['items'] ) ) {
+					$shipment_data = $body['items'][0];
 
-				$label->set_number( $shipment_data->shipmentNo ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				$label->save();
+					if ( ! isset( $shipment_data['shipmentNo'] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						throw new \Exception( _x( 'There was an error generating the label. Please try again or consider switching to sandbox mode.', 'dhl', 'woocommerce-germanized-dhl' ) );
+					}
 
-				$default_file = base64_decode( $shipment_data->label->b64 ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$label->set_number( $shipment_data['shipmentNo'] ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$label->save();
 
-				if ( isset( $shipment_data->returnShipmentNo ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$return_label = $label->get_inlay_return_label();
+					$default_file = base64_decode( $shipment_data['label']['b64'] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
-					if ( ! $return_label ) {
-						if ( $return_label = Factory::get_label( 0, $label->get_shipping_provider(), 'inlay_return' ) ) {
-							$return_label->set_parent_id( $label->get_id() );
-							$return_label->set_shipment_id( $label->get_shipment_id() );
-							$return_label->set_shipping_provider( $label->get_shipping_provider() );
+					if ( isset( $shipment_data['returnShipmentNo'] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$return_label = $label->get_inlay_return_label();
 
-							if ( $shipment = $label->get_shipment() ) {
-								$return_label->set_sender_address( $shipment->get_address() );
+						if ( ! $return_label ) {
+							if ( $return_label = Factory::get_label( 0, $label->get_shipping_provider(), 'inlay_return' ) ) {
+								$return_label->set_parent_id( $label->get_id() );
+								$return_label->set_shipment_id( $label->get_shipment_id() );
+								$return_label->set_shipping_provider( $label->get_shipping_provider() );
+
+								if ( $shipment = $label->get_shipment() ) {
+									$return_label->set_sender_address( $shipment->get_address() );
+								}
 							}
 						}
-					}
 
-					if ( $return_label ) {
-						$return_label->set_number( $shipment_data->returnShipmentNo ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						if ( $return_label ) {
+							$return_label->set_number( $shipment_data['returnShipmentNo'] ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
-						$splitter = new PDFSplitter( $default_file, true );
-						$pdfs     = $splitter->split();
+							$splitter = new PDFSplitter( $default_file, true );
+							$pdfs     = $splitter->split();
 
-						if ( $pdfs && ! empty( $pdfs ) && count( $pdfs ) > 1 ) {
-							$return_file = $pdfs[1];
+							if ( $pdfs && ! empty( $pdfs ) && count( $pdfs ) > 1 ) {
+								$return_file = $pdfs[1];
+							}
+
+							if ( $return_file ) {
+								$return_label->upload_label_file( $return_file );
+							}
+
+							$return_label->save();
 						}
-
-						if ( $return_file ) {
-							$return_label->upload_label_file( $return_file );
-						}
-
-						$return_label->save();
-					}
-				}
-
-				$default_path = $label->upload_label_file( $default_file, 'default' );
-				$label->save();
-
-				if ( isset( $shipment_data->customsDoc ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$customs_file = base64_decode( $shipment_data->customsDoc->b64 ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-
-					if ( $label->upload_label_file( $customs_file, 'export' ) ) {
-						// Merge files
-						$merger = new PDFMerger();
-						$merger->add( $label->get_default_file() );
-						$merger->add( $label->get_export_file() );
-
-						$filename_label = $label->get_filename();
-						$file           = $merger->output( $filename_label, 'S' );
-
-						$label->upload_label_file( $file );
 					}
 
+					$default_path = $label->upload_label_file( $default_file, 'default' );
 					$label->save();
-				} else {
-					$label->set_path( $default_path );
+
+					if ( isset( $shipment_data['customsDoc'] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$customs_file = base64_decode( $shipment_data['customsDoc']['b64'] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+						if ( $label->upload_label_file( $customs_file, 'export' ) ) {
+							// Merge files
+							$merger = new PDFMerger();
+							$merger->add( $label->get_default_file() );
+							$merger->add( $label->get_export_file() );
+
+							$filename_label = $label->get_filename();
+							$file           = $merger->output( $filename_label, 'S' );
+
+							$label->upload_label_file( $file );
+						}
+
+						$label->save();
+					} else {
+						$label->set_path( $default_path );
+					}
 				}
-			}
 
-			if ( isset( $shipment_data->validationMessages ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				$result = new ShipmentError();
-
-				foreach ( $shipment_data->validationMessages as $message ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$result->add_soft_error( 'label-soft-error', $message->validationMessage ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				}
-			}
-
-			if ( in_array( 'AdditionalInsurance', $label->get_services(), true ) && $label->get_insurance_amount() <= 500 ) {
-				if ( ! is_a( $result, 'Vendidero\Germanized\Shipments\ShipmentError' ) ) {
+				if ( isset( $shipment_data['validationMessages'] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$result = new ShipmentError();
+
+					foreach ( $shipment_data['validationMessages'] as $message ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$result->add_soft_error( 'label-soft-error', $message['validationMessage'] ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					}
 				}
 
-				$result->add_soft_error( 'label-soft-error', _x( 'You\'ve explicitly booked the additional insurance service resulting in additional fees although the value of goods does not exceed EUR 500. The label has been created anyway.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			}
-		} catch ( \Exception $e ) {
-			try {
-				$this->delete_label( $label );
-				$label->delete( true );
-			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-			}
+				if ( in_array( 'AdditionalInsurance', $label->get_services(), true ) && $label->get_insurance_amount() <= 500 ) {
+					if ( ! is_a( $result, 'Vendidero\Germanized\Shipments\ShipmentError' ) ) {
+						$result = new ShipmentError();
+					}
 
-			throw new \Exception( esc_html_x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
+					$result->add_soft_error( 'label-soft-error', _x( 'You\'ve explicitly booked the additional insurance service resulting in additional fees although the value of goods does not exceed EUR 500. The label has been created anyway.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				}
+			} catch ( \Exception $e ) {
+				try {
+					$this->delete_label( $label );
+					$label->delete( true );
+				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+				}
+
+				throw new \Exception( esc_html_x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
+			}
 		}
 
 		return $result;
@@ -628,22 +625,24 @@ class LabelRest extends Rest {
 	 * @throws \Exception
 	 */
 	public function delete_label( $label ) {
-		try {
-			if ( ! empty( $label->get_number() ) ) {
-				$response = $this->delete_request(
-					'orders',
-					array(
-						'profile'  => $this->get_profile(),
-						'shipment' => $label->get_number(),
-					)
-				);
+		if ( ! empty( $label->get_number() ) ) {
+			$endpoint = add_query_arg(
+				array(
+					'profile'  => $this->get_profile(),
+					'shipment' => $label->get_number(),
+				),
+				'orders'
+			);
 
-				return true;
+			$response = $this->delete( $endpoint );
+
+			if ( $response->is_error() ) {
+				Package::log( 'Error while cancelling label: ' . wc_print_r( $response->get_error()->get_error_messages(), true ) );
+
+				throw new \Exception( wp_kses_post( implode( "\n", $response->get_error()->get_error_messages() ) ), absint( $response->get_code() ) );
 			}
-		} catch ( \Exception $e ) {
-			Package::log( 'Error while cancelling label: ' . $e->getMessage() );
 
-			throw $e;
+			return true;
 		}
 
 		return false;
@@ -705,53 +704,56 @@ class LabelRest extends Rest {
 	}
 
 	public function test_connection() {
-		$error = new \WP_Error();
-
-		try {
-			$this->post_request(
-				'orders?validate=true',
-				array(
-					'profile'   => $this->get_profile(),
-					'shipments' => array(
-						array(
-							'product'       => 'V01PAK',
-							'billingNumber' => wc_gzd_dhl_get_billing_number(
-								'V01PAK',
-								array(
-									'api_type' => 'dhl.com',
-								)
-							),
-							'refNo'         => 'Order No. 1234',
-							'shipDate'      => Package::get_date_de_timezone( 'Y-m-d' ),
-							'shipper'       => array(
-								'name1'         => 'Test',
-								'addressStreet' => 'Sträßchensweg 10',
-								'postalCode'    => '53113',
-								'city'          => 'Bonn',
-								'country'       => 'DEU',
-							),
-							'consignee'     => array(
-								'name1'         => 'Test',
-								'addressStreet' => 'Kurt-Schumacher-Str. 20',
-								'postalCode'    => '53113',
-								'city'          => 'Bonn',
-								'country'       => 'DEU',
-							),
-							'details'       => array(
-								'weight' => array(
-									'uom'   => 'kg',
-									'value' => 5,
-								),
+		$error    = new \WP_Error();
+		$response = $this->post(
+			'orders?validate=true',
+			array(
+				'profile'   => $this->get_profile(),
+				'shipments' => array(
+					array(
+						'product'       => 'V01PAK',
+						'billingNumber' => wc_gzd_dhl_get_billing_number(
+							'V01PAK',
+							array(
+								'api_type' => 'dhl.com',
+							)
+						),
+						'refNo'         => 'Order No. 1234',
+						'shipDate'      => Package::get_date_de_timezone( 'Y-m-d' ),
+						'shipper'       => array(
+							'name1'         => 'Test',
+							'addressStreet' => 'Sträßchensweg 10',
+							'postalCode'    => '53113',
+							'city'          => 'Bonn',
+							'country'       => 'DEU',
+						),
+						'consignee'     => array(
+							'name1'         => 'Test',
+							'addressStreet' => 'Kurt-Schumacher-Str. 20',
+							'postalCode'    => '53113',
+							'city'          => 'Bonn',
+							'country'       => 'DEU',
+						),
+						'details'       => array(
+							'weight' => array(
+								'uom'   => 'kg',
+								'value' => 5,
 							),
 						),
 					),
-				)
-			);
-		} catch ( \Exception $e ) {
-			if ( 401 === $e->getCode() ) {
+				),
+			)
+		);
+
+		if ( $response->is_error() ) {
+			if ( 401 === $response->get_code() ) {
 				$error->add( 'unauthorized', _x( 'Your DHL API credentials seem to be invalid.', 'dhl', 'woocommerce-germanized-dhl' ) );
-			} elseif ( 400 !== $e->getCode() ) {
-				$error->add( $e->getCode(), $e->getMessage() );
+			} elseif ( 400 !== $response->get_code() ) {
+				if ( $response->is_error() ) {
+					$error = $response->get_error();
+				} else {
+					$error->add( 'dhl-api-error', _x( 'Unknown DHL API error.', 'dhl', 'woocommerce-germanized-dhl' ) );
+				}
 			}
 		}
 

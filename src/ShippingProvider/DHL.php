@@ -142,6 +142,15 @@ class DHL extends Auto {
 		);
 
 		$this->register_product(
+			'V62KP',
+			array(
+				'label'     => _x( 'DHL Kleinpaket', 'dhl', 'woocommerce-germanized-dhl' ),
+				'countries' => array( 'DE' ),
+				'zones'     => array( 'dom' ),
+			)
+		);
+
+		$this->register_product(
 			'V66WPI',
 			array(
 				'label' => _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized-dhl' ),
@@ -180,7 +189,7 @@ class DHL extends Auto {
 			array(
 				'label'       => _x( 'GoGreen', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description' => _x( 'Ship your parcels climate friendly.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK', 'V62WP', 'V66WPI' ),
+				'products'    => array( 'V01PAK', 'V53WPAK', 'V54EPAK', 'V62WP', 'V66WPI', 'V62KP' ),
 			)
 		);
 
@@ -240,7 +249,7 @@ class DHL extends Auto {
 			array(
 				'label'       => _x( 'Retail Outlet Routing', 'dhl', 'woocommerce-germanized-dhl' ),
 				'description' => _x( 'Send undeliverable items to nearest retail outlet instead of immediate return.', 'dhl', 'woocommerce-germanized-dhl' ),
-				'products'    => array( 'V01PAK', 'V62WP' ),
+				'products'    => array( 'V01PAK', 'V62WP', 'V62KP' ),
 			)
 		);
 
@@ -329,7 +338,7 @@ class DHL extends Auto {
 			'100x70mm',
 			array(
 				'label'          => _x( '100x70mm', 'dhl-print-format', 'woocommerce-germanized-dhl' ),
-				'products'       => array( 'V62WP', 'V66WPI' ),
+				'products'       => array( 'V62WP', 'V66WPI', 'V62KP' ),
 				'shipment_types' => array( 'simple' ),
 			)
 		);
