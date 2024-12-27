@@ -5,10 +5,20 @@ namespace Vendidero\Germanized\DHL\Api;
 use Exception;
 use Vendidero\Germanized\DHL\Label\ReturnLabel;
 use Vendidero\Germanized\DHL\Package;
+use Vendidero\Germanized\Shipments\API\Response;
+use Vendidero\Germanized\Shipments\ShipmentError;
 
 defined( 'ABSPATH' ) || exit;
 
-class ReturnRest extends Rest {
+class ReturnRest extends PaketRest {
+
+	public function get_url() {
+		if ( Package::is_debug_mode() ) {
+			return 'https://api-sandbox.dhl.com/parcel/de/shipping/returns/v1/';
+		} else {
+			return 'https://api-eu.dhl.com/parcel/de/shipping/returns/v1/';
+		}
+	}
 
 	/**
 	 * @param \Vendidero\Germanized\DHL\Label\ReturnLabel $label
@@ -18,14 +28,6 @@ class ReturnRest extends Rest {
 	 */
 	public function get_return_label( &$label ) {
 		return $this->create_return_label( $label );
-	}
-
-	public function get_base_url() {
-		if ( Package::is_debug_mode() ) {
-			return 'https://api-sandbox.dhl.com/parcel/de/shipping/returns/v1/';
-		} else {
-			return 'https://api-eu.dhl.com/parcel/de/shipping/returns/v1/';
-		}
 	}
 
 	/**
@@ -111,18 +113,22 @@ class ReturnRest extends Rest {
 	}
 
 	public function get_receiver_ids() {
-		try {
-			$receivers    = $this->get_request( 'locations' );
-			$receiver_ids = array();
+		$response     = $this->get( 'locations' );
+		$receiver_ids = array();
+
+		if ( $response->is_error() ) {
+			return $response->get_error();
+		} else {
+			$receivers = $response->get_body();
 
 			if ( is_array( $receivers ) ) {
 				foreach ( $receivers as $receiver ) {
-					if ( ! isset( $receiver->receiverId, $receiver->shipperCountry ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					if ( ! isset( $receiver['receiverId'], $receiver['shipperCountry'] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						continue;
 					}
 
-					$receiver_id      = wc_clean( $receiver->receiverId ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-					$receiver_country = wc_gzd_country_to_alpha2( wc_clean( strtoupper( $receiver->shipperCountry ) ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$receiver_id      = wc_clean( $receiver['receiverId'] ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$receiver_country = wc_gzd_country_to_alpha2( wc_clean( strtoupper( $receiver['shipperCountry'] ) ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$slug             = sanitize_key( $receiver_id . '_' . $receiver_country );
 
 					$receiver_ids[ $slug ] = array(
@@ -132,11 +138,9 @@ class ReturnRest extends Rest {
 					);
 				}
 			}
-
-			return $receiver_ids;
-		} catch ( Exception $e ) {
-			return new \WP_Error( 'receiver-id-error', $e->getMessage() );
 		}
+
+		return $receiver_ids;
 	}
 
 	public function create_return_label( $label ) {
@@ -144,65 +148,47 @@ class ReturnRest extends Rest {
 			$request_args = $this->get_request_args( $label );
 			Package::log( 'Call returns API: ' . wc_print_r( $request_args, true ) );
 
-			$args     = array(
+			$args = array(
 				'labelType' => 'SHIPMENT_LABEL',
 			);
+
 			$endpoint = add_query_arg( $args, 'orders' );
-			$result   = $this->post_request( $endpoint, $request_args );
+			$response = $this->post( $endpoint, $request_args );
+
+			if ( $response->is_error() ) {
+				throw new \Exception( wp_kses_post( implode( "\n", $response->get_error()->get_error_messages() ) ), esc_html( $response->get_code() ) );
+			} else {
+				$response_body = $response->get_body();
+
+				try {
+					if ( isset( $response_body['shipmentNo'] ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$label->set_number( $response_body['shipmentNo'] ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					}
+
+					$path = false;
+
+					if ( isset( $response_body['label']['b64'] ) ) {
+						$default_file = base64_decode( $response_body['label']['b64'] ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase,WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+
+						// Store the downloaded label as default file
+						$path = $label->upload_label_file( $default_file );
+					}
+
+					if ( ! $path ) {
+						throw new Exception( 'Error while uploading the return label' );
+					}
+				} catch ( Exception $e ) {
+					// Delete the label dues to errors.
+					$label->delete();
+
+					throw new Exception( esc_html_x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
+				}
+
+				return $label;
+			}
 		} catch ( Exception $e ) {
 			Package::log( 'Response Error: ' . $e->getMessage() );
 			throw $e;
 		}
-
-		return $this->update_return_label( $label, $result );
-	}
-
-	/**
-	 * @param ReturnLabel $label
-	 * @param $response_body
-	 *
-	 * @return mixed
-	 * @throws Exception
-	 */
-	protected function update_return_label( $label, $response_body ) {
-		try {
-			if ( isset( $response_body->shipmentNo ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				$label->set_number( $response_body->shipmentNo ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			}
-
-			$path = false;
-
-			if ( isset( $response_body->label->b64 ) ) {
-				$default_file = base64_decode( $response_body->label->b64 ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase,WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-
-				// Store the downloaded label as default file
-				$path = $label->upload_label_file( $default_file );
-			}
-
-			if ( ! $path ) {
-				throw new Exception( 'Error while uploading the return label' );
-			}
-		} catch ( Exception $e ) {
-			// Delete the label dues to errors.
-			$label->delete();
-
-			throw new Exception( esc_html_x( 'Error while creating and uploading the label', 'dhl', 'woocommerce-germanized-dhl' ) );
-		}
-
-		return $label;
-	}
-
-	protected function get_auth() {
-		return $this->get_basic_auth_encode( Package::get_retoure_api_user(), Package::get_retoure_api_signature() );
-	}
-
-	protected function set_header( $authorization = '', $request_type = 'GET', $endpoint = '' ) {
-		parent::set_header();
-
-		if ( ! empty( $authorization ) ) {
-			$this->remote_header['Authorization'] = $authorization;
-		}
-
-		$this->remote_header['dhl-api-key'] = Package::get_dhl_com_api_key();
 	}
 }
