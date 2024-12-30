@@ -101,6 +101,19 @@ class Install {
 			}
 		}
 
+		if ( version_compare( $current_version, '3.5.0', '<' ) ) {
+			Helper::instance()->load_shipping_providers();
+
+			if ( $dhl = wc_gzd_get_shipping_provider( 'dhl' ) ) {
+				if ( $dhl->is_activated() ) {
+					if ( $dhl->get_setting( 'participation_V62WP', '' ) ) {
+						$dhl->update_setting( 'participation_V62KP', $dhl->get_setting( 'participation_V62WP', '' ) );
+						$dhl->save();
+					}
+				}
+			}
+		}
+
 		/**
 		 * Keep using legacy SOAP API (for now) for older installations to prevent update issues.
 		 */
