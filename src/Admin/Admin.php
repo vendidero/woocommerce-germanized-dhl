@@ -126,7 +126,7 @@ class Admin {
 			} elseif ( isset( $_GET['has-imported'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				?>
 				<div class="notice fade updated">
-					<p><?php echo wp_kses_post( sprintf( _x( 'New to DHL in Germanized? Learn how to <a href="%s" target="_blank">easily create DHL labels</a> to your shipments.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/dokument/dhl-labels-zu-sendungen-erstellen' ) ) );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p>
+					<p><?php echo wp_kses_post( sprintf( _x( 'New to DHL in Germanized? Learn how to <a href="%s" target="_blank">easily create DHL labels</a> to your shipments.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/doc/woocommerce-germanized/dhl-labels-zu-sendungen-erstellen' ) ) );  // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p>
 				</div>
 				<?php
 			}

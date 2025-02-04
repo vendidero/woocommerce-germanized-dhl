@@ -483,7 +483,7 @@ class Internetmarke {
 		$discontinued_starting_from = new \DateTime( '2022-07-01' );
 
 		if ( $today >= $discontinued_starting_from ) {
-			throw new \Exception( wp_kses_post( sprintf( _x( 'The Deutsche Post WP International API was discontinued. Please use the <a href="%s">DHL API</a> for Warenpost labels instead.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/dokument/dhl-integration-einrichten' ) ) ) );
+			throw new \Exception( wp_kses_post( sprintf( _x( 'The Deutsche Post WP International API was discontinued. Please use the <a href="%s">DHL API</a> for Warenpost labels instead.', 'dhl', 'woocommerce-germanized-dhl' ), esc_url( 'https://vendidero.de/doc/woocommerce-germanized/dhl-integration-einrichten' ) ) ) );
 		} elseif ( empty( $label->get_wp_int_awb() ) ) {
 			return $this->get_wp_int_api()->create_label( $label );
 		} else {

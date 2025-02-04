@@ -958,7 +958,7 @@ class DHL extends Auto {
 					'title' => _x( 'Products and Participation Numbers', 'dhl', 'woocommerce-germanized-dhl' ),
 					'type'  => 'title',
 					'id'    => 'dhl_product_options',
-					'desc'  => sprintf( _x( 'Learn how to <a href="%1$s" target="_blank">find your participation numbers</a> in your DHL business portal.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#produkte-und-teilnahmenummern' ),
+					'desc'  => sprintf( _x( 'Learn how to <a href="%1$s" target="_blank">find your participation numbers</a> in your DHL business portal.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/doc/woocommerce-germanized/dhl-integration-einrichten#produkte-und-teilnahmenummern' ),
 				),
 			)
 		);
@@ -1346,7 +1346,7 @@ class DHL extends Auto {
 
 			array(
 				'title'   => _x( 'Custom shipper', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'    => _x( 'Use a custom shipper address managed within your DHL business profile.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Choose this option if you want to use a <a href="%s" target="_blank">custom address</a> profile managed within your DHL business profile as shipper reference for your labels.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
+				'desc'    => _x( 'Use a custom shipper address managed within your DHL business profile.', 'dhl', 'woocommerce-germanized-dhl' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Choose this option if you want to use a <a href="%s" target="_blank">custom address</a> profile managed within your DHL business profile as shipper reference for your labels.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/doc/woocommerce-germanized/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
 				'id'      => 'label_use_custom_shipper',
 				'value'   => $this->get_setting( 'label_use_custom_shipper', 'no' ),
 				'default' => 'no',
@@ -1355,7 +1355,7 @@ class DHL extends Auto {
 
 			array(
 				'title'             => _x( 'Shipper reference', 'dhl', 'woocommerce-germanized-dhl' ),
-				'desc'              => '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Insert the <a href="%s" target="_blank">address reference</a> you have chosen within the DHL business portal for your custom shipper address.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/dokument/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Insert the <a href="%s" target="_blank">address reference</a> you have chosen within the DHL business portal for your custom shipper address.', 'dhl', 'woocommerce-germanized-dhl' ), 'https://vendidero.de/doc/woocommerce-germanized/dhl-integration-einrichten#individuelle-absenderreferenz-samt-logo-nutzen' ) . '</div>',
 				'id'                => 'label_custom_shipper_reference',
 				'value'             => $this->get_setting( 'label_custom_shipper_reference', '' ),
 				'default'           => '',
@@ -1375,7 +1375,7 @@ class DHL extends Auto {
 	}
 
 	public function get_help_link() {
-		return 'https://vendidero.de/dokument/dhl-integration-einrichten';
+		return 'https://vendidero.de/doc/woocommerce-germanized/dhl-integration-einrichten';
 	}
 
 	public function get_signup_link() {
