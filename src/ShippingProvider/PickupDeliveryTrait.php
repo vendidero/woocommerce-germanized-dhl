@@ -84,6 +84,29 @@ trait PickupDeliveryTrait {
 		);
 
 		try {
+			$supports_customer_number     = true;
+			$customer_number_is_mandatory = 'locker' === $location->location->type ? true : false;
+
+			$replacement_map = array(
+				'address_1' => 'label',
+				'country'   => 'country',
+				'postcode'  => 'postcode',
+				'city'      => 'city',
+			);
+
+			if ( 'DE' !== $address['country'] ) {
+				$replacement_map = array(
+					'address_2' => 'label',
+					'address_1' => 'address_1',
+					'country'   => 'country',
+					'postcode'  => 'postcode',
+					'city'      => 'city',
+				);
+
+				$supports_customer_number     = false;
+				$customer_number_is_mandatory = false;
+			}
+
 			return new PickupLocation(
 				array(
 					'code'                         => $location->gzd_id,
@@ -91,15 +114,10 @@ trait PickupDeliveryTrait {
 					'label'                        => $location->gzd_name,
 					'latitude'                     => $location->place->geo->latitude,
 					'longitude'                    => $location->place->geo->longitude,
-					'supports_customer_number'     => true,
-					'customer_number_is_mandatory' => 'locker' === $location->location->type ? true : false,
+					'supports_customer_number'     => $supports_customer_number,
+					'customer_number_is_mandatory' => $customer_number_is_mandatory,
 					'address'                      => $address,
-					'address_replacement_map'      => array(
-						'address_1' => 'label',
-						'country'   => 'country',
-						'postcode'  => 'postcode',
-						'city'      => 'city',
-					),
+					'address_replacement_map'      => $replacement_map,
 				)
 			);
 		} catch ( \Exception $e ) {

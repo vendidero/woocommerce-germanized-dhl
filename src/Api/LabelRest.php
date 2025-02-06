@@ -357,6 +357,13 @@ class LabelRest extends PaketRest {
 				 */
 				'email'                         => apply_filters( 'woocommerce_gzd_dhl_label_api_communication_email', $label->has_email_notification() || isset( $services['closestDropPoint'] ) ? $shipment->get_email() : '', $label ),
 			);
+
+			/**
+			 * Force email notification for pickup location deliveries to third-party countries.
+			 */
+			if ( $shipment->send_to_external_pickup() ) {
+				$shipment_request['consignee']['email'] = $shipment->get_email();
+			}
 		}
 
 		if ( Package::is_crossborder_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
