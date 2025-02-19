@@ -216,7 +216,6 @@ class ParcelServices {
 	}
 
 	public static function add_scripts() {
-
 		// load scripts on checkout page only
 		if ( ! is_checkout() ) {
 			return;
